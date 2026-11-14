@@ -1,7 +1,9 @@
 # Execution plan: Clock Audit (with real-fire proof)
 
 **Team Propagators · NASA Space Apps 2026 · Challenge #9**
-Written Sat Nov 14, 1:30 PM PT. **Deadline: Sun Nov 15, 6:00 PM PT** (from the team doc; confirm with the local lead). That leaves about 28 hours.
+> **Superseded by the team's FINAL PLAN v1.1 (Sat 2:30 PM).** Use that plan. Key corrections: the deadline is **Sun Nov 15, 11:59 PM PT**, with an internal submit at **9:00 PM**. FireClock already ships a fixed-clock calendar and an Aqua drift probe. The centerpiece is now the Terra/Aqua opposite-drift ("two clocks") test. The California work is a detection-limit spec sheet (`analysis/detection-limits/`).
+
+Written Sat Nov 14, 1:30 PM PT (original deadline assumption of Sun 6:00 PM was wrong).
 **Decision (Sat ~1:50 PM): the team chose "C with changes."** That is Connor's Clock Audit plus three changes:
 1. a fire-size check, so the audit number isn't fooled by a year of smaller fires;
 2. a California real-fire proof that the change comes from the satellite, not the fires;
