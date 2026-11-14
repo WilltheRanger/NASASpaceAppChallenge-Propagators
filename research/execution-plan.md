@@ -5,6 +5,8 @@ Written Sat Nov 14, 1:30 PM PT. **Deadline: Sun Nov 15, 6:00 PM PT** (from the t
 
 > **Pitch:** "Brazil reported its fewest Amazon fires since 1998, counted by a NASA satellite whose 1:30 pm photo now happens at 3:50 pm. We show how much of that trend is the fire and how much is the satellite's clock, prove it with real recorded fires, and keep the count going after that satellite shuts down."
 
+> **What it is:** a fixed-clock fire calendar for anywhere, with a clock audit. Brazil is the featured story, not the boundary: the calendar and audit also ship for **Argentina** (CONAE's country), Punjab and California.
+
 ---
 
 ## 0. Final broad check: what's verified, what's still open
@@ -22,6 +24,20 @@ Written Sat Nov 14, 1:30 PM PT. **Deadline: Sun Nov 15, 6:00 PM PT** (from the t
 - INPE's official Brazil series still uses Aqua as its reference satellite (2026 state bulletins).
 - INPE's FAQ never mentions drift, and its named successor, S-NPP, ended Nov 2, 2026.
 - **Measured this week from FIRMS:** Aqua crosses the Amazon at **15:50**, NOAA-20 at **13:39**. Over Punjab it's Aqua **15:31** vs NOAA-20 **13:09**.
+
+**It works outside Brazil.** Aqua's late clock belongs to the satellite, not to Brazil. This week (FIRMS 7-day files, near-nadir daytime detections), Aqua passed about 2 hours after NOAA-20 everywhere:
+
+| Region | Aqua | NOAA-20 | Aqua late by |
+|---|---|---|---|
+| Argentina/Paraguay | 16:02 | 13:53 | 2 h 08 min |
+| Southern Africa | 15:56 | 13:44 | 2 h 12 min |
+| West Africa (Sahel) | 15:41 | 13:23 | 2 h 18 min |
+| Northern Australia | 15:56 | 13:44 | 2 h 12 min |
+| California | 15:12 | 13:10 | 2 h 02 min |
+| Brazil (Amazon/Cerrado) | 15:50 | 13:39 | 2 h 11 min |
+
+- The *size and direction* of the count error differ by region, because fires burn at different hours. Show it region by region.
+- Quiet regions get a "not enough data" label instead of a noisy number.
 
 **Data is reachable:**
 - FIRMS yearly files for Brazil: MODIS about 32–43 MB/yr, S-NPP about 154 MB/yr, NOAA-20 about 163 MB/yr.
@@ -49,8 +65,8 @@ Written Sat Nov 14, 1:30 PM PT. **Deadline: Sun Nov 15, 6:00 PM PT** (from the t
 | # | Deliverable | Required? |
 |---|---|---|
 | 1 | **Web app** at a public link (opens without login) | Yes |
-| 2 | **Harmonized calendar**: month × year heat-map, 2002 → today, one consistent "fixed-clock" count, anomaly vs. the historical median, CSV download. Preset regions: Brazil biomes (Amazon, Cerrado, Pantanal…), Punjab+Haryana, California. Stretch: Argentina, draw-an-area | Yes |
-| 3 | **Clock-audit panel**: per region and year since 2021, the Aqua-based count vs. the fixed-clock count, with the gap and error bars | Our headline |
+| 2 | **Harmonized calendar**: month × year heat-map, 2002 → today, one consistent "fixed-clock" count, anomaly vs. the historical median, CSV download. Preset regions: Brazil biomes (Amazon, Cerrado, Pantanal…), **Argentina** (CONAE's country), Punjab+Haryana, California. Stretch: draw-an-area, more regions | Yes |
+| 3 | **Clock-audit panel**: for **every** preset region and year since 2021, the Aqua-based count vs. the fixed-clock count, with the gap and error bars (or "not enough data"). Brazil, whose official INPE count is built on Aqua, is the featured story | Our headline |
 | 4 | **Drift chart**: the local time Aqua and Terra actually looked, year by year, vs. VIIRS | Hook |
 | 5 | **Real-fire proof**: Aqua vs. VIIRS detection of same-size *recorded* California fires, before vs. after 2021 | Differentiator |
 | 6 | **7 slides OR 30 s video**, plus the **project page**: summary, demo link, project link, details, NASA data, references | Yes |
@@ -86,6 +102,7 @@ The app reads only these files. **Every number on a slide must come from them.**
 
 **B. Regions.**
 - Brazil: assign each detection's 0.1° cell to an IBGE biome with a one-time lookup table.
+- Argentina: the FIRMS Argentina country files already contain only Argentina, so start with the whole country. Provinces are a stretch goal (they need a free province-boundary file).
 - Punjab+Haryana: bounding box or state shapes.
 - California: state polygon.
 
@@ -108,8 +125,10 @@ The app reads only these files. **Every number on a slide must come from them.**
 2. **Reproduce INPE.** Our FIRMS Aqua daytime counts by biome/month vs. INPE's CSV.
    - If they match, it is an "audit of INPE's series."
    - If not, it is an "audit of the FIRMS Aqua record INPE's method uses."
+   - INPE's statistics page also has an **Argentina** country filter (check it in a browser). If it gives monthly counts, run the same comparison for Argentina.
 3. **MapBiomas** annual burned area by biome (stretch).
 4. **Placebo** years inside the noise floor.
+5. **Argentina official totals** (stretch): yearly fires and hectares by province from datos.gob.ar, as a rough check. Contents still to verify.
 
 **G. Real-fire proof (California).**
 - Data: FPA-FOD 7th ed. California fires, 2012–2024, grouped into size classes.
@@ -122,29 +141,29 @@ The app reads only these files. **Every number on a slide must come from them.**
 | When | What | Gate / if missed |
 |---|---|---|
 | **Sat 1:45–2:30** | Confirm decision and roles; agree the JSON contract; get FIRMS MAP_KEYs; start or confirm downloads; scaffold the app with mock JSON | — |
-| **Sat 2:30–6:00** | Punjab kill test; Brazil ingest + biome lookup; first unstratified L for Amazon and Cerrado; download the INPE CSV; app: calendar + region picker on mock data | **Gate 1 (6 PM):** real drift chart + first L. *If missed:* Amazon only |
+| **Sat 2:30–6:00** | Punjab kill test; Brazil ingest + biome lookup; **Argentina ingest** (small files); first unstratified L for Amazon, Cerrado and Argentina; download the INPE CSVs (Brazil biomes + Argentina); app: calendar + region picker on mock data | **Gate 1 (6 PM):** real drift chart + first L. *If missed:* Amazon + Argentina only |
 | **Sat 6:00–10:00** | Fire-mix fix, placebo, bootstrap; fixed-clock series; calendar JSON for all presets; INPE reproduction; app wired to real JSON (calendar + audit panel + drift chart) | **Gate 2 (10 PM):** INPE check done; set the audit framing |
 | **Sat 10 PM–2 AM** | California proof; app polish and CSV export; first slide draft. **Sleep in shifts**: two people sleep from 2 AM | Proof chart exists. *If not:* drop to one size class |
 | **Sun 8:00–9:00** | **Gate 3:** freeze all numbers (re-run the pipeline once, clean); app deployed at its public URL | Freeze holds |
-| **Sun 9:00–1:00** | Stretch only (Argentina, draw-an-area, MapBiomas); final slides or video; project page; references | — |
+| **Sun 9:00–1:00** | Stretch only (draw-an-area, MapBiomas, Argentina provinces and official totals); final slides or video; project page; references | — |
 | **Sun 1:00** | **Feature freeze.** | — |
 | **Sun 1:00–5:00** | Rehearse the pitch; Q&A prep; test every link signed out; check that slide numbers match the JSON; **Submit for Judging by 5:00**; confirm the success banner; one hour of buffer | — |
 
 **Cut order if behind:**
-1. Argentina
-2. Draw-an-area
-3. MapBiomas
+1. Draw-an-area
+2. MapBiomas
+3. Argentina provinces and official-totals check (keep Argentina's country-level calendar and audit)
 4. NOAA-20 continuity polish
 5. California proof (keep it if at all possible; it's what nobody else has)
 
-**Never cut:** the calendar (required), the Brazil audit (our headline), the Punjab check, the INPE comparison.
+**Never cut:** the calendar (required), the Brazil audit (our headline), Argentina's country-level calendar and audit, the Punjab check, the INPE comparison.
 
 ## 6. Pitch: 7 slides (or the same beats in 30 s)
 
 1. **Hook:** "Fewest Amazon fires since 1998 — counted by a satellite whose 1:30 pm photo now happens at 3:50 pm."
 2. **Problem:** NASA's Aqua drifted. INPE's official series still uses it, and its successor (S-NPP) shut down Nov 2.
-3. **What we built:** the calendar + clock audit (screenshot).
-4. **Result:** the audit gap by biome, 2021–2025, with error bars and noise floor (whatever it is; "the trend holds" is also a finding).
+3. **What we built:** a fixed-clock calendar for anywhere, plus the clock audit (screenshot). Aqua is about 2 h late everywhere: Brazil, Argentina, Africa, Australia, California.
+4. **Result:** the audit gap by Brazilian biome **and for Argentina**, 2021–2025, with error bars and noise floor (whatever it is; "the trend holds" is also a finding).
 5. **Proof:** real California fires show the change is the satellite, not the fires. Frame it like checking a lab instrument against a reference standard.
 6. **Validation & limits:** reproduce INPE, the Punjab test, placebo years; honest caveats.
 7. **Impact:** who uses it (journalists, state agencies, researchers, fire managers); it keeps the count going after Aqua ends in 2027; links.
@@ -156,6 +175,7 @@ The app reads only these files. **Every number on a slide must come from them.**
 - *"How do you know VIIRS didn't change?"* VIIRS orbits are held at about 13:30 (we measured 13:39 over Brazil). The placebo years show the noise floor. The California proof checks both satellites against real fires.
 - *"Isn't this just a fire-mix change?"* We recompute within fire-strength classes (L_strat).
 - *"Does your count match INPE's?"* Show Gate 2.
+- *"Is this only for Brazil?"* No. Aqua is about 2 hours late everywhere (table in §0). The calendar and audit run for Brazil, Argentina, Punjab and California. Brazil is the featured story because its official count is built on Aqua.
 
 ## 8. SI (AI) disclosure log
 
