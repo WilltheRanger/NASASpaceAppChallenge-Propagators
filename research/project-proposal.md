@@ -11,7 +11,7 @@
 ## 0. TL;DR
 
 1. **The obvious project is saturated.** It is a harmonized calendar plus ratio or ML calibration, an anomaly vs. the median, and an AI chat. About 320 public GitHub repos created since September mention this challenge ("MODIS and VIIRS Hot Spots") in their name, description or README. The clever variants are taken too: capture-recapture, degrading VIIRS to MODIS, cloud masks, overpass-time correction, fire-weather drivers and outage rules. See §1.2.
-2. **Every one of those projects calibrates satellites against each other.** That is circular. If MODIS and VIIRS miss the *same* small fires, comparing them can never reveal it. And since about 2022, Aqua does not even look at the same time of day as VIIRS.
+2. **Almost all of those projects calibrate satellites against each other.** That is circular. If MODIS and VIIRS miss the *same* small fires, comparing them can never reveal it. And since about 2022, Aqua does not even look at the same time of day as VIIRS.
 3. **Our move is to use an external reference standard: fires reported by firefighting agencies.**
    - Sources: US Forest Service **FPA-FOD 7th edition** (1992–**2024**, 2.66M records, released June 2026), plus NIFC WFIGS for 2025–26 (about 392k wildfire records, effectively 2014–today, updated live).
    - With them we measure each satellite's **probability of detection (POD) vs. fire size**.
@@ -65,7 +65,7 @@
 | Punjab burn-timing evasion | `vaibhav375/saanjh`, `ShubAce/BlindSpot` (public repos; not confirmed as Space Apps entries) |
 | Fire-weather drivers, burned-area comparison, outage/successor rules | `Warren-530/fire-harmony`, `polymathicX/Agun-Panjika`, `figielak/seamless-fire` |
 | AI agent/chat over fire data | `Aalvee-Aarham/kiln-watch` and many others |
-| **Agency fire reports as the reference standard (POD vs. real fires, drift via ground truth)** | **None found** in two searches on Nov 14. We searched code for FPA-FOD, WFIGS, CAL FIRE/FRAP, MTBS and CNFDB alongside MODIS/VIIRS harmonization. GitHub code search doesn't index every new repo, so read this as "not seen", not "doesn't exist". |
+| **Agency fire reports as the reference standard (POD vs. real fires, drift via ground truth)** | **One close competitor found** in a third search (Nov 14 afternoon). `jogeshwaranish/nasa2026-spaceapps` (created Nov 14, California-focused) matches satellite fire "spike events" to FPA-FOD incidents and compares its series with FPA-FOD. From code fragments, it does *not* appear to fit per-satellite detection curves, measure drift, test shared blind spots, or use the curves to harmonize, so those are our differentiators. The first two searches found nothing. GitHub code search doesn't index every new repo, so others may exist. |
 
 **Scale:** about 320 public repos created since Sep 2026 mention "MODIS and VIIRS Hot Spots" in their name, description or README. About 375 mention the other fire challenge, "Flame in Freefall". Not every repo is a separate team, but it is hundreds, not dozens.
 
@@ -378,7 +378,7 @@ If a hypothesis fails, we report it; that is still a finding. This is the "show 
 | Criterion (1–5) | How Anchor earns a 5 |
 |---|---|
 | **Impact** | Named users (emergency managers, scientists, land managers, national statistics offices); measured early-warning skill; timely (S-NPP retired, MODIS ending) |
-| **Creativity** | The only reference-standard approach we found among this challenge's public repos; borrows POD/a90 from materials NDT and dual-system estimation from census statistics |
+| **Creativity** | One of very few ground-truth approaches among this challenge's ~320 public repos (one other team validates against FPA-FOD). It is the only one we've seen that builds per-satellite detection curves across the drift years. Borrows POD/a90 from materials NDT and dual-system estimation from census statistics |
 | **Validity** | Preregistered hypotheses; independent ground truth; validates the MODIS-only era; sensitivity analyses; limits stated |
 | **Relevance** | Exactly the requested harmonized calendar (AOI, date range, CSV, accessible colors) built on NASA FIRMS MODIS + VIIRS. The 2026 guide (as quoted by other teams; the official site was down) asks that NASA data be "integral, not a superficial add-on". Here NASA data is the thing being measured and harmonized; agency fire records are only the yardstick. |
 | **Presentation** | One sentence anyone gets ("we checked the satellites against real fires"), one striking map, one honest calendar |
@@ -504,7 +504,7 @@ Every claim above was re-checked against primary sources where possible. What ch
 | GFED5 ends MODIS record in 2022 due to drift | ✅ Verified | Chen et al. 2026, ESSD: "ends in 2022, when orbital drift-induced changes surpassed the thresholds" |
 | No MODIS-like morning follow-on | ✅ Verified | LAADS transition PDF (verbatim quote in §1.3). Non-NASA morning sensors exist (Sentinel-3) |
 | "~80 competing repos" | ❌ **Undercount** | About 320 repos created since Sep 2026 mention "MODIS and VIIRS Hot Spots"; about 375 mention "Flame in Freefall" |
-| Nobody uses agency fire records | ⚠️ Holds, with a caveat | Not seen in two code searches; GitHub code search doesn't index every new repo |
+| Nobody uses agency fire records | ❌ **No longer true** | Third search found `jogeshwaranish/nasa2026-spaceapps` matching satellite fire events to FPA-FOD in California. Distinct from ours (no per-satellite curves or drift test seen), but close |
 | Hawbaker 2008 used agency records | ❌ **Wrong** | 361 Landsat-mapped perimeters (≥18 ha, 2003–05) with year-long matching. The 66/73/82% and 105/195/334 ha numbers are verified |
 | "~15% Lincoln–Petersen undercount" | ✅ Arithmetic verified | 0.66 × 0.73 / 0.57 = 0.845; applies to large fires in Hawbaker's set |
 | Fusco 2019: 78 ha (West) for 50% detection | ⚠️ Qualifier added | "Under ideal conditions"; 3.5–23.4% range verified; exact threshold sentence seen only in snippets |
