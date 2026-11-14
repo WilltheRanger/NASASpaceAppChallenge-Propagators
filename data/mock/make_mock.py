@@ -120,19 +120,63 @@ for y in range(2012, 2025):
                             "n": random.randint(40, 400)})
 write("proof_california.json", {"mock": True, "note": NOTE, "size_classes": classes, "years": proof_years})
 
-# validation checklist shown in the app ("How do we know?"); statuses here are placeholders
+# validation checklist shown in the app ("How do we know?"): the FINAL PLAN's pre-registered predictions P1-P10
 write("checks.json", {"mock": True, "note": NOTE, "checks": [
-    {"id": "drift", "name": "Aqua's overpass time drifted later", "status": "pass",
-     "detail": "Median local time of Aqua detections, by year."},
-    {"id": "punjab", "name": "Punjab test matches published pass times", "status": "pass",
-     "detail": "Compared with Jethva (2026): 1:44 pm in 2021 to 3:12 pm in 2025."},
-    {"id": "inpe", "name": "Our Aqua counts reproduce INPE's official counts", "status": "pending",
-     "detail": "Monthly counts by biome vs. INPE's published CSV."},
-    {"id": "placebo", "name": "Pre-2021 placebo years stay inside the noise floor", "status": "pass",
-     "detail": "Each 2012-2020 year left out of the baseline in turn."},
-    {"id": "size", "name": "Result holds after the fire-size check", "status": "pending",
-     "detail": "L recomputed within small, medium and large fire classes."},
-    {"id": "proof", "name": "Real recorded fires confirm the satellite changed", "status": "pending",
-     "detail": "California fire records (FPA-FOD 7th ed.), Aqua vs. VIIRS before and after 2021."},
+    {"id": "P1", "name": "Aqua's look time over each Brazilian biome rises every year 2021-2025; VIIRS stays flat", "status": "pending", "detail": ""},
+    {"id": "P2", "name": "Punjab Aqua look time follows Jethva 2026 (1:44 PM in 2021 to 3:12 PM in 2025)", "status": "pending", "detail": ""},
+    {"id": "P3", "name": "Our FIRMS Aqua data reproduces INPE's reference counts", "status": "pending", "detail": ""},
+    {"id": "P4", "name": "Day-to-day sampling noise explains the pre-drift wobble", "status": "pending", "detail": ""},
+    {"id": "P5", "name": "Fire-size mix doesn't explain the audit", "status": "pending", "detail": ""},
+    {"id": "P6", "name": "VIIRS is a stable clock", "status": "pending", "detail": ""},
+    {"id": "P7", "name": "Closure: the timing slope predicts the observed L", "status": "pending", "detail": ""},
+    {"id": "P8", "name": "VIIRS detects small real fires better than MODIS", "status": "pending", "detail": ""},
+    {"id": "P9", "name": "Opposite drifts move the Terra and Aqua probes in opposite directions", "status": "pending", "detail": ""},
+    {"id": "P10", "name": "The two-clock difference agrees with the audit", "status": "pending", "detail": ""},
 ]})
+
+# --- files added for the FINAL PLAN v1.1 (separate RNG so earlier files stay byte-identical) ---
+r2 = random.Random(99)
+
+# two clocks: Terra (drifting earlier) and Aqua (drifting later) probes vs VIIRS, their difference, and a sampling estimate
+for rid, *_ in REGIONS:
+    yrs = []
+    for y in range(2012, 2026):
+        t = max(0, y - 2021)
+        a = math.exp(0.05 * t + r2.uniform(-0.03, 0.03))
+        tt = math.exp(-0.04 * t + r2.uniform(-0.03, 0.03))
+        la, lt = math.log(a), math.log(tt)
+        yrs.append({"year": y, "aqua_lst": hhmm(13.2 + 0.03 * t * t + 0.05 * t), "terra_lst": hhmm(10.9 - 0.025 * t * t - 0.05 * t),
+                    "A": round(a, 3), "A_lo": round(a * 0.95, 3), "A_hi": round(a * 1.05, 3),
+                    "T": round(tt, 3), "T_lo": round(tt * 0.95, 3), "T_hi": round(tt * 1.05, 3),
+                    "clock_diff": round(la - lt, 3), "clock_lo": round(la - lt - 0.07, 3), "clock_hi": round(la - lt + 0.07, 3),
+                    "sampling_est": round((la + lt) / 2, 3)})
+    write(f"twoclocks/{rid}.json", {"mock": True, "note": NOTE, "region": rid,
+                                    "fields": "A, T = Aqua/VIIRS and Terra/VIIRS ratios vs 2012-2020 (1 = no change); clock_diff = log A - log T; sampling_est = shared orbit-sampling effect (log units)",
+                                    "years": yrs})
+
+# California detection limits (same structure the real pipeline analysis/detection-limits/spec_sheet.py writes)
+def rates(scale):
+    out = []
+    for name, base in (("10-100 acres", 0.05), ("100-1000 acres", 0.25), (">1000 acres", 0.7)):
+        n = r2.randint(30, 900)
+        rate = min(0.98, base * scale)
+        out.append({"size_class": name, "n": n, "detected": round(n * rate), "rate": round(rate, 3),
+                    "ci95": [round(max(0, rate - 0.05), 3), round(min(1, rate + 0.05), 3)]})
+    return out
+write("detection_limits_california.json", {"mock": True, "note": NOTE, "source": "MOCK", "rule": "MOCK",
+    "years_with_data": list(range(2012, 2025)), "satellites": {
+        "Aqua": {"n_fires_2012_2020": 2100, "rates_2012_2020": rates(1.0), "a50_acres": 900.0, "a50_ci95": [600.0, 1500.0], "a90_acres": 9000.0, "a90_ci95": [5000.0, 20000.0]},
+        "Terra": {"n_fires_2012_2020": 2100, "rates_2012_2020": rates(0.9), "a50_acres": 1100.0, "a50_ci95": [700.0, 1800.0], "a90_acres": 11000.0, "a90_ci95": [6000.0, 25000.0]},
+        "S-NPP": {"n_fires_2012_2020": 2100, "rates_2012_2020": rates(1.8), "a50_acres": 250.0, "a50_ci95": [150.0, 400.0], "a90_acres": 3000.0, "a90_ci95": [1500.0, 6000.0]}}})
+
+# local "seen vs missed" map around Chino Hills (synthetic points and names)
+fires = []
+for i in range(40):
+    ang, dist = r2.uniform(0, 2 * math.pi), r2.uniform(0, 25)
+    lat = 33.9898 + (dist / 111.0) * math.sin(ang)
+    lon = -117.7326 + (dist / (111.0 * math.cos(math.radians(34)))) * math.cos(ang)
+    acres = round(10 ** r2.uniform(0, 4), 1)
+    fires.append({"year": r2.randint(2012, 2024), "name": f"MOCK FIRE {i + 1}", "acres": acres, "lat": round(lat, 5), "lon": round(lon, 5),
+                  "aqua": r2.random() < min(0.9, acres / 3000), "terra": r2.random() < min(0.9, acres / 3500), "viirs": r2.random() < min(0.95, acres / 600)})
+write("socal_seen_missed.json", {"mock": True, "note": NOTE, "center": {"lat": 33.9898, "lon": -117.7326}, "radius_km": 25, "fires": fires})
 print("wrote mock files to", HERE)
