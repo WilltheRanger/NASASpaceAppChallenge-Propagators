@@ -210,5 +210,3 @@ Acknowledge AI-generated code and data in text **and** metadata (README + file h
 | 8 | **Spanish/Portuguese toggle** for key labels | CONAE (Argentina) and INPE (Brazil) audiences. Stretch only; BRASA already has EN/ES | Medium |
 
 **Don't add new science features.** Finishing and polishing scores more than breadth.
-
-Frontend build prompt: `research/frontend-prompt.md`.
