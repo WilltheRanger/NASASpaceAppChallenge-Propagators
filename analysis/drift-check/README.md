@@ -26,10 +26,16 @@ FIRMS dropped long downloads during the hackathon weekend, so the script fetches
 | 2023 | 13:25 | 10:29 | 1.45 |
 | 2024 | 13:44 | 10:11 | 1.69 |
 
-From 2021 to 2024, Terra moved 44 minutes earlier and Aqua 34 minutes later over the US. This matches NASA's reports
-that maneuvers ended in 2020 (Terra) and 2021 (Aqua). The Aqua/Terra ratio jump in 2024 is only *suggestive* of a
-drift effect on counts. It is confounded by which regions burned each year; the ground-truth POD analysis is the proper test.
-The 2025–2026 files were not retrievable during the outage. Use the FIRMS API (`MODIS_NRT`/`MODIS_SP`) to extend.
+From 2021 to 2024, Terra moved 44 minutes earlier and Aqua 34 minutes later over the US.
+
+**Update, this week:** the FIRMS public 7-day files (Nov 7–14, 2026), with the same filters at 25–50°N, give:
+- Aqua **15:29** and Terra **08:55**, i.e. about 2 h 20 min later and 2 h earlier than their 2013–2021 times;
+- NOAA-20 VIIRS at **13:08**.
+
+This matches NASA's reports. Inclination maneuvers stopped in Feb 2020 (Terra) and Mar 2021 (Aqua), and the drift accelerates after that.
+
+The Aqua/Terra ratio jump in 2024 is only *suggestive* of a drift effect on counts. It is confounded by which regions burned each year; the ground-truth POD analysis is the proper test.
+The 7-day files need no key: `…/data/active_fire/modis-c6.1/csv/MODIS_C6_1_Global_7d.csv`. The yearly 2025–2026 files timed out during the outage; use the FIRMS API (`MODIS_NRT`/`MODIS_SP`) to fill them in.
 
 ## Reproduce
 ```bash
