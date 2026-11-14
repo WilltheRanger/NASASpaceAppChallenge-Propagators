@@ -1,0 +1,97 @@
+{
+ "mock": true,
+ "note": "SYNTHETIC MOCK DATA for UI development only. Not real fire counts.",
+ "region": "br-cerrado",
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:12",
+   "terra_lst": "10:54",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:17",
+   "terra_lst": "10:49",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "13:25",
+   "terra_lst": "10:42",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "13:37",
+   "terra_lst": "10:32",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "13:53",
+   "terra_lst": "10:18",
+   "viirs_lst": "13:18"
+  },
+  {
+   "year": 2026,
+   "aqua_lst": "14:12",
+   "terra_lst": "10:02",
+   "viirs_lst": "13:18"
+  }
+ ]
+}

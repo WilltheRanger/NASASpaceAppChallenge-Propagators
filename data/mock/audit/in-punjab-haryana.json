@@ -1,0 +1,67 @@
+{
+ "mock": true,
+ "note": "SYNTHETIC MOCK DATA for UI development only. Not real fire counts.",
+ "region": "in-punjab-haryana",
+ "baseline": {
+  "years": "2012-2020",
+  "ratio": 0.28,
+  "noise_floor": 0.05
+ },
+ "years": [
+  {
+   "year": 2021,
+   "status": "ok",
+   "L": 1.02,
+   "L_lo": 0.96,
+   "L_hi": 1.08,
+   "L_strat": 0.99,
+   "aqua_count": 40257,
+   "fixed_count": 39472,
+   "gap_pct": 2.0
+  },
+  {
+   "year": 2022,
+   "status": "ok",
+   "L": 1.175,
+   "L_lo": 1.115,
+   "L_hi": 1.235,
+   "L_strat": 1.145,
+   "aqua_count": 47013,
+   "fixed_count": 40016,
+   "gap_pct": 17.5
+  },
+  {
+   "year": 2023,
+   "status": "ok",
+   "L": 1.303,
+   "L_lo": 1.243,
+   "L_hi": 1.363,
+   "L_strat": 1.273,
+   "aqua_count": 37373,
+   "fixed_count": 28676,
+   "gap_pct": 30.3
+  },
+  {
+   "year": 2024,
+   "status": "ok",
+   "L": 1.424,
+   "L_lo": 1.364,
+   "L_hi": 1.484,
+   "L_strat": 1.394,
+   "aqua_count": 47911,
+   "fixed_count": 33642,
+   "gap_pct": 42.4
+  },
+  {
+   "year": 2025,
+   "status": "ok",
+   "L": 1.579,
+   "L_lo": 1.519,
+   "L_hi": 1.639,
+   "L_strat": 1.549,
+   "aqua_count": 56415,
+   "fixed_count": 35721,
+   "gap_pct": 57.9
+  }
+ ]
+}
