@@ -262,6 +262,8 @@ If a hypothesis fails, we report it; that is still a finding. This is the "show 
 | Reference: most complete, 1992–2024 | **USFS FPA-FOD 7th ed.** (RDS-2013-0009.7, released June 2026) — [catalog](https://www.fs.usda.gov/rds/archive/catalog/RDS-2013-0009.7) | 2.66M wildfire records with discovery/containment dates, final size (acres), location and cause. GeoPackage is 227 MB. Covers the drift years and NOAA-21's first two years. Fallback: the 6th ed. (1992–2020, about 2.3M records). |
 | Reference: 2025–today, live | **NIFC WFIGS Incident Locations** — [ArcGIS REST](https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Incident_Locations/FeatureServer/0) | About 392.6k wildfire (WF) records, **effectively 2014 onward** (6 records before 2014). Roughly 13k (2014) to 42k (2025) per year, less complete than FPA-FOD's roughly 80k/yr. Fields include discovery/containment/out times, FinalAcres, PredominantFuelGroup and FireCause. 38,818 prescribed burns (RX) are listed separately, a proxy for managed burning. **Use only for 2025–26, after calibrating it against FPA-FOD on 2014–2024.** |
 | Reference: small fires (stretch) | **FIRMS Landsat 30 m** detections | US/Canada, since 2022 |
+| Transfer test (boreal) | **Canada CNFDB fire points** (all sizes) — [file](https://cwfis.cfs.nrcan.gc.ca/downloads/nfdb/fire_pnt/current_version/NFDB_point_txt.zip) | About 24 MB, updated Aug 2026. Same kind of reference as FPA-FOD, so a clean transfer test. |
+| Transfer test (tropical, crop/pasture burning) | **MapBiomas Fogo Collection 5** (Brazil) — [site](https://brasil.mapbiomas.org/en/mapbiomas-fogo/) | Landsat 30 m monthly burned area, 1985–2024/25. Its ATBD says MODIS/INPE hotspots are used for evaluation, not as inputs, so it is essentially independent. It checks the calendar month by month. |
 | Transfer test | **Argentina fire statistics** — [datos.gob.ar](https://datos.gob.ar/dataset/ambiente-incendios-forestales) | The portal lists fire counts by province (2020–2024) and area burned by province and year. We could not open the files to confirm contents or year coverage; check first. |
 | Context (optional) | MODIS land cover (MCD12Q1) for fuel/biome strata; TLEs + SGP4 for overpass geometry (the team name!) | |
 
@@ -394,7 +396,7 @@ If a hypothesis fails, we report it; that is still a finding. This is the "show 
 **First 60 minutes**
 - Assign roles.
 - Get a free FIRMS `MAP_KEY`.
-- Start the **FPA-FOD GeoPackage** download.
+- Start the **FPA-FOD 7th edition GeoPackage** download (1992–2024, 227 MB; `analysis/data-acquisition/get_reference_data.sh`).
 - Request a FIRMS Archive Download for California + Argentina.
 - Start the chunked yearly-CSV downloads.
 - Pull WFIGS (paginate 2,000 records per request).
@@ -419,7 +421,7 @@ If a hypothesis fails, we report it; that is still a finding. This is the "show 
 **Agency records are incomplete and not perfectly located.**
 - Small fires are unevenly reported between states (Fusco 2019).
 - Points of origin aren't fire footprints.
-- Mitigations: isolated-fire fitting, a size-scaled radius, ±50% sensitivity, FPA-FOD (most complete) for fitting, WFIGS for 2021–2026.
+- Mitigations: isolated-fire fitting, a size-scaled radius, ±50% sensitivity, FPA-FOD 7th ed. (1992–2024, most complete) for all fitting, and WFIGS only for 2025–26.
 
 **Agricultural burning is mostly absent from US wildfire records.**
 - US curves describe wildfire-like fires.
@@ -523,4 +525,87 @@ Every claim above was re-checked against primary sources where possible. What ch
 | FIRIS aircraft at Chino Airport | ✅ Verified | Cal OES: "OES Intel 24 … at Chino Airport" |
 | Practitioner quotes | ✅ Verified | NOAA testbed report ("trust but verify", "are we confident it's a wildfire?"); NASA workshop ("events, not pixels") |
 | Saanjh / BlindSpot are Space Apps teams | ⚠️ Unconfirmed | Labeled as public repos only |
+| FPA-FOD 7th ed. contents | ✅ Verified on the actual file | 2,661,383 records, 1992–2024; 104,438 CA fires 2012–2024; discovery time 97% / containment date 66% filled (CA); 240,133 US "debris and open burning" fires 2012–2024 |
+| Canada CNFDB / MapBiomas Fogo / WFIGS paging | ✅ Verified | CNFDB `NFDB_point_txt.zip` reachable (24 MB); MapBiomas Fogo C5 trained on Landsat, hotspots only in evaluation; WFIGS 2,000 records per page (script tested) |
+| ESA Fire_cci SFD as small-fire referee | ❌ Rejected | Uses VIIRS/MODIS hotspots as input (circular) |
 | Must we use NASA data? | ✅ Yes, as the core | Kickoff slide ("using NASA information"), submission field "NASA resource use", and the 2026 guide as quoted by other teams ("integral, not a superficial add-on"). The official site was down, so re-check it when it's back |
+
+---
+
+## 16. Fixing the three biggest risks
+
+### Risk 1: the reference is US-only
+
+**Approach: "physics transfers, behavior doesn't."**
+- A satellite's chance of seeing a fire depends on two kinds of things:
+  - **(a) The sensor:** pixel size, sensitivity, view angle and overpass time. These are the same everywhere; MODIS doesn't change when it crosses into Argentina.
+  - **(b) The fire and the sky:** fire size, intensity, duration, the hour it burns, and cloud. These differ by region: crop fires are smaller and shorter, Punjab now burns at 4–5 pm, the tropics are cloudier.
+- **Learn (a) from US ground truth**, where FPA-FOD records fires of every size.
+- **Measure (b) in each region from satellite data:**
+  - fire sizes and intensities from VIIRS clusters;
+  - burn timing from geostationary data (GOES-East covers Argentina and Brazil);
+  - cloud from MODIS cloud products.
+- **Apply the US-learned detection function to each region's own fire mix.** Statisticians call this correcting for *covariate shift*.
+
+**Then test it where independent references exist, and label everything else honestly:**
+
+| Region | Reference | Type | Status in the app |
+|---|---|---|---|
+| USA | FPA-FOD 7th ed. (1992–2024, 2.66M fires) | Agency incident records | **Validated** (calibration + held-out years) |
+| Canada | CNFDB fire points (all sizes) | Agency incident records | **Tested**: transfer test #1, boreal |
+| Brazil | MapBiomas Fogo C5, Landsat 30 m monthly burned area | Satellite burn scars, independent of MODIS/VIIRS inputs | **Tested**: transfer test #2, monthly calendar check |
+| Argentina | Provincial yearly statistics (contents still to verify) | Official totals | **Coarse check**: correlation only |
+| Everywhere else | none | — | **Transferred**: wider error bars, shown plainly |
+
+### Risk 2: agricultural burns aren't in agency records
+
+Crop burns are small, short, daytime and planned: the hardest fires for satellites, and missing from wildfire databases.
+
+1. **Use the closest US proxies inside the reference data.** FPA-FOD has **240,133 "debris and open burning" fires** (2012–2024), and WFIGS has **38,818 prescribed burns**. Fit separate "managed burn" detection curves from them.
+2. **Use a sharper satellite as referee for small fires.** FIRMS Landsat 30 m detections (NASA/USGS; US/Canada since 2022) catch much smaller fires than MODIS or VIIRS. In cropland (NASA MODIS land cover or the USDA Cropland Data Layer), ask: of the fires Landsat saw at about 10:30, how many did MODIS or VIIRS catch that day? Caveats: Landsat passes about every 8 days and only in the morning.
+3. **Use burn scars where crops and pasture burn.** MapBiomas Fogo's monthly 30 m burned area tests whether our calendar gets Brazil's burning *seasons* right.
+4. **Be honest in the product.** Label each area's fire regime by cropland share (NASA MODIS land cover).
+   - In crop-dominated areas, show harmonized *detection activity* plus the measured small-burn floor ("satellites catch roughly X% of burns this size"), not an absolute burn count.
+   - Claim real-fire units only where validated.
+   - This also answers `Info.md`'s Problem 3 (agricultural vs. wildfire) with a burn-type-aware calendar.
+5. **Avoid** ESA's Fire_cci Small Fire Dataset as a referee. It uses VIIRS (2019) or MODIS (2016) hotspots as an input, which makes it circular.
+
+### Risk 3: the timeline is ambitious
+
+**Cut geography, not science.**
+- MVP = **California only**: 104k FPA-FOD fires in 2012–2024 and 104k in 2001–2011.
+- Sensors: Terra, Aqua, S-NPP and NOAA-20 (yearly FIRMS files exist).
+- NOAA-21 (API only) is the first stretch item.
+
+**Simplest valid method first.**
+1. Detection rate by size class (counts in bins), *then* logistic curves.
+2. A 2×2 table for shared blind spots.
+3. A per-size-class 1/POD correction, *then* full Horvitz–Thompson.
+4. Bootstrap last.
+
+**Precompute everything and ship static JSON.** No backend in the MVP. Arya's Vite + React + Leaflet stack (DBHS Wayfinder) deploys free and works without sign-in.
+
+**Run three parallel tracks** (data/science, app, story/validation), with a JSON data contract agreed in the first hour.
+
+**Decision gates** (shift them to match your real deadline):
+
+| When | Gate | If missed |
+|---|---|---|
+| Sat ~9 pm | Matching works on CA 2019–2021 | Restrict to isolated fires ≥ 10 acres |
+| Sun ~1 am | Spec sheets + shared-blind-spot table done (first WOW chart frozen) | Ship binned rates only |
+| Sun ~10 am | CA calendar + one validation number (2023–24 hold-out) | Show raw per-sensor + "big fires only" tier |
+| Sun ~noon | **Feature freeze** | — |
+| Remaining time | 7 slides or 30-second video, project page, AI/SI disclosure, link test signed out | — |
+
+**Stretch order:**
+1. NOAA-21
+2. MODIS-only backcast (2001–2011)
+3. Canada transfer
+4. Brazil monthly check
+5. Managed-burn curves
+6. AI assistant
+7. Argentina
+
+**Data scripts are ready:**
+- `analysis/data-acquisition/get_reference_data.sh` downloads FPA-FOD 7th ed., WFIGS, CNFDB and FIRMS.
+- `analysis/data-acquisition/README.md` lists every verified fact about those sources.
