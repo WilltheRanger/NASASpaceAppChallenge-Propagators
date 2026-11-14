@@ -2,6 +2,11 @@
 
 **Team Propagators · NASA Space Apps 2026 · Challenge #9**
 Written Sat Nov 14, 1:30 PM PT. **Deadline: Sun Nov 15, 6:00 PM PT** (from the team doc; confirm with the local lead). That leaves about 28 hours.
+**Decision (Sat ~1:50 PM): the team chose "C with changes."** That is Connor's Clock Audit plus three changes:
+1. a fire-size check, so the audit number isn't fooled by a year of smaller fires;
+2. a California real-fire proof that the change comes from the satellite, not the fires;
+3. a pitch led by the INPE audit, since BRASA already shows the Aqua/VIIRS ratio itself.
+**Mock data for UI work:** `data/mock/` (synthetic, labeled MOCK; see its README).
 
 > **Pitch:** "Brazil reported its fewest Amazon fires since 1998, counted by a NASA satellite whose 1:30 pm photo now happens at 3:50 pm. We show how much of that trend is the fire and how much is the satellite's clock, prove it with real recorded fires, and keep the count going after that satellite shuts down."
 
@@ -91,6 +96,7 @@ data/out/drift/<id>.json     {region, years:[{year, aqua_lst, terra_lst, viirs_l
 data/out/proof_california.json  {size_classes:[...], years:[{year, aqua_pod, viirs_pod, n}]}
 ```
 The app reads only these files. **Every number on a slide must come from them.**
+Additions now used by the mock files: a top-level `mock` flag and `note`; `featured` on regions; `status` (`ok`|`insufficient_data`) on each audit year. The real pipeline must emit the same fields, with `mock: false`.
 
 ## 4. Method (exact steps)
 

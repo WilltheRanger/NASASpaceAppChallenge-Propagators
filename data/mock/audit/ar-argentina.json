@@ -1,0 +1,67 @@
+{
+ "mock": true,
+ "note": "SYNTHETIC MOCK DATA for UI development only. Not real fire counts.",
+ "region": "ar-argentina",
+ "baseline": {
+  "years": "2012-2020",
+  "ratio": 0.28,
+  "noise_floor": 0.05
+ },
+ "years": [
+  {
+   "year": 2021,
+   "status": "ok",
+   "L": 0.997,
+   "L_lo": 0.937,
+   "L_hi": 1.057,
+   "L_strat": 0.989,
+   "aqua_count": 21435,
+   "fixed_count": 21496,
+   "gap_pct": -0.3
+  },
+  {
+   "year": 2022,
+   "status": "ok",
+   "L": 1.018,
+   "L_lo": 0.958,
+   "L_hi": 1.078,
+   "L_strat": 1.01,
+   "aqua_count": 18032,
+   "fixed_count": 17713,
+   "gap_pct": 1.8
+  },
+  {
+   "year": 2023,
+   "status": "ok",
+   "L": 1.075,
+   "L_lo": 1.015,
+   "L_hi": 1.135,
+   "L_strat": 1.067,
+   "aqua_count": 20848,
+   "fixed_count": 19398,
+   "gap_pct": 7.5
+  },
+  {
+   "year": 2024,
+   "status": "ok",
+   "L": 1.132,
+   "L_lo": 1.072,
+   "L_hi": 1.192,
+   "L_strat": 1.124,
+   "aqua_count": 27244,
+   "fixed_count": 24067,
+   "gap_pct": 13.2
+  },
+  {
+   "year": 2025,
+   "status": "ok",
+   "L": 1.175,
+   "L_lo": 1.115,
+   "L_hi": 1.235,
+   "L_strat": 1.167,
+   "aqua_count": 18511,
+   "fixed_count": 15755,
+   "gap_pct": 17.5
+  }
+ ]
+}
