@@ -119,4 +119,20 @@ for y in range(2012, 2025):
                             "viirs_pod": round(min(0.98, base * 1.4) + random.uniform(-0.02, 0.02), 3),
                             "n": random.randint(40, 400)})
 write("proof_california.json", {"mock": True, "note": NOTE, "size_classes": classes, "years": proof_years})
+
+# validation checklist shown in the app ("How do we know?"); statuses here are placeholders
+write("checks.json", {"mock": True, "note": NOTE, "checks": [
+    {"id": "drift", "name": "Aqua's overpass time drifted later", "status": "pass",
+     "detail": "Median local time of Aqua detections, by year."},
+    {"id": "punjab", "name": "Punjab test matches published pass times", "status": "pass",
+     "detail": "Compared with Jethva (2026): 1:44 pm in 2021 to 3:12 pm in 2025."},
+    {"id": "inpe", "name": "Our Aqua counts reproduce INPE's official counts", "status": "pending",
+     "detail": "Monthly counts by biome vs. INPE's published CSV."},
+    {"id": "placebo", "name": "Pre-2021 placebo years stay inside the noise floor", "status": "pass",
+     "detail": "Each 2012-2020 year left out of the baseline in turn."},
+    {"id": "size", "name": "Result holds after the fire-size check", "status": "pending",
+     "detail": "L recomputed within small, medium and large fire classes."},
+    {"id": "proof", "name": "Real recorded fires confirm the satellite changed", "status": "pending",
+     "detail": "California fire records (FPA-FOD 7th ed.), Aqua vs. VIIRS before and after 2021."},
+]})
 print("wrote mock files to", HERE)

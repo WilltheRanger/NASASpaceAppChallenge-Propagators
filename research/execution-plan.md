@@ -93,7 +93,8 @@ data/out/calendar/<id>.json  {region, unit:"fixed-clock Aqua-equivalent hotspots
 data/out/audit/<id>.json     {region, baseline:{years:"2012-2020", ratio, noise_floor},
                               years:[{year, L, L_lo, L_hi, L_strat, aqua_count, fixed_count, gap_pct}]}
 data/out/drift/<id>.json     {region, years:[{year, aqua_lst, terra_lst, viirs_lst}]}       // "HH:MM" local solar time
-data/out/proof_california.json  {size_classes:[...], years:[{year, aqua_pod, viirs_pod, n}]}
+data/out/proof_california.json  {size_classes:[...], years:[{year, size_class, aqua_pod, viirs_pod, n}]}
+data/out/checks.json         {checks:[{id, name, status:"pass"|"pending"|"fail", detail}]}       // "How do we know?" list
 ```
 The app reads only these files. **Every number on a slide must come from them.**
 Additions now used by the mock files: a top-level `mock` flag and `note`; `featured` on regions; `status` (`ok`|`insufficient_data`) on each audit year. The real pipeline must emit the same fields, with `mock: false`.
@@ -186,3 +187,20 @@ Additions now used by the mock files: a top-level `mock` flag and `note`; `featu
 ## 8. SI (AI) disclosure log
 
 
+
+## 9. Extras that raise our score (priority order; none of them is new science)
+
+| # | Add | Why it helps | Effort |
+|---|---|---|---|
+| 1 | **Headline check** in the audit panel: "Official (Aqua-based) change 2024→2025: −X%. At the fixed clock: −Y%." | Turns the audit into the exact answer our named user needs (Impact, Presentation) | Low (uses audit + calendar data) |
+| 2 | **"How do we know?" checklist** in the app (`checks.json`): drift measured, Punjab test, INPE match, placebo, size check, real-fire proof | Makes rigor visible (Validity). Speaks to the materials scientists' QA mindset and the CTO's test mindset | Low |
+| 3 | **One verified hero number:** "Aqua now passes over the Amazon at 3:50 pm, not 1:30 pm" (measured Nov 2026) | Judges remember one number | Low |
+| 4 | **Local hook** in the pitch: the California proof uses Southern California fires; mention Cal OES's fire-mapping plane at Chino Airport | Local judges care | Low |
+| 5 | **Open-source LICENSE + a clean README** (screenshots, data sources, how to reproduce) | The project page is what judges review; rules require free or open-source content | Low |
+| 6 | **Rehearse a 2-minute live demo + the §7 judge questions**, deciding who answers what | Presentation is scored | Low |
+| 7 | **Pick the name now** (30 min, `productID.md`). Avoid names other teams use: FireClock, Kiln Watch, BRASA, Ember/EmberCal, FireCensus, Ghost Fleet | Avoids confusion in global judging | Low |
+| 8 | **Spanish/Portuguese toggle** for key labels | CONAE (Argentina) and INPE (Brazil) audiences. Stretch only; BRASA already has EN/ES | Medium |
+
+**Don't add new science features.** Finishing and polishing scores more than breadth.
+
+Frontend build prompt: `research/frontend-prompt.md`.
