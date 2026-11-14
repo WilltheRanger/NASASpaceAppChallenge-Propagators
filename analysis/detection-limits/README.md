@@ -29,16 +29,23 @@
 - FPA-FOD California has containment dates for **80–93% of fires in most years**, but only **34% in 2012, 20% in 2019 and 13% in 2020**. Those years lean on the fallback durations.
 - Compare years with the "known containment only" variant before claiming any change over time.
 
-## First test results (2013 only, Aqua, isolated fires ≥ 1 acre; the full run comes after the downloads)
-| Fire size | n | Detected by Aqua |
-|---|---|---|
-| 10–100 acres | 270 | 4.1% |
-| 100–1,000 acres | 90 | 22.2% |
-| > 1,000 acres | 11 | 63.6% |
+## Results: full run, 2012–2024 (AI-generated; the team must review before use)
 
-- These numbers barely move across the variants (wide radius 4.8% / 24.4% / 63.6%).
-- Aqua's a50 is about 890 acres (95% CI 540–1,650).
-- Our rule is **stricter than Hawbaker 2008**, who allowed a whole year and used Landsat burn perimeters, so absolute numbers aren't comparable with the literature. The point is the **same rule for every satellite**: Aqua vs. Terra vs. VIIRS.
+Isolated California fires of at least 1 acre, 2012–2020: 14,430 fires, checked against each satellite with the same rule.
+
+| Satellite | a50 (acres, 95% CI) | a90 (acres, 95% CI) | 10–100 acres | 100–1,000 acres | > 1,000 acres |
+|---|---|---|---|---|---|
+| VIIRS (S-NPP) | **319** (271–375) | 7,111 (5,364–9,319) | 16.7% | 38.4% | 82.4% |
+| Aqua (MODIS) | **947** (777–1,168) | 11,866 (8,670–16,626) | 6.2% | 23.6% | 68.8% |
+| Terra (MODIS) | **1,262** (1,021–1,539) | 14,372 (10,146–19,783) | 4.0% | 18.6% | 66.8% |
+
+- **P8 passes:** a50(VIIRS) < a50(Aqua), and the intervals don't overlap (271–375 vs. 777–1,168 acres). VIIRS catches half of all fires at about **one third** of the size Aqua needs.
+- **Robust:** every sensitivity variant (wide radius, pixel-aware radius, all confidence levels, known containment only, all fires) moves the rates by only a few points. See `detection_limits_california.json`.
+- **2021–2024 check:** there is **no detectable change** in Aqua's detection rate relative to VIIRS. The per-year numbers are noisy: the over-1,000-acre class has only 9–29 fires per year. That is expected, because Aqua was at most about 34 minutes late over the US by 2024. Say so plainly on the slide.
+- **Local hook:** 358 recorded fires of at least 1 acre burned within 25 km of Chino Hills in 2012–2024.
+  - VIIRS saw 20, Aqua 10 and Terra 8. **338 (94%) were seen by none of them.**
+  - The largest fires were seen by all three: Blue Ridge (2020, 13,694 acres) and Canyon 2 (2017, 9,217 acres).
+- **Caveat:** our rule is stricter than the literature's (Hawbaker 2008 allowed a whole year), so our absolute a50s are larger. Compare the satellites with each other, not with the papers.
 
 ## Outputs (written to `--out`, normally `data/out/`)
 | File | What |

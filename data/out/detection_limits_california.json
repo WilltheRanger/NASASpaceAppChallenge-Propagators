@@ -1,0 +1,638 @@
+{
+ "mock": false,
+ "note": "AI-generated analysis (Claude), to be reviewed by the team before use.",
+ "source": "USFS FPA-FOD 7th ed. (RDS-2013-0009.7) California fires + NASA FIRMS MODIS C6.1 / VIIRS S-NPP 375 m",
+ "rule": "detected = hotspot within sqrt(area/pi)+1 km between discovery-2h and containment+12h; isolated fires; type 0; MODIS conf>=30, VIIRS n/h",
+ "years_with_data": [
+  2012,
+  2013,
+  2014,
+  2015,
+  2016,
+  2017,
+  2018,
+  2019,
+  2020,
+  2021,
+  2022,
+  2023,
+  2024
+ ],
+ "satellites": {
+  "Aqua": {
+   "n_fires_2012_2020": 14430,
+   "rates_2012_2020": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 117,
+     "rate": 0.062,
+     "ci95": [
+      0.052,
+      0.073
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 150,
+     "rate": 0.236,
+     "ci95": [
+      0.205,
+      0.27
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 141,
+     "rate": 0.688,
+     "ci95": [
+      0.621,
+      0.747
+     ]
+    }
+   ],
+   "a50_acres": 946.5,
+   "a50_ci95": [
+    777.2,
+    1168.0
+   ],
+   "a90_acres": 11866.2,
+   "a90_ci95": [
+    8669.6,
+    16626.1
+   ],
+   "rates_2012_2020_allconf": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 121,
+     "rate": 0.064,
+     "ci95": [
+      0.054,
+      0.076
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 152,
+     "rate": 0.239,
+     "ci95": [
+      0.207,
+      0.274
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 144,
+     "rate": 0.702,
+     "ci95": [
+      0.637,
+      0.761
+     ]
+    }
+   ],
+   "rates_2012_2020_pixel": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 139,
+     "rate": 0.073,
+     "ci95": [
+      0.062,
+      0.086
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 171,
+     "rate": 0.269,
+     "ci95": [
+      0.236,
+      0.305
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 147,
+     "rate": 0.717,
+     "ci95": [
+      0.652,
+      0.774
+     ]
+    }
+   ],
+   "rates_2012_2020_wide": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 127,
+     "rate": 0.067,
+     "ci95": [
+      0.057,
+      0.079
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 162,
+     "rate": 0.255,
+     "ci95": [
+      0.222,
+      0.29
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 152,
+     "rate": 0.741,
+     "ci95": [
+      0.677,
+      0.797
+     ]
+    }
+   ],
+   "rates_2012_2020_known_containment_only": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1343,
+     "detected": 96,
+     "rate": 0.071,
+     "ci95": [
+      0.059,
+      0.087
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 441,
+     "detected": 112,
+     "rate": 0.254,
+     "ci95": [
+      0.216,
+      0.297
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 131,
+     "detected": 89,
+     "rate": 0.679,
+     "ci95": [
+      0.595,
+      0.753
+     ]
+    }
+   ],
+   "rates_2012_2020_all_fires": [
+    {
+     "size_class": "10-100 acres",
+     "n": 2808,
+     "detected": 189,
+     "rate": 0.067,
+     "ci95": [
+      0.059,
+      0.077
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 989,
+     "detected": 236,
+     "rate": 0.239,
+     "ci95": [
+      0.213,
+      0.266
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 485,
+     "detected": 357,
+     "rate": 0.736,
+     "ci95": [
+      0.695,
+      0.773
+     ]
+    }
+   ]
+  },
+  "Terra": {
+   "n_fires_2012_2020": 14430,
+   "rates_2012_2020": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 76,
+     "rate": 0.04,
+     "ci95": [
+      0.032,
+      0.05
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 118,
+     "rate": 0.186,
+     "ci95": [
+      0.157,
+      0.218
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 137,
+     "rate": 0.668,
+     "ci95": [
+      0.601,
+      0.729
+     ]
+    }
+   ],
+   "a50_acres": 1261.7,
+   "a50_ci95": [
+    1020.8,
+    1538.7
+   ],
+   "a90_acres": 14371.6,
+   "a90_ci95": [
+    10145.7,
+    19783.4
+   ],
+   "rates_2012_2020_allconf": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 77,
+     "rate": 0.041,
+     "ci95": [
+      0.033,
+      0.05
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 120,
+     "rate": 0.189,
+     "ci95": [
+      0.16,
+      0.221
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 138,
+     "rate": 0.673,
+     "ci95": [
+      0.606,
+      0.734
+     ]
+    }
+   ],
+   "rates_2012_2020_pixel": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 83,
+     "rate": 0.044,
+     "ci95": [
+      0.035,
+      0.054
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 131,
+     "rate": 0.206,
+     "ci95": [
+      0.176,
+      0.239
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 147,
+     "rate": 0.717,
+     "ci95": [
+      0.652,
+      0.774
+     ]
+    }
+   ],
+   "rates_2012_2020_wide": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 77,
+     "rate": 0.041,
+     "ci95": [
+      0.033,
+      0.05
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 128,
+     "rate": 0.201,
+     "ci95": [
+      0.172,
+      0.234
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 150,
+     "rate": 0.732,
+     "ci95": [
+      0.667,
+      0.788
+     ]
+    }
+   ],
+   "rates_2012_2020_known_containment_only": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1343,
+     "detected": 64,
+     "rate": 0.048,
+     "ci95": [
+      0.037,
+      0.06
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 441,
+     "detected": 84,
+     "rate": 0.19,
+     "ci95": [
+      0.157,
+      0.23
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 131,
+     "detected": 93,
+     "rate": 0.71,
+     "ci95": [
+      0.627,
+      0.781
+     ]
+    }
+   ],
+   "rates_2012_2020_all_fires": [
+    {
+     "size_class": "10-100 acres",
+     "n": 2808,
+     "detected": 124,
+     "rate": 0.044,
+     "ci95": [
+      0.037,
+      0.052
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 989,
+     "detected": 191,
+     "rate": 0.193,
+     "ci95": [
+      0.17,
+      0.219
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 485,
+     "detected": 342,
+     "rate": 0.705,
+     "ci95": [
+      0.663,
+      0.744
+     ]
+    }
+   ]
+  },
+  "S-NPP": {
+   "n_fires_2012_2020": 14430,
+   "rates_2012_2020": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 317,
+     "rate": 0.167,
+     "ci95": [
+      0.151,
+      0.185
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 244,
+     "rate": 0.384,
+     "ci95": [
+      0.347,
+      0.422
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 169,
+     "rate": 0.824,
+     "ci95": [
+      0.766,
+      0.87
+     ]
+    }
+   ],
+   "a50_acres": 319.4,
+   "a50_ci95": [
+    271.0,
+    375.1
+   ],
+   "a90_acres": 7110.9,
+   "a90_ci95": [
+    5363.9,
+    9318.7
+   ],
+   "rates_2012_2020_allconf": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 341,
+     "rate": 0.18,
+     "ci95": [
+      0.163,
+      0.198
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 253,
+     "rate": 0.398,
+     "ci95": [
+      0.36,
+      0.436
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 169,
+     "rate": 0.824,
+     "ci95": [
+      0.766,
+      0.87
+     ]
+    }
+   ],
+   "rates_2012_2020_pixel": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 336,
+     "rate": 0.177,
+     "ci95": [
+      0.161,
+      0.195
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 258,
+     "rate": 0.406,
+     "ci95": [
+      0.368,
+      0.444
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 170,
+     "rate": 0.829,
+     "ci95": [
+      0.772,
+      0.875
+     ]
+    }
+   ],
+   "rates_2012_2020_wide": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1895,
+     "detected": 327,
+     "rate": 0.173,
+     "ci95": [
+      0.156,
+      0.19
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 636,
+     "detected": 266,
+     "rate": 0.418,
+     "ci95": [
+      0.381,
+      0.457
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 205,
+     "detected": 175,
+     "rate": 0.854,
+     "ci95": [
+      0.799,
+      0.896
+     ]
+    }
+   ],
+   "rates_2012_2020_known_containment_only": [
+    {
+     "size_class": "10-100 acres",
+     "n": 1343,
+     "detected": 261,
+     "rate": 0.194,
+     "ci95": [
+      0.174,
+      0.216
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 441,
+     "detected": 182,
+     "rate": 0.413,
+     "ci95": [
+      0.368,
+      0.459
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 131,
+     "detected": 109,
+     "rate": 0.832,
+     "ci95": [
+      0.759,
+      0.886
+     ]
+    }
+   ],
+   "rates_2012_2020_all_fires": [
+    {
+     "size_class": "10-100 acres",
+     "n": 2808,
+     "detected": 513,
+     "rate": 0.183,
+     "ci95": [
+      0.169,
+      0.197
+     ]
+    },
+    {
+     "size_class": "100-1000 acres",
+     "n": 989,
+     "detected": 371,
+     "rate": 0.375,
+     "ci95": [
+      0.345,
+      0.406
+     ]
+    },
+    {
+     "size_class": ">1000 acres",
+     "n": 485,
+     "detected": 402,
+     "rate": 0.829,
+     "ci95": [
+      0.793,
+      0.86
+     ]
+    }
+   ]
+  }
+ }
+}
