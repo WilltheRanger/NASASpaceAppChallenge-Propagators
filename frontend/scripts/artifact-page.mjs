@@ -2,7 +2,6 @@
 // region page as the main page, page.html (content only; the artifact adds the document skeleton), loading the one
 // script, CSS inlined, images and videos copied as files. app.html, the audit page's old address, becomes a small
 // redirect to the region page that keeps the region and the calendar's keys from its hash.
-// The images of the parked landing parts (src/directions/r2/landing-parts.tsx) are still copied for the new landing.
 // Usage: ARTIFACT_OUT=<dir> npm run artifact   (default dir: dist-artifact).
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'

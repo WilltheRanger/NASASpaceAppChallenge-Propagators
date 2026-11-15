@@ -3,17 +3,17 @@
 // verdict; then the Earth seen from the Sun turning under the three orbits, the three passes of one day, the daylight an
 // alert leaves, the two clocks, the clock effect by year against the placebo range, the calendar, the checks, detection,
 // limits and who it's for. The region tabs and the top bar's select change every section and the URL.
-// The old landing's teaching sections (how Anchor reads a count, the region tiles, the tagline) are parked in
-// landing-parts.tsx for the new landing page. Pages are routed in one place: Page, linksFor and the switch in FieldFilm().
+// After About, the old landing's teaching sections close the page: how Anchor reads a count, the six regions as tiles
+// (a tile picks its region) and the tagline. Pages are routed in one place: Page, linksFor and the switch in FieldFilm().
 // Black and bone; each satellite has one colour on chart lines and marks, never on a chart's background. Square media,
 // 4 px on small controls. Motion follows Anduril's patterns as read from their code (designs/round-2/anduril-study.md),
 // behind a footer switch seeded from the reader's reduced-motion setting.
 // Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag. Region photographs and drone
 // footage are credited in the footer. Pass imagery: NASA Worldview / GIBS, public domain.
-import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type RefObject } from 'react'
+import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import { ArrowDown, ArrowRight, Menu } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, Menu } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle, RegionSelect } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
@@ -70,7 +70,7 @@ const TOKENS = {
   '--fs-32': '32px',
   '--fs-40': '40px',
   '--fs-72': '72px',
-  // the statement: the region's name (and the parked closing line)
+  // the statement: the region's name, and the closing line
   '--fs-display': 'clamp(56px, 11vw, 168px)',
   '--lh-display': '1.02',
   '--track-display': '-0.03em',
@@ -151,7 +151,7 @@ function useMedia(query: string) {
 
 const IMG = `${import.meta.env.BASE_URL}img/`
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
-export const FEATURED = 'br-amazon'
+const FEATURED = 'br-amazon'
 /** True while any preset region still reads mock files. */
 const ANY_MOCK = REGIONS.some((r) => regionData(r.id).mock)
 
@@ -179,12 +179,12 @@ type Page = 'regions'
  *  so old links open the region page; no name, or a name this build doesn't know, opens it too. */
 const PAGE_NAMES: Record<string, Page> = { regions: 'regions', app: 'regions' }
 const pageNamed = (name?: string | null): Page => (name && Object.hasOwn(PAGE_NAMES, name) ? PAGE_NAMES[name] : 'regions')
-export type Links = { regions: (r: string) => string }
-export type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
+type Links = { regions: (r: string) => string }
+type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
 
 /** Where each page lives: a query string on the site (one index.html); its own file in the comment artifact, the region
- *  in the hash. For links from other pages (the parked landing parts, the pages to come). */
-export const linksFor = (nav: Nav): Links => ({
+ *  in the hash. The region tiles link here, so a tile opened in a new tab shows its region. */
+const linksFor = (nav: Nav): Links => ({
   regions: (r) => (nav === 'artifact' ? `index.html#region=${r}` : `?region=${r}`),
 })
 
@@ -237,12 +237,42 @@ function readMotion() {
   return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 const MotionContext = createContext<{ on: boolean; set: (on: boolean) => void }>({ on: true, set: () => {} })
-export const useMotion = () => useContext(MotionContext)
+const useMotion = () => useContext(MotionContext)
+
+/** True once the element has been `threshold` in view (their InView: 0.05 for slices, 0.5 for cards); true at once
+ *  without motion or without IntersectionObserver, so nothing can stay hidden. */
+function useInView<T extends Element>(motion: boolean, threshold = 0.05) {
+  const ref = useRef<T | null>(null)
+  const [seen, setSeen] = useState(!motion)
+  useEffect(() => {
+    if (!motion) { setSeen(true); return }
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') { setSeen(true); return }
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setSeen(true); io.disconnect() } }, { threshold })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [motion, threshold])
+  return [ref, seen] as const
+}
+
+/** Their line rise (SplitText + y 100% → 0, 1000 ms easeOutExpo), for a whole title: it rises from behind a mask the
+ *  first time half of it is in view. */
+function Rise({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+  const motion = useMotion()
+  const [ref, seen] = useInView<HTMLDivElement>(motion.on, 0.5)
+  return (
+    <div ref={ref} className="overflow-hidden pb-1">
+      <div style={{ transitionDelay: `${delay}ms` }} className={cn('transition-transform duration-1000 ease-[var(--ease)]', seen ? 'translate-y-0' : 'translate-y-full')}>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 /** Their page change, halved for static pages: this page fades and grows to 1.02 about the middle of the screen, then
  *  the link is followed; the next page arrives from 0.98 (in FieldFilm). Plain navigation without motion. Kept for links
  *  between pages, which the region page alone doesn't have. */
-export function useLeave(motion: boolean): Leave {
+function useLeave(motion: boolean): Leave {
   return (e) => {
     if (!motion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
     const href = e.currentTarget.getAttribute('href')
@@ -303,10 +333,11 @@ function VerdictBody({ d, size = 'lg' }: { d: RegionData; size?: 'lg' | 'sm' }) 
 
 /* ---------- Shared classes ---------- */
 
-export const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
 const ease = 'transition-colors duration-150 ease-[var(--ease)]'
+const slideEase = 'transition-transform duration-240 ease-[var(--ease)] motion-reduce:transition-none'
 const title = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
-export const shell = 'mx-auto w-full max-w-[var(--maxw)] px-4 sm:px-8'
+const shell = 'mx-auto w-full max-w-[var(--maxw)] px-4 sm:px-8'
 /** Their link underline: draws in from the left on hover, leaves to the right. */
 const underline = cn(
   'relative rounded after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-right after:scale-x-0 after:bg-current after:content-[\'\']',
@@ -493,8 +524,9 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
   )
 }
 
-/** The region page: the region's name over its footage and the verdict, then every section in order. The region tabs
- *  and the top bar's select both pick the region; the year picked in one figure is shared by the others. */
+/** The region page: the region's name over its footage and the verdict, every section of the audit in order, then how
+ *  Anchor reads a count, the six region tiles and the tagline. The region tabs, the top bar's select and the tiles all
+ *  pick the region; the year picked in one figure is shared by the others. */
 function RegionsPage({ region, onRegion, nav }: { region: string; onRegion: (id: string) => void; nav: Nav }) {
   const d = useMemo(() => regionData(region), [region])
   const [year, setYear] = useState(() => defaultYear(d))
@@ -509,6 +541,7 @@ function RegionsPage({ region, onRegion, nav }: { region: string; onRegion: (id:
   }
   const small = useMedia('(max-width: 639px)')
   const pick = (id: string) => { onRegion(id); setYear(defaultYear(regionData(id))) }
+  const links = linksFor(nav)
   return (
     <>
       <TopBar region={region} onRegion={pick} />
@@ -524,6 +557,9 @@ function RegionsPage({ region, onRegion, nav }: { region: string; onRegion: (id:
         <Detection />
         <Limits d={d} />
         <About />
+        <HowItWorks />
+        <RegionIndex links={links} onPick={pick} />
+        <Closing />
       </main>
     </>
   )
@@ -665,7 +701,7 @@ function MockTag({ show = true, className }: { show?: boolean; className?: strin
   return <span className={cn('shrink-0 rounded border border-[color:var(--hairline)] px-2 py-1 text-xs text-[color:var(--bone)]', className)}>Mock data</span>
 }
 
-export const primaryButton = cn(
+const primaryButton = cn(
   'inline-flex h-12 items-center justify-center gap-2 rounded bg-[color:var(--bone)] px-5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]',
   ease,
   focusRing,
@@ -777,8 +813,8 @@ function RegionMedia({ id, active, className }: { id: string; active: boolean; c
     />
   )
 }
-export const statement = 'text-balance text-[length:var(--fs-display)] font-medium leading-[0.92] tracking-[-0.04em]'
-export const titleLarge = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
+const statement = 'text-balance text-[length:var(--fs-display)] font-medium leading-[0.92] tracking-[-0.04em]'
+const titleLarge = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
 /** The statement's wording: "The Amazon", not "Amazon" (which reads as the company); places that take no article stay bare. */
 const statementName = (id: string) => {
   const the = phrase(id).the
@@ -873,6 +909,106 @@ function RegionHero({ d, onPick }: { d: RegionData; onPick: (id: string) => void
         </div>
       </section>
     </>
+  )
+}
+
+/* ---------- Pass line: when each satellite looked, 06:00 to 18:00 ---------- */
+
+const AXIS_FROM = 6
+const AXIS_TO = 18
+const HOURS = Array.from({ length: AXIS_TO - AXIS_FROM + 1 }, (_, i) => AXIS_FROM + i)
+const LABELLED = HOURS.filter((h) => (h - AXIS_FROM) % 2 === 0)
+const at = (hours: number) => ((hours - AXIS_FROM) / (AXIS_TO - AXIS_FROM)) * 100
+const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
+
+/** When each satellite looked in one year, as an instrument line on a 06:00 to 18:00 axis. Each satellite has its own
+ *  marker and pin: Aqua, the one that drifts, a filled dot under a solid flag carrying its time and the minutes it added;
+ *  the fixed clock (VIIRS) a green diamond; Terra a hollow ring. The drift itself is a bar on the axis from the fixed clock to Aqua.
+ *  Colours come from the page tokens, so the figure works on black and, re-inked, on the bone band. */
+function PassFigure({ dr, year }: { dr: Drift; year: number }) {
+  const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
+  const later = shift >= 0
+  const xa = at(hm(dr.aqua_lst))
+  const xf = at(hm(dr.viirs_lst))
+  const xt = at(hm(dr.terra_lst))
+  const vars = {
+    '--xa': `${xa}%`,
+    '--xf': `${xf}%`,
+    '--xt': `${xt}%`,
+    '--bar-x': `${Math.min(xa, xf)}%`,
+    '--bar-k': `${Math.abs(xa - xf) / 100}`,
+  } as CSSProperties
+  const description = `When each satellite looked in ${year}: Terra ${dr.terra_lst}, fixed clock ${dr.viirs_lst}, Aqua ${dr.aqua_lst}, ${Math.abs(shift)} minutes ${later ? 'after' : 'before'} the fixed clock`
+  // each satellite rides a full-width layer moved with translateX, so a change of year slides it (instant without motion)
+  const layer = cn('absolute inset-x-0 top-0 h-full', slideEase)
+  const axis = 'top-20 sm:top-24' // 80 px, 96 px
+  const marker = cn('absolute left-0 -translate-x-1/2 -translate-y-1/2', axis)
+  const label = 'absolute whitespace-nowrap text-xs leading-4 sm:text-sm sm:leading-5'
+  // Aqua's flag hangs centred over its pin, and turns to hang leftwards near the right edge
+  const flagSide = xa > 84 ? '-translate-x-full left-px' : xa < 12 ? '-left-px' : '-translate-x-1/2'
+
+  return (
+    <div role="img" aria-label={description} style={vars} className="relative h-28 overflow-hidden sm:h-32">
+      {/* the day, 06:00 to 18:00 */}
+      <span aria-hidden className={cn('absolute inset-x-0 h-px bg-[color:var(--bone-30)]', axis)} />
+      {HOURS.map((h) => (
+        <span
+          key={h}
+          aria-hidden
+          style={{ '--xh': `${at(h)}%` } as CSSProperties}
+          className={cn('absolute left-[var(--xh)] h-1.5 w-px -translate-y-1/2 bg-[color:var(--bone-30)]', axis)}
+        />
+      ))}
+      {LABELLED.map((h, i) => (
+        <span
+          key={h}
+          aria-hidden
+          style={{ '--xh': `${at(h)}%` } as CSSProperties}
+          className={cn(
+            'absolute left-[var(--xh)] top-23 text-xs leading-4 text-[color:var(--bone3)] sm:top-27',
+            i === 0 ? '' : i === LABELLED.length - 1 ? '-translate-x-full' : '-translate-x-1/2',
+          )}
+        >
+          {hourLabel(h)}
+        </span>
+      ))}
+      {/* the minutes the later look added: a bar along the axis from the fixed clock to Aqua */}
+      <span
+        aria-hidden
+        className={cn('absolute inset-x-0 h-1 origin-left -translate-y-1/2 translate-x-[var(--bar-x)] scale-x-[var(--bar-k)] bg-[color:var(--sat-aqua)]', axis, slideEase)}
+      />
+
+      {/* Terra: a hollow ring, the lowest label, set to the left of its pin */}
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xt)]')}>
+        <span className="absolute left-0 top-[62px] h-[18px] w-px -translate-x-1/2 bg-[color:var(--sat-terra)] sm:top-[74px] sm:h-[22px]" />
+        <span className={cn(marker, 'size-2.5 rounded-full border-2 border-[color:var(--sat-terra)] bg-[color:var(--figure-bg,var(--surface))]')} />
+        <span className={cn(label, '-left-2 top-[46px] -translate-x-full text-[color:var(--bone3)] sm:top-[54px]')}>Terra {dr.terra_lst}</span>
+      </div>
+
+      {/* the fixed clock: a green diamond; its label sits on the side away from Aqua, so the two never touch */}
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xf)]')}>
+        <span className="absolute left-0 top-[42px] h-[38px] w-px -translate-x-1/2 bg-[color:var(--sat-viirs)] sm:top-[50px] sm:h-[46px]" />
+        <span className={cn(marker, 'size-2.5 rotate-45 bg-[color:var(--sat-viirs)]')} />
+        <span className={cn(label, 'top-[26px] text-[color:var(--bone3)] sm:top-[30px]', later ? '-left-2 -translate-x-full' : 'left-2')}>
+          Fixed clock {dr.viirs_lst}
+        </span>
+      </div>
+
+      {/* Aqua: the one that moves; a solid flag with its time and the minutes it added, a filled dot on the axis */}
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xa)]')}>
+        <span className="absolute left-0 top-5 h-15 w-0.5 -translate-x-1/2 bg-[color:var(--sat-aqua)] sm:top-6 sm:h-18" />
+        <span className={cn(marker, 'size-3 rounded-full bg-[color:var(--sat-aqua)] ring-2 ring-[color:var(--figure-bg,var(--surface))]')} />
+        <span
+          className={cn(
+            'absolute top-0 flex h-5 items-center gap-1.5 whitespace-nowrap rounded-[3px] bg-[color:var(--sat-aqua)] px-1.5 text-xs font-medium text-[color:var(--figure-on,var(--ink))] sm:h-6 sm:px-2 sm:text-sm',
+            flagSide,
+          )}
+        >
+          Aqua {dr.aqua_lst}
+          <span className="font-normal opacity-75">{later ? '+' : '−'}{Math.abs(shift)} min</span>
+        </span>
+      </div>
+    </div>
   )
 }
 
@@ -2015,6 +2151,152 @@ function About() {
             </p>
           </div>
         </div>
+      </div>
+    </section>
+  )
+}
+
+/* ---------- At the end: how Anchor reads a count, on a bone band ---------- */
+
+function HowItWorks() {
+  const motion = useMotion()
+  const d = useMemo(() => regionData(FEATURED), [])
+  const y = d.latestOk?.year ?? 2025
+  const dr = d.driftAt(y)
+  const [ref, seen] = useInView<HTMLOListElement>(motion.on, 0.3)
+  const first = d.drift[0], last = d.lastDrift
+  const steps = [
+    {
+      t: 'The reference satellite drifted',
+      b: `INPE’s official fire counts for Brazil follow one reference satellite, Aqua, which for years looked at about the same time of day.${d.driftStart && first && last ? ` Since ${d.driftStart} its look over the Amazon has moved later: ${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}.` : ''}`,
+    },
+    { t: 'Fires and clouds change through the day', b: 'So a count that follows a drifting clock can change with the time it looks as well as with the fires. Which way, and by how much, has to be measured, not assumed.' },
+    { t: 'We hold the clock still', b: 'VIIRS still looks at the same time. We turn its counts into an Aqua-equivalent estimate, month by month, and set Aqua’s own count beside it, with a 95% range and the 2012–2020 placebo range. The gap shows where the two part; on its own it doesn’t say how much the timing caused.' },
+  ]
+  // the pass figure, re-inked for the bone ground
+  const inked = {
+    '--bone': 'var(--ink)',
+    '--bone3': '#4E514A',
+    '--bone-30': 'rgba(11, 13, 11, 0.3)',
+    '--bone-80': 'rgba(11, 13, 11, 0.8)',
+    '--sat-aqua': '#A65D00',
+    '--sat-terra': '#2266A4',
+    '--sat-viirs': '#1C7F4C',
+    '--figure-bg': '#ECE9E1',
+    '--figure-on': '#ECE9E1',
+  } as CSSProperties
+  return (
+    <section id="how" aria-labelledby="how-h" className="scroll-mt-4 bg-[color:var(--bone)] text-[color:var(--ink)]">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
+        <div className="lg:col-span-4">
+          <Rise><h2 id="how-h" className={titleLarge}>How we read a fire count</h2></Rise>
+          <p className="mt-4 max-w-[var(--measure)] text-sm">The Amazon in {y}, from the team’s data files{d.mock ? ' (mock for now)' : ''}.</p>
+        </div>
+        <div className="min-w-0 lg:col-span-8">
+          {dr ? <div style={inked}><PassFigure dr={dr} year={y} /></div> : null}
+          {/* their rule + slide: each step's rule draws, then its words arrive from the left, 100 ms apart */}
+          <ol ref={ref} className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-6">
+            {steps.map((s, i) => (
+              <li key={s.t} className="relative pt-4">
+                <span
+                  aria-hidden
+                  style={{ transitionDelay: `${i * 100}ms` }}
+                  className={cn('absolute inset-x-0 top-0 h-px origin-left bg-[color:var(--ink)] transition-transform duration-1000 ease-[var(--ease)]', seen ? 'scale-x-100' : 'scale-x-0')}
+                />
+                <div
+                  style={{ transitionDelay: `${200 + i * 100}ms` }}
+                  className={cn('transition-[opacity,transform] duration-1000 ease-[var(--ease)]', seen ? 'translate-x-0 opacity-100' : '-translate-x-[10%] opacity-0')}
+                >
+                  <p className="text-lg font-medium">{s.t}</p>
+                  <p className="mt-2 text-sm">{s.b}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ---------- At the end: the six regions as photograph tiles; a tile picks its region ---------- */
+
+function RegionIndex({ links, onPick }: { links: Links; onPick: (id: string) => void }) {
+  const motion = useMotion()
+  const [ref, seen] = useInView<HTMLUListElement>(motion.on, 0.2)
+  return (
+    <section id="regions" aria-labelledby="regions-h" className={cn(shell, 'scroll-mt-4 py-24')}>
+      <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
+        <div className="lg:col-span-4"><Rise><h2 id="regions-h" className={titleLarge}>Six regions, one fixed clock</h2></Rise></div>
+        <p className="max-w-[var(--measure)] text-sm text-[color:var(--bone2)] lg:col-span-8 lg:self-end">
+          Each audit opens on its verdict, then shows when each satellite looked, the clock effect year by year and the fire calendar.
+        </p>
+      </div>
+      <ul ref={ref} className="mt-10 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {REGIONS.map((r, i) => (
+          <RegionTile key={r.id} id={r.id} name={r.name} i={i} seen={seen} href={links.regions(r.id)} onPick={onPick} />
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+/** Their product tile: media, title, one line, ↗. A plain click picks the region on this page and glides back up to its
+ *  name; a modified click (new tab, new window) follows the link to the same region page. */
+function RegionTile({ id, name, i, seen, href, onPick }: { id: string; name: string; i: number; seen: boolean; href: string; onPick: (id: string) => void }) {
+  const motion = useMotion()
+  const p = photoFor(id)
+  const verdict = useMemo(() => verdictHeadline(regionData(id)), [id])
+  const pick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    onPick(id)
+    glideTo('top', motion.on)
+    // keyboard users land on the region's name, as with the section links
+    const h = e.detail === 0 ? document.getElementById('region-h') : null
+    if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }) }
+  }
+  return (
+    <li
+      style={{ transitionDelay: `${i * 80}ms` }}
+      className={cn('transition-[opacity,transform] duration-500 ease-[var(--ease)]', seen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0')}
+    >
+      <a href={href} onClick={pick} className={cn('group relative block aspect-4/3 overflow-hidden bg-[color:var(--surface)]', focusRing)}>
+        <img
+          src={p.srcSm}
+          alt=""
+          width={720}
+          height={Math.round((720 * p.height) / p.width)}
+          loading="lazy"
+          style={{ objectPosition: p.focus }}
+          className="size-full object-cover transition-transform duration-500 ease-[var(--ease)] group-hover:scale-[1.03]"
+        />
+        <span aria-hidden className="absolute inset-0 bg-[image:var(--scrim-card)]" />
+        <span className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4">
+          <span className="min-w-0">
+            <span className="block text-lg font-medium text-[color:var(--bone)]">{name}</span>
+            <span className="mt-1 block text-sm text-[color:var(--bone-80)]">{verdict}</span>
+          </span>
+          <ArrowUpRight
+            size={18}
+            strokeWidth={1.5}
+            aria-hidden
+            className="mb-0.5 shrink-0 text-[color:var(--bone)] transition-transform duration-300 ease-[var(--ease)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+          />
+        </span>
+      </a>
+    </li>
+  )
+}
+
+/** Their closing slogan, as Anchor's tagline, the page's last line. */
+function Closing() {
+  return (
+    <section aria-labelledby="close-h" className="border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'flex flex-col items-center py-24 text-center sm:py-32')}>
+        <Rise>
+          <h2 id="close-h" className={statement}>Count the fires, not the clock.</h2>
+        </Rise>
       </div>
     </section>
   )
