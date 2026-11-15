@@ -109,7 +109,7 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
 
         {years.map((year, y) => (
           <div role="row" key={year} className="contents">
-            <span role="rowheader" className="flex items-center text-[12px] tabular-nums" style={{ color: 'var(--cal-muted)', height: cellHeight }}>{year}</span>
+            <span role="rowheader" data-cal="year" className="flex items-center text-[12px] tabular-nums" style={{ color: 'var(--cal-muted)', height: cellHeight }}>{year}</span>
             {cells[y].map((cell, m) => {
               const empty = !cell || cell.fixed == null
               const prov = !!cell?.flags.includes('provisional')
@@ -142,7 +142,7 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
                 </button>
               )
             })}
-            <span className="flex items-center justify-end text-[12px] tabular-nums" style={{ height: cellHeight, color: 'var(--cal-fg)' }}>
+            <span data-cal="total" className="flex items-center justify-end text-[12px] tabular-nums" style={{ height: cellHeight, color: 'var(--cal-fg)' }}>
               {totals[y] == null ? '–' : totals[y]! >= 10000 ? `${Math.round(totals[y]! / 1000)}k` : fmtInt(totals[y]!)}
             </span>
           </div>

@@ -12,6 +12,8 @@ const byRegion = <T extends { region: string }>(files: Record<string, T>) => Obj
 const driftFiles = byRegion(import.meta.glob<DriftFile>('../../../data/mock/drift/*.json', { eager: true, import: 'default' }))
 const auditFiles = byRegion(import.meta.glob<AuditFile>('../../../data/mock/audit/*.json', { eager: true, import: 'default' }))
 const calFiles = byRegion(import.meta.glob<CalFile>('../../../data/mock/calendar/*.json', { eager: true, import: 'default' }))
+type TwoFile = { mock?: boolean; region: string; years: { year: number; aqua_lst: string; terra_lst: string; A: number; A_lo: number; A_hi: number; T: number; T_lo: number; T_hi: number }[] }
+const twoFiles = byRegion(import.meta.glob<TwoFile>('../../../data/mock/twoclocks/*.json', { eager: true, import: 'default' }))
 
 export const MOCK = true
 export const REGIONS = regionsJson.regions.map((r) => ({ id: r.id, name: r.name }))
@@ -56,6 +58,8 @@ export function regionData(id: RegionId) {
   return {
     id, name: REGIONS.find((r) => r.id === id)?.name ?? id, phrase: phrase(id),
     drift, lastDrift, driftAt, baselineYears: auditFile?.baseline.years ?? '2012-2020', noise, years, latestOk, cal,
+    /** two-clocks ratios (detections vs. the fixed clock, 1 = baseline) for a year, when the region has them */
+    twoAt: (year: number) => twoFiles[id]?.years.find((t) => t.year === year) ?? null,
     mock: !!(driftFiles[id]?.mock || auditFile?.mock || calFiles[id]?.mock),
   }
 }
@@ -132,3 +136,17 @@ export function verdictLines(d: RegionData) {
     : `${hc.from} and ${hc.to} can't be compared: not enough fires in ${hc.reason} to measure.`
   return { look, change, hc, drift: dr, shift }
 }
+
+/** A range in percentage points with signs and unit: "+16.4 to +28.4%". */
+export const fmtRange = (lo: number, hi: number, d = 1) => `${pct(lo, d).replace('%', '')} to ${pct(hi, d)}`
+
+/** Sections of the full page; only `inComp` ones exist in a Round 2 comp. */
+export const SECTIONS = [
+  { id: 'verdict', label: 'Verdict', inComp: true },
+  { id: 'clock', label: 'The clock', inComp: false },
+  { id: 'two-clocks', label: 'Two clocks', inComp: false },
+  { id: 'audit', label: 'Audit', inComp: false },
+  { id: 'calendar', label: 'Calendar', inComp: true },
+  { id: 'checks', label: 'Checks', inComp: false },
+  { id: 'limits', label: 'Limits', inComp: false },
+] as const
