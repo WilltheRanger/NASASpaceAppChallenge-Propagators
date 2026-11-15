@@ -309,10 +309,16 @@ export function useStartAtTop() {
       }
       if (y > 0) go()
     } else if (!hash || hash.includes('=')) {
-      const top = () => { if (window.scrollY > 0) jump(0) }
+      // never against the reader: once they have scrolled, tapped or pressed a key, the page is theirs
+      let theirs = false
+      const mine = () => { theirs = true }
+      const EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
+      for (const ev of EVENTS) window.addEventListener(ev, mine, { passive: true, once: true })
+      const top = () => { if (!theirs && window.scrollY > 0) jump(0) }
       top()
       // once more after the first paint, when a late restore would have landed
       raf = requestAnimationFrame(top)
+      return () => { window.removeEventListener('pagehide', save); cancelAnimationFrame(raf); for (const ev of EVENTS) window.removeEventListener(ev, mine) }
     }
     return () => { window.removeEventListener('pagehide', save); window.clearTimeout(timer); cancelAnimationFrame(raf) }
   }, [])
