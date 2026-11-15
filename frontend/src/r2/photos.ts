@@ -1,6 +1,8 @@
-// One Unsplash photograph per preset region. Free to use under the Unsplash License; each photographer is credited
-// in the page footer. The files were downloaded from images.unsplash.com, resized and bundled in public/img/regions/,
-// so the pages need no outside image host. No people appear in any of them.
+// One Unsplash photograph per preset region (free to use under the Unsplash License), and, where a drone clip filmed in
+// that region could be found, a 10-second loop from Pexels (free to use under the Pexels License): 1280x720, silent,
+// cut and compressed into public/video/regions/, with its first frame as the poster. Every photographer and
+// videographer is credited in the page footer. No people appear in any of them. The Cerrado, Pantanal and Argentina
+// keep their photographs until footage that is certainly from there turns up.
 
 export interface RegionPhoto {
   /** 1920 px wide, for full-bleed use */
@@ -17,9 +19,13 @@ export interface RegionPhoto {
   url: string
   /** object-position for wide crops, so the subject stays in frame */
   focus: string
+  /** a drone loop of the same region, when one could be found */
+  video?: { src: string; poster: string; by: string; url: string; about: string }
 }
 
 const DIR = `${import.meta.env.BASE_URL}img/regions/`
+const VID = `${import.meta.env.BASE_URL}video/regions/`
+const loop = (id: string, by: string, url: string, about: string) => ({ src: `${VID}${id}.mp4`, poster: `${VID}${id}-poster.jpg`, by, url, about })
 const photo = (id: string, p: Omit<RegionPhoto, 'src' | 'srcSm'>): RegionPhoto => ({ src: `${DIR}${id}.jpg`, srcSm: `${DIR}${id}-sm.jpg`, ...p })
 
 export const PHOTOS: Record<string, RegionPhoto> = {
@@ -28,6 +34,7 @@ export const PHOTOS: Record<string, RegionPhoto> = {
     alt: 'The Amazon from above near Tefé: floating houses moored at the edge of a flooded forest',
     place: 'Tefé, Amazonas, Brazil', by: 'Rodrigo Kugnharski',
     url: 'https://unsplash.com/photos/aerial-view-of-houses-on-body-of-water-PAgMQ2088RE', focus: '50% 50%',
+    video: loop('br-amazon', 'Nando Freitas', 'https://www.pexels.com/video/aerial-view-of-lush-amazon-rainforest-and-river-32339980/', 'A drone over the Amazon rainforest, a river winding through it past a few roofs'),
   }),
   'br-cerrado': photo('br-cerrado', {
     width: 1920, height: 1280,
@@ -52,12 +59,14 @@ export const PHOTOS: Record<string, RegionPhoto> = {
     alt: 'Rice paddies in Punjab with power lines crossing the fields',
     place: 'Punjab, India', by: 'Sumeet Singh',
     url: 'https://unsplash.com/photos/a-field-of-grass-with-power-lines-in-the-background-sueHyvd_Rdg', focus: '50% 60%',
+    video: loop('in-punjab-haryana', 'dp singh Bhullar', 'https://www.pexels.com/video/expansive-aerial-view-of-lush-green-farmland-29815231/', 'A drone rising over green wheat fields in Punjab'),
   }),
   'us-california': photo('us-california', {
     width: 1920, height: 1080,
     alt: 'California ridgelines rising above a layer of smoke and haze',
     place: 'California, USA', by: 'Chris Linnett',
     url: 'https://unsplash.com/photos/a-view-of-a-foggy-mountain-range-from-an-airplane-T_ob6nza57Y', focus: '50% 50%',
+    video: loop('us-california', 'vignesh srivatsav', 'https://www.pexels.com/video/scenic-aerial-view-of-california-hills-36216373/', 'A drone along California hills, dry grass and oak woodland'),
   }),
 }
 

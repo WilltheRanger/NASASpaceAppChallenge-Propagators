@@ -487,13 +487,21 @@ function Footer() {
           <div className="mt-2"><MotionSwitch /></div>
         </div>
         <div className="lg:col-span-8">
-          <p className="text-[color:var(--bone2)]">Photographs</p>
+          <p className="text-[color:var(--bone2)]">Photographs and video</p>
           <ul className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
             {REGIONS.map((r) => {
               const p = photoFor(r.id)
               return (
                 <li key={r.id}>
                   {r.name}: <a href={p.url} target="_blank" rel="noreferrer" className={cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>{p.by}</a> on Unsplash
+                </li>
+              )
+            })}
+            {REGIONS.filter((r) => photoFor(r.id).video).map((r) => {
+              const v = photoFor(r.id).video!
+              return (
+                <li key={`v-${r.id}`}>
+                  {r.name}, drone video: <a href={v.url} target="_blank" rel="noreferrer" className={cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>{v.by}</a> on Pexels
                 </li>
               )
             })}
@@ -633,6 +641,54 @@ function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion
 /* ---------- Landing hero: a statement piece, the region's name on its ground; the verdict follows below ---------- */
 
 const DWELL = 'animate-[anchor-dwell_7s_linear_forwards]'
+
+/** A region's media on the landing: its drone loop where one exists (muted, looping, playing only while shown), else its
+ *  photograph with a slow push-in so the stills don't sit frozen between the loops. Without motion, the still photograph
+ *  (or the loop's first frame) and nothing moving. */
+function RegionMedia({ id, active, className }: { id: string; active: boolean; className?: string }) {
+  const motion = useMotion()
+  const p = photoFor(id)
+  const ref = useRef<HTMLVideoElement | null>(null)
+  const v = p.video
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (active && motion.on) el.play().catch(() => { /* autoplay can be refused; the poster stays */ })
+    else el.pause()
+  }, [active, motion.on])
+  if (v) {
+    return (
+      <>
+        <video
+          ref={ref}
+          src={v.src}
+          poster={v.poster}
+          muted
+          loop
+          playsInline
+          autoPlay={active && motion.on}
+          preload={active ? 'auto' : 'metadata'}
+          aria-hidden
+          className={className}
+        />
+        {active ? <span className="sr-only">{v.about}</span> : null}
+      </>
+    )
+  }
+  return (
+    <img
+      src={p.src}
+      srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
+      sizes="100vw"
+      alt={active ? p.alt : ''}
+      aria-hidden={active ? undefined : true}
+      width={p.width}
+      height={p.height}
+      style={{ objectPosition: p.focus }}
+      className={cn(className, active && motion.on && 'animate-[anchor-push_14s_ease-out_both]')}
+    />
+  )
+}
 const statement = 'text-balance text-[length:var(--fs-display)] font-medium leading-[0.92] tracking-[-0.04em]'
 const titleLarge = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
 /** The statement's wording: "The Amazon", not "Amazon" (which reads as the company); places that take no article stay bare. */
@@ -676,23 +732,14 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
           className={cn('sticky top-0 isolate flex flex-col overflow-hidden bg-[color:var(--ground)]', FRAME, hold ? 'h-[100svh]' : 'h-[78svh] max-h-[1040px] min-h-[560px]')}
         >
         <div className={cn('absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]', FRAME_CLIP)}>
-          {loaded.map((id) => {
-            const p = photoFor(id)
-            return (
-              <img
-                key={id}
-                src={p.src}
-                srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
-                sizes="100vw"
-                alt={id === region ? p.alt : ''}
-                aria-hidden={id === region ? undefined : true}
-                width={p.width}
-                height={p.height}
-                style={{ objectPosition: p.focus }}
-                className={cn('absolute inset-0 size-full object-cover transition-opacity duration-700 ease-[var(--ease)]', hold && SETTLE, id === region ? 'opacity-100' : 'opacity-0')}
-              />
-            )
-          })}
+          {loaded.map((id) => (
+            <RegionMedia
+              key={id}
+              id={id}
+              active={id === region}
+              className={cn('absolute inset-0 size-full object-cover transition-opacity duration-700 ease-[var(--ease)]', hold && SETTLE, id === region ? 'opacity-100' : 'opacity-0')}
+            />
+          ))}
           <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
         </div>
         <div aria-hidden className="h-16 shrink-0 xl:h-18" />
@@ -773,65 +820,44 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
   )
 }
 
-/* ---------- App opening: the statement, framed as you scroll (a zoom-out reveal), the verdict rising under it ---------- */
+/* ---------- App opening: a still statement, the region's name on its photograph; the verdict follows ---------- */
 
-/** The region's photograph at full bleed with its name, held for one screen of scrolling while the photograph closes in
- *  to a framed picture and settles from 1.12 to 1; the name rides the frame's lower edge, shrinks a little and fades.
- *  Without motion it is a still statement. */
+/** The audit opens on the region's photograph with its name, still: the drone loops play on the landing, and the
+ *  zoom-out reveal (useStage, FRAME…) is parked until the team wants it. */
 function AppStatement({ d }: { d: RegionData }) {
-  const motion = useMotion()
-  const sectionRef = useRef<HTMLElement | null>(null)
-  const stageRef = useRef<HTMLDivElement | null>(null)
   const p = photoFor(d.id)
-  useStage(sectionRef, stageRef, motion.on)
-
   return (
-    <section ref={sectionRef} id="top" aria-labelledby="region-h" className={cn('relative', motion.on ? 'h-[200svh]' : 'h-[78svh] max-h-[1040px] min-h-[560px]')}>
-      <div
-        ref={stageRef}
-        style={{ '--p': 0 } as CSSProperties}
-        className={cn('sticky top-0 overflow-hidden bg-[color:var(--ground)]', FRAME, motion.on ? 'h-[100svh]' : 'h-full')}
-      >
-        <div className={cn('absolute inset-0', FRAME_CLIP)}>
-          <img
-            key={d.id}
-            src={p.src}
-            srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
-            sizes="100vw"
-            alt={p.alt}
-            width={p.width}
-            height={p.height}
-            style={{ objectPosition: p.focus }}
-            className={cn('absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover', SETTLE)}
-          />
-          <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
-        </div>
-        <div className={cn('absolute inset-x-0 bottom-0', RIDE, FADE_NAME)}>
-          <div className={cn(shell, 'pb-8 sm:pb-10')}>
-            <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
-            <h1 id="region-h" className={cn(statement, SHRINK)}>
-              <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
-            </h1>
-          </div>
-        </div>
-        {motion.on ? (
-          <div aria-hidden className={cn('absolute bottom-6 right-4 flex items-center gap-2 text-xs text-[color:var(--bone2)] sm:right-8', FADE_SOON)}>
-            Scroll
-            <ArrowDown size={14} strokeWidth={1.5} />
-          </div>
-        ) : null}
+    <section id="top" aria-labelledby="region-h" className="relative isolate flex h-[78svh] max-h-[1040px] min-h-[560px] flex-col">
+      <div className="absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]">
+        <img
+          key={d.id}
+          src={p.src}
+          srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
+          sizes="100vw"
+          alt={p.alt}
+          width={p.width}
+          height={p.height}
+          style={{ objectPosition: p.focus }}
+          className="absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover"
+        />
+        <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
+      </div>
+      <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
+        <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
+        <h1 id="region-h" className={statement}>
+          <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
+        </h1>
       </div>
     </section>
   )
 }
 
-/** The verdict, rising into the space under the framed photograph during the last part of the opening, then the reel. */
+/** The verdict under the statement, then the reel. */
 function AppVerdict({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
-  const motion = useMotion()
   const { look, change } = verdictLines(d)
   return (
-    <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-20', motion.on && '-mt-[40svh]')}>
-      <div className={cn(shell, 'grid grid-cols-1 pb-12 pt-6 xl:grid-cols-12 xl:gap-x-6 xl:pb-16')}>
+    <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-20">
+      <div className={cn(shell, 'grid grid-cols-1 py-16 xl:grid-cols-12 xl:gap-x-6 xl:py-20')}>
         <div className="xl:col-span-8">
           <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
           <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>

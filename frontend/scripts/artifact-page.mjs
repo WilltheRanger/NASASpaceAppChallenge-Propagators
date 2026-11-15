@@ -16,6 +16,10 @@ const images = [
 mkdirSync(join(out, 'img', 'prints'), { recursive: true })
 mkdirSync(join(out, 'img', 'regions'), { recursive: true })
 for (const f of images) copyFileSync(join('public', 'img', f), join(out, 'img', f))
+// the drone loops and their posters
+const videos = ['br-amazon', 'in-punjab-haryana', 'us-california'].flatMap((r) => [`${r}.mp4`, `${r}-poster.jpg`])
+mkdirSync(join(out, 'video', 'regions'), { recursive: true })
+for (const f of videos) copyFileSync(join('public', 'video', 'regions', f), join(out, 'video', 'regions', f))
 
 const contract = `<!--
   Anchor · Round 2 · D · Field film (Anduril-inspired at the team's request), as two pages. Team Propagators, NASA Space Apps 2026.
@@ -57,4 +61,4 @@ ${head}
 `
 writeFileSync(join(out, 'page.html'), landing)
 writeFileSync(join(out, 'app.html'), app)
-console.log(`wrote page.html (${landing.length} B), app.html (${app.length} B) and ${images.length} images to ${out}`)
+console.log(`wrote page.html (${landing.length} B), app.html (${app.length} B), ${images.length} images and ${videos.length} video files to ${out}`)

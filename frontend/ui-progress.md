@@ -49,6 +49,7 @@ per direction in `designs/round-2/plan.md`.
 | Phase 3 | D, landing | Keep D's layout, add to it; the hero is a statement: the region's name only ("The Amazon"), the verdict below | "you dont have to completly repalce it"; "The top is supposed to be sort of a statement piece" |
 | Phase 3 | D, motion | Anduril's patterns from their code: tour of regions, title rise, rule + slide, tile reveal, page fade, motion switch (no text scramble, at the team's request) | "look at andurils code … animations and ux" |
 | Phase 3 | D, audit opening | The statement top on the audit page too, with a zoom-out reveal as you scroll | "do the same statement top on the audit page"; picked "Zoom-out reveal" |
+| Phase 3 | D, media | Drone loops (Pexels) on the landing for the Amazon, Punjab + Haryana and California; the other regions keep their photographs with a slow push-in; the audit opens on a still photograph, the zoom-out reveal parked | "drone footage or just videos"; "image for the start and the drone for after?" (recommended: drone at the start); "I dont want the audit to have the animation scroll just yet" |
 | Phase 3 | Science copy | Nothing states the direction of the clock effect unless computed; "official count" only for INPE's Brazil series; MOCK labels follow each file's flag | Team plan, 15 Nov |
 | Phase 3 | Repo | No AI tool names in commits, PRs, branches, comments, headers or data notes; AI use disclosed in the slides and on the project page | Team git rule, 15 Nov |
 
