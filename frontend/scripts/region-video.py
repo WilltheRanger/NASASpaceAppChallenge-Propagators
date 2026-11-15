@@ -83,10 +83,11 @@ def grade(m):
             f"lutyuv=u='clip(val-({du:.2f}),16,240)':v='clip(val-({dv:.2f}),16,240)'")
 
 
-def make(src, out, start, dur, pace, max_out):
+def make(src, out, start, dur, pace, max_out, force=None):
     m = measure(src, start, dur)
     factor = 1.0 if m['speed_px_s'] <= pace or m['speed_px_s'] == 0 else pace / m['speed_px_s']
-    factor = max(0.25, factor)
+    # a time-lapse moves its clouds, not its camera, so its pace is set by hand
+    factor = max(0.25, force if force else factor)
     length = min(dur / factor, max_out)
     used = length * factor
     chain = [f'scale={WIDTH}:-2:flags=lanczos', f'setpts=PTS/{factor:.4f}']
@@ -109,13 +110,14 @@ def main():
     ap.add_argument('--dur', type=float, required=True)
     ap.add_argument('--pace', type=float, default=11.0, help='camera speed to match, pixels per second at 1280 wide')
     ap.add_argument('--max-out', type=float, default=12.0, help='longest output, seconds')
+    ap.add_argument('--factor', type=float, default=None, help='speed factor by hand (e.g. 0.5 for a time-lapse)')
     a = ap.parse_args()
     if a.mode == 'measure':
         print(json.dumps(measure(a.src, a.start, a.dur)))
     else:
         if not a.out:
             sys.exit('make needs OUT.mp4')
-        print(json.dumps(make(a.src, a.out, a.start, a.dur, a.pace, a.max_out)))
+        print(json.dumps(make(a.src, a.out, a.start, a.dur, a.pace, a.max_out, a.factor)))
 
 
 if __name__ == '__main__':

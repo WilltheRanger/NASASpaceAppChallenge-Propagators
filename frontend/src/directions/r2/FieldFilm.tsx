@@ -498,7 +498,13 @@ function Footer() {
               const v = photoFor(r.id).video!
               return (
                 <li key={`v-${r.id}`}>
-                  {r.name}, drone video: <a href={v.url} target="_blank" rel="noreferrer" className={cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>{v.by}</a> on Pexels
+                  {r.name}, video:{' '}
+                  {v.url ? (
+                    <a href={v.url} target="_blank" rel="noreferrer" className={cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>{v.by ?? 'a contributor'}</a>
+                  ) : (
+                    <span className="text-[color:var(--bone2)]">{v.by ?? 'a contributor'}</span>
+                  )}{' '}
+                  on {v.site}{v.filmed ? `, ${v.filmed}` : ''}
                 </li>
               )
             })}
