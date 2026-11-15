@@ -153,8 +153,9 @@ export const linksFor = (nav: Nav): Links => ({
 export const CAVEAT = 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.'
 export const FOOTER_LINE = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 export const JETHVA = 'https://doi.org/10.3390/rs18101506'
-/** The public repository, when the build is told it (the Pages deploy sets it); no link otherwise. */
-export const REPO_URL = (import.meta.env.VITE_REPO_URL as string | undefined) || ''
+/** The code: the Pages deploy sets it from the repository it builds; the comment pages use the same address (the
+ *  owner approved showing it, and the repository is to be public for judging). */
+export const REPO_URL = (import.meta.env.VITE_REPO_URL as string | undefined) || 'https://github.com/WilltheRanger/NASASpaceAppChallenge-Propagators'
 /** True while any region still reads mock files. */
 export const ANY_MOCK = REGIONS.some((r) => regionData(r.id).mock)
 
