@@ -1,8 +1,7 @@
 // The site: the landing (/) and the audit (?page=app). Round 1 (rejected, kept for the record) opens in development
 // only, at ?round=1&d=a..e; the deployed build leaves it out. Round 2's other comps are kept as renders in designs/round-2/.
 import { lazy, Suspense, type ComponentType } from 'react'
-
-const Site = lazy(() => import('./directions/r2/FieldFilm'))
+import Site from './directions/r2/FieldFilm' // static, so the page arrives in one request rather than two in a row
 const R1: Record<string, ComponentType> | null = import.meta.env.DEV
   ? {
       a: lazy(() => import('./directions/DirectionA')), b: lazy(() => import('./directions/DirectionB')), c: lazy(() => import('./directions/DirectionC')),
