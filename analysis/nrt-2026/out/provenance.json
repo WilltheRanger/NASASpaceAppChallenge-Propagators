@@ -1,0 +1,59 @@
+{
+  "retrieved_at": "2026-11-15T09:12:29.656014+00:00",
+  "listing_url": "https://firms.modaps.eosdis.nasa.gov/api/active_fire_files/all?format=json",
+  "sources": [
+    {
+      "sensor": "modis",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/active_fire/modis-c6.1/csv/MODIS_C6_1_South_America_7d.csv",
+      "sha256": "f4f605034d4f7c68dff10acc966ea4986152d9efc299d228306a043c21713075",
+      "bytes": 1321059,
+      "rows_after_dedup": 17022,
+      "observed_dates": [
+        "2026-11-08",
+        "2026-11-15"
+      ],
+      "type_field_available": false,
+      "versions": [
+        "6.1NRT"
+      ]
+    },
+    {
+      "sensor": "noaa20",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/active_fire/noaa-20-viirs-c2/csv/J1_VIIRS_C2_South_America_7d.csv",
+      "sha256": "e256fc3addd4719c23d4b8f10a7ff586d3fedcecd44112d534bae01a5a109219",
+      "bytes": 4644578,
+      "rows_after_dedup": 55236,
+      "observed_dates": [
+        "2026-11-08",
+        "2026-11-15"
+      ],
+      "type_field_available": false,
+      "versions": [
+        "2.0NRT"
+      ]
+    },
+    {
+      "sensor": "noaa21",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/active_fire/noaa-21-viirs-c2/csv/J2_VIIRS_C2_South_America_7d.csv",
+      "sha256": "24cd7e8b69c9b8f0b8cdf4d3de98dabc21b3d8bb3a5d6dd5c6eaa95642d3730f",
+      "bytes": 4583345,
+      "rows_after_dedup": 54547,
+      "observed_dates": [
+        "2026-11-08",
+        "2026-11-15"
+      ],
+      "type_field_available": false,
+      "versions": [
+        "2.0NRT"
+      ]
+    }
+  ],
+  "snpp_feed_listed": false,
+  "method": "Exact historical IBGE polygons; all daytime NRT detections. No vegetation/type filter when source lacks it. No missing dates filled with zero.",
+  "scope": "Rolling7d snapshot only; not full2026, not complete monthly totals, no fixed-clock calibration or causal inference.",
+  "missing_calendar_months_not_filled": true,
+  "daily_rows": 141,
+  "detections": 42176,
+  "date_min": "2026-11-08",
+  "date_max": "2026-11-14"
+}
