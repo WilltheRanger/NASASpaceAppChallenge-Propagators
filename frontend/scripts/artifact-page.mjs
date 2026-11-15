@@ -1,6 +1,8 @@
-// Assembles the comment pages for the shareable comment artifact from the D-only build (vite.artifact.config.ts): the landing
-// as the main page (content only; the artifact adds the document skeleton) and the audit as app.html (a whole
-// document), both loading the one script; CSS inlined; images copied as files.
+// Assembles the comment page for the shareable comment artifact from the D-only build (vite.artifact.config.ts): the
+// region page as the main page, page.html (content only; the artifact adds the document skeleton), loading the one
+// script, CSS inlined, images and videos copied as files. app.html, the audit page's old address, becomes a small
+// redirect to the region page that keeps the region and the calendar's keys from its hash.
+// The images of the parked landing parts (src/directions/r2/landing-parts.tsx) are still copied for the new landing.
 // Usage: ARTIFACT_OUT=<dir> npm run artifact   (default dir: dist-artifact).
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -29,7 +31,7 @@ for (const f of videos) copyFileSync(join('public', 'video', 'regions', f), join
 
 const contract = `<!--
   Anchor: satellite fire counts on a fixed clock. Team Propagators, NASA Space Apps Challenge 2026.
-  Two pages: this landing and the audit (app.html). Every number comes from the team's JSON files (data/out).
+  One page: each region's name, its verdict and its audit. Every number comes from the team's JSON files (data/out).
   Region photographs and drone footage are credited in the footer; pass imagery: NASA Worldview / GIBS.
 -->`
 const head = `<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,28 +43,38 @@ ${css}
 html, body { background: #0B0D0B; color: #ECE9E1; }
 </style>`
 
-const landing = `<title>Anchor Fire Audit</title>
+const description = "Aqua's daytime fire counts beside a fixed-clock VIIRS benchmark, for six fire regions, as Aqua's overpass time drifted later. Team Propagators, NASA Space Apps Challenge 2026."
+const regionPage = `<title>Anchor Fire Audit</title>
+<meta name="description" content="${description}">
 ${contract}
 ${head}
-<div id="root" lang="en" data-page="landing"></div>
+<div id="root" lang="en" data-page="regions"></div>
 <script type="module" src="assets/app.js"></script>
 `
-const app = `<!doctype html>
+// the old audit address: forward to the region page, keeping #region=… and the calendar's from, to and cal
+const redirect = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Anchor audit: Aqua's daytime fire counts beside a fixed-clock VIIRS benchmark, for six fire regions. Team Propagators, NASA Space Apps Challenge 2026.">
-<title>Anchor · Audit</title>
-${contract}
-${head}
+<meta name="description" content="${description}">
+<title>Anchor Fire Audit</title>
+<style>html, body { background: #0B0D0B; color: #ECE9E1; color-scheme: dark; }</style>
+<script>
+(() => {
+  const from = new URLSearchParams(location.search)
+  new URLSearchParams(location.hash.replace(/^#/, '')).forEach((v, k) => from.set(k, v))
+  const keep = new URLSearchParams()
+  for (const k of ['region', 'from', 'to', 'cal']) { const v = from.get(k); if (v) keep.set(k, v) }
+  const h = keep.toString()
+  location.replace('index.html' + (h ? '#' + h : ''))
+})()
+</script>
+<noscript><meta http-equiv="refresh" content="0; url=index.html"></noscript>
 </head>
-<body>
-<div id="root" lang="en" data-page="app"></div>
-<script type="module" src="assets/app.js"></script>
-</body>
+<body><a href="index.html" style="color: inherit">Anchor Fire Audit</a></body>
 </html>
 `
-writeFileSync(join(out, 'page.html'), landing)
-writeFileSync(join(out, 'app.html'), app)
-console.log(`wrote page.html (${landing.length} B), app.html (${app.length} B), ${images.length} images and ${videos.length} video files to ${out}`)
+writeFileSync(join(out, 'page.html'), regionPage)
+writeFileSync(join(out, 'app.html'), redirect)
+console.log(`wrote page.html (${regionPage.length} B), app.html (a ${redirect.length} B redirect), ${images.length} images and ${videos.length} video files to ${out}`)

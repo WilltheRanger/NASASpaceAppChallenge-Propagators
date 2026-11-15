@@ -1,12 +1,12 @@
-// Entry for the shareable comment pages: direction D (Field film) only, one bundle for both pages. The page to draw
-// comes from the root element: data-page="landing" (the artifact's main page) or "app" (app.html).
+// Entry for the shareable comment page: direction D (Field film) only. The page to draw comes from the root element's
+// data-page ("regions" in page.html); FieldFilm maps the name, as it does the site's ?page=. app.html, the audit's old
+// address, is a small redirect to the region page and loads no script.
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import FieldFilm from './directions/r2/FieldFilm'
 
 const root = document.getElementById('root')!
-// the artifact supplies the document around the landing page; name its language
+// the artifact supplies the document around the region page; name its language
 if (!document.documentElement.lang) document.documentElement.lang = 'en'
-const page = root.dataset.page === 'app' ? 'app' : 'landing'
-createRoot(root).render(<StrictMode><FieldFilm page={page} nav="artifact" /></StrictMode>)
+createRoot(root).render(<StrictMode><FieldFilm page={root.dataset.page} nav="artifact" /></StrictMode>)
