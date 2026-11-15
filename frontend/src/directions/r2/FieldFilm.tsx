@@ -307,34 +307,52 @@ function effectHeading(d: RegionData) {
   return `${span}, Aqua’s count for ${d.phrase.the} sat outside its 2012–2020 placebo range`
 }
 
-/** Where the official series and our reproduction meet, said once per Brazil region. */
-const INPE_CONTEXT = 'INPE’s Programa Queimadas, Brazil’s official fire statistic, counts the hotspots of one reference satellite, Aqua. Our reproduction of its series matches it (check P3).'
+/** Where the official series and our reproduction meet, said once per Brazil region, as a source line. */
+const INPE_CONTEXT = 'INPE’s Programa Queimadas counts one satellite, Aqua · our reproduction matches (P3)'
 const JETHVA = 'https://doi.org/10.3390/rs18101506'
 
-/** The verdict's sentences, under the region's name; Punjab reads as the validation case. */
-function VerdictBody({ d, size = 'lg' }: { d: RegionData; size?: 'lg' | 'sm' }) {
+/** The verdict under the region's name: two short lines, the whole-year change as a stat row, and a source line.
+ *  Punjab reads as the validation case. */
+function VerdictBody({ d }: { d: RegionData }) {
   const v = verdictLines(d)
-  const lead = cn('max-w-[var(--measure)] text-[color:var(--bone2)]', size === 'lg' ? 'text-lg' : 'text-base')
+  const lead = 'mt-6 max-w-[var(--measure)] space-y-2 text-lg text-[color:var(--bone2)]'
+  const source = 'mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone3)]'
   if (isValidation(d.id)) {
     return (
       <>
-        <p className={cn('mt-6', lead)}>
-          Punjab and Haryana are our validation case, not a sixth audit. Jethva and colleagues (2026) used hourly geostationary
-          observations to show crop-residue burning moving later into the afternoon; the timing evidence is theirs. Aqua’s November count
-          rising toward VIIRS’s fits it, and Aqua’s look over the region moved later every year from 2021 to 2025 (check P2).
-        </p>
-        <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone3)]">
-          Our audit years 2023 to 2025 have too few hotspots to read, so we don’t quote them.{' '}
+        <div className={lead}>
+          <p>Our validation case, not a sixth audit: hourly geostationary images (Jethva and colleagues, 2026) show crop-residue burning moving later into the afternoon.</p>
+          <p>Aqua’s November count rising toward VIIRS’s fits it, and Aqua looked later every year from 2021 to 2025 (check P2).</p>
+        </div>
+        <p className={source}>
+          Audit years 2023 to 2025 have too few hotspots to read, so we don’t quote them ·{' '}
           <a href={JETHVA} target="_blank" rel="noreferrer" className={cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Jethva 2026, Remote Sensing</a>
         </p>
       </>
     )
   }
+  const look = [v.short.look, v.short.caveat].filter(Boolean).join(' ')
   return (
     <>
-      <p className={cn('mt-6', lead)}>{[v.counts, v.timing, v.caveat].filter(Boolean).join(' ')}</p>
-      {v.declines ? <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{v.declines} These are whole calendar months, not the audit’s days.</p> : null}
-      {hasOfficialSeries(d.id) ? <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone3)]">{INPE_CONTEXT}</p> : null}
+      <div className={lead}>
+        {v.short.counts ? <p>{v.short.counts}</p> : null}
+        {look ? <p>{look}</p> : null}
+      </div>
+      {v.whole.length ? (
+        <div className="mt-6 max-w-[var(--measure)] border-t border-[color:var(--hairline)] pt-4 text-sm">
+          <p className="text-[color:var(--bone3)]">{v.from} to {v.to}, whole months, not the audit’s days</p>
+          <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
+            {v.whole.map((r) => (
+              <Fragment key={r.name}>
+                <dt className="text-[color:var(--bone3)]">{r.name}</dt>
+                <dd className="tabular-nums">{pct(r.change)}</dd>
+                <dd className="tabular-nums text-[color:var(--bone3)]">{fmtInt(r.a)} to {fmtInt(r.b)}</dd>
+              </Fragment>
+            ))}
+          </dl>
+        </div>
+      ) : null}
+      {hasOfficialSeries(d.id) ? <p className={source}>{INPE_CONTEXT}</p> : null}
     </>
   )
 }
@@ -351,6 +369,37 @@ const underline = cn(
   'relative rounded after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-right after:scale-x-0 after:bg-current after:content-[\'\']',
   'after:transition-transform after:duration-300 after:ease-[var(--ease)] hover:after:origin-left hover:after:scale-x-100',
 )
+
+/* ---------- Disclosure: method detail and caveats one click away, out of the page's text until opened ---------- */
+
+// Native <details>: the summary carries the expanded state for assistive tech, works without script, and find-in-page
+// opens it. The summary is the page's small text button (as "Download CSV") with the arrow the checks' old "The rule"
+// summary turned.
+const summaryReset = 'cursor-pointer list-none [&::-webkit-details-marker]:hidden'
+const moreSummary = cn('inline-flex h-9 items-center gap-1 rounded text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', summaryReset, ease, focusRing)
+const turnOpen = 'shrink-0 transition-transform duration-150 group-open:rotate-90 motion-reduce:transition-none'
+
+/** "Limits", "Method", "How we checked": a small disclosure whose panel opens underneath. */
+function More({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
+  return (
+    <details className={cn('group', className)}>
+      <summary className={moreSummary}>
+        <ArrowRight size={12} strokeWidth={1.5} aria-hidden className={turnOpen} />
+        {label}
+      </summary>
+      {children}
+    </details>
+  )
+}
+
+/** Terse bullets inside a disclosure. */
+function Bullets({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-1 flex max-w-[var(--measure)] list-disc flex-col gap-1.5 pl-4 text-xs text-[color:var(--bone2)]">
+      {items.map((t) => <li key={t}>{t}</li>)}
+    </ul>
+  )
+}
 
 const selectClasses = {
   trigger: cn(
@@ -1076,7 +1125,6 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
     { id: 'viirs', label: 'Fixed clock', time: hm(dr.viirs_lst), timeText: dr.viirs_lst, dayPass: 'north', marker: 'diamond', color: 'var(--sat-viirs)', altitudeKm: 830, phase: 0.31 },
     { id: 'aqua', label: 'Aqua', time: hm(dr.aqua_lst), timeText: dr.aqua_lst, dayPass: 'north', marker: 'filled', color: 'var(--sat-aqua)', altitudeKm: 705, flag: `${minutesBetween(dr.aqua_lst, dr.viirs_lst) >= 0 ? '+' : '−'}${Math.abs(minutesBetween(dr.aqua_lst, dr.viirs_lst))} min`, phase: 0 },
   ]
-  const order = [...orbits].sort((a, b) => a.time - b.time).map((o) => (o.id === 'viirs' ? 'the fixed clock’s' : `${o.label}’s`))
   const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
   const description = `${statementName(d.id)} at noon in ${dr.year}, seen from the Sun’s side, with three orbits: its day carries it under Terra’s track at ${dr.terra_lst}, the fixed clock’s at ${dr.viirs_lst} and Aqua’s at ${dr.aqua_lst} local solar time.`
 
@@ -1086,10 +1134,7 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
         <div className="lg:col-span-4">
           <h2 id="orbits-h" className={title}>{orbitsHeading(d)}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            {statementName(d.id)} at noon, seen from the Sun’s side: morning to the left, evening to the right. Each orbit
-            keeps its angle to the sunlight, so each orbit runs along a line of one time of day. The Earth’s turn carries{' '}
-            {d.phrase.the} along the dashed path, under {order[0]} orbit first, then {order[1]}, then {order[2]}. Pick a year
-            in the chart under the globe, by pointer or arrow keys, to see the orbits move.
+            {statementName(d.id)} at noon, morning to the left and evening to the right; each orbit keeps to one time of day.
           </p>
           <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
             <dt className="text-[color:var(--bone3)]">Year</dt>
@@ -1117,8 +1162,8 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
             onYear={onYear}
           />
           <figcaption className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--bone3)]">
-            <span>Drag the globe to turn it. Heights to scale: Aqua and Terra fly about 705 km up, the VIIRS satellites about 830 km.</span>
-            {sun ? <span>The dashed path is daylight on {dateText(sun.mid)}, the middle of the fire season: sunrise {fmtHM(sun.rise)}, sunset {fmtHM(sun.set)}, local solar time.</span> : null}
+            <span>Pick a year below; drag to turn. Heights to scale: Aqua and Terra about 705 km, VIIRS about 830 km.</span>
+            {sun ? <span>Dashed path: daylight on {dateText(sun.mid)} (sunrise {fmtHM(sun.rise)}, sunset {fmtHM(sun.set)}, local solar time).</span> : null}
             <span>Source: drift/{d.id}.json</span>
             <MockTag show={d.mock} />
           </figcaption>
@@ -1203,9 +1248,8 @@ function Passes({ d }: { d: RegionData }) {
         <div className="lg:col-span-4">
           <h2 id="passes-h" className={title}>{scene.heading}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            The same place, {scene.place}, on {scene.day}, seen in the morning, early afternoon and later afternoon. Fires,
-            smoke and clouds change through the day, so a later look can count more fires or fewer; the audit measures
-            which, and by how much.
+            Fires, smoke and clouds change through the day, so a later look can count more fires or fewer; the audit
+            measures which, and by how much.
           </p>
           <ToggleGroup.Root
             type="single"
@@ -1259,7 +1303,7 @@ function Passes({ d }: { d: RegionData }) {
             </div>
           </div>
           <figcaption className="mt-4 text-xs text-[color:var(--bone3)]">
-            {scene.day}, {scene.place} · Imagery: NASA Worldview / GIBS, true colour with each satellite’s fire detections
+            {capital(scene.place)}, {scene.day} · NASA Worldview / GIBS true colour, with each satellite’s fire detections
           </figcaption>
         </figure>
       </div>
@@ -1304,7 +1348,7 @@ function Daylight({ d, year, onYear, small }: { d: RegionData; year: number; onY
   const leftNow = useReal ? real!.level2a_aqua_D15_2025! : last.left.aqua[1]
   const heading = lost == null
     ? `How much daylight an alert from each pass leaves in ${d.phrase.the}`
-    : `In ${last.year}, an alert from Aqua left ${Math.abs(lost)} ${lost >= 0 ? 'fewer' : 'more'} minutes of daylight in ${d.phrase.the} than in 2012–2020`
+    : `In ${last.year}, an Aqua alert left ${Math.abs(lost)} ${lost >= 0 ? 'fewer' : 'more'} minutes of daylight in ${d.phrase.the} than in 2012–2020`
   const series: Series[] = DAY_SATS.map((s) => ({
     id: s.key, label: s.label, marker: s.marker, color: s.color,
     values: ys.map((y) => y.left[s.key][1]), lo: ys.map((y) => y.left[s.key][2]), hi: ys.map((y) => y.left[s.key][0]),
@@ -1313,32 +1357,31 @@ function Daylight({ d, year, onYear, small }: { d: RegionData; year: number; onY
     const y = ys[i]
     return `${y.year}, sunset ${fmtHM(y.set)}: an alert 1.5 hours after each pass leaves ${DAY_SATS.map((s) => `${s.label} ${hoursText(y.left[s.key][1])}`).join(', ')}`
   }
-  const caveats = [
-    'The change is Aqua’s later look, minute for minute: on a fixed date, a later look leaves less daylight. What the figure adds is how little is left.',
+  // one line stays visible so the hours can't be read as a response time; the rest sit behind "Limits"
+  const limits = [
+    'The change is Aqua’s later look, minute for minute: with sunset fixed, a later look leaves less daylight. The figure adds how little is left.',
     brazil
-      ? 'This is one satellite’s alert timing, not a country’s response. INPE watches with many satellites, including geostationary ones that image several times an hour; Aqua is its reference for statistics, not its only alert source.'
-      : 'This is one satellite’s alert timing, not a response capacity: fire agencies also watch with geostationary satellites that image several times an hour.',
-    'Sunset isn’t the only limit on fighting a fire: night operations and ground crews exist.',
-    'The delays are three cases, none, 1.5 and 3 hours, not a measured spread. NASA FIRMS puts its near-real-time data out within 3 hours of a pass.',
-    `One date and one place stand for the whole region: the middle day of its fire season, at the centre of its box (sunrise and sunset from NOAA’s solar equations). Fires elsewhere see other sunsets.`,
+      ? 'INPE also watches with geostationary satellites that image several times an hour; Aqua is its reference for statistics, one alert source among many.'
+      : 'Fire agencies also watch with geostationary satellites that image several times an hour.',
+    'Sunset isn’t a hard stop: night operations and ground crews exist.',
+    'The delays (none, 1.5 and 3 hours) are cases, not a measured spread; NASA FIRMS puts near-real-time data out within 3 hours of a pass.',
+    'One date and place stand for the region: its fire season’s middle day at the centre of its box (sunrise and sunset from NOAA’s solar equations). Fires elsewhere see other sunsets.',
     ...(useReal
-      ? [`Here the fires burn on other dates and at other latitudes than that one day, by more than 30 minutes of daylight in some years, so the sentence above gives the median over every real Aqua detection instead. The chart keeps the one-day figure.`]
+      ? ['Here real fires burn on other dates and latitudes than that day, by more than 30 minutes of daylight in some years, so the heading and text give the median over every real Aqua detection; the chart keeps the one-day figure.']
       : []),
   ]
+  const looks = dl.baseAqua != null && lookShift ? `Aqua now looks at ${fmtHM(last.look.aqua)}, not ${fmtHM(dl.baseAqua)}: in ` : 'In '
   return (
     <section id="daylight" aria-labelledby="daylight-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
           <h2 id="daylight-h" className={title}>{heading}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            When Aqua{brazil ? ', Brazil’s reference satellite,' : ''} sees a fire in {d.phrase.the} during its fire season
-            ({dl.season.label}), an alert that arrives 1.5 hours after the pass leaves {aboutText(leftNow)} of
-            daylight in {last.year}{useReal ? ' (the median over every real Aqua detection that year)' : ''}.
-            {dl.baseAqua != null && lookShift
-              ? useReal
-                ? ` Aqua now looks at ${fmtHM(last.look.aqua)}, not ${fmtHM(dl.baseAqua)}; across the real fires, the daylight left fell by ${Math.abs(lost!)} minutes.`
-                : ` Aqua now looks at ${fmtHM(last.look.aqua)}, not ${fmtHM(dl.baseAqua)}; with sunset fixed, the daylight left shrinks by the same ${Math.abs(lookShift)} minutes.`
-              : ''}
+            {looks}{last.year}’s fire season ({dl.season.label}), an alert 1.5 hours after the pass leaves {aboutText(leftNow)} of
+            daylight{useReal ? ' (the median over every real Aqua detection that year)' : ''}.
+          </p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
+            One satellite’s alert timing, not {brazil ? 'a country’s response' : 'a response capacity'}.
           </p>
           {shown ? (
             <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
@@ -1356,18 +1399,16 @@ function Daylight({ d, year, onYear, small }: { d: RegionData; year: number; onY
               ))}
             </dl>
           ) : null}
-          <ul className="mt-8 flex max-w-[var(--measure)] list-none flex-col gap-2 border-t border-[color:var(--hairline)] pt-4 text-xs text-[color:var(--bone2)]">
-            {caveats.map((c) => <li key={c}>{c}</li>)}
-          </ul>
+          <More label="Limits" className="mt-4">
+            <Bullets items={limits} />
+          </More>
         </div>
         <div className="flex min-w-0 flex-col gap-16 lg:col-span-8">
           <figure className="m-0">
             <figcaption className="mb-4">
               <span className="block text-lg font-medium">Daylight left after each pass’s alert</span>
               <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-                Hours from the alert to sunset on {dateText(last.mid)}, the middle of the fire season. Each mark is an alert 1.5
-                hours after the pass; its bar runs from no delay (top) to 3 hours (bottom). Below the line, the alert comes
-                after dark.
+                Alert 1.5 h after each pass, to sunset on {dateText(last.mid)} · bars: no delay (top) to 3 h (bottom)
               </span>
             </figcaption>
             <SeriesChart
@@ -1428,7 +1469,7 @@ function FireDayMap() {
   const [dy, dm, dd] = day.day.split('-').map(Number)
   const dateLabel = `${dd} ${MONTHS[dm - 1]} ${dy}`
   const readout = hover
-    ? `A fire of ${fmtInt(hover.n)} detections, first seen at ${fmtHM(hover.first_seen)}; seen by ${andList(hover.seen_by)}`
+    ? `A fire of ${fmtInt(hover.n)} detections, seen from ${fmtHM(hover.first_seen)} by ${andList(hover.seen_by)}`
     : 'Point at a fire to see which passes saw it'
   const toggle = cn('h-9 rounded px-3 text-sm', ease, focusRing)
   return (
@@ -1436,8 +1477,8 @@ function FireDayMap() {
       <figcaption className="mb-4">
         <span className="block text-lg font-medium">One fire day: {dateLabel} in Pará</span>
         <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-          The {fmtInt(day.fires.length)} fires that at least one daytime pass saw (detections in touching 0.05° cells), on
-          NASA’s true-colour image from VIIRS that afternoon. Sunset {fmtHM(day.sunset)}, local solar time.
+          {fmtInt(day.fires.length)} fires seen by daytime passes, on that afternoon’s VIIRS image; sunset {fmtHM(day.sunset)}{' '}
+          local solar time.
         </span>
       </figcaption>
       <div className="mb-3 flex flex-wrap items-center gap-2" role="group" aria-label="Delay before the alert">
@@ -1449,7 +1490,7 @@ function FireDayMap() {
             onClick={() => setDelay(v)}
             className={cn(toggle, delay === v ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'bg-[color:var(--surface)] text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}
           >
-            {v === 0 ? 'Alert at the end of the pass' : 'Alert 3 hours later'}
+            {v === 0 ? 'No delay' : '3-hour delay'}
           </button>
         ))}
       </div>
@@ -1457,7 +1498,7 @@ function FireDayMap() {
       <div ref={boxRef} className="relative w-full overflow-hidden rounded-[2px] bg-[color:var(--surface)]" style={{ aspectRatio: `${e - w} / ${n - s}` }}>
         <img src={`${IMG}daylight/${day.region}-${day.day}.jpg`} alt="" className="absolute inset-0 size-full object-cover" loading="lazy" />
         {W > 0 ? (
-          <svg width={W} height={H} className="absolute inset-0 block" role="img" aria-label={`Map of the ${day.fires.length} fires seen on ${dateLabel}, marked by the first pass that saw each: ${DAY_PASSES.map((p) => `${p.key} ${day.fires.filter((f) => firstPass(f) === p).length}`).join(', ')}`}>
+          <svg width={W} height={H} className="absolute inset-0 block" role="img" aria-label={`Map of the ${day.fires.length} fires seen on ${dateLabel}, marked by the earliest pass that saw each: ${DAY_PASSES.map((p) => `${p.key} ${day.fires.filter((f) => firstPass(f) === p).length}`).join(', ')}`}>
             {day.fires.map((f) => {
               const p = firstPass(f)
               const r = 3.5 + 4 * Math.sqrt(f.n / maxN)
@@ -1473,16 +1514,17 @@ function FireDayMap() {
         ) : null}
       </div>
       <div aria-hidden className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[color:var(--bone2)]">
+        <span>Earliest pass:</span>
         {DAY_PASSES.map((p) => (
           <span key={p.key} className="inline-flex items-center gap-2">
             <svg width={14} height={14}><DetMark shape={p.shape} color={p.color} x={7} y={7} r={4.5} /></svg>
-            First seen by {p.key}
+            {p.key}
           </span>
         ))}
         <span>Larger mark, more detections</span>
       </div>
       <table className="mt-6 w-full border-collapse text-sm tabular-nums">
-        <caption className="sr-only">What each pass’s alert left of the day, {delay === 0 ? 'with no delay' : 'with a 3-hour delay'}</caption>
+        <caption className="sr-only">Daylight left after each pass’s alert, {delay === 0 ? 'no delay' : '3-hour delay'}</caption>
         <thead>
           <tr className="border-b border-[color:var(--hairline)] text-left text-xs text-[color:var(--bone3)]">
             <th scope="col" className="py-2 pr-3 font-normal">Pass</th>
@@ -1509,10 +1551,13 @@ function FireDayMap() {
           ))}
         </tbody>
       </table>
-      <p className="mt-4 text-xs text-[color:var(--bone3)]">
-        Alert = the end of the pass over this box plus the delay. Sources: amazon-2024-09-02.json (NASA FIRMS detections, pass
-        times) · sunset: NOAA’s solar equations at the box centre · image: NASA Worldview / GIBS, VIIRS S-NPP true colour
-      </p>
+      <p className="mt-4 text-xs text-[color:var(--bone3)]">Sources: amazon-2024-09-02.json (NASA FIRMS) · NASA Worldview / GIBS</p>
+      <More label="Method" className="mt-1">
+        <p className="mt-1 max-w-[var(--measure)] text-xs text-[color:var(--bone2)]">
+          A fire is a patch of detections in touching 0.05° cells. Alert = the end of the pass over this box plus the delay.
+          Detections and pass times: NASA FIRMS. Sunset: NOAA’s solar equations at the box centre. Image: VIIRS S-NPP true colour.
+        </p>
+      </More>
     </figure>
   )
 }
@@ -1537,17 +1582,18 @@ function twoClocksHeading(d: RegionData) {
   return `By ${last.year}, neither Aqua’s nor Terra’s count against VIIRS showed a clear change since 2012–2020`
 }
 
-/** The checks written to test this section's logic, said plainly when they fail, with the scores the file states. */
+/** The checks written to test this section's logic, when they fail: one plain line, and the scores the file states. */
 function twoClocksChecks() {
   const failing = ['P9', 'P10'].map((id) => CHECKS.checks.find((c) => c.id === id)).filter((c): c is Check => !!c && c.status === 'fail')
   if (!failing.length) return null
-  const parts = failing.map((c) => {
+  const line = `${failing.length === 2 ? 'Both checks' : 'A check'} of this logic ${failing.length === 2 ? 'fail' : 'fails'} (${andList(failing.map((c) => c.id))}): read it as description, not confirmation of the audit.`
+  const scores = failing.map((c) => {
     const m = /(\d+)\/(\d+)/.exec(c.detail)
     return c.id === 'P9'
-      ? `P9, that the two drifts move the counts in opposite directions${m ? `, holds in ${m[1]} of ${m[2]} Brazilian biomes where the rule asks for every one` : ''}`
-      : `P10, that this difference agrees with the audit, holds${m ? ` in ${m[1]} of ${m[2]} biome-years, under the 75% the rule asks` : ' too rarely'}`
+      ? `P9, that the two drifts move the counts in opposite directions, ${m ? `holds in ${m[1]} of ${m[2]} Brazilian biomes; the rule asks for every one` : 'fails'}.`
+      : `P10, that this difference agrees with the audit, holds${m ? ` in ${m[1]} of ${m[2]} biome-years, under the 75% the rule asks` : ' too rarely'}.`
   })
-  return `${failing.length === 2 ? 'Both checks' : 'A check'} written to test this logic ${failing.length === 2 ? 'fail' : 'fails'}: ${parts.join('; ')}. Read this section as a description, not as confirmation of the audit.`
+  return { line, scores }
 }
 
 /** Where the two clocks and the audit read the same year differently, say so. */
@@ -1559,8 +1605,8 @@ function twoClocksConflict(d: RegionData) {
   if (apart === (a.verdict === 'outside')) return null
   const v = logPct(t.clock_diff)
   return apart
-    ? `Here the two disagree. In ${t.year}, Aqua’s change ran ${Math.round(Math.abs(v))}% ${v > 0 ? 'above' : 'below'} Terra’s (95% range ${fmtRange(logPct(t.clock_lo), logPct(t.clock_hi), 0)}), while the audit finds Aqua’s count within its placebo range.`
-    : `Here the two disagree. In ${t.year}, the audit finds Aqua’s count outside its placebo range, while Aqua’s and Terra’s changes overlap (95% range ${fmtRange(logPct(t.clock_lo), logPct(t.clock_hi), 0)}).`
+    ? `Here the two disagree: in ${t.year}, Aqua’s change ran ${Math.round(Math.abs(v))}% ${v > 0 ? 'above' : 'below'} Terra’s (95% range ${fmtRange(logPct(t.clock_lo), logPct(t.clock_hi), 0)}), but the audit finds Aqua within its placebo range.`
+    : `Here the two disagree: in ${t.year}, the audit finds Aqua outside its placebo range, but Aqua’s and Terra’s changes overlap (95% range ${fmtRange(logPct(t.clock_lo), logPct(t.clock_hi), 0)}).`
 }
 
 function TwoClocks({ d, year, onYear, small }: { d: RegionData; year: number; onYear: (y: number) => void; small: boolean }) {
@@ -1601,6 +1647,10 @@ function TwoClocks({ d, year, onYear, small }: { d: RegionData; year: number; on
   )
   const checksNote = twoClocksChecks()
   const conflict = twoClocksConflict(d)
+  const limits = [
+    'Each satellite is counted near the middle of its view, against VIIRS, as a change from its own 2012–2020 relationship.',
+    ...(checksNote?.scores ?? []),
+  ]
 
   return (
     <section id="two-clocks" aria-labelledby="two-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
@@ -1608,11 +1658,10 @@ function TwoClocks({ d, year, onYear, small }: { d: RegionData; year: number; on
         <div className="lg:col-span-4">
           <h2 id="two-h" className={title}>{twoClocksHeading(d)}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Terra and Aqua carry the same MODIS camera.{first && last ? ` From ${first.year} to ${last.year}, Terra’s look moved ${way(first.terra_lst, last.terra_lst)} and Aqua’s ${way(first.aqua_lst, last.aqua_lst)}.` : ''} Each
-            satellite is counted near the middle of its view, against VIIRS, as a change from its own 2012–2020 relationship.
-            Comparing the two changes cancels what they share, such as how the orbit samples the region.
+            Terra and Aqua carry the same MODIS camera, so comparing the two cancels what they share, such as orbit sampling
+            {first && last ? `; from ${first.year} to ${last.year}, Terra’s look moved ${way(first.terra_lst, last.terra_lst)} and Aqua’s ${way(first.aqua_lst, last.aqua_lst)}` : ''}.
           </p>
-          {checksNote ? <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">{checksNote}</p> : null}
+          {checksNote ? <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">{checksNote.line}</p> : null}
           {conflict ? <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">{conflict}</p> : null}
           {t ? (
             <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
@@ -1628,12 +1677,15 @@ function TwoClocks({ d, year, onYear, small }: { d: RegionData; year: number; on
               <dd className="tabular-nums">{pct(logPct(t.sampling_est))} <span className="text-[color:var(--bone3)]">cancelled out</span></dd>
             </dl>
           ) : null}
+          <More label="Limits" className="mt-4">
+            <Bullets items={limits} />
+          </More>
         </div>
 
         {two.length ? (
           <div className="flex min-w-0 flex-col gap-16 lg:col-span-8">
             <figure className="m-0">
-              {caption('The two probes', 'Each satellite’s near-nadir count against VIIRS, as a change from 2012–2020 (0 = no change). Hover or step through the years.')}
+              {caption('Aqua and Terra against VIIRS', 'Change since 2012–2020; 0 = no change.')}
               <SeriesChart
                 labels={labels}
                 series={probes}
@@ -1650,7 +1702,7 @@ function TwoClocks({ d, year, onYear, small }: { d: RegionData; year: number; on
               />
             </figure>
             <figure className="m-0" style={diffVars}>
-              {caption('Aqua’s change over Terra’s', 'Each year, how far Aqua’s change since 2012–2020 sits from Terra’s. A range clear of zero means the two moved apart; it doesn’t say why.')}
+              {caption('Aqua’s change over Terra’s', 'A range clear of zero means the two moved apart; it doesn’t say why.')}
               <AnomalyChart
                 points={difference}
                 height={small ? 200 : 220}
@@ -1663,13 +1715,16 @@ function TwoClocks({ d, year, onYear, small }: { d: RegionData; year: number; on
                 legend={{ outside: 'Range clear of zero', inside: 'Range overlaps zero', range: '95% range' }}
               />
             </figure>
-            <figure className="m-0">
-              {caption(
-                'Fire-day points, descriptive only',
-                'Each year: how many hours apart Terra’s and Aqua’s looks were, and Aqua’s count over Terra’s on the same days. The points are not joined, because the years are not a path, and no curve is drawn: the hour when fires peak is poorly constrained, so this is not used as a correction.',
-              )}
-              <FireDay d={d} activeYear={two[shownIndex]?.year ?? null} small={small} />
-            </figure>
+            {/* a description, not a correction, so it opens on request */}
+            <More label="Fire-day points (descriptive)">
+              <figure className="m-0 mt-2">
+                <figcaption className="mb-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+                  The points are not joined, because the years are not a path, and no curve is drawn: the hour when fires peak
+                  is poorly constrained, so they are not used as a correction.
+                </figcaption>
+                <FireDay d={d} activeYear={two[shownIndex]?.year ?? null} small={small} />
+              </figure>
+            </More>
             <p className="text-xs text-[color:var(--bone3)]">Sources: twoclocks/{d.id}.json · fireday/{d.id}.json{d.twoMock ? ' · MOCK' : ''}</p>
           </div>
         ) : (
@@ -1711,7 +1766,7 @@ function FireDay({ d, activeYear, small }: { d: RegionData; activeYear: number |
   const drift = d.driftStart ?? Number.POSITIVE_INFINITY
   const firstP = pts[0], lastP = pts[pts.length - 1]
   const description = pts.length
-    ? `Fire-day points for ${d.name}, descriptive only. From ${firstP.year} to ${lastP.year} the gap between Terra’s and Aqua’s looks went from ${firstP.gap_h.toFixed(1)} to ${lastP.gap_h.toFixed(1)} hours, and log(Aqua ÷ Terra) from ${firstP.log_aqua_over_terra.toFixed(2)} to ${lastP.log_aqua_over_terra.toFixed(2)}.`
+    ? `Fire-day points for ${d.name}, a description, not a correction. From ${firstP.year} to ${lastP.year} the gap between Terra’s and Aqua’s looks went from ${firstP.gap_h.toFixed(1)} to ${lastP.gap_h.toFixed(1)} hours, and log(Aqua ÷ Terra) from ${firstP.log_aqua_over_terra.toFixed(2)} to ${lastP.log_aqua_over_terra.toFixed(2)}.`
     : `Fire-day points for ${d.name}: not in the data yet.`
   return (
     <div>
@@ -1767,15 +1822,15 @@ const STATUS: Record<Check['status'], string> = { pass: 'Passes', fail: 'Fails',
 
 /** What each check asks, in one sentence; its rule, the way it was scored and its result come from checks.json. */
 const PLAIN: Record<string, string> = {
-  P1: 'Aqua should look later each year over Brazil’s biomes, while VIIRS keeps its time.',
-  P2: 'Over Punjab, Aqua’s look should move later each year, by about as much as Jethva and colleagues measured.',
-  P3: 'Our copy of the satellite data should reproduce INPE’s official counts.',
-  P4: 'Before the drift, the audit’s year-to-year wobble should be no bigger than day-to-day sampling noise.',
-  P5: 'A change in the mix of fire sizes shouldn’t explain the audit’s result.',
-  P6: 'The two VIIRS satellites should give the same answer as references, so the benchmark isn’t drifting itself.',
-  P7: 'The fire-day slope measured before the drift, applied to Aqua’s later look, should predict the audit’s values.',
+  P1: 'Aqua should look later each year over Brazil’s biomes; VIIRS shouldn’t move.',
+  P2: 'Over Punjab, Aqua should look later each year, about as Jethva and colleagues measured.',
+  P3: 'Our copy of the data should reproduce INPE’s official counts.',
+  P4: 'Before the drift, the audit’s yearly wobble should stay within sampling noise.',
+  P5: 'A shift in fire sizes shouldn’t explain the result.',
+  P6: 'Both VIIRS satellites should agree, so the benchmark isn’t drifting.',
+  P7: 'Applied to Aqua’s later look, the pre-drift fire-day slope should predict the audit.',
   P8: 'VIIRS should catch small real fires more often than MODIS.',
-  P9: 'With Terra looking earlier and Aqua later, Aqua’s count should rise and Terra’s fall where fires grow through the afternoon.',
+  P9: 'Where fires grow through the afternoon, Aqua’s count should rise and Terra’s fall.',
   P10: 'The two-clocks difference should agree with the audit.',
 }
 
@@ -1798,13 +1853,12 @@ function checksHeading(cs: Check[]) {
   if (!n) return 'The checks are not in the data yet'
   const count = (s: Check['status']) => cs.filter((c) => c.status === s).length
   const pass = count('pass'), fail = count('fail'), pending = count('pending')
-  const first = cs.filter((c) => c.result_existed_before_commit).length
-  const tally = andList([
+  // the checks whose result came before their rule are named in the line under it
+  return andList([
     `${capital(numWord(pass))} of ${numWord(n)} checks pass`,
     ...(fail ? [`${numWord(fail)} ${fail === 1 ? 'fails' : 'fail'}`] : []),
     ...(pending ? [`${numWord(pending)} ${pending === 1 ? 'is' : 'are'} pending`] : []),
   ])
-  return first ? `${tally}; for ${numWord(first)}, the result came before the rule` : tally
 }
 
 /** The team names INPE only once its reproduction (P3) matches; until then a check speaks of the official series. */
@@ -1846,52 +1900,60 @@ function Checks() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
           <h2 id="checks-h" className={title}>{checksHeading(checks)}</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            How do we know? The team wrote each check’s rule in its plan, and the pipeline scores the data against that rule. A
-            check is a true prediction only if its rule was committed before its result existed.
-            {first.length ? ` For ${andList(first)}, the result came first; those rows are marked.` : ''} Where the scoring
-            departs from the written rule, the row says how.
-          </p>
+          {first.length ? (
+            <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+              For {numWord(first.length)} checks ({andList(first)}), the result came before the rule, so they aren’t true predictions.
+            </p>
+          ) : null}
+          <More label="How we checked" className="mt-4">
+            <Bullets
+              items={[
+                'The team wrote each check’s rule in its plan, and the pipeline scores the data against that rule; where the scoring departs from the written rule, the row says how.',
+                'A check is a true prediction when its rule was committed before its result existed.',
+                ...(unlisted.length
+                  ? [`Several checks are scored on all six of Brazil’s biomes, so they name ${numWord(unlisted.length)} that aren’t in this site’s region list: ${andList(unlisted.map((b) => `the ${BIOME[b]}`))}.`]
+                  : []),
+              ]}
+            />
+          </More>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <ol className="border-t border-[color:var(--hairline)]">
             {checks.map((c) => (
-              <li key={c.id} className="grid grid-cols-[3rem_1fr] gap-x-4 gap-y-2 border-b border-[color:var(--hairline)] py-5 sm:grid-cols-[3rem_1fr_8rem]">
-                <span className="text-sm tabular-nums text-[color:var(--bone3)]">{c.id}</span>
-                <div className="min-w-0">
-                  <p className="text-sm text-[color:var(--bone)]">{PLAIN[c.id] ?? checkText(c, inpe)}</p>
-                  {c.detail ? <p className="mt-1 text-xs text-[color:var(--bone2)]">{checkDetail(c)}</p> : null}
-                  {c.result_existed_before_commit ? (
-                    <p className="mt-2 inline-block rounded border border-[color:var(--bone-30)] px-2 py-0.5 text-xs text-[color:var(--bone)]">Result came before the rule</p>
-                  ) : null}
-                  {c.rule_written || c.rule_implemented ? (
-                    <details className="group mt-2 text-xs text-[color:var(--bone2)]">
-                      <summary className={cn('inline-flex cursor-pointer list-none items-center gap-1 rounded text-[color:var(--bone3)] hover:text-[color:var(--bone)] [&::-webkit-details-marker]:hidden', ease, focusRing)}>
-                        <ArrowRight size={12} strokeWidth={1.5} aria-hidden className="transition-transform duration-150 group-open:rotate-90" />
-                        The rule
-                      </summary>
+              <li key={c.id} className="border-b border-[color:var(--hairline)]">
+                {/* one line per check: open it for its reading and its rule */}
+                <details className="group">
+                  <summary className={cn('block rounded py-5', summaryReset, focusRing)}>
+                    <span className="grid grid-cols-[3rem_1fr] gap-x-4 gap-y-2 sm:grid-cols-[3rem_1fr_8rem]">
+                      <span className={cn('inline-flex items-center gap-1 self-start text-sm tabular-nums text-[color:var(--bone3)] group-hover:text-[color:var(--bone)]', ease)}>
+                        <ArrowRight size={12} strokeWidth={1.5} aria-hidden className={turnOpen} />
+                        {c.id}
+                      </span>
+                      <span className="text-sm text-[color:var(--bone)]">{PLAIN[c.id] ?? checkText(c, inpe)}</span>
+                      <span className="col-start-2 inline-flex items-center gap-2 self-start text-xs text-[color:var(--bone2)] sm:col-start-auto sm:justify-end">
+                        <StatusMark status={c.status} />
+                        {STATUS[c.status]}
+                      </span>
+                    </span>
+                  </summary>
+                  <div className="min-w-0 pb-5 pl-16 text-xs text-[color:var(--bone2)]">
+                    {c.detail ? <p className="max-w-[var(--measure)]">{checkDetail(c)}</p> : null}
+                    {c.result_existed_before_commit ? (
+                      <p className="mt-2 inline-block rounded border border-[color:var(--bone-30)] px-2 py-0.5 text-[color:var(--bone)]">Result came before the rule</p>
+                    ) : null}
+                    {c.rule_written || c.rule_implemented ? (
                       <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
                         <dt className="text-[color:var(--bone3)]">In the plan</dt>
                         <dd>{checkText(c, inpe)}</dd>
                         {c.rule_written ? (<><dt className="text-[color:var(--bone3)]">As written</dt><dd>{cleanRule(c.rule_written)}</dd></>) : null}
                         {c.rule_implemented ? (<><dt className="text-[color:var(--bone3)]">As scored</dt><dd>{cleanRule(c.rule_implemented)}</dd></>) : null}
                       </dl>
-                    </details>
-                  ) : null}
-                </div>
-                <span className="col-start-2 inline-flex items-center gap-2 self-start text-xs text-[color:var(--bone2)] sm:col-start-auto sm:justify-end">
-                  <StatusMark status={c.status} />
-                  {STATUS[c.status]}
-                </span>
+                    ) : null}
+                  </div>
+                </details>
               </li>
             ))}
           </ol>
-          {unlisted.length ? (
-            <p className="mt-4 max-w-[var(--measure)] text-xs text-[color:var(--bone2)]">
-              Several checks are scored on all six of Brazil’s biomes, so they name three that aren’t in this site’s region
-              list: {andList(unlisted.map((b) => `the ${BIOME[b]}`))}.
-            </p>
-          ) : null}
           <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: checks.json{mock ? ' · MOCK' : ''}</p>
         </div>
       </div>
@@ -2009,7 +2071,7 @@ function Detection() {
   const firstClass = DETECTION?.satellites[sats[0]?.key ?? '']?.rates_2012_2020[0]?.size_class
   const rateOf = (k: string) => DETECTION?.satellites[k]?.rates_2012_2020.find((r) => r.size_class === firstClass)?.rate
   const heading = firstClass && sats.every((s) => rateOf(s.key) != null)
-    ? `Of isolated, agency-recorded California fires of ${sizeLabel(firstClass)}, VIIRS caught ${share(rateOf('S-NPP')!)}, Aqua ${share(rateOf('Aqua')!)} and Terra ${share(rateOf('Terra')!)}`
+    ? `Of California fires of ${sizeLabel(firstClass)}, VIIRS caught ${share(rateOf('S-NPP')!)}, Aqua ${share(rateOf('Aqua')!)} and Terra ${share(rateOf('Terra')!)}`
     : 'What each camera caught of real California fires'
   const a50 = sats.map((s) => ({ ...s, v: DETECTION?.satellites[s.key]?.a50_acres, ci: DETECTION?.satellites[s.key]?.a50_ci95 })).filter((s) => s.v != null)
   // every year in the by-year file where VIIRS caught a larger share of the smallest fires than Aqua
@@ -2025,20 +2087,22 @@ function Detection() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
           <h2 id="detection-h" className={title}>{heading}</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Why VIIRS is the benchmark. We matched each fire in the US Forest Service’s fire occurrence database (FPA-FOD) to
-            the satellites’ hotspots. {matchingRule(DETECTION?.rule)}
-          </p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Why VIIRS is the benchmark.</p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
-            These rates describe one matching procedure for isolated, agency-recorded California fires, not universal limits
-            of the cameras.
+            The rates describe one matching procedure for isolated, agency-recorded fires, not universal limits of the cameras.
           </p>
+          <More label="Method" className="mt-4">
+            <p className="mt-1 max-w-[var(--measure)] text-xs text-[color:var(--bone2)]">
+              We matched each fire in the US Forest Service’s fire occurrence database (FPA-FOD) to the satellites’ hotspots.{' '}
+              {matchingRule(DETECTION?.rule)}
+            </p>
+          </More>
         </div>
         <div className="flex min-w-0 flex-col gap-12 lg:col-span-8">
           <figure className="m-0">
             <figcaption className="mb-4">
               <span className="block text-lg font-medium">Share of fires caught, by size</span>
-              <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Each mark is one satellite’s share of the fires in that size class, 2012–2020, with its 95% range. Hover or tab through the rows.</span>
+              <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Hover or tab through the rows.</span>
             </figcaption>
             <DetectionChart small={small} />
           </figure>
@@ -2059,8 +2123,8 @@ function Detection() {
               </dl>
               {proofYears.length && smallest ? (
                 <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-                  Year by year, VIIRS caught a larger share of fires of {sizeLabel(smallest)} than Aqua in {numWord(viirsAhead)} of {numWord(proofYears.length)} years,
-                  {' '}{Math.min(...proofYears)} to {Math.max(...proofYears)}.
+                  VIIRS caught a larger share of fires of {sizeLabel(smallest)} than Aqua in {numWord(viirsAhead)} of {numWord(proofYears.length)} years,{' '}
+                  {Math.min(...proofYears)} to {Math.max(...proofYears)}.
                 </p>
               ) : null}
             </div>
@@ -2069,8 +2133,8 @@ function Detection() {
             <div className="border-t border-[color:var(--hairline)] pt-6">
               <p className="text-lg font-medium">Close up: one {SEEN.radius_km} km circle in Southern California</p>
               <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-                The agency recorded {fmtInt(seen.length)} fires there from {span[0]} to {span[1]}. VIIRS caught {fmtInt(caught('viirs'))} of them, Aqua{' '}
-                {fmtInt(caught('aqua'))} and Terra {fmtInt(caught('terra'))}. Of those, {fmtInt(tiny.length)} were under 10 acres; VIIRS caught {fmtInt(caught('viirs', tiny))} of them{caught('aqua', tiny) + caught('terra', tiny) === 0 ? ', and MODIS none' : `, Aqua ${fmtInt(caught('aqua', tiny))} and Terra ${fmtInt(caught('terra', tiny))}`}.
+                Of {fmtInt(seen.length)} fires recorded there, {span[0]} to {span[1]}, VIIRS caught {fmtInt(caught('viirs'))}, Aqua{' '}
+                {fmtInt(caught('aqua'))} and Terra {fmtInt(caught('terra'))}; of the {fmtInt(tiny.length)} under 10 acres, VIIRS caught {fmtInt(caught('viirs', tiny))}{caught('aqua', tiny) + caught('terra', tiny) === 0 ? ' and MODIS none' : `, Aqua ${fmtInt(caught('aqua', tiny))} and Terra ${fmtInt(caught('terra', tiny))}`}.
               </p>
             </div>
           ) : null}
@@ -2088,55 +2152,77 @@ function Detection() {
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const monthName = (ym: string) => `${MONTH_NAMES[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`
 
+/** Flags the team's method notes call weak, just outside a narrow placebo range and close to no change
+ *  (analysis/statistics/README.md). One is named only while its audit file still flags it and its own 95% range reaches
+ *  back into the placebo range, so the sentence can't outlive the data. */
+const WEAK_FLAG_NOTES = [{ id: 'br-cerrado', year: 2022 }, { id: 'ar-argentina', year: 2022 }]
+function weakFlags() {
+  return WEAK_FLAG_NOTES.filter(({ id, year }) => {
+    const r = regionData(id)
+    const y = r.years.find((x) => x.year === year)
+    return !!y && y.verdict === 'outside' && y.lo != null && y.hi != null && y.lo <= r.placebo[1] && y.hi >= r.placebo[0]
+  })
+}
+
 function Limits({ d }: { d: RegionData }) {
   const lastYear = d.years[d.years.length - 1]?.year
   // months after Aqua's 2002-2011 record whose fixed-clock value is Aqua's own count, because S-NPP had an outage day
   const filled = d.cal.filter((c) => c.source === 'aqua_observed' && Number(c.ym.slice(0, 4)) >= 2012).map((c) => c.ym)
+  const weak = useMemo(weakFlags, [])
+  // each limit in one plain line; open it for the detail
   const items: { t: string; b: string }[] = [
     {
-      t: 'A description, not a cause',
-      b: 'The audit sets Aqua’s count beside a fixed-clock benchmark built from VIIRS. It shows the gap and the change in Aqua’s clock together; it doesn’t isolate how much of the gap the timing caused. The benchmark is an estimate, not a corrected official count.',
+      t: 'Gap and clock change appear together; the audit doesn’t isolate how much of the gap the timing caused.',
+      b: 'It sets Aqua’s count beside a fixed-clock benchmark built from VIIRS. The benchmark is an estimate, not a corrected official count.',
     },
     {
-      t: 'A coarse placebo range',
-      b: 'Nine years, 2012 to 2020, set the range a year is flagged against. A tenth ordinary year would fall outside it about one time in five, so a flag describes; it is not a significance test. The 95% ranges resample days, not years, so year-to-year fire weather shows only in that placebo range.',
+      t: 'Nine placebo years make a coarse range: a flag describes; it isn’t a significance test.',
+      b: 'Nine years, 2012 to 2020, set the range a year is flagged against; a tenth ordinary year would fall outside it about one time in five. The 95% ranges resample days, not years, so year-to-year fire weather shows in the placebo range alone.',
     },
     {
-      t: 'Weak flags',
-      b: 'A year just outside a narrow placebo range is not a finding: the Cerrado and Argentina in 2022 sit just outside theirs, close to no change. Argentina’s 2025 range takes in no change when days are resampled in 32-day blocks.',
+      t: weak.length
+        ? `Some flags are weak: ${andList(weak.map((w) => `${phrase(w.id).the} in ${w.year}`))} ${weak.length === 1 ? 'sits just outside its placebo range' : 'sit just outside their placebo ranges'}.`
+        : 'A year just outside a narrow placebo range is not a finding.',
+      b: `${weak.length ? 'Close to no change: a year just outside a narrow placebo range is not a finding. ' : ''}Argentina’s 2025 range takes in no change when days are resampled in 32-day blocks.`,
     },
     {
-      t: 'Missing days are inferred',
-      b: 'A satellite counts as down on a day with no daytime detection anywhere in Brazil, and those days are dropped for every region. That is not an official outage list, and a partial loss over one region on an otherwise normal day isn’t caught. S-NPP events still to check: an anomaly in July 2022, geolocation problems in 2024 and a partial data receipt in July 2025.',
+      t: 'Missing satellite days are inferred, not from a published outage list.',
+      b: 'A satellite counts as down on a day with no daytime detection anywhere in Brazil, and those days are dropped for every region; a partial loss over one region on an otherwise normal day isn’t caught. S-NPP events still to check: an anomaly in July 2022, geolocation problems in 2024 and a partial data receipt in July 2025.',
     },
     ...(filled.length
       ? [{
-          t: 'Some early months use Aqua',
-          b: `${capital(numWord(filled.length))} calendar months before 2018 had an S-NPP outage day and no NOAA-20 data to fill it, so they show Aqua’s own count, from before its clock drifted: ${andList(filled.map(monthName))}.`,
+          t: `${capital(numWord(filled.length))} calendar months before 2018 show Aqua’s own count.`,
+          b: `They had an S-NPP outage day and no NOAA-20 data to fill it, so they show Aqua’s count from before its clock drifted: ${andList(filled.map(monthName))}.`,
         }]
       : []),
     {
-      t: 'MODIS has its own history',
-      b: 'Aqua lost recorder data in early 2022 and went into safe hold on 31 March 2022; Terra paused its science data in October 2022 as it left its constellation. The two satellites are calibrated separately.',
+      t: 'Aqua and Terra have their own outages and calibrations.',
+      b: 'Aqua lost recorder data in early 2022 and went into safe hold on 31 March 2022; Terra paused its science data in October 2022 as it left its constellation. The two are calibrated separately.',
     },
     {
-      t: 'Reprocessed VIIRS files',
-      b: 'In May 2025 NASA reprocessed VIIRS files to fix static heat sources labelled as vegetation fires. That touches the timing and fire-size inputs, which filter by fire type, not the all-types counts the audit uses. Product versions aren’t yet recorded per file.',
+      t: 'NASA reprocessed VIIRS files in May 2025.',
+      b: 'The fix, for static heat sources labelled as vegetation fires, touches the timing and fire-size inputs, which filter by fire type, not the all-types counts the audit uses. Product versions aren’t yet recorded per file.',
     },
-    ...(lastYear ? [{ t: `Nothing after ${lastYear}`, b: `${lastYear}’s counts come from FIRMS’s yearly files; there is no ${lastYear + 1} data yet.` }] : []),
+    ...(lastYear ? [{ t: `Nothing after ${lastYear}: there is no ${lastYear + 1} data yet.`, b: `${lastYear}’s counts come from FIRMS’s yearly files.` }] : []),
   ]
   return (
     <section id="limits" aria-labelledby="limits-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
           <h2 id="limits-h" className={title}>What this audit can’t tell you</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">The team’s own caveats, from its method notes.</p>
         </div>
         <ul className="min-w-0 border-t border-[color:var(--hairline)] lg:col-span-8">
           {items.map((it) => (
-            <li key={it.t} className="grid grid-cols-1 gap-x-6 gap-y-1 border-b border-[color:var(--hairline)] py-5 sm:grid-cols-[14rem_1fr]">
-              <p className="text-sm text-[color:var(--bone)]">{it.t}</p>
-              <p className="max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{it.b}</p>
+            <li key={it.t} className="border-b border-[color:var(--hairline)]">
+              <details className="group">
+                <summary className={cn('block rounded py-5', summaryReset, focusRing)}>
+                  <span className="flex items-start gap-3 text-sm text-[color:var(--bone)]">
+                    <ArrowRight size={12} strokeWidth={1.5} aria-hidden className={cn('mt-1 text-[color:var(--bone3)] group-hover:text-[color:var(--bone)]', turnOpen)} />
+                    <span className="max-w-[var(--measure)]">{it.t}</span>
+                  </span>
+                </summary>
+                <p className="max-w-[var(--measure)] pb-5 pl-6 text-sm text-[color:var(--bone2)]">{it.b}</p>
+              </details>
             </li>
           ))}
         </ul>
@@ -2158,32 +2244,29 @@ function About() {
     <section id="about" aria-labelledby="about-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
-          <h2 id="about-h" className={title}>Who this is for, and what comes after Aqua</h2>
+          <h2 id="about-h" className={title}>Who it’s for, and what comes after Aqua</h2>
         </div>
         <div className="grid min-w-0 grid-cols-1 gap-10 border-t border-[color:var(--hairline)] pt-6 sm:grid-cols-2 lg:col-span-8">
           <div>
             <h3 className="text-lg font-medium">Who it’s for</h3>
             <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-              Journalists and analysts who quote INPE’s fire counts for Brazil, and anyone reading a long fire record from a
-              satellite whose clock moved. Before quoting a change from one year to the next, check how far Aqua’s count sat
-              from its fixed-clock benchmark in both years.
+              Journalists and analysts quoting INPE’s fire counts: before quoting a year-on-year change, check how far Aqua
+              sat from its benchmark in both years.
             </p>
           </div>
           <div>
             <h3 className="text-lg font-medium">What comes next</h3>
             <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-              Aqua and Terra are near their end: NASA’s planning puts Terra’s last operations around{' '}
+              NASA plans Terra’s last operations around{' '}
               <a href={NASA_TERRA} target="_blank" rel="noreferrer" className={link}>February 2027</a> and Aqua’s maximum
-              lifetime around <a href={NASA_AQUA_LIFE} target="_blank" rel="noreferrer" className={link}>September 2027</a>.
-              Any fire record that uses Aqua as its reference, as INPE’s does, will need a new one.
+              lifetime around <a href={NASA_AQUA_LIFE} target="_blank" rel="noreferrer" className={link}>September 2027</a>,
+              so series referenced to Aqua, as INPE’s is, will need a new reference.
             </p>
             <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-              S-NPP, one of the VIIRS satellites behind the benchmark, was{' '}
-              <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>decommissioned on 2 November 2026</a>.
-              NOAA-20 and NOAA-21 carry the same VIIRS camera on afternoon orbits that keep their clock
-              {p6 ? ', and our check P6 found S-NPP and NOAA-20 give the same answer as references' : ''}, so the benchmark
-              can go on. The same test can check any change of reference satellite: compare the old and the new on the days
-              both flew.
+              S-NPP, one of the benchmark’s VIIRS satellites, was{' '}
+              <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>decommissioned on 2 November 2026</a>;
+              NOAA-20 and NOAA-21 carry the same camera on clock-keeping afternoon orbits{p6 ? ' (P6: S-NPP and NOAA-20 agree)' : ''},
+              so the benchmark goes on. The same test can vet any new reference satellite.
             </p>
           </div>
         </div>
@@ -2203,16 +2286,16 @@ function HowItWorks({ d }: { d: RegionData }) {
   const first = d.drift[0], last = d.lastDrift
   // INPE's official series is Brazil's; outside Brazil, Aqua is named by that role, not as the region's official count
   const reference = hasOfficialSeries(d.id)
-    ? 'INPE’s official fire counts for Brazil follow one reference satellite, Aqua, which for years looked at about the same time of day.'
-    : 'Aqua is the reference satellite behind INPE’s official fire counts for Brazil, and for years it looked at about the same time of day.'
+    ? 'INPE’s official counts follow Aqua, which for years looked at about the same time of day'
+    : 'Aqua, the reference behind INPE’s official counts for Brazil, for years looked at about the same time of day'
   const moved = first && last ? minutesBetween(last.aqua_lst, first.aqua_lst) : 0
   const drift = d.driftStart && first && last && Math.abs(moved) >= 5
-    ? ` Since ${d.driftStart} its look over ${d.phrase.the} has moved ${moved > 0 ? 'later' : 'earlier'}: ${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}.`
-    : ''
+    ? `; since ${d.driftStart} it has looked ${moved > 0 ? 'later' : 'earlier'} over ${d.phrase.the} (${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}).`
+    : '.'
   const steps = [
     { t: 'The reference satellite drifted', b: reference + drift },
-    { t: 'Fires and clouds change through the day', b: 'So a count that follows a drifting clock can change with the time it looks as well as with the fires. Which way, and by how much, has to be measured, not assumed.' },
-    { t: 'We hold the clock still', b: 'VIIRS still looks at the same time. We turn its counts into an Aqua-equivalent estimate, month by month, and set Aqua’s own count beside it, with a 95% range and the 2012–2020 placebo range. The gap shows where the two part; on its own it doesn’t say how much the timing caused.' },
+    { t: 'Fires and clouds change through the day', b: 'So a count on a drifting clock can move with its timing, not just the fires; which way, and how much, must be measured.' },
+    { t: 'We hold the clock still', b: 'VIIRS still looks at the same time, so we set Aqua’s count beside a monthly Aqua-equivalent estimate from it, with a 95% range; the gap shows where they part, not how much the timing caused.' },
   ]
   // the pass figure, re-inked for the bone ground
   const inked = {
@@ -2231,7 +2314,7 @@ function HowItWorks({ d }: { d: RegionData }) {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
           <Rise><h2 id="how-h" className={titleLarge}>How we read a fire count</h2></Rise>
-          <p className="mt-4 max-w-[var(--measure)] text-sm">{statementName(d.id)} in {y}, from the team’s data files{d.mock ? ' (mock for now)' : ''}.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm">{statementName(d.id)} in {y}{d.mock ? ' (mock for now)' : ''}.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           {dr ? <div style={inked}><PassFigure dr={dr} year={y} /></div> : null}
@@ -2269,9 +2352,6 @@ function RegionIndex({ links, onPick }: { links: Links; onPick: (id: string) => 
     <section id="regions" aria-labelledby="regions-h" className={cn(shell, 'scroll-mt-4 py-24')}>
       <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
         <div className="lg:col-span-4"><Rise><h2 id="regions-h" className={titleLarge}>Six regions, one fixed clock</h2></Rise></div>
-        <p className="max-w-[var(--measure)] text-sm text-[color:var(--bone2)] lg:col-span-8 lg:self-end">
-          Each audit opens on its verdict, then shows when each satellite looked, the clock effect year by year and the fire calendar.
-        </p>
       </div>
       <ul ref={ref} className="mt-10 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {REGIONS.map((r, i) => (
@@ -2282,12 +2362,26 @@ function RegionIndex({ links, onPick }: { links: Links; onPick: (id: string) => 
   )
 }
 
+/** A tile's one line: the verdict's number and its reference, with the headline's own rounding; Punjab, and a region
+ *  too sparse to read, keep their headline. */
+function tileLine(d: RegionData) {
+  const y = d.latestOk
+  if (isValidation(d.id)) {
+    const nov = novemberRatio(d)
+    const a = nov.find((r) => r.year === 2016), b = nov[nov.length - 1]
+    return a && b ? `Validation case: Aqua’s November count, ${a.ratio.toFixed(2)} of VIIRS’s in ${a.year}, ${b.ratio.toFixed(2)} in ${b.year}` : verdictHeadline(d)
+  }
+  if (!y || (y.verdict === 'outside' && y.gap == null)) return verdictHeadline(d)
+  if (y.verdict === 'within') return `${y.year}: Aqua within its fixed-clock benchmark’s range`
+  return `${y.year}: Aqua ${Math.round(Math.abs(y.gap!))}% ${y.gap! >= 0 ? 'above' : 'below'} its fixed-clock benchmark`
+}
+
 /** Their product tile: media, title, one line, ↗. A plain click picks the region on this page and glides back up to its
  *  name; a modified click (new tab, new window) follows the link to the same region page. */
 function RegionTile({ id, name, i, seen, href, onPick }: { id: string; name: string; i: number; seen: boolean; href: string; onPick: (id: string) => void }) {
   const motion = useMotion()
   const p = photoFor(id)
-  const verdict = useMemo(() => verdictHeadline(regionData(id)), [id])
+  const verdict = useMemo(() => tileLine(regionData(id)), [id])
   const pick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
     e.preventDefault()
@@ -2385,9 +2479,11 @@ function ClockEffect({ d, year, onYear, small }: { d: RegionData; year: number; 
         <div className="lg:col-span-4">
           <h2 id="audit-h" className={title}>{effectHeading(d)}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Each year, Aqua’s daytime hotspot count against its fixed-clock benchmark: what its 2012–2020 relationship with
-            VIIRS predicts, with a 95% range. The band is the range of nine 2012–2020 placebo years ({n}). A year outside it
-            is flagged as a description, not a significance test, and it doesn’t say how much the timing caused.
+            Each year, Aqua’s daytime count against what its 2012–2020 relationship with VIIRS predicts (95% range); the band spans
+            nine 2012–2020 placebo years ({n}).
+          </p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
+            A flag describes; it isn’t a significance test and doesn’t say how much the timing caused.
           </p>
         </div>
         <div className="min-w-0 lg:col-span-8">
@@ -2452,8 +2548,8 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
   const highlight = f ? { year: Number(yr), month: MONTHS.indexOf(mon) } : null
   const sentence =
     mode === 'anomaly'
-      ? 'Each cell is a month on the fixed clock against the 2002–2025 median for that month: sand above, slate below.'
-      : 'Each cell is a month on the fixed clock, shaded by its hotspot count: brighter sand, more hotspots.'
+      ? 'Each fixed-clock month against its 2002–2025 median: sand above, slate below.'
+      : 'Each fixed-clock month by hotspot count: brighter sand, more hotspots.'
 
   return (
     <section id="calendar" aria-labelledby="calendar-h" className={cn(shell, 'pb-24 pt-24')}>

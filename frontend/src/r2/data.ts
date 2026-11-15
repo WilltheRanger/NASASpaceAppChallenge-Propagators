@@ -220,18 +220,22 @@ export function verdictHeadline(d: RegionData) {
 const verb = (v: number) => (v < 0 ? 'fell' : 'rose')
 const change = (a: number, b: number) => (b / a - 1) * 100
 
-/** The sentences under the headline: the two counts, the timing change, the caveat, and the declines over whole years. */
+/** The sentences under the headline: the two counts, the timing change, the caveat, and the declines over whole years
+ *  (the downloaded summary prints these). `short` is the page's terse wording of the same values, and `whole` the same
+ *  whole-year changes as numbers, for a stat row. */
 export function verdictLines(d: RegionData, from = 2024, to = 2025) {
   const y = d.latestOk
   const first = d.drift[0]
   const last = d.lastDrift
+  const ratio = y && y.verdict !== 'outside' && y.L != null ? `a ratio of ${y.L.toFixed(2)} (95% interval ${(1 + y.lo! / 100).toFixed(2)}–${(1 + y.hi! / 100).toFixed(2)}), inside the 2012–2020 placebo range` : ''
   const counts = y && y.fixed != null
     ? y.verdict === 'outside'
       ? `On the days both satellites returned data in ${y.year}, Aqua recorded ${fmtInt(y.aqua)} daytime hotspot detections; its 2012–2020 relationship with VIIRS (S-NPP) predicted ${fmtInt(y.fixed)}.`
-      : `On the days both satellites returned data in ${y.year}, Aqua recorded ${fmtInt(y.aqua)} daytime hotspot detections against ${fmtInt(y.fixed)} predicted by its 2012–2020 relationship with VIIRS (S-NPP): a ratio of ${y.L!.toFixed(2)} (95% interval ${(1 + y.lo! / 100).toFixed(2)}–${(1 + y.hi! / 100).toFixed(2)}), inside the 2012–2020 placebo range.`
+      : `On the days both satellites returned data in ${y.year}, Aqua recorded ${fmtInt(y.aqua)} daytime hotspot detections against ${fmtInt(y.fixed)} predicted by its 2012–2020 relationship with VIIRS (S-NPP): ${ratio}.`
     : ''
   const moved = first && last ? Math.round((hm(last.aqua_lst) - hm(first.aqua_lst)) * 60) : 0
-  const timing = first && last && Math.abs(moved) >= 5
+  const drifted = !!(first && last && Math.abs(moved) >= 5)
+  const timing = drifted
     ? `Over the same years Aqua's look moved about ${Math.abs(moved)} minutes ${moved > 0 ? 'later' : 'earlier'} (${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}) while VIIRS stayed near ${last.viirs_lst}.`
     : ''
   const caveat = y?.verdict === 'outside' ? 'These data show the gap and the timing change together; they don’t isolate how much of the gap the timing caused.' : ''
@@ -239,13 +243,25 @@ export function verdictLines(d: RegionData, from = 2024, to = 2025) {
   const cf = d.calYears[from], ct = d.calYears[to]
   const of = inpeAt(d.id, from), ot = inpeAt(d.id, to)
   let declines = ''
+  const whole: { name: string; a: number; b: number; change: number }[] = []
   if (cf && ct) {
     const fixed = `the fixed-clock calendar ${verb(change(cf.fixed, ct.fixed))} ${Math.abs(change(cf.fixed, ct.fixed)).toFixed(1)}% (${fmtInt(cf.fixed)} to ${fmtInt(ct.fixed)})`
     declines = of != null && ot != null
       ? `From ${from} to ${to}, INPE's official count ${verb(change(of, ot))} ${Math.abs(change(of, ot)).toFixed(1)}% (${fmtInt(of)} to ${fmtInt(ot)}); ${fixed}.`
       : `From ${from} to ${to}, Aqua's own count ${verb(change(cf.aqua, ct.aqua))} ${Math.abs(change(cf.aqua, ct.aqua)).toFixed(1)}% (${fmtInt(cf.aqua)} to ${fmtInt(ct.aqua)}); ${fixed}.`
+    whole.push(
+      of != null && ot != null
+        ? { name: 'INPE’s official count', a: of, b: ot, change: change(of, ot) }
+        : { name: 'Aqua’s own count', a: cf.aqua, b: ct.aqua, change: change(cf.aqua, ct.aqua) },
+      { name: 'Fixed-clock calendar', a: cf.fixed, b: ct.fixed, change: change(cf.fixed, ct.fixed) },
+    )
   }
-  return { counts, timing, caveat, declines, year: y, from, to }
+  const short = {
+    counts: y && y.fixed != null ? `Aqua ${fmtInt(y.aqua)} daytime hotspots · benchmark ${fmtInt(y.fixed)}, on days both satellites returned data${ratio ? `: ${ratio}` : ''}.` : '',
+    look: drifted ? `Aqua’s look: ${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year} (about ${Math.abs(moved)} min ${moved > 0 ? 'later' : 'earlier'}); VIIRS near ${last.viirs_lst}.` : '',
+    caveat: y?.verdict === 'outside' ? 'Gap and clock change appear together; the clock’s share isn’t isolated.' : '',
+  }
+  return { counts, timing, caveat, declines, short, whole, year: y, from, to }
 }
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
