@@ -21,7 +21,7 @@ import { REGIONS, fmtRange, hm, lookChange, phrase, pct, regionData } from '@/r2
 import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, Footer, IMG, PageNext, Reveal, Rule, SatMark, SiteBar, andList, focusRing, numWord, shell, useInView, useMotion,
+  CAVEAT, FEATURED, Footer, IMG, More, PageNext, Reveal, Rule, SatMark, SiteBar, andList, focusRing, numWord, shell, useInView, useMotion,
   type Leave, type Links,
 } from './common'
 
@@ -205,12 +205,12 @@ function Drift() {
           </h2>
           <div className="mt-6 flex max-w-[34ch] flex-col gap-4 text-lg text-[color:var(--bone2)]">
             <p>
-              Aqua counts fires. Over {the} it used to look at about <span className="tabular-nums text-[color:var(--bone)]">{look.old}</span>. By {look.year} it looked at{' '}
+              Aqua spots fires from space. Over {the} it used to look at about <span className="tabular-nums text-[color:var(--bone)]">{look.old}</span>. By {look.year} it looked at{' '}
               <span className="tabular-nums text-[color:var(--bone)]">{look.now}</span>, {look.minutes} minutes later.
             </p>
             <p>INPE’s official fire count for Brazil follows Aqua.</p>
             <p>
-              VIIRS, a newer camera, still looks at <span className="tabular-nums text-[color:var(--bone)]">{look.viirs}</span>. Its count tells us what Aqua would have counted at its old time. We call that what we’d expect.
+              VIIRS, a newer camera, still looks at <span className="tabular-nums text-[color:var(--bone)]">{look.viirs}</span>.{DAY.ratio != null ? <> From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS.</> : null} That old match and VIIRS’s count now give what we’d expect from Aqua.
             </p>
           </div>
         </div>
@@ -362,6 +362,12 @@ function Places({ links, leave }: { links: Links; leave: Leave }) {
         <span className={key}><span className="inline-block h-0.5 w-5 rounded-full bg-[color:var(--sat-aqua)]" />How sure we are</span>
         <span className={key}><span className="inline-block h-3 w-5 rounded-[2px] bg-[rgba(236,233,225,0.16)]" />Usual range, 2012–2020</span>
       </p>
+      <More label="About the range" className="mt-2">
+        <p className="max-w-[44rem] text-sm text-[color:var(--bone2)]">
+          The amber line is a 95% bootstrap interval: the days compared are resampled many times and the middle 95% of results kept. It shows how much the
+          number moves when we re-pick the days. It is not the probability that an effect of the timing lies inside it.
+        </p>
+      </More>
     </div>
   )
 }

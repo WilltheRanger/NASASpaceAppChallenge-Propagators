@@ -8,6 +8,7 @@
  * (analysis/statistics/README.md).
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import p9Followup from '../../../../data/out/p9-followup.json'
 import { ArrowRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion-ghost'
 import { CompareSlider, CompareSliderAfter, CompareSliderBefore, CompareSliderHandle } from '@/components/ui/compare-slider'
@@ -188,17 +189,17 @@ function Steps() {
     },
     {
       title: 'Learn how Aqua and VIIRS compare',
-      description: 'From 2012 to 2020 they looked at about the same time, so their counts can be compared directly.',
-      figure: ratio != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{Math.round(ratio * 100)}</span>fires counted by Aqua for every 100 by VIIRS</p> : null,
+      description: 'From 2012 to 2020 they looked at about the same time. That tells us how many daytime detections Aqua records for every 100 by VIIRS on the same days.',
+      figure: ratio != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{Math.round(ratio * 100)}</span>Aqua detections for every 100 VIIRS detections</p> : null,
     },
     {
       title: 'Work out what we’d expect',
-      description: 'For each later year, VIIRS’s count and that rate give the count Aqua would have had at its old time.',
-      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>fires we’d expect from Aqua in {y.year}</p> : null,
+      description: 'For each later year, VIIRS’s count and that rate give a benchmark in Aqua’s terms. It doesn’t establish what Aqua would have counted if only its look time had changed.',
+      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}</p> : null,
     },
     {
       title: 'Compare',
-      description: y && y.gap != null ? `Aqua counted ${fmtInt(y.aqua)}, which is ${pct(y.gap)} against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.',
+      description: y && y.gap != null ? `Aqua recorded ${fmtInt(y.aqua)} detections, which is ${pct(y.gap)} against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.',
       figure: y && y.gap != null && y.lo != null && y.hi != null ? <RangeStrip gap={y.gap} lo={y.lo} hi={y.hi} band={d.placebo} /> : null,
     },
   ]
@@ -275,6 +276,16 @@ function Checks() {
               <span className="min-w-0 flex-1 text-base text-[color:var(--bone)]">
                 {PLAIN[c.id] ?? c.name}
                 {c.result_existed_before_commit ? <span className="mt-1 block text-xs text-[color:var(--bone3)]">Result seen before the rule was written</span> : null}
+                {c.id === 'P9' ? (
+                  <More label="A follow-up to this test" className="mt-1">
+                    <div aria-label="Follow-up, separate from the original test" className="mt-2 flex max-w-[var(--measure)] flex-col gap-2 border-l-2 border-[color:var(--hairline)] pl-4 text-sm text-[color:var(--bone2)]">
+                      <p className="font-medium text-[color:var(--bone)]">Completed VIIRS follow-up, not a new pass</p>
+                      <p>All {p9Followup.complete_dates} fixed dates (2018–2020), {p9Followup.expected_swaths} swaths, were acquired. Under the original 45° view limit there were {p9Followup.primary_eligible} eligible afternoon center-date observations. The separate 85° sensitivity found {fmtInt(p9Followup.sensitivity_eligible)} center-date observations and {p9Followup.discordant_fires} discordant fires. Repeated centers across dates are not independent observations.</p>
+                      <p>All six biomes remain insufficiently identified: no beta or confidence interval can be estimated under the unchanged gates. This does not turn the original MODIS-surrogate test above into a pass or validate a causal timing correction.</p>
+                      <a href={p9Followup.report_url} target="_blank" rel="noreferrer" className={cn(textLink, 'w-fit')}>Final acquisition and identification report</a>
+                    </div>
+                  </More>
+                ) : null}
               </span>
               <StatusChip status={c.status} />
             </li>
@@ -488,7 +499,7 @@ function InpeMatch() {
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">INPE uses the same NASA fire data, so this shows we follow the same series. It isn’t an independent test.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
-          <p className="mb-4 text-lg font-medium">The Amazon’s fires by year</p>
+          <p className="mb-4 text-lg font-medium">The Amazon’s hotspot detections by year</p>
           <InpeChart />
         </div>
       </div>
@@ -555,7 +566,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       t: 'NASA reprocessed VIIRS files in May 2025.',
       b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Product versions aren’t yet recorded per file.',
     },
-    { t: `Nothing after ${lastYear} yet.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files.` },
+    { t: `The historical calendar ends in ${lastYear}.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files. A separate rolling seven-day 2026 snapshot has been acquired, but it cannot complete the year and is not part of this calendar.` },
     {
       t: 'Aqua and Terra are near the end of their missions.',
       b: (
