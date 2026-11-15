@@ -1,0 +1,20 @@
+{
+  "download_utc_date": "2026-11-15",
+  "files": [
+    {
+      "url": "https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_ambientais/biomas/vetores/Biomas_5000mil.zip",
+      "sha256": "8d677ecf885f7abfa672f5f3525a09e76854f0bcacec4c2a893c5a97ed4c0a70",
+      "bytes": 464653
+    },
+    {
+      "url": "https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_ambientais/biomas/vetores/Biomas_250mil.zip",
+      "sha256": "1d8a4d860d9c203b10ef41dd0701ced2e389ad86442e23a815a7cccdc98ca0c5",
+      "bytes": 15007345
+    },
+    {
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/anual/Brasil_sat_ref/focos_br_ref_2020.zip",
+      "sha256": "fba793aa304863445dad6d434dd57bd0e904d97f50d9652a729c30ddf8fb7686",
+      "bytes": 8786351
+    }
+  ]
+}
