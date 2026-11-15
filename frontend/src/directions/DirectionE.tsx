@@ -47,7 +47,7 @@ export default function DirectionE() {
       { id: 'viirs', label: 'VIIRS', type: 'satellite', size: 16, sub: `looks ${latest.viirs_lst} · fixed clock`, color: T.ice },
       { id: 'inpe', label: 'INPE official count', type: 'dataset', size: 13, sub: 'reference satellite: Aqua' },
       { id: 'firms', label: 'NASA FIRMS', type: 'dataset', size: 13, sub: 'MODIS C6.1 · VIIRS 375 m' },
-      { id: 'audit', label: 'Anchor audit', type: 'analysis', size: 15, sub: '2021–2025 · noise ±5%' },
+      { id: 'audit', label: 'Propagators audit', type: 'analysis', size: 15, sub: '2021–2025 · noise ±5%' },
       { id: 'twoclocks', label: 'Two-clocks test', type: 'analysis', size: 13, sub: 'Aqua vs Terra, opposite drifts' },
       { id: 'checks', label: 'Checks P1–P10', type: 'check', size: 13, sub: `${passed} pass · ${pending} pending · ${failed} fail` },
     ]
@@ -74,7 +74,7 @@ export default function DirectionE() {
       <div className="fixed inset-x-0 top-3 z-30 flex justify-center px-4">
         <div className="flex h-11 w-full max-w-[1480px] items-center gap-3 rounded-md px-3" style={{ background: 'rgba(29,31,35,0.92)', backdropFilter: 'blur(8px)' }}>
           <span className="flex items-center gap-2 text-[15px] font-medium tracking-tight">
-            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke={T.text} strokeWidth="1.4" /><path d="M8 8 11.6 4.8" stroke={T.ember} strokeWidth="1.6" strokeLinecap="round" /></svg>Anchor
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke={T.text} strokeWidth="1.4" /><path d="M8 8 11.6 4.8" stroke={T.ember} strokeWidth="1.6" strokeLinecap="round" /></svg>Propagators
           </span>
           <span className="ml-auto"><MockBadge /></span>
           <a href="#e-data" className="inline-flex h-7 items-center rounded-sm px-10 text-[12.5px]" style={{ background: T.grey, color: T.ink }}>Get the data</a>
@@ -130,7 +130,7 @@ export default function DirectionE() {
 
       {/* statement + comparison card */}
       <section className="relative" style={{ background: T.graphite }} aria-labelledby="e-s">
-        <div className="mx-auto flex max-w-[1480px] justify-between px-6 pt-6 text-[12px] uppercase tracking-[0.04em]" style={{ fontFamily: 'var(--mono)', color: T.text2 }}><span>Anchor</span><span style={{ color: T.text }}>[ Verdict ]</span><a href="#e-data">Get the data</a></div>
+        <div className="mx-auto flex max-w-[1480px] justify-between px-6 pt-6 text-[12px] uppercase tracking-[0.04em]" style={{ fontFamily: 'var(--mono)', color: T.text2 }}><span>Propagators</span><span style={{ color: T.text }}>[ Verdict ]</span><a href="#e-data">Get the data</a></div>
         <ol className="absolute left-6 top-[200px] hidden space-y-1 text-[12px] md:block" style={{ fontFamily: 'var(--mono)', color: T.text3 }}>
           {['A', 'B', 'C', 'D'].map((l, i) => <li key={l} style={i === 0 ? { color: T.text } : undefined}>{i === 0 ? `[${l}]` : l}</li>)}
         </ol>
@@ -163,7 +163,7 @@ export default function DirectionE() {
       <section className="py-20" style={{ background: T.grey, color: T.black }} aria-labelledby="e-w">
         <div className="mx-auto max-w-[1480px] px-6">
           <div className="flex flex-wrap items-end justify-between gap-6">
-            <div><h2 id="e-w" className="text-[40px] font-light leading-none tracking-[-0.02em]">Beyond the count</h2><p className="mt-2 text-[16px]" style={{ color: '#6B6F76' }}>Explore Anchor</p></div>
+            <div><h2 id="e-w" className="text-[40px] font-light leading-none tracking-[-0.02em]">Beyond the count</h2><p className="mt-2 text-[16px]" style={{ color: '#6B6F76' }}>Explore Propagators</p></div>
             <div className="flex gap-2 text-[11px] uppercase" style={{ fontFamily: 'var(--mono)' }}>
               {[['Audit', '01'], ['Two clocks', '02'], ['Calendar', '03']].map(([a, b], i) => (
                 <div key={a} className="w-[150px] border px-3 py-2" style={{ borderColor: i === 0 ? T.black : '#C9C9C9', color: i === 0 ? T.black : '#8B8F96' }}>{a}<br /><span style={{ color: '#A0A4AA' }}>{b}</span></div>
@@ -220,7 +220,7 @@ export default function DirectionE() {
           <a href="#" className="flex h-36 items-start justify-between rounded-sm p-5 text-[32px] font-light" style={{ background: T.grey2, color: T.black }}>Get the data <Arrow /></a>
           <a href="#" className="flex h-36 items-start justify-between rounded-sm p-5 text-[32px] font-light" style={{ background: T.graphite, color: T.text }}>Read the method <Arrow /></a>
         </div>
-        <p className="mx-auto mt-6 max-w-[1480px] px-6 text-[11px]" style={{ fontFamily: 'var(--mono)', color: '#6B6F76' }}>Source: NASA FIRMS via the Anchor pipeline · MOCK numbers · Team Propagators</p>
+        <p className="mx-auto mt-6 max-w-[1480px] px-6 text-[11px]" style={{ fontFamily: 'var(--mono)', color: '#6B6F76' }}>Source: NASA FIRMS via the Propagators pipeline · MOCK numbers · Team Propagators</p>
       </section>
     </div>
   )

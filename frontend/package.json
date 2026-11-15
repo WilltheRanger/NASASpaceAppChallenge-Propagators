@@ -1,8 +1,8 @@
 {
-  "name": "anchor",
+  "name": "propagators",
   "private": true,
   "version": "0.1.0",
-  "description": "Anchor: the fire record on a fixed clock. Team Propagators, NASA Space Apps 2026.",
+  "description": "Propagators: satellite fire counts on a fixed clock. NASA Space Apps Challenge 2026.",
   "type": "module",
   "scripts": {
     "dev": "vite",

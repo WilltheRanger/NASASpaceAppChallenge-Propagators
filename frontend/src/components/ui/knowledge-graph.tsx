@@ -2,7 +2,7 @@
  * Knowledge Graph — adapted from 21st.dev "Knowledge Graph" by heygaia
  * (https://21st.dev/@heygaia/components/knowledge-graph).
  * Original: d3 force-directed graph with zoom, pan, drag, tooltips, a type legend and
- * SVG/PNG export. Changes for Anchor: colours come from props/CSS variables (no hashed
+ * SVG/PNG export. Changes for Propagators: colours come from props/CSS variables (no hashed
  * rainbow), labels can be longer and sit beside the node, link labels use the theme's
  * muted colour, and node size can carry meaning. The simulation, zoom, drag and export
  * code are the original's.
@@ -52,7 +52,7 @@ export const KnowledgeGraph = forwardRef<KnowledgeGraphHandle, KnowledgeGraphPro
       if (!svgRef.current) return
       const data = new XMLSerializer().serializeToString(svgRef.current)
       const url = URL.createObjectURL(new Blob([data], { type: 'image/svg+xml;charset=utf-8' }))
-      const a = document.createElement('a'); a.href = url; a.download = 'anchor-graph.svg'; a.click(); URL.revokeObjectURL(url)
+      const a = document.createElement('a'); a.href = url; a.download = 'propagators-graph.svg'; a.click(); URL.revokeObjectURL(url)
     }, [])
     const exportAsPNG = useCallback(() => {
       if (!svgRef.current) return
@@ -60,7 +60,7 @@ export const KnowledgeGraph = forwardRef<KnowledgeGraphHandle, KnowledgeGraphPro
       const canvas = document.createElement('canvas'); canvas.width = width * 2; canvas.height = height * 2
       const ctx = canvas.getContext('2d'); ctx?.scale(2, 2)
       const img = new window.Image()
-      img.onload = () => { ctx?.drawImage(img, 0, 0, width, height); canvas.toBlob((b) => { if (!b) return; const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = 'anchor-graph.png'; a.click(); URL.revokeObjectURL(u) }, 'image/png') }
+      img.onload = () => { ctx?.drawImage(img, 0, 0, width, height); canvas.toBlob((b) => { if (!b) return; const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = 'propagators-graph.png'; a.click(); URL.revokeObjectURL(u) }, 'image/png') }
       img.src = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svgRef.current)], { type: 'image/svg+xml;charset=utf-8' }))
     }, [])
     const resetZoom = useCallback(() => { if (svgRef.current && zoomRef.current) d3.select(svgRef.current).transition().duration(500).call(zoomRef.current.transform, d3.zoomIdentity) }, [])

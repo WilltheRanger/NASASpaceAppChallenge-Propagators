@@ -1,6 +1,6 @@
 // Flip Disk Matrix — adapted from 21st.dev "Flip Disk Matrix" by daiwiikharihar
 // (https://21st.dev/@daiwiikharihar/components/flip-disk-matrix).
-// Changes for Anchor: shows a value passed in (e.g. a look time) instead of the live clock,
+// Changes for Propagators: shows a value passed in (e.g. a look time) instead of the live clock,
 // drops the demo mode switcher and text box, takes colours from CSS variables, and adds
 // an accessible label.
 import { memo, useMemo, type CSSProperties } from 'react'

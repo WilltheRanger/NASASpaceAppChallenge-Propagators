@@ -10,7 +10,7 @@ Local solar time = UTC acq_time + longitude / 15.
 Every output must be checked by a team member before use.
 
 Usage: python3 drift_regions.py RAW_DIR IBGE_SHP OUT_DIR [--dry-run] [--punjab-only]
-Note: brady/brazil-data has the Brazil biome drift (INPE-label lookup); use --punjab-only to avoid a second Brazil version.
+Note: the Brazil biome files (analysis/brazil-data) have the Brazil biome drift (INPE-label lookup); use --punjab-only to avoid a second Brazil version.
 RAW_DIR holds modis_YYYY_{Brazil,India}.csv and viirs-snpp_YYYY_{Brazil,India}.csv (FIRMS yearly country files).
 """
 import sys, os, glob, json, datetime, subprocess

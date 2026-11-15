@@ -1,6 +1,6 @@
 {
  "mock": false,
- "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (brady/brazil-data).",
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (Brazil biome files, analysis/brazil-data).",
  "region": "br-pantanal",
  "method": "L = Aqua daytime hotspot detections / (S-NPP detections x 2012-2020 Aqua/S-NPP ratio by calendar month), on days both satellites returned data; 95% 16-day block bootstrap (1000). gap_pct = (L - 1) x 100, Aqua's excess over the benchmark; share_of_observed_pct = (1 - 1/L) x 100, the part of Aqua's own count above the benchmark. Neither attributes the gap to orbit drift alone.",
  "baseline": {

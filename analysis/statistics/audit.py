@@ -1,7 +1,7 @@
 """Statistics lane: clock audit L, noise floor, block bootstrap, fire-size check, two clocks, fire-day curve.
 
 Usage: python3 analysis/statistics/audit.py analysis/brazil-data/out data/out analysis/statistics/out
-Inputs : CSV_DIR/firms_daily_by_biome.csv, CSV_DIR/firms_drift_by_biome.csv (brady/brazil-data);
+Inputs : CSV_DIR/firms_daily_by_biome.csv, CSV_DIR/firms_drift_by_biome.csv (analysis/brazil-data);
          STATS_DIR/regions_daily.csv, regions_drift.csv (region_counts.py) when present
 Outputs: JSON_DIR/audit/<id>.json, twoclocks/<id>.json, fireday/<id>.json, calendar/<id>.json, drift/<id>.json
          (non-Brazil, if missing); STATS_DIR/*.csv (every region, every number behind the checks)
@@ -226,7 +226,7 @@ pd.DataFrame([dict(biome=b, beta_base=res[b]["beta_base"][0], beta_base_lo=ci(re
 START = {"Aqua": "2002-07", "S-NPP": "2012-01", "NOAA-20": "2018-01"}  # first month with data
 raw_m = daily_all.assign(ym=daily_all.date.str[:7]).groupby(["biome", "ym", "satellite"])[COL].sum()
 for rid, b in REG.items():
-    note = f"Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts ({SRC.get(b, 'brady/brazil-data')})."
+    note = f"Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts ({SRC.get(b, 'Brazil biome files, analysis/brazil-data')})."
     a = audit[audit.biome == b]
     if b in SRC and not os.path.exists(os.path.join(dst, f"drift/{rid}.json")):
         write(f"drift/{rid}.json", {"mock": False, "region": rid,

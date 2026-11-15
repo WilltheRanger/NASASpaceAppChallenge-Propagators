@@ -5,7 +5,7 @@
  * Kept from the original: a measured value drawn as a line against the expected band the caller passes in, with the
  * points that fall outside the band marked. Detection stays outside the component: it marks what the caller flags and
  * never invents a threshold of its own. A small legend names the marks.
- * Changed for Anchor: everything is drawn at real pixel size from a measured width (the original stretched one SVG
+ * Changed for Propagators: everything is drawn at real pixel size from a measured width (the original stretched one SVG
  * and laid an unstretched one over it, which drifts the marks off the line whenever the box isn't 5:3); each point
  * carries its uncertainty range as a whisker; points outside the band are filled and the rest hollow, so the reading
  * never rests on colour alone; a zero line and labelled ticks; the band is labelled where it is drawn; gaps where a
@@ -54,7 +54,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 
 function niceScale(lo: number, hi: number) {
   const span = hi - lo || 1
-  const step = span <= 24 ? 5 : span <= 60 ? 10 : 20
+  const step = span <= 24 ? 5 : span <= 60 ? 10 : span <= 120 ? 20 : span <= 300 ? 50 : 100
   const d0 = Math.floor(lo / step) * step
   const d1 = Math.ceil(hi / step) * step
   const ticks: number[] = []

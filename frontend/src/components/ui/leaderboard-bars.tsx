@@ -4,7 +4,7 @@
  *
  * Original: score bars on a shared axis with ±std whiskers, aligned metric columns,
  * and reference rows below a hard rule ("off the board").
- * Changes for Anchor: the axis can start below zero (min), a shaded band marks the
+ * Changes for Propagators: the axis can start below zero (min), a shaded band marks the
  * noise floor, bars grow from a zero line in either direction, whiskers take an explicit
  * lo/hi range, an optional second marker shows the fire-size-adjusted value, and
  * colours come from --vz-* CSS variables so each theme can restyle it.

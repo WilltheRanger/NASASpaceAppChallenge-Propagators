@@ -34,6 +34,8 @@ export interface GlobeOrbit {
   labelColor?: string
   /** draws the label as a solid flag in the orbit's colour, with this note after the time, e.g. "+35 min" */
   flag?: string
+  /** the orbit's height above the surface, km (Aqua and Terra about 705, the VIIRS satellites about 830) */
+  altitudeKm?: number
 }
 
 export interface GlobeInk {
@@ -141,9 +143,10 @@ interface Layout { W: number; H: number; cx: number; cy: number; R: number; Ro: 
 function layoutFor(W: number): Layout {
   const compact = W < 560
   const R = Math.max(96, Math.min(compact ? 150 : 232, W * (compact ? 0.36 : 0.3)))
-  const Ro = R * 1.11 // 705 km over a 6,371 km Earth: to scale
-  const cy = 14 + Ro
-  const axisY = cy + Ro + 24
+  const Ro = R * 1.11 // 705 km over a 6,371 km Earth: to scale; the day path and time line use it
+  const top = R * 1.14 // room for the higher VIIRS orbit (830 km)
+  const cy = 14 + top
+  const axisY = cy + top + 24
   return { W, H: Math.round(axisY + (compact ? 50 : 54)), cx: W / 2, cy, R, Ro, axisY, compact }
 }
 
@@ -352,6 +355,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
       const north = (o: GlobeOrbit) => cross[o.dayPass].u + (o.dayPass === 'north' ? 0.8 : -0.8)
       const satU = (o: GlobeOrbit) => (isLive ? north(o) + (t / ORBIT_SECONDS) * TAU + (o.phase ?? 0) * TAU : north(o))
       const pt = (o: GlobeOrbit, u: number) => tilt(orbitPoint(angles.current.get(o.id) ?? nodeFor(o), o.dayPass, u))
+      const height = (o: GlobeOrbit) => R * (1 + (o.altitudeKm ?? 705) / 6371)
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, L.W, L.H)
@@ -366,7 +370,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
         ctx.setLineDash(isFront ? [] : [3, 5])
         ctx.lineWidth = isFront ? 1.75 : 1.25
         ctx.strokeStyle = withAlpha(c, isFront ? 0.85 : 0.4)
-        ctx.beginPath(); line(ctx, pts, Ro, (p) => (p[2] >= 0) === isFront); ctx.stroke()
+        ctx.beginPath(); line(ctx, pts, height(o), (p) => (p[2] >= 0) === isFront); ctx.stroke()
         ctx.setLineDash([])
         // the trail, then the satellite in the page's marker for it
         const u = satU(o)
@@ -378,12 +382,12 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
             const p2 = pt(o, u - TRAIL * TAU * (1 - (s + 1) / n))
             if ((p1[2] >= 0) !== isFront) continue
             ctx.strokeStyle = withAlpha(c, 0.9 * ((s + 1) / n) ** 1.6)
-            ctx.beginPath(); ctx.moveTo(...S(p1, Ro)); ctx.lineTo(...S(p2, Ro)); ctx.stroke()
+            ctx.beginPath(); ctx.moveTo(...S(p1, height(o))); ctx.lineTo(...S(p2, height(o))); ctx.stroke()
           }
         }
         const p = pt(o, u)
         if ((p[2] >= 0) !== isFront) return
-        const [x, y] = S(p, Ro)
+        const [x, y] = S(p, height(o))
         ctx.lineWidth = 2
         if (o.marker === 'filled') {
           ctx.beginPath(); ctx.arc(x, y, 6, 0, TAU)
@@ -405,7 +409,8 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
       // where each orbit crosses the region's day path: the satellite's look there
       for (const o of list) {
         const c = colorOf.get(o.id) ?? col.fg
-        const [x, y] = S(pt(o, cross[o.dayPass].u), Ro)
+        // on the day path at the look time, where the time line below puts it
+        const [x, y] = S(dayPt(o.time), Ro)
         ctx.beginPath(); ctx.arc(x, y, 4.5, 0, TAU)
         ctx.fillStyle = col.ground; ctx.fill()
         ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.stroke()

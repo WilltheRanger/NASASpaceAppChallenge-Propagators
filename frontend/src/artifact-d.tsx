@@ -6,5 +6,7 @@ import './index.css'
 import FieldFilm from './directions/r2/FieldFilm'
 
 const root = document.getElementById('root')!
+// the artifact supplies the document around the landing page; name its language
+if (!document.documentElement.lang) document.documentElement.lang = 'en'
 const page = root.dataset.page === 'app' ? 'app' : 'landing'
 createRoot(root).render(<StrictMode><FieldFilm page={page} nav="artifact" /></StrictMode>)

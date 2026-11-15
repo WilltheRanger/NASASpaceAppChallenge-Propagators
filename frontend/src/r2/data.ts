@@ -3,26 +3,35 @@
 // "mock" flag, and the MOCK labels on screen follow it.
 // Every value shown in the comps comes from these files.
 import regionsJson from '../../../data/mock/regions.json'
+// INPE's published yearly series per biome (Programa Queimadas, reference satellite Aqua), as the team's reproduction
+// table lists it next to our own FIRMS counts
+import inpeCsv from '../../../analysis/brazil-data/out/inpe_reproduction_yearly.csv?raw'
 
 type DriftFile = { mock?: boolean; region: string; years: { year: number; aqua_lst: string; terra_lst: string; viirs_lst: string }[] }
-type AuditYear = { year: number; status: string; L?: number | null; L_lo?: number | null; L_hi?: number | null; L_strat?: number | null; aqua_count: number; fixed_count?: number | null; gap_pct?: number | null }
-type AuditFile = { mock?: boolean; region: string; baseline: { years: string; ratio: number; noise_floor: number }; years: AuditYear[] }
-type CalMonth = { ym: string; fixed: number | null; lo: number | null; hi: number | null; aqua: number | null; snpp: number | null; noaa20: number | null; flags: string[]; median_ref: number | null; anomaly_pct: number | null }
+type AuditYear = {
+  year: number; status: string; L?: number | null; L_lo?: number | null; L_hi?: number | null; L_strat?: number | null
+  aqua_count: number; fixed_count?: number | null; gap_pct?: number | null; share_of_observed_pct?: number | null
+  /** the pipeline's one verdict: outside the nine 2012-2020 placebo years' range (descriptive, not a significance test) */
+  outside_noise?: boolean
+}
+type AuditFile = { mock?: boolean; region: string; baseline: { years: string; ratio: number; noise_floor: number; placebo_min?: number; placebo_max?: number }; years: AuditYear[] }
+type CalMonth = { ym: string; fixed: number | null; lo: number | null; hi: number | null; source?: string | null; aqua: number | null; snpp: number | null; noaa20: number | null; flags: string[]; median_ref: number | null; anomaly_pct: number | null }
 type CalFile = { mock?: boolean; region: string; unit?: string; months: CalMonth[] }
 
 const byRegion = <T extends { region: string }>(files: Record<string, T>) => Object.fromEntries(Object.values(files).map((f) => [f.region, f])) as Record<string, T>
 /** data/out/ wins over data/mock/, region by region */
+// Mock files are a development fallback only: built pages carry the real files in data/out and nothing else.
 const pick = <T extends { region: string }>(mock: Record<string, T>, out: Record<string, T>) => ({ ...byRegion(mock), ...byRegion(out) })
 const driftFiles = pick(
-  import.meta.glob<DriftFile>('../../../data/mock/drift/*.json', { eager: true, import: 'default' }),
+  (import.meta.env.DEV ? import.meta.glob<DriftFile>('../../../data/mock/drift/*.json', { eager: true, import: 'default' }) : ({} as Record<string, DriftFile>)),
   import.meta.glob<DriftFile>('../../../data/out/drift/*.json', { eager: true, import: 'default' }),
 )
 const auditFiles = pick(
-  import.meta.glob<AuditFile>('../../../data/mock/audit/*.json', { eager: true, import: 'default' }),
+  (import.meta.env.DEV ? import.meta.glob<AuditFile>('../../../data/mock/audit/*.json', { eager: true, import: 'default' }) : ({} as Record<string, AuditFile>)),
   import.meta.glob<AuditFile>('../../../data/out/audit/*.json', { eager: true, import: 'default' }),
 )
 const calFiles = pick(
-  import.meta.glob<CalFile>('../../../data/mock/calendar/*.json', { eager: true, import: 'default' }),
+  (import.meta.env.DEV ? import.meta.glob<CalFile>('../../../data/mock/calendar/*.json', { eager: true, import: 'default' }) : ({} as Record<string, CalFile>)),
   import.meta.glob<CalFile>('../../../data/out/calendar/*.json', { eager: true, import: 'default' }),
 )
 export type TwoYear = {
@@ -35,19 +44,46 @@ export type TwoYear = {
   sampling_est: number
 }
 type TwoFile = { mock?: boolean; region: string; years: TwoYear[] }
+type FireDayFile = {
+  mock?: boolean; region: string; beta_baseline?: number
+  years: { year: number; aqua_lst: string; terra_lst: string; gap_h: number; log_aqua_over_terra: number; lo: number; hi: number }[]
+}
+const fireDayFiles = pick(
+  (import.meta.env.DEV ? import.meta.glob<FireDayFile>('../../../data/mock/fireday/*.json', { eager: true, import: 'default' }) : ({} as Record<string, FireDayFile>)),
+  import.meta.glob<FireDayFile>('../../../data/out/fireday/*.json', { eager: true, import: 'default' }),
+)
 const twoFiles = pick(
-  import.meta.glob<TwoFile>('../../../data/mock/twoclocks/*.json', { eager: true, import: 'default' }),
+  (import.meta.env.DEV ? import.meta.glob<TwoFile>('../../../data/mock/twoclocks/*.json', { eager: true, import: 'default' }) : ({} as Record<string, TwoFile>)),
   import.meta.glob<TwoFile>('../../../data/out/twoclocks/*.json', { eager: true, import: 'default' }),
 )
 
+/** California: what each satellite caught of the agency-recorded fires (one matching procedure), and a local circle. */
+export type DetectionRate = { size_class: string; n: number; detected: number; rate: number; ci95: [number, number] }
+type DetectionFile = { mock?: boolean; source?: string; rule?: string; satellites: Record<string, { n_fires_2012_2020?: number; rates_2012_2020: DetectionRate[]; a50_acres?: number; a50_ci95?: [number, number] }> }
+type SeenFile = { mock?: boolean; radius_km: number; center: { lat: number; lon: number }; fires: { year: number; acres: number; aqua: boolean; terra: boolean; viirs: boolean }[] }
+const firstOf = <T,>(out: Record<string, T>, mock: Record<string, T>) => (Object.values(out)[0] ?? Object.values(mock)[0]) as T | undefined
+export const DETECTION = firstOf(
+  import.meta.glob<DetectionFile>('../../../data/out/detection_limits_california.json', { eager: true, import: 'default' }),
+  (import.meta.env.DEV ? import.meta.glob<DetectionFile>('../../../data/mock/detection_limits_california.json', { eager: true, import: 'default' }) : ({} as Record<string, DetectionFile>)),
+)
+/** California by year: the share of each size class each satellite caught, 2012 onward. */
+type ProofFile = { mock?: boolean; size_classes: string[]; years: { year: number; size_class: string; aqua_pod: number; terra_pod: number; viirs_pod: number; n: number }[] }
+export const PROOF = firstOf(
+  import.meta.glob<ProofFile>('../../../data/out/proof_california.json', { eager: true, import: 'default' }),
+  (import.meta.env.DEV ? import.meta.glob<ProofFile>('../../../data/mock/proof_california.json', { eager: true, import: 'default' }) : ({} as Record<string, ProofFile>)),
+)
+export const SEEN = firstOf(
+  import.meta.glob<SeenFile>('../../../data/out/socal_seen_missed.json', { eager: true, import: 'default' }),
+  (import.meta.env.DEV ? import.meta.glob<SeenFile>('../../../data/mock/socal_seen_missed.json', { eager: true, import: 'default' }) : ({} as Record<string, SeenFile>)),
+)
+
 /** The pre-registered checks P1-P10 ("How do we know?"); statuses are pass, pending or fail. */
-export type Check = { id: string; name: string; status: 'pass' | 'pending' | 'fail'; detail: string }
+export type Check = { id: string; name: string; status: 'pass' | 'pending' | 'fail'; detail: string; rule_written?: string; rule_implemented?: string; result_existed_before_commit?: boolean }
 type ChecksFile = { mock?: boolean; checks: Check[] }
 const checksFile = (Object.values(import.meta.glob<ChecksFile>('../../../data/out/checks.json', { eager: true, import: 'default' }))[0] ??
-  Object.values(import.meta.glob<ChecksFile>('../../../data/mock/checks.json', { eager: true, import: 'default' }))[0]) as ChecksFile | undefined
+  Object.values((import.meta.env.DEV ? import.meta.glob<ChecksFile>('../../../data/mock/checks.json', { eager: true, import: 'default' }) : ({} as Record<string, ChecksFile>)))[0]) as ChecksFile | undefined
 export const CHECKS = { mock: !!checksFile?.mock, checks: checksFile?.checks ?? [] }
 
-export const MOCK = true
 export const REGIONS = regionsJson.regions.map((r) => ({ id: r.id, name: r.name, bbox: r.bbox as unknown as readonly [number, number, number, number] }))
 export type RegionId = string
 
@@ -72,26 +108,81 @@ export const pct = (v: number, d = 1) => `${v >= 0 ? '+' : '−'}${Math.abs(v).t
 export const minutesBetween = (a: string, b: string) => Math.round((hm(a) - hm(b)) * 60)
 export const fmtShift = (min: number) => { const s = min >= 0 ? '+' : '−'; const v = Math.abs(min); const h = Math.floor(v / 60); return h ? `${s}${h} h ${String(v % 60).padStart(2, '0')} min` : `${s}${v} min` }
 
-export type Verdict = 'clock' | 'noise' | 'na'
+/** The audit's reading of a year, as the pipeline flags it: outside the 2012-2020 placebo range, within it, or too few
+ *  hotspots to read (expected Aqua count under 300, or an interval wider than a quarter of L). */
+export type Verdict = 'outside' | 'within' | 'na'
+
+/** INPE's official yearly count for a Brazil preset (its biome), or null elsewhere. */
+const INPE_BIOME: Record<string, string> = { 'br-amazon': 'amazon', 'br-cerrado': 'cerrado', 'br-pantanal': 'pantanal' }
+const INPE = (() => {
+  const out: Record<string, Record<number, number>> = {}
+  const [head, ...rows] = inpeCsv.trim().split(/\r?\n/)
+  const cols = head.split(',')
+  const iy = cols.indexOf('year'), ib = cols.indexOf('biome'), ii = cols.indexOf('inpe')
+  for (const r of rows) {
+    const c = r.split(',')
+    ;(out[c[ib]] ??= {})[Number(c[iy])] = Number(c[ii])
+  }
+  return out
+})()
+export const inpeAt = (id: RegionId, year: number) => (INPE_BIOME[id] ? INPE[INPE_BIOME[id]]?.[year] ?? null : null)
+export const hasOfficialSeries = (id: RegionId) => id in INPE_BIOME
 
 export function regionData(id: RegionId) {
   const drift = driftFiles[id]?.years ?? []
   const auditFile = auditFiles[id]
   const cal = calFiles[id]?.months ?? []
   const noise = (auditFile?.baseline.noise_floor ?? 0.05) * 100
+  const base = auditFile?.baseline
+  /** the nine 2012-2020 placebo years' range, as percent around 1 */
+  const placebo: [number, number] = base?.placebo_min != null && base.placebo_max != null
+    ? [(base.placebo_min - 1) * 100, (base.placebo_max - 1) * 100]
+    : [-noise, noise]
   const years = (auditFile?.years ?? []).map((y) => {
-    const ok = y.status === 'ok' && y.L_lo != null && y.L_hi != null && y.gap_pct != null
+    const ok = y.status === 'ok' && y.L != null && y.L_lo != null && y.L_hi != null
     const lo = ok ? (y.L_lo! - 1) * 100 : null
     const hi = ok ? (y.L_hi! - 1) * 100 : null
-    const verdict: Verdict = !ok ? 'na' : lo! > noise || hi! < -noise ? 'clock' : 'noise'
-    return { year: y.year, verdict, gap: ok ? y.gap_pct! : null, lo, hi, strat: ok && y.L_strat != null ? (y.L_strat - 1) * 100 : null, aqua: y.aqua_count, fixed: y.fixed_count ?? null }
+    const verdict: Verdict = !ok ? 'na' : y.outside_noise ? 'outside' : 'within'
+    return {
+      year: y.year, verdict, L: ok ? y.L! : null, gap: ok ? (y.L! - 1) * 100 : null, lo, hi,
+      strat: ok && y.L_strat != null ? (y.L_strat - 1) * 100 : null,
+      aqua: y.aqua_count, fixed: y.fixed_count ?? null, share: ok ? y.share_of_observed_pct ?? null : null,
+    }
   })
-  const latestOk = [...years].reverse().find((y) => y.verdict !== 'na') ?? years[years.length - 1]
+  const latestOk = [...years].reverse().find((y) => y.verdict !== 'na') ?? null
+  // whole calendar years in the file (all twelve months on the fixed clock): totals for Aqua and the fixed clock
+  const calYears: Record<number, { fixed: number; aqua: number }> = {}
+  const monthsIn: Record<number, number> = {}
+  for (const c of cal) {
+    const y = Number(c.ym.slice(0, 4))
+    if (c.fixed == null) continue
+    monthsIn[y] = (monthsIn[y] ?? 0) + 1
+    calYears[y] = { fixed: (calYears[y]?.fixed ?? 0) + c.fixed, aqua: (calYears[y]?.aqua ?? 0) + (c.aqua ?? 0) }
+  }
+  for (const y of Object.keys(calYears)) if (monthsIn[Number(y)] !== 12) delete calYears[Number(y)]
+  const calSpan = cal.length ? [Number(cal[0].ym.slice(0, 4)), Math.max(...cal.filter((c) => c.fixed != null).map((c) => Number(c.ym.slice(0, 4))))] as const : null
+  // the first year Aqua's look sat at least 4 minutes later than its 2012-2020 median, and stayed later
+  const baseLook = (() => {
+    const v = drift.filter((r) => r.year <= 2020).map((r) => hm(r.aqua_lst)).sort((a, b) => a - b)
+    return v.length ? v[Math.floor(v.length / 2)] : null
+  })()
+  const driftStart = (() => {
+    if (baseLook == null) return null
+    let start: number | null = null
+    for (const r of drift) {
+      const later = (hm(r.aqua_lst) - baseLook) * 60 >= 4
+      if (later && start == null) start = r.year
+      if (!later) start = null
+    }
+    return start
+  })()
   const lastDrift = drift[drift.length - 1]
   const driftAt = (year: number) => drift.find((d) => d.year === year) ?? lastDrift
   return {
     id, name: REGIONS.find((r) => r.id === id)?.name ?? id, phrase: phrase(id),
-    drift, lastDrift, driftAt, baselineYears: auditFile?.baseline.years ?? '2012-2020', noise, years, latestOk, cal,
+    drift, lastDrift, driftAt, baselineYears: auditFile?.baseline.years ?? '2012-2020', noise, placebo, years, latestOk, cal,
+    calYears, calSpan, driftStart, baseLook: baseLook == null ? null : fmtHM(baseLook),
+    fireday: fireDayFiles[id] ?? null,
     /** two-clocks ratios (detections vs. the fixed clock, 1 = baseline) for a year, when the region has them */
     twoAt: (year: number) => twoFiles[id]?.years.find((t) => t.year === year) ?? null,
     /** the two-clocks test, year by year */
@@ -102,22 +193,59 @@ export function regionData(id: RegionId) {
 }
 export type RegionData = ReturnType<typeof regionData>
 
-/** Official (Aqua-based) and fixed-clock change between two audit years; null when either year can't be checked. */
-export function headlineCheck(d: RegionData, from = 2024, to = 2025) {
-  const a = d.years.find((y) => y.year === from), b = d.years.find((y) => y.year === to)
-  if (!a || !b || a.fixed == null || b.fixed == null || a.verdict === 'na' || b.verdict === 'na') return { from, to, ok: false as const, reason: !a || a.verdict === 'na' ? from : to }
-  return { from, to, ok: true as const, official: (b.aqua / a.aqua - 1) * 100, fixed: (b.fixed / a.fixed - 1) * 100 }
+/** Punjab + Haryana is the validation case (Jethva 2026), not a sixth audit. */
+export const isValidation = (id: RegionId) => id === 'in-punjab-haryana'
+
+/** Aqua's November count as a share of S-NPP's, by year, from the calendar file: Punjab's timing evidence. */
+export function novemberRatio(d: RegionData) {
+  return d.cal
+    .filter((c) => c.ym.endsWith('-11') && c.aqua != null && c.snpp)
+    .map((c) => ({ year: Number(c.ym.slice(0, 4)), ratio: c.aqua! / c.snpp! }))
 }
 
-/** The L1 headline, worded per verdict (the trend holding gets the same weight as a gap). */
+/** The headline: Aqua's count against its fixed-clock benchmark in the latest readable year, never a cause. */
 export function verdictHeadline(d: RegionData) {
+  if (isValidation(d.id)) {
+    const nov = novemberRatio(d)
+    const a = nov.find((r) => r.year === 2016), b = nov[nov.length - 1]
+    return a && b ? `Each November in Punjab, Aqua’s count rose from ${a.ratio.toFixed(2)} of VIIRS’s in ${a.year} to ${b.ratio.toFixed(2)} in ${b.year}` : 'Punjab and Haryana are our validation case'
+  }
   const y = d.latestOk
-  if (!y || y.verdict === 'na') return `Not enough fires in ${d.phrase.the} to measure the clock effect`
-  if (y.verdict === 'noise') return `${cap(d.phrase.poss)} ${countName(d.id).replace(' count', '')} ${y.year} count holds on a fixed clock`
+  if (!y) return `Too few hotspots in ${d.phrase.the} to compare Aqua with its benchmark`
+  if (y.verdict === 'within') return `In ${y.year}, Aqua's count for ${d.phrase.the} stayed within the range of its fixed-clock benchmark`
   const n = Math.round(Math.abs(y.gap!))
-  return y.gap! >= 0
-    ? `Aqua's later clock added ${n}% to ${d.phrase.poss} ${y.year} fire count`
-    : `Aqua's later clock removed ${n}% from ${d.phrase.poss} ${y.year} fire count`
+  return `In ${y.year}, Aqua's count for ${d.phrase.the} ran ${n}% ${y.gap! >= 0 ? 'above' : 'below'} its fixed-clock benchmark`
+}
+
+const verb = (v: number) => (v < 0 ? 'fell' : 'rose')
+const change = (a: number, b: number) => (b / a - 1) * 100
+
+/** The sentences under the headline: the two counts, the timing change, the caveat, and the declines over whole years. */
+export function verdictLines(d: RegionData, from = 2024, to = 2025) {
+  const y = d.latestOk
+  const first = d.drift[0]
+  const last = d.lastDrift
+  const counts = y && y.fixed != null
+    ? y.verdict === 'outside'
+      ? `On the days both satellites returned data in ${y.year}, Aqua recorded ${fmtInt(y.aqua)} daytime hotspot detections; its 2012–2020 relationship with VIIRS (S-NPP) predicted ${fmtInt(y.fixed)}.`
+      : `On the days both satellites returned data in ${y.year}, Aqua recorded ${fmtInt(y.aqua)} daytime hotspot detections against ${fmtInt(y.fixed)} predicted by its 2012–2020 relationship with VIIRS (S-NPP): a ratio of ${y.L!.toFixed(2)} (95% interval ${(1 + y.lo! / 100).toFixed(2)}–${(1 + y.hi! / 100).toFixed(2)}), inside the 2012–2020 placebo range.`
+    : ''
+  const moved = first && last ? Math.round((hm(last.aqua_lst) - hm(first.aqua_lst)) * 60) : 0
+  const timing = first && last && Math.abs(moved) >= 5
+    ? `Over the same years Aqua's look moved about ${Math.abs(moved)} minutes ${moved > 0 ? 'later' : 'earlier'} (${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}) while VIIRS stayed near ${last.viirs_lst}.`
+    : ''
+  const caveat = y?.verdict === 'outside' ? 'These data show the gap and the timing change together; they don’t isolate how much of the gap the timing caused.' : ''
+  // whole calendar years: INPE's official series where there is one, else Aqua's own monthly count, beside the fixed clock
+  const cf = d.calYears[from], ct = d.calYears[to]
+  const of = inpeAt(d.id, from), ot = inpeAt(d.id, to)
+  let declines = ''
+  if (cf && ct) {
+    const fixed = `the fixed-clock calendar ${verb(change(cf.fixed, ct.fixed))} ${Math.abs(change(cf.fixed, ct.fixed)).toFixed(1)}% (${fmtInt(cf.fixed)} to ${fmtInt(ct.fixed)})`
+    declines = of != null && ot != null
+      ? `From ${from} to ${to}, INPE's official count ${verb(change(of, ot))} ${Math.abs(change(of, ot)).toFixed(1)}% (${fmtInt(of)} to ${fmtInt(ot)}); ${fixed}.`
+      : `From ${from} to ${to}, Aqua's own count ${verb(change(cf.aqua, ct.aqua))} ${Math.abs(change(cf.aqua, ct.aqua)).toFixed(1)}% (${fmtInt(cf.aqua)} to ${fmtInt(ct.aqua)}); ${fixed}.`
+  }
+  return { counts, timing, caveat, declines, year: y, from, to }
 }
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -126,7 +254,7 @@ export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', '
 export interface CalendarCell { ym: string; fixed: number | null; lo: number | null; hi: number | null; median: number | null; anomaly: number | null; flags: string[] }
 
 /** Month × year grid (years descending) for a region and an inclusive year range. */
-export function calendarGrid(d: RegionData, from = 2002, to = 2026) {
+export function calendarGrid(d: RegionData, from = d.calSpan?.[0] ?? 2002, to = d.calSpan?.[1] ?? 2025) {
   const years: number[] = []
   const cells: (CalendarCell | null)[][] = []
   let maxCount = 1
@@ -146,7 +274,7 @@ export function calendarGrid(d: RegionData, from = 2002, to = 2026) {
 }
 
 /** The calendar section's finding: the month furthest above its median in the range (computed, not written). */
-export function calendarFinding(d: RegionData, from = 2002, to = 2026) {
+export function calendarFinding(d: RegionData, from = d.calSpan?.[0] ?? 2002, to = d.calSpan?.[1] ?? 2025) {
   let best: CalMonth | null = null
   for (const c of d.cal) {
     const y = Number(c.ym.slice(0, 4))
@@ -156,28 +284,6 @@ export function calendarFinding(d: RegionData, from = 2002, to = 2026) {
   if (!best) return null
   const [y, m] = best.ym.split('-').map(Number)
   return { label: `${MONTHS[m - 1]} ${y}`, anomaly: best.anomaly_pct!, fixed: best.fixed!, median: best.median_ref! }
-}
-
-const verb = (v: number) => (v < 0 ? 'fell' : 'rose')
-/** The two L2 sentences under the headline: when Aqua looked, and the official vs. fixed-clock change. */
-export function verdictLines(d: RegionData) {
-  const y = d.latestOk
-  const dr = d.driftAt(y?.year ?? 2025)
-  const shift = dr ? minutesBetween(dr.aqua_lst, dr.viirs_lst) : 0
-  const look = dr
-    ? `In ${y.year} Aqua looked at ${d.phrase.the} at ${dr.aqua_lst} local solar time, ${Math.abs(shift)} minutes ${shift >= 0 ? 'after' : 'before'} the fixed ${dr.viirs_lst} clock.`
-    : `Look times for ${d.phrase.the} are not in the data yet.`
-  const hc = headlineCheck(d, 2024, 2025)
-  const prev = d.years.find((v) => v.year === (hc.ok ? hc.from : -1))
-  const pts = hc.ok ? Math.abs(hc.official - hc.fixed) : 0
-  const why = hc.ok && prev && prev.verdict === 'clock' && prev.gap != null
-    ? ` Because the later clock had already raised ${hc.from} by ${Math.abs(prev.gap).toFixed(1)}%, it moved the ${hc.from} → ${hc.to} change by only ${pts.toFixed(1)} points.`
-    : hc.ok ? ` The later clock moved the ${hc.from} → ${hc.to} change by ${pts.toFixed(1)} points.` : ''
-  const change = hc.ok
-    ? `From ${hc.from} to ${hc.to} the ${countName(d.id)} ${verb(hc.official)} ${Math.abs(hc.official).toFixed(1)}%; on the fixed clock it ${verb(hc.fixed)} ${Math.abs(hc.fixed).toFixed(1)}%.`
-    : `${hc.from} and ${hc.to} can't be compared: not enough fires in ${hc.reason} to measure.`
-  /** Optional third sentence: why the year-on-year gap is smaller than the clock effect. Place it near the figures. */
-  return { look, change, why: why.trim(), hc, drift: dr, shift }
 }
 
 /** A range in percentage points with signs and unit: "+16.4 to +28.4%". */
@@ -191,5 +297,7 @@ export const SECTIONS = [
   { id: 'audit', label: 'Audit', inComp: false },
   { id: 'calendar', label: 'Calendar', inComp: true },
   { id: 'checks', label: 'Checks', inComp: false },
+  { id: 'detection', label: 'Detection', inComp: false },
   { id: 'limits', label: 'Limits', inComp: false },
+  { id: 'about', label: 'About', inComp: false },
 ] as const

@@ -1,0 +1,58 @@
+# Builds the site (frontend/) and publishes it to GitHub Pages. The build reads the team's data from data/out and
+# analysis/brazil-data/out, so it checks out the whole repository. VITE_REPO_URL gives the footer its Code and
+# Method links to this repository.
+# One-time setup: Settings → Pages → Source: GitHub Actions (on a free plan the repository must be public), then
+# Settings → Secrets and variables → Actions → Variables: DEPLOY_PAGES = true. Until that variable is set, pushes skip
+# the deploy instead of failing; "Run workflow" on the Actions tab deploys by hand at any time.
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'data/out/**'
+      - 'analysis/brazil-data/out/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || vars.DEPLOY_PAGES == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+        env:
+          VITE_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

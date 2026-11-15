@@ -40,7 +40,7 @@ export default function DirectionB() {
       <header className="sticky top-0 z-20 flex h-16 items-center gap-8 border-b px-5 lg:px-10" style={{ background: T.paper, borderColor: T.rule }}>
         <div className="flex items-center gap-2.5 text-2xl font-semibold" style={{ fontFamily: '"Newsreader", Georgia, serif' }}>
           <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 20a10 10 0 0 1 20 0" fill="none" stroke={T.ink} strokeWidth="1.6" /><path d="M14 20V6" stroke={T.ink} strokeWidth="2" /><path d="M10.5 9.5h7" stroke={T.ink} strokeWidth="1.6" /><path d="M14 20 21.5 16" stroke={T.aqua} strokeWidth="2" strokeLinecap="round" /><circle cx="14" cy="20" r="1.8" fill={T.ink} /></svg>
-          Anchor
+          Propagators
         </div>
         <nav aria-label="Sections" className="hidden gap-5 whitespace-nowrap text-sm lg:flex" style={{ color: T.ink3 }}>
           {['Verdict', 'The clock moved', 'Two clocks', 'Audit', 'Calendar', 'How we know', 'What satellites miss', 'Limits'].map((s, i) => (
@@ -81,7 +81,7 @@ export default function DirectionB() {
           <a href="#b-cal" className="inline-flex h-12 items-center gap-2.5 rounded-full px-[22px] text-[15px] font-semibold" style={{ background: T.ink, color: T.paper }}>Explore the calendar <Arrow /></a>
           <a href="#" className="inline-flex h-12 items-center rounded-full border px-[22px] text-[15px] font-semibold" style={{ borderColor: T.ink }}>Download summary</a>
         </div>
-        <p className="mt-5 text-[12.5px]" style={{ fontFamily: 'var(--mono)', color: T.ink3 }}>Source: NASA FIRMS (MODIS C6.1, VIIRS 375 m) via the Anchor pipeline · audit/br-amazon.json · MOCK numbers</p>
+        <p className="mt-5 text-[12.5px]" style={{ fontFamily: 'var(--mono)', color: T.ink3 }}>Source: NASA FIRMS (MODIS C6.1, VIIRS 375 m) via the Propagators pipeline · audit/br-amazon.json · MOCK numbers</p>
       </article>
 
       <section style={{ ...nightVars, background: T.night, color: T.nightText }} aria-labelledby="b-band">
@@ -111,7 +111,7 @@ export default function DirectionB() {
               <div aria-hidden className="mt-1 h-2 rounded" style={{ background: 'linear-gradient(90deg, #8DB8E8 0%, #CFE3F2 30%, #F2C14E 62%, #F08A3C 82%, #B5577A 100%)' }} />
               <input type="range" min={8} max={16} step={1 / 30} value={time} onChange={(e) => setTime(+e.target.value)} aria-label="Look time" className="mt-1 w-full" style={{ accentColor: T.skyAqua, height: 30 }} />
             </div>
-            <p className="mt-3 text-[12.5px] leading-relaxed" style={{ fontFamily: 'var(--mono)', color: T.nightText2 }}>FIG. 1 · MODIS Terra, NOAA-20 VIIRS and MODIS Aqua true colour with thermal anomalies, 4 Sep 2026 · NASA Worldview / GIBS · transition shader by Anchor</p>
+            <p className="mt-3 text-[12.5px] leading-relaxed" style={{ fontFamily: 'var(--mono)', color: T.nightText2 }}>FIG. 1 · MODIS Terra, NOAA-20 VIIRS and MODIS Aqua true colour with thermal anomalies, 4 Sep 2026 · NASA Worldview / GIBS · transition shader by Propagators</p>
           </div>
         </div>
       </section>

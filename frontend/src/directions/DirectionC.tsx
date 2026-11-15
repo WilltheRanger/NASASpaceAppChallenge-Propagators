@@ -28,7 +28,7 @@ export default function DirectionC() {
   const rows = useMemo(() => auditRows({ clock: T.orange, noise: '#AEB3C2' }), [])
   const specs = [
     { name: 'AQUA', tag: 'drifting later', color: T.aqua, disk: '#E2552A', t: latest.aqua_lst, d: shiftLabel(latest.aqua_lst, baselineYear.aqua_lst), note: "INPE's reference satellite" },
-    { name: 'VIIRS', tag: 'fixed clock', color: T.viirs, disk: '#2043D6', t: latest.viirs_lst, d: shiftLabel(latest.viirs_lst, baselineYear.viirs_lst), note: "Anchor's fixed clock" },
+    { name: 'VIIRS', tag: 'fixed clock', color: T.viirs, disk: '#2043D6', t: latest.viirs_lst, d: shiftLabel(latest.viirs_lst, baselineYear.viirs_lst), note: "Propagators's fixed clock" },
     { name: 'TERRA', tag: 'drifting earlier', color: T.terra, disk: '#00826F', t: latest.terra_lst, d: shiftLabel(latest.terra_lst, baselineYear.terra_lst), note: 'The opposite clock' },
   ]
   return (
@@ -36,7 +36,7 @@ export default function DirectionC() {
       <header className="flex h-[60px] items-center gap-7 border-b px-4 lg:px-9" style={{ borderColor: T.rule, background: T.paper }}>
         <div className="flex items-center gap-2.5 text-xl font-extrabold tracking-tight">
           <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="8.5" fill="none" stroke={T.ink} strokeWidth="2" /><path d="M13 1v6M13 19v6M1 13h6M19 13h6" stroke={T.ink} strokeWidth="2" /><circle cx="17.9" cy="6" r="2.6" fill={T.orange} /></svg>
-          Anchor
+          Propagators
         </div>
         <nav aria-label="Sections" className="hidden gap-1 text-[11px] lg:flex" style={{ fontFamily: 'var(--mono)', color: T.ink3 }}>
           {['0.0 Verdict', '1.0 Clock', '2.0 Two clocks', '3.0 Audit', '4.0 Calendar', '5.0 Checks', '6.0 Misses', '7.0 Limits'].map((s, i) => (
@@ -95,7 +95,7 @@ export default function DirectionC() {
           <FireCalendar years={cal.years} cells={cal.cells} mode="anomaly" maxCount={cal.maxCount} title="Anomaly vs. median" hint="hover a month" cellHeight={26} />
         </div>
       </section>
-      <p className="mx-auto mb-16 mt-3 max-w-[1368px] px-4 text-[11px] leading-relaxed" style={{ fontFamily: 'var(--mono)', color: T.ink3 }}>Source: NASA FIRMS (MODIS C6.1, VIIRS 375 m) via the Anchor pipeline · drift, audit, calendar/br-amazon.json · MOCK numbers · Globe: cobe (MIT) via 21st.dev</p>
+      <p className="mx-auto mb-16 mt-3 max-w-[1368px] px-4 text-[11px] leading-relaxed" style={{ fontFamily: 'var(--mono)', color: T.ink3 }}>Source: NASA FIRMS (MODIS C6.1, VIIRS 375 m) via the Propagators pipeline · drift, audit, calendar/br-amazon.json · MOCK numbers · Globe: cobe (MIT) via 21st.dev</p>
     </div>
   )
 }

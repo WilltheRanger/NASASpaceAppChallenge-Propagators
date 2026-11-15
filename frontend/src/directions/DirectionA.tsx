@@ -32,7 +32,7 @@ export default function DirectionA() {
       <header className="sticky top-0 z-20 flex h-[60px] items-center gap-7 border-b px-8" style={{ background: 'rgba(7,6,11,0.86)', backdropFilter: 'blur(10px)', borderColor: T.line }}>
         <div className="flex items-center gap-2.5 text-[19px] font-semibold tracking-tight">
           <svg width="22" height="22" viewBox="0 0 7 7" aria-hidden="true"><g fill={T.ember}><rect x="3" y="0" width="1" height="1" /><rect x="2" y="1" width="3" height="1" /><rect x="3" y="2" width="1" height="2" /><rect x="0" y="4" width="1" height="1" /><rect x="3" y="4" width="1" height="2" /><rect x="6" y="4" width="1" height="1" /><rect x="1" y="5" width="1" height="1" /><rect x="5" y="5" width="1" height="1" /><rect x="2" y="6" width="3" height="1" /></g></svg>
-          Anchor
+          Propagators
         </div>
         <nav aria-label="Sections" className="hidden gap-[18px] overflow-hidden whitespace-nowrap text-xs lg:flex" style={{ fontFamily: 'var(--mono)', color: T.text3 }}>
           {['0.0 Verdict', '1.0 Clock', '2.0 Two clocks', '3.0 Audit', '4.0 Calendar', '5.0 Checks', '6.0 Misses', '7.0 Limits'].map((s, i) => (
@@ -90,7 +90,7 @@ export default function DirectionA() {
               <a href="#a-cal" className="inline-flex h-[46px] items-center gap-2.5 rounded-[9px] px-5 text-[15px] font-semibold" style={{ background: T.ember, color: '#1A0A00' }}>Explore the calendar <Arrow /></a>
               <a href="#" className="inline-flex h-[46px] items-center rounded-[9px] border px-5 text-[15px] font-semibold" style={{ borderColor: T.line2, background: 'rgba(17,15,25,0.6)' }}>Download summary</a>
             </div>
-            <p className="mt-6 max-w-[64ch] text-xs leading-relaxed" style={{ fontFamily: 'var(--mono)', color: T.text3 }}>Source: NASA FIRMS (MODIS C6.1, VIIRS 375 m) via the Anchor pipeline · audit/br-amazon.json · <span style={{ color: '#FFD23F' }}>MOCK numbers</span></p>
+            <p className="mt-6 max-w-[64ch] text-xs leading-relaxed" style={{ fontFamily: 'var(--mono)', color: T.text3 }}>Source: NASA FIRMS (MODIS C6.1, VIIRS 375 m) via the Propagators pipeline · audit/br-amazon.json · <span style={{ color: '#FFD23F' }}>MOCK numbers</span></p>
           </div>
           <div className="lg:pt-2">
             <CirculariumRing
@@ -100,7 +100,7 @@ export default function DirectionA() {
             />
           </div>
         </div>
-        <p className="relative px-5 pb-4 text-right text-[11px] lg:px-6" style={{ fontFamily: 'var(--mono)', color: 'rgba(244,239,234,0.62)' }}>FIG. 0 · NOAA-20 VIIRS true colour with thermal anomalies, Rondônia, 23 Aug 2024 · NASA Worldview / GIBS · false-colour shader by Anchor</p>
+        <p className="relative px-5 pb-4 text-right text-[11px] lg:px-6" style={{ fontFamily: 'var(--mono)', color: 'rgba(244,239,234,0.62)' }}>FIG. 0 · NOAA-20 VIIRS true colour with thermal anomalies, Rondônia, 23 Aug 2024 · NASA Worldview / GIBS · false-colour shader by Propagators</p>
       </section>
 
       <section className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-5 py-14 lg:grid-cols-2 lg:px-12" id="a-cal">

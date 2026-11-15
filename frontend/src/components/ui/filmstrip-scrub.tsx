@@ -6,7 +6,7 @@
  * a spring-loaded playhead (k=90, c=16) that chases the pointer, and a large preview that crossfades frame
  * ⌊p⌋ into ⌈p⌉ by the fractional part, so the blend reads as time passing. One rAF loop writes opacity and the
  * playhead offset straight to the DOM.
- * Changed for Anchor: frames are years and carry their own preview and thumbnail nodes; no idle auto-scrub and
+ * Changed for Propagators: frames are years and carry their own preview and thumbnail nodes; no idle auto-scrub and
  * no hover scrub (nothing moves until the reader does); the readout is a plain solid chip supplied by the caller
  * (no glass, no uppercase); colours come from --fs-* tokens; the preview height is set by the caller; the small
  * state, reduced-motion and visibility hooks are inlined; a "ruler" strip (the caller draws notches, no cell boxes) as

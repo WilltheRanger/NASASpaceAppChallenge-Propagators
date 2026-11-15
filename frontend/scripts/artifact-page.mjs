@@ -25,11 +25,9 @@ mkdirSync(join(out, 'video', 'regions'), { recursive: true })
 for (const f of videos) copyFileSync(join('public', 'video', 'regions', f), join(out, 'video', 'regions', f))
 
 const contract = `<!--
-  Anchor · Round 2 · D · Field film (Anduril-inspired at the team's request), as two pages. Team Propagators, NASA Space Apps 2026.
-  THESIS: show the thing itself: each region's ground at full scale with its verdict on it; the audit beside it.
-  OWN-WORLD: black, bone and sage; photographs carry the colour; motion follows Anduril's patterns, switchable.
-  Every number on these pages is MOCK data from the team's JSON contract. Region photographs: Unsplash (credited in
-  the footer); pass imagery: NASA Worldview / GIBS. 
+  Propagators: satellite fire counts on a fixed clock. Team Propagators, NASA Space Apps Challenge 2026.
+  Two pages: this landing and the audit (app.html). Every number comes from the team's JSON files (data/out).
+  Region photographs and drone footage are credited in the footer; pass imagery: NASA Worldview / GIBS.
 -->`
 const head = `<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,10 +38,10 @@ ${css}
 html, body { background: #0B0D0B; color: #ECE9E1; }
 </style>`
 
-const landing = `<title>Anchor Field Film</title>
+const landing = `<title>Propagators Fire Audit</title>
 ${contract}
 ${head}
-<div id="root" data-page="landing"></div>
+<div id="root" lang="en" data-page="landing"></div>
 <script type="module" src="assets/app.js"></script>
 `
 const app = `<!doctype html>
@@ -51,13 +49,13 @@ const app = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Anchor audit: how much of an official satellite fire count comes from the satellite's drifting clock. Mock data.">
-<title>Anchor · Audit</title>
+<meta name="description" content="Propagators audit: Aqua's daytime fire counts beside a fixed-clock VIIRS benchmark, for six fire regions. Team Propagators, NASA Space Apps Challenge 2026.">
+<title>Propagators · Audit</title>
 ${contract}
 ${head}
 </head>
 <body>
-<div id="root" data-page="app"></div>
+<div id="root" lang="en" data-page="app"></div>
 <script type="module" src="assets/app.js"></script>
 </body>
 </html>
