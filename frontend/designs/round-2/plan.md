@@ -114,8 +114,14 @@ card `#FFFFFF`, raised `#E9EDF0`, text `#151B22` / `#474E56` / `#666D74` (4.9:1)
 button's focus). Calendar diverging: slate arm `#E1EDF8 → #2A5982`, midpoint `#F0F0F0`, cinnabar arm
 `#FBE6E0 → #B93917` (monotone, validated); count mode: cinnabar arm alone.
 
-**Type.** Source Sans 3 for the interface and every number; Source Serif 4 (display optical size) for the headline and
-section titles only. Sizes 12 / 14 / 18 / 28 / 60 (40 on mobile). Weights 400 and 500.
+**Type.** Source Sans 3 for the interface and every number; Source Serif 4 (display optical size) for the headline,
+section titles, the numerals cut into the dial and the almanac's year and total columns (engraving and print on the
+objects, not interface labels). Sizes 12 / 15 / 18 / 28 / 60 (40 on mobile); 15 is the body size (unslop's 14–15 range,
+chosen for projection). Weights 400 and 500.
+
+**After review.** The calendar's warm arm moved from cinnabar to ochre (`#FAE4C7 → #B57C1A`, count mode `#FBECD9 →
+#B17915`) so cinnabar means only "minutes the clock added". Fires counted at each look come from the two-clocks file
+(ochre bars on the rim); no fire-day curve is drawn until the pipeline provides one (open question O3).
 
 **Contract.**
 THESIS: the clock that matters is the sun's; the drift is a shadow walking into the burning afternoon. Refuses the

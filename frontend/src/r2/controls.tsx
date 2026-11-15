@@ -1,11 +1,12 @@
 // Round 2 controls: Radix primitives (Select, Slider, Toggle Group) with no styling of their own.
 // Each direction passes classes that read its CSS tokens.
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Select from '@radix-ui/react-select'
 import * as Slider from '@radix-ui/react-slider'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import { Check, ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, Menu } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { REGIONS } from './data'
+import { REGIONS, SECTIONS } from './data'
 
 export interface RegionSelectClasses { trigger: string; content: string; item: string; icon?: string }
 
@@ -57,5 +58,23 @@ export function ModeToggle({ value, onChange, classes }: {
       <ToggleGroup.Item value="anomaly" className={classes.item}>Vs. median</ToggleGroup.Item>
       <ToggleGroup.Item value="count" className={classes.item}>Fixed-clock count</ToggleGroup.Item>
     </ToggleGroup.Root>
+  )
+}
+
+/** Phone menu for the section index; sections not in this comp are listed but disabled. */
+export function SectionsMenu({ classes, label = 'Sections' }: { classes: { trigger: string; content: string; item: string }; label?: string }) {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger aria-label={label} className={classes.trigger}><Menu size={18} strokeWidth={1.5} aria-hidden /></DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content sideOffset={6} align="end" className={classes.content}>
+          {SECTIONS.map((s) => (
+            <DropdownMenu.Item key={s.id} disabled={!s.inComp} className={classes.item} onSelect={() => { if (s.inComp) document.getElementById(s.id)?.scrollIntoView() }}>
+              {s.label}{s.inComp ? '' : ' · full build'}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }
