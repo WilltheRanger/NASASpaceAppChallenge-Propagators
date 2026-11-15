@@ -246,6 +246,7 @@ function Steps() {
         <h2 id="steps-h" className={title}>How the comparison works</h2>
         <p className={lead}>Four steps, shown for the Amazon. Each opens one click deeper.</p>
         <HowItWorks steps={steps} motion={motion.on} className="mt-10" />
+        <p className="mt-10 max-w-[var(--measure)] rounded-md border border-[color:var(--bone-20)] px-4 py-3 text-base text-[color:var(--bone)]">{CAVEAT}</p>
       </div>
     </section>
   )
@@ -647,6 +648,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="limits-h" className={title}>What Anchor can’t do</h2>
+          <p className="mt-4 max-w-[var(--measure)] rounded-md border border-[color:var(--bone-20)] px-4 py-3 text-base text-[color:var(--bone)]">{CAVEAT}</p>
           <p className={lead}>One line each; open a line for the detail.</p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
             Who it’s for: anyone quoting a fire count from one year to the next. Check how far Aqua sat from what we’d expect in both years first.{' '}
@@ -699,14 +701,16 @@ function Sources() {
             <h3 className="text-2xl font-medium leading-tight tracking-[-0.01em]">Use of AI (disclosure)</h3>
             <div className="mt-4 flex max-w-[var(--measure)] flex-col gap-3 text-sm text-[color:var(--bone2)]">
               <p>The 2026 Space Apps rules ask teams to disclose AI use. AI assistants (large language model chat and coding tools) were used throughout this project. Team members directed the work, made the decisions and reviewed the results. AI assistance was used for:</p>
-              <ul className="flex list-disc flex-col gap-1.5 pl-5">
-                <li><strong className="font-medium text-[color:var(--bone)]">research:</strong> finding and reading sources, checking facts, and reviewing and stress-testing the plan;</li>
-                <li><strong className="font-medium text-[color:var(--bone)]">the data pipelines</strong> in <code>analysis/</code> (downloads, region assignment, counts, look times, the INPE comparison), and therefore the data they write to <code>data/out/</code>;</li>
-                <li><strong className="font-medium text-[color:var(--bone)]">the statistics:</strong> clock audit, bootstrap intervals, noise floor, two clocks and prediction checks;</li>
-                <li><strong className="font-medium text-[color:var(--bone)]">the California detection limits, the daylight analysis and the exploratory world map,</strong> including their independent checks;</li>
-                <li><strong className="font-medium text-[color:var(--bone)]">the web app</strong> in <code>frontend/</code>: code, layout and on-page text;</li>
-                <li><strong className="font-medium text-[color:var(--bone)]">documentation,</strong> including this README.</li>
-              </ul>
+              <More label="What AI helped with">
+                <ul className="flex list-disc flex-col gap-1.5 pl-5">
+                  <li><strong className="font-medium text-[color:var(--bone)]">research:</strong> finding and reading sources, checking facts, and reviewing and stress-testing the plan;</li>
+                  <li><strong className="font-medium text-[color:var(--bone)]">the data pipelines</strong> in <code>analysis/</code> (downloads, region assignment, counts, look times, the INPE comparison), and therefore the data they write to <code>data/out/</code>;</li>
+                  <li><strong className="font-medium text-[color:var(--bone)]">the statistics:</strong> clock audit, bootstrap intervals, noise floor, two clocks and prediction checks;</li>
+                  <li><strong className="font-medium text-[color:var(--bone)]">the California detection limits, the daylight analysis and the exploratory world map,</strong> including their independent checks;</li>
+                  <li><strong className="font-medium text-[color:var(--bone)]">the web app</strong> in <code>frontend/</code>: code, layout and on-page text;</li>
+                  <li><strong className="font-medium text-[color:var(--bone)]">documentation,</strong> including this README.</li>
+                </ul>
+              </More>
               <p>The app’s photographs, video and satellite images are not AI-generated; their sources are credited below.</p>
             </div>
             <p className="mt-3 text-xs text-[color:var(--bone3)]">The team’s words, from the project README.</p>
