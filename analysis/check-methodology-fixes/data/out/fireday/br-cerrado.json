@@ -1,0 +1,147 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (brady/brazil-data).",
+ "region": "br-cerrado",
+ "fields": "log_aqua_over_terra = log(Aqua/Terra) near-nadir daytime counts on the same days; gap_h = Aqua minus Terra look time (hours); beta = change in log fire count per hour of look time",
+ "beta_baseline": 0.143,
+ "beta_baseline_ci95": [
+  0.13,
+  0.154
+ ],
+ "beta_fit_2012_2025": {
+  "slope": 0.196,
+  "intercept": -0.17,
+  "slope_ci95": [
+   0.149,
+   0.259
+  ]
+ },
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:23",
+   "gap_h": 3.291,
+   "log_aqua_over_terra": 0.469,
+   "lo": 0.362,
+   "hi": 0.567
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:23",
+   "gap_h": 3.305,
+   "log_aqua_over_terra": 0.424,
+   "lo": 0.338,
+   "hi": 0.53
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:23",
+   "gap_h": 3.304,
+   "log_aqua_over_terra": 0.522,
+   "lo": 0.379,
+   "hi": 0.642
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "gap_h": 3.287,
+   "log_aqua_over_terra": 0.617,
+   "lo": 0.475,
+   "hi": 0.721
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "gap_h": 3.284,
+   "log_aqua_over_terra": 0.444,
+   "lo": 0.322,
+   "hi": 0.562
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:23",
+   "gap_h": 3.302,
+   "log_aqua_over_terra": 0.433,
+   "lo": 0.369,
+   "hi": 0.546
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:24",
+   "gap_h": 3.298,
+   "log_aqua_over_terra": 0.477,
+   "lo": 0.301,
+   "hi": 0.613
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:23",
+   "gap_h": 3.321,
+   "log_aqua_over_terra": 0.46,
+   "lo": 0.394,
+   "hi": 0.507
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:23",
+   "gap_h": 3.316,
+   "log_aqua_over_terra": 0.417,
+   "lo": 0.23,
+   "hi": 0.534
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:20",
+   "gap_h": 3.359,
+   "log_aqua_over_terra": 0.54,
+   "lo": 0.396,
+   "hi": 0.66
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:46",
+   "terra_lst": "10:11",
+   "gap_h": 3.584,
+   "log_aqua_over_terra": 0.576,
+   "lo": 0.421,
+   "hi": 0.725
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "13:58",
+   "terra_lst": "09:56",
+   "gap_h": 4.032,
+   "log_aqua_over_terra": 0.506,
+   "lo": 0.382,
+   "hi": 0.595
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "14:23",
+   "terra_lst": "09:37",
+   "gap_h": 4.76,
+   "log_aqua_over_terra": 0.804,
+   "lo": 0.623,
+   "hi": 0.93
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "14:58",
+   "terra_lst": "09:10",
+   "gap_h": 5.809,
+   "log_aqua_over_terra": 0.972,
+   "lo": 0.85,
+   "hi": 1.162
+  }
+ ]
+}
