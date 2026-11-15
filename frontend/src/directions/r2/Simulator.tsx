@@ -13,9 +13,10 @@
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Plus, Search, X } from 'lucide-react'
-import { AnchorLogo } from '@/components/brand/anchor-logo'
+import { AnchorLogo, AnchorMark } from '@/components/brand/anchor-logo'
 import { DecipherText } from '@/components/ui/decipher-text'
 import { SegmentedControl } from '@/components/ui/segmented-control'
+import { DeltaTicker } from '@/components/ui/delta-ticker'
 import { SiChat, type SiTurn } from '@/components/ui/si-chat'
 import { ChartLine } from '@/components/ui/chart-line'
 import { ChartKpi } from '@/components/ui/chart-kpi'
@@ -92,8 +93,11 @@ type Facts = ReturnType<typeof regionFacts>
 
 const LIST = REGIONS.map((r) => ({ id: r.id, name: short(r.name), f: regionFacts(r.id) }))
 /** how much later Aqua passed by 2025 across the studied regions (daylight files) */
-const SHIFTS = REGIONS.map((r) => daylightHeadline(r.id)?.aqua_look_change_min).filter((v): v is number => v != null)
-const SHIFT = SHIFTS.length ? `${Math.round(Math.min(...SHIFTS))}–${Math.round(Math.max(...SHIFTS))} min` : 'over an hour'
+const SHIFTS = LIST.map((r) => (r.f.look.old && r.f.look.now ? Math.round((hm(r.f.look.now) - hm(r.f.look.old)) * 60) : null)).filter((v): v is number => v != null)
+const SHIFT = SHIFTS.length ? `${Math.min(...SHIFTS)} to ${Math.max(...SHIFTS)} minutes` : 'over an hour'
+/** said next to every finding */
+const CAVEAT = 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.'
+const FOOTER = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 /** Aqua's 2012–2020 look time across the six regions (drift files): the chart's reference when no region is picked */
 const BASES = LIST.map((r) => r.f.look.old).filter((v): v is string => v != null).map(hm)
 const OLD_CLOCK = BASES.length ? { from: Math.min(...BASES), to: Math.max(...BASES) } : null
@@ -178,8 +182,8 @@ function Mark({ g, size = 10, off = false }: { g: SatGroup; size?: number; off?:
 
 /* ---------- the page ---------- */
 
-export default function Simulator({ home, regionsHref, leave, motion, setMotion, nav }: {
-  home: string; regionsHref: (id: string) => string; leave: Leave; motion: boolean; setMotion: (on: boolean) => void; nav: Nav
+export default function Simulator({ home, regionsHref, overviewHref, methodHref, leave, motion, setMotion, nav }: {
+  home: string; regionsHref: (id: string) => string; overviewHref?: string; methodHref?: string; leave: Leave; motion: boolean; setMotion: (on: boolean) => void; nav: Nav
 }) {
   const wide = useMedia('(min-width: 1024px)')
   const xl = useMedia('(min-width: 1280px)')
@@ -197,6 +201,12 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
   const [turns, setTurns] = useState<SiTurn[]>([])
   const [siOpen, setSiOpen] = useState(false)
   const [tab, setTab] = useState<'info' | 'si'>('info')
+  const [clock, setClockState] = useState<Clock>('new')
+  /** Aqua's old time or its new one: the map shows the fires seen at about that time */
+  const setClock = (c: Clock) => {
+    setClockState(c)
+    setShow(c === 'old' ? { terra: false, viirs: true, aqua: false } : { terra: false, viirs: false, aqua: true })
+  }
   const inputRef = useRef<HTMLInputElement>(null)
   const headRef = useRef<HTMLHeadingElement>(null)
   const earth = useRef<EarthHandle | null>(null)
@@ -233,6 +243,8 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
     setQ(p.name)
     setOpen(false)
     setFire(null)
+    setClockState('new')
+    setShow(ALL)
     const xy = p.kind === 'Place' || p.kind === 'Coordinates'
     writeParams(nav, { place: xy ? `xy-${p.lat.toFixed(4)},${p.lon.toFixed(4)}` : p.id, name: p.kind === 'Place' ? p.name : null })
     // the place's heading takes focus, so the next Tab continues from the place, not the top of the page
@@ -297,10 +309,11 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
   const rail = !place ? (
     <Idle onPick={pickRegion} />
   ) : facts ? (
-    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} />
+    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} clock={clock} onClock={setClock} />
   ) : (
     <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} />
   )
+  const footer = <p className="px-5 pb-5 pt-1 text-[11px] leading-4 text-[color:var(--bone3)]">{FOOTER}</p>
   const chart = <LookChart box={view} show={show} setShow={setShow} fire={fire} near={near} oldClock={facts?.look.old ? { from: hm(facts.look.old), to: hm(facts.look.old) } : OLD_CLOCK} live={live} motion={motion} />
   const si = (onClose?: () => void, className?: string) => (
     <SiChat turns={turns} onAsk={onAsk} onAction={onAction} starters={STARTERS} motion={motion} onClose={onClose} className={className} />
@@ -312,12 +325,15 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
       <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
         <div className="flex h-14 items-center justify-between gap-4 px-4 lg:px-5">
           <a href={home} onClick={leave} aria-label="Anchor home" className={cn('flex shrink-0 items-center rounded leading-none', focusRing)}>
-            <AnchorLogo height={18} />
+            <span className="sm:hidden"><AnchorMark size={18} /></span>
+            <span className="hidden sm:block"><AnchorLogo height={18} /></span>
           </a>
-          <div className="flex items-center gap-5 text-sm">
-            <nav aria-label="Pages" className="flex items-center gap-5">
+          <div className="flex items-center gap-3 text-[13px] sm:gap-5 sm:text-sm">
+            <nav aria-label="Pages" className="flex items-center gap-3 sm:gap-5">
+              <a href={overviewHref ?? home} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Overview</a>
               <a href={regionsHref(region ?? 'br-amazon')} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Regions</a>
               <span aria-current="page" className="border-b border-[color:var(--bone)] py-2 text-[color:var(--bone)]">Simulator</span>
+              <a href={methodHref ?? (nav === 'artifact' ? 'method.html' : '?page=method')} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Method</a>
             </nav>
             <ElasticSwitch checked={motion} onCheckedChange={setMotion} label="Motion" />
           </div>
@@ -329,7 +345,7 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
         {wide ? (
           <aside aria-label="Place" className="relative z-20 flex w-[340px] shrink-0 flex-col border-r border-[color:var(--hairline)] bg-[color:var(--ground)] xl:w-[352px]">
             <div className="border-b border-[color:var(--hairline)] p-3">{search}</div>
-            <div className="min-h-0 flex-1 overflow-y-auto">{rail}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto">{rail}{footer}</div>
           </aside>
         ) : null}
 
@@ -422,6 +438,7 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
                   <div className="min-h-0 flex-1 overflow-y-auto pb-4">
                     {rail}
                     <div className="px-4">{chart}</div>
+                    {footer}
                   </div>
                 )}
               </div>
@@ -602,14 +619,14 @@ function Idle({ onPick }: { onPick: (id: string) => void }) {
     <div className="flex flex-col gap-7 px-5 pb-6 pt-6">
       <div>
         <h1 className="text-[22px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
-          Brazil’s official fire count follows Aqua. Aqua now looks {SHIFT} later than in 2012–2020.
+          Brazil’s official fire count follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </h1>
-        <p className="mt-3 text-sm text-[color:var(--bone2)]">Click any fire to see which satellite saw it.</p>
+        <p className="mt-3 text-sm text-[color:var(--bone2)]">Click any fire to see which satellite saw it, and when.</p>
       </div>
       <div>
         <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--hairline)] pb-2">
-          <h2 className="text-sm font-medium text-[color:var(--bone)]">Six studied regions</h2>
-          <span className="text-xs text-[color:var(--bone3)]">2025 vs old clock</span>
+          <h2 className="text-sm font-medium text-[color:var(--bone)]">Six places</h2>
+          <span className="text-xs text-[color:var(--bone3)]">2025 count vs what we’d expect</span>
         </div>
         <ul>
           {LIST.map(({ id, name, f }) => (
@@ -622,10 +639,10 @@ function Idle({ onPick }: { onPick: (id: string) => void }) {
                 {f.count ? (
                   <span className="text-right tabular-nums">
                     <span className={cn('block text-base font-medium', f.count.outside ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone3)]')}>{signed(f.count.gap)}%</span>
-                    <span className="block text-xs text-[color:var(--bone3)]">{f.count.outside ? `${signed(f.count.lo)} to ${signed(f.count.hi)}` : 'normal range'}</span>
+                    <span className="block text-xs text-[color:var(--bone3)]">{f.count.outside ? 'unusual' : 'not unusual'}</span>
                   </span>
                 ) : (
-                  <span className="text-sm text-[color:var(--bone3)]">Validation</span>
+                  <span className="text-sm text-[color:var(--bone3)]">Test case</span>
                 )}
                 <ArrowRight size={14} strokeWidth={1.75} aria-hidden className="shrink-0 text-[color:var(--bone3)] transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transition-none" />
               </button>
@@ -643,9 +660,16 @@ const BackButton = ({ onBack }: { onBack: () => void }) => (
   </button>
 )
 
-function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion }: { f: Facts; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onStrongest: () => void; studyHref: string; leave: Leave; motion: boolean }) {
-  const th = 'py-2.5 pr-2 text-left text-sm font-normal text-[color:var(--bone2)]'
-  const td = 'py-2.5 pl-2 text-right text-sm tabular-nums'
+type Clock = 'old' | 'new'
+
+function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion, clock, onClock, daylight }: {
+  f: Facts; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onStrongest: () => void; studyHref: string; leave: Leave; motion: boolean
+  clock: Clock; onClock: (c: Clock) => void; daylight?: ReactNode
+}) {
+  const old = clock === 'old'
+  const look = { old: f.look.old ? hm(f.look.old) : null, new: f.look.now ? hm(f.look.now) : null }
+  const count = f.count ? { old: f.count.old, new: f.count.now } : null
+  const light = { old: f.light.old, new: f.light.now }
   return (
     <div className="flex flex-col gap-6 px-5 pb-6 pt-4">
       <BackButton onBack={onBack} />
@@ -656,69 +680,84 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
       {f.count ? (
         <div>
           <p className="text-[40px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{signed(f.count.gap)}%</p>
-          <p className="mt-2 text-sm text-[color:var(--bone2)]">Aqua’s {f.count.year} count vs its old-clock benchmark</p>
-          <p className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">95%: {signed(f.count.lo)} to {signed(f.count.hi)}% · {f.count.outside ? 'outside' : 'inside'} the 2012–20 range</p>
+          <p className="mt-2 text-sm text-[color:var(--bone2)]">Aqua’s {f.count.year} count vs what we’d expect</p>
+          <p className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">How sure we are: {signed(f.count.lo)}% to {signed(f.count.hi)}% · {f.count.outside ? 'unusual' : 'not unusual'}</p>
+          <p className="mt-3 text-xs leading-5 text-[color:var(--bone2)]">{CAVEAT}</p>
         </div>
       ) : f.nov ? (
         <div>
           <p className="text-[40px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{f.nov.from.ratio.toFixed(2)} → {f.nov.to.ratio.toFixed(2)}</p>
           <p className="mt-2 text-sm text-[color:var(--bone2)]">Aqua’s November count as a share of VIIRS’s, {f.nov.from.year} → {f.nov.to.year}</p>
+          <p className="mt-1 text-xs text-[color:var(--bone3)]">Our test case. 2023–2025 have too few fires to read.</p>
         </div>
       ) : null}
       {f.drift.length > 1 && f.look.old && f.look.now ? (
         <ChartKpi
           title="When Aqua looks here"
-          description="Local solar time, by year"
+          description="Local sun time, by year"
           labels={f.drift.map((r) => String(r.year))}
           values={f.drift.map((r) => r.aqua)}
           compare={f.drift.map((r) => r.viirs)}
           valueLabel="Aqua"
-          compareLabel="VIIRS"
+          compareLabel="VIIRS, which kept its time"
           headline={hm(f.look.now)}
           from={hm(f.look.old)}
           format={fmtHM}
           delta={`+${Math.round((hm(f.look.now) - hm(f.look.old)) * 60)} min`}
-          deltaNote={`vs ${f.look.old}, 2012–20`}
+          deltaNote={`later than ${f.look.old} in 2012–20`}
           color="#C8801F"
           motion={motion}
         />
       ) : null}
-      <div>
-        <table className="w-full border-collapse">
-          <caption className="sr-only">Aqua on its old clock and as flown in {f.year}</caption>
-          <thead>
-            <tr className="border-b border-[color:var(--hairline)] text-xs">
-              <th scope="col" className="pb-2 text-left font-normal text-[color:var(--bone3)]"><span className="sr-only">Measure</span></th>
-              <th scope="col" className="pb-2 pl-2 text-right font-normal text-[color:var(--bone3)]">Old clock</th>
-              <th scope="col" className="pb-2 pl-2 text-right font-medium text-[color:var(--bone)]">As flown, {f.year}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b border-[color:var(--hairline)]">
-              <th scope="row" className={th}>Hotspots</th>
-              {f.count ? (
-                <>
-                  <td className={cn(td, 'text-[color:var(--bone2)]')}>{fmtInt(f.count.old)}*</td>
-                  <td className={cn(td, 'text-[color:var(--bone)]')}>{fmtInt(f.count.now)}</td>
-                </>
-              ) : (
-                <td colSpan={2} className={cn(td, 'text-[color:var(--bone3)]')}>Too uncertain to read</td>
-              )}
-            </tr>
-            <tr className="border-b border-[color:var(--hairline)]">
-              <th scope="row" className={th}>Daylight after alert</th>
-              <td className={cn(td, 'text-[color:var(--bone2)]')}>{dur(f.light.old)}</td>
-              <td className={cn(td, 'text-[color:var(--bone)]')}>{dur(f.light.now)}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p className="mt-2 text-xs text-[color:var(--bone3)]">{f.count ? '* Predicted from VIIRS. ' : ''}Alert 1.5 h after the pass.</p>
-      </div>
-      {f.count?.outside ? <p className="text-xs text-[color:var(--bone3)]">Gap and later clock appear together; cause not isolated.</p> : null}
+
+      {/* the switch: Aqua at its old time or its new one; the numbers roll and the map follows */}
+      <section aria-labelledby="try-h" className="flex flex-col gap-3">
+        <h3 id="try-h" className="text-sm font-medium text-[color:var(--bone)]">Try Aqua’s two times</h3>
+        <SegmentedControl<Clock>
+          label="Aqua's time"
+          value={clock}
+          onChange={onClock}
+          motion={motion}
+          segmentClassName="px-3 py-2 text-left"
+          options={[
+            { value: 'old', name: `Old time, ${f.look.old ?? 'unknown'}`, label: <span><span className="block text-sm font-medium">Old time</span><span className="block text-xs tabular-nums opacity-80">{f.look.old ?? '—'}</span></span> },
+            { value: 'new', name: `New time, ${f.look.now ?? 'unknown'}`, label: <span><span className="block text-sm font-medium">New time</span><span className="block text-xs tabular-nums opacity-80">{f.look.now ?? '—'}</span></span> },
+          ]}
+        />
+        <dl className="flex flex-col">
+          <Readout name="Aqua looks at" value={look[clock]} basis={look[old ? 'new' : 'old']} format={fmtHM} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
+          {count ? (
+            <Readout name={old ? 'Fires we’d expect Aqua to count' : 'Fires Aqua counted'} note={old ? `${f.count?.year}, estimated from real data` : `${f.count?.year}, real data`} value={count[clock]} basis={count[old ? 'new' : 'old']} format={fmtInt} formatDelta={(d) => `${d > 0 ? '+' : '−'}${fmtInt(Math.abs(d))}`} motion={motion} />
+          ) : (
+            <div className="border-t border-[color:var(--hairline)] py-2.5"><dt className="text-xs text-[color:var(--bone2)]">Fires counted</dt><dd className="mt-0.5 text-sm text-[color:var(--bone3)]">Too few to read in 2025</dd></div>
+          )}
+          <Readout name="Daylight left after the alert" note="made-up example: alert 1.5 h after the pass" value={light[clock]} basis={light[old ? 'new' : 'old']} format={(h) => dur(h)} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
+        </dl>
+        <p className="text-xs text-[color:var(--bone3)]">The map now shows {old ? 'the fires seen at about 1:30 pm by VIIRS, the satellites that kept their time.' : 'the fires Aqua saw.'}</p>
+      </section>
+
+      {daylight}
+
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={onStrongest} className={secondary}><Flame size={15} strokeWidth={1.75} aria-hidden /> Strongest fire</button>
-        <a href={studyHref} onClick={leave} className={primary}>Full study <ArrowRight size={15} strokeWidth={1.75} aria-hidden /></a>
+        <a href={studyHref} onClick={leave} className={primary}>{short(f.d.name)} in Regions <ArrowRight size={15} strokeWidth={1.75} aria-hidden /></a>
       </div>
+    </div>
+  )
+}
+
+/** One value that rolls when the clock flips (21st.dev's delta number ticker), with how far it is from the other time. */
+function Readout({ name, note, value, basis, format, formatDelta, motion }: {
+  name: string; note?: string; value: number | null; basis: number | null; format: (v: number) => string; formatDelta: (d: number) => string; motion: boolean
+}) {
+  return (
+    <div className="border-t border-[color:var(--hairline)] py-2.5">
+      <dt className="flex items-baseline justify-between gap-2 text-xs text-[color:var(--bone2)]"><span>{name}</span>{note ? <span className="text-[11px] text-[color:var(--bone3)]">{note}</span> : null}</dt>
+      <dd className="mt-0.5">
+        {value == null ? <span className="text-lg text-[color:var(--bone3)]">—</span> : (
+          <DeltaTicker value={value} basis={basis} format={format} formatDelta={formatDelta} suffix="vs the other time" label={name} motion={motion} ghost={false} valueClassName="text-[22px] font-medium leading-[1.25] tracking-[-0.01em] text-[color:var(--bone)]" />
+        )}
+      </dd>
     </div>
   )
 }
@@ -769,7 +808,7 @@ function PlacePanel({ place, headRef, onBack, onFly, onStrongest }: { place: Pla
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-xs text-[color:var(--bone3)]">Median local solar time. Detections, not an audit.</p>
+        <p className="mt-2 text-xs text-[color:var(--bone3)]">The middle of each satellite’s looks, in local sun time. Real detections; not part of the audit.</p>
       </div>
       {s.total ? <button type="button" onClick={onStrongest} className={cn(secondary, 'w-fit')}><Flame size={15} strokeWidth={1.75} aria-hidden /> Strongest fire</button> : null}
     </div>
@@ -802,14 +841,14 @@ function LookChart({ box, show, setShow, fire, near, oldClock, live, motion }: {
   return (
     <ChartLine
       title="When each satellite saw fires"
-      description={`${box ? 'Fires in view' : 'All fires on the map'} · ${WHEN} · local solar time`}
+      description={`Real NASA data · ${box ? 'fires in view' : 'all fires on the map'} · ${WHEN} · local sun time`}
       data={data}
       series={series}
       domain={[BIN_FROM, BIN_TO]}
       ticks={TICKS}
       hidden={hidden}
       onToggle={(g) => setShow({ ...show, [g]: !show[g as SatGroup] })}
-      bands={oldClock ? [{ from: oldClock.from, to: oldClock.to, label: 'Aqua, 2012–20', arrowTo: show.aqua && sum.aqua.n ? sum.aqua.lst : null }] : []}
+      bands={oldClock ? [{ from: oldClock.from, to: oldClock.to, label: 'Aqua’s old time', arrowTo: show.aqua && sum.aqua.n ? sum.aqua.lst : null }] : []}
       markers={near.map((j) => ({ key: String(j), series: groupOf(SAT[j]), x: lstOf(j), strong: j === fire }))}
       tooltip={(k) => ({
         title: `${fmtHM(BIN_FROM + k * BIN)}–${fmtHM(BIN_FROM + (k + 1) * BIN)}`,

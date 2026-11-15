@@ -19,7 +19,7 @@ export type SiContext = { region: string | null; place: Place | null; view: Box 
 const SRC = {
   firms: { id: 'firms', title: 'NASA FIRMS active fires, past day: MODIS (Terra, Aqua), VIIRS (NOAA-20, NOAA-21)', domain: 'firms.modaps.eosdis.nasa.gov', url: 'https://firms.modaps.eosdis.nasa.gov' },
   drift: (id: string) => ({ id: `drift-${id}`, title: `Look times by year, ${regionData(id).name}`, domain: `data/out/drift/${id}.json` }),
-  audit: (id: string) => ({ id: `audit-${id}`, title: `Audit against the old clock, ${regionData(id).name}`, domain: `data/out/audit/${id}.json` }),
+  audit: (id: string) => ({ id: `audit-${id}`, title: `Aqua’s count vs what we’d expect, ${regionData(id).name}`, domain: `data/out/audit/${id}.json` }),
   daylight: (id: string) => ({ id: `daylight-${id}`, title: `Daylight after the alert, ${regionData(id).name}`, domain: `data/out/daylight/${id}.json` }),
   method: { id: 'method', title: 'How the audit reads a fire count', domain: 'Anchor method notes' },
 } as const
@@ -41,7 +41,7 @@ function orientation(): SiAnswer {
     sentences: [
       { text: `The map shows the daytime fires NASA’s satellites detected from ${dayText(WINDOW.start)} to ${dayText(WINDOW.end)}, ${fmtInt(TOTALS.reduce((a, b) => a + b, 0))} in all, coloured by satellite.`, cite: ['firms'] },
       { text: `Each satellite looks at its own time of day. Today: Terra about ${hours(s.terra.lst)}, VIIRS about ${hours(s.viirs.lst)}, Aqua about ${hours(s.aqua.lst)}, local solar time.`, cite: ['firms'] },
-      { text: 'Brazil’s official fire count follows Aqua alone. The team checks what Aqua’s later clock does to that count in six regions, framed in white.', cite: ['method'] },
+      { text: 'Brazil’s official fire count follows Aqua alone. Aqua now looks later in the day, so we compare its count with what we’d expect at its old time, in six places framed in white.', cite: ['method'] },
       { text: 'Click any fire to see which satellites saw it.' },
     ],
     sources: [SRC.firms, SRC.method],
@@ -94,9 +94,9 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
   if (!region) {
     return {
       sentences: [
-        { text: 'The fix reads Aqua’s count against its old clock, the one it kept from 2012 to 2020, which the VIIRS satellites still keep.', cite: ['method'] },
-        { text: 'VIIRS’s count becomes a benchmark of what Aqua would have counted on that clock; the gap between the two is the audit.', cite: ['method'] },
-        { text: 'Pick a studied region to see both.' },
+        { text: 'Aqua now looks later in the day. The VIIRS satellites kept their time, so they tell us what Aqua would have counted at its old time: what we’d expect.', cite: ['method'] },
+        { text: 'We compare what Aqua counted with what we’d expect. A gap bigger than any from 2012 to 2020 is unusual.', cite: ['method'] },
+        { text: 'Pick a place to see both.' },
       ],
       sources: [SRC.method],
       actions: REGIONS.filter((r) => !isValidation(r.id)).slice(0, 3).map((r) => ({ kind: 'fly' as const, label: short(r.name), place: searchPlaces(r.name, 1)[0] })).filter((a) => a.place),
@@ -104,12 +104,15 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
   }
   const d = regionData(region)
   const y = d.latestOk
-  const out: SiSentence[] = [{ text: `${verdictHeadline(d)}${y && y.lo != null && y.hi != null && !isValidation(region) ? ` (95% interval ${Math.round(y.lo)} to ${Math.round(y.hi)}%)` : ''}.`, cite: [`audit-${region}`] }]
-  if (y && y.fixed != null && y.verdict !== 'na') {
-    out.push({ text: `${y.year}, days both satellites returned data: Aqua counted ${fmtInt(y.aqua)} daytime hotspots; the old-clock benchmark from VIIRS is ${fmtInt(y.fixed)}.`, cite: [`audit-${region}`] })
-    if (y.verdict === 'outside') out.push({ text: 'The gap and the later clock appear together; this doesn’t measure how much of the gap the clock caused.' })
+  const out: SiSentence[] = []
+  if (y && y.fixed != null && y.verdict !== 'na' && y.gap != null && !isValidation(region)) {
+    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; we’d expect ${fmtInt(y.fixed)} at its old time. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (how sure we are: ${Math.round(y.lo)}% to ${Math.round(y.hi)}%)` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
+    out.push({ text: 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.' })
   } else if (isValidation(region)) {
-    out.push({ text: 'Punjab and Haryana are the team’s validation case: the yearly ratio is too uncertain to read.', cite: [`audit-${region}`] })
+    out.push({ text: `${verdictHeadline(d)}.`, cite: [`audit-${region}`] })
+    out.push({ text: 'Punjab and Haryana are our test case; 2023–2025 have too few fires to read.', cite: [`audit-${region}`] })
+  } else {
+    out.push({ text: `${verdictHeadline(d)}.`, cite: [`audit-${region}`] })
   }
   return { sentences: out, sources: [SRC.audit(region)], actions: [{ kind: 'filter', label: 'Show only Aqua', group: 'aqua' }], followUps: ['How much daylight is left?', 'When does Aqua pass here?'] }
 }
@@ -125,7 +128,7 @@ function daylightAnswer(ctx: SiContext, q: string): SiAnswer {
   const dur = (v: number | null | undefined) => (v == null ? '—' : `${Math.floor(v)} h ${String(Math.round((v % 1) * 60)).padStart(2, '0')} min`)
   return {
     sentences: [
-      { text: `An alert 1.5 hours after Aqua’s pass left ${d.phrase.the} ${dur(now)} of daylight in 2025, against ${dur(fixed)} on the old clock${lvl2 ? ' (medians over the year’s fires)' : ' (fire season’s middle day)'}.`, cite: [`daylight-${region}`] },
+      { text: `Example: if the alert comes 1.5 hours after Aqua’s pass, ${d.phrase.the} had ${dur(now)} of daylight left in 2025, against ${dur(fixed)} at Aqua’s old time${lvl2 ? ' (middle value over the year’s fires)' : ' (middle day of the fire season)'}.`, cite: [`daylight-${region}`] },
       ...(h?.aqua_look_change_min != null ? [{ text: `The pass moved ${Math.round(h.aqua_look_change_min)} minutes later.`, cite: [`daylight-${region}`] }] : []),
     ],
     sources: [SRC.daylight(region)],
@@ -151,12 +154,12 @@ function regionsAnswer(): SiAnswer {
   const rows = REGIONS.map((r) => {
     const d = regionData(r.id)
     const y = d.latestOk
-    if (isValidation(r.id) || !y || y.gap == null) return `${short(r.name)}: validation case`
-    return `${short(r.name)}: ${y.gap >= 0 ? '+' : '−'}${Math.abs(Math.round(y.gap))}% in ${y.year}, ${y.verdict === 'outside' ? 'outside' : 'within'} the 2012–2020 range`
+    if (isValidation(r.id) || !y || y.gap == null) return `${short(r.name)}: our test case`
+    return `${short(r.name)}: ${y.gap >= 0 ? '+' : '−'}${Math.abs(Math.round(y.gap))}% in ${y.year}, ${y.verdict === 'outside' ? 'unusual' : 'not unusual'}`
   })
   return {
     sentences: [
-      { text: 'Aqua’s count against its old-clock benchmark:' },
+      { text: 'Aqua’s 2025 count against what we’d expect:' },
       ...rows.map((t, k) => ({ text: `${t}.`, cite: [`audit-${REGIONS[k].id}`] })),
     ],
     sources: REGIONS.map((r) => SRC.audit(r.id)),
@@ -171,7 +174,7 @@ function glossary(q: string): SiAnswer | null {
   const { first, last } = AMAZON
   if (s === 'aqua') return { sentences: [{ text: `Aqua carries a MODIS sensor and looks in the afternoon. Over the Amazon it looked at ${first.aqua_lst} in ${first.year} and ${last.aqua_lst} in ${last.year}.`, cite: ['drift-br-amazon'] }], sources: [SRC.drift('br-amazon')], actions: [{ kind: 'filter', label: 'Show only Aqua', group: 'aqua' }] }
   if (s === 'terra') return { sentences: [{ text: `Terra carries the other MODIS sensor and looks in the morning. Over the Amazon it looked at ${first.terra_lst} in ${first.year} and ${last.terra_lst} in ${last.year}.`, cite: ['drift-br-amazon'] }], sources: [SRC.drift('br-amazon')], actions: [{ kind: 'filter', label: 'Show only Terra', group: 'terra' }] }
-  if (s === 'viirs') return { sentences: [{ text: `VIIRS flies on S-NPP, NOAA-20 and NOAA-21 and sees smaller fires than MODIS. Over the Amazon it stayed near ${last.viirs_lst}, so the team builds the old-clock benchmark from it.`, cite: ['drift-br-amazon'] }], sources: [SRC.drift('br-amazon')], actions: [{ kind: 'filter', label: 'Show only VIIRS', group: 'viirs' }] }
+  if (s === 'viirs') return { sentences: [{ text: `VIIRS flies on S-NPP, NOAA-20 and NOAA-21 and sees smaller fires than MODIS. Over the Amazon it stayed near ${last.viirs_lst}, so it tells us what Aqua would have counted at its old time.`, cite: ['drift-br-amazon'] }], sources: [SRC.drift('br-amazon')], actions: [{ kind: 'filter', label: 'Show only VIIRS', group: 'viirs' }] }
   return null
 }
 
