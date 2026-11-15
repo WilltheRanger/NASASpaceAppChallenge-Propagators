@@ -368,6 +368,10 @@ export type Daylight = NonNullable<ReturnType<typeof daylight>>
  *  California), its `quote` is "level2a" and the page quotes the median over every real Aqua detection instead. */
 export type DaylightHeadline = {
   quote: 'level1' | 'level2a'
+  aqua_D15_2012_2020_mean?: number
+  aqua_D15_2025?: number
+  aqua_daylight_change_min?: number
+  aqua_look_change_min?: number
   level2a_aqua_D15_2012_2020_mean?: number
   level2a_aqua_D15_2025?: number
   level2a_aqua_daylight_change_min?: number
@@ -375,6 +379,21 @@ export type DaylightHeadline = {
 const daylightFiles = import.meta.glob<DaylightHeadline>('../../../data/out/daylight/*.json', { eager: true, import: 'headline' })
 export const daylightHeadline = (id: string): DaylightHeadline | null =>
   Object.entries(daylightFiles).find(([p]) => p.endsWith(`/${id}.json`))?.[1] ?? null
+
+/** One year of the daylight analysis: the shares of real Aqua detections whose alert leaves under 2 hours of light or
+ *  arrives after dark (Level 2a), and the same detections on Aqua's 2012-2020 clock (`aqua_cf_*`, Level 2b). Share maps
+ *  are keyed by the delay in hours: "0", "1.5", "3". */
+export type DaylightYear = {
+  year: number
+  aqua_share_after_dark: Record<string, number>
+  aqua_share_under_2h: Record<string, number>
+  aqua_cf_share_after_dark: Record<string, number>
+  aqua_cf_share_under_2h: Record<string, number>
+  n_aqua?: number
+}
+const daylightYearFiles = import.meta.glob<DaylightYear[]>('../../../data/out/daylight/*.json', { eager: true, import: 'years' })
+export const daylightYears = (id: string): DaylightYear[] =>
+  Object.entries(daylightYearFiles).find(([p]) => p.endsWith(`/${id}.json`))?.[1] ?? []
 
 /** One fire day for the Amazon: 2 September 2024 in Pará, from the team's one-day file. Only the real parts are read
  *  (the day, its box, pass times and the fires each pass saw), so nothing else in that file reaches the page. Sunset

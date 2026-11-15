@@ -1,4 +1,4 @@
-// Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request), now one region page.
+// Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request), now one region page and the Simulator.
 // The region's name as a statement over its drone footage at full bleed, with the six regions as tabs under it; the
 // verdict; then the Earth seen from the Sun turning under the three orbits, the three passes of one day, the daylight an
 // alert leaves, the two clocks, the clock effect by year against the placebo range, the calendar, the checks, detection,
@@ -10,7 +10,7 @@
 // behind a footer switch seeded from the reader's reduced-motion setting.
 // Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag. Region photographs and drone
 // footage are credited in the footer. Pass imagery: NASA Worldview / GIBS, public domain.
-import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
+import { Fragment, Suspense, createContext, lazy, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { ArrowDown, ArrowRight, ArrowUpRight, Menu } from 'lucide-react'
@@ -27,6 +27,9 @@ import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/seri
 import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
 import { AnchorLogo } from '@/components/brand/anchor-logo'
 import { photoFor } from '@/r2/photos'
+
+/** The Simulator (globe, map engine and its imagery) loads only when its page opens. */
+const Simulator = lazy(() => import('./Simulator'))
 
 /* ---------- Tokens: black ground, bone text; the photographs carry the colour, and each satellite has one on the charts ---------- */
 
@@ -173,19 +176,21 @@ const defaultYear = (d: RegionData) => d.latestOk?.year ?? d.years[d.years.lengt
 /* ---------- Pages: the routing, in one place ---------- */
 
 type Nav = 'dev' | 'artifact'
-/** The site's pages. The region page holds every section; the Simulator and a new landing page will join it here. */
-type Page = 'regions'
+/** The site's pages: the region page, which holds every section, and the Simulator (Simulator.tsx). A new landing page
+ *  will join them here. */
+type Page = 'regions' | 'sim'
 /** Page names as the URL (?page=…) or the comment artifact's data-page gives them. "app" was the audit page's address,
  *  so old links open the region page; no name, or a name this build doesn't know, opens it too. */
-const PAGE_NAMES: Record<string, Page> = { regions: 'regions', app: 'regions' }
+const PAGE_NAMES: Record<string, Page> = { regions: 'regions', app: 'regions', sim: 'sim' }
 const pageNamed = (name?: string | null): Page => (name && Object.hasOwn(PAGE_NAMES, name) ? PAGE_NAMES[name] : 'regions')
-type Links = { regions: (r: string) => string }
+type Links = { regions: (r: string) => string; sim: () => string }
 type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
 
 /** Where each page lives: a query string on the site (one index.html); its own file in the comment artifact, the region
- *  in the hash. The region tiles link here, so a tile opened in a new tab shows its region. */
+ *  in the hash. The region tiles link here too, so a tile opened in a new tab shows its region. */
 const linksFor = (nav: Nav): Links => ({
   regions: (r) => (nav === 'artifact' ? `index.html#region=${r}` : `?region=${r}`),
+  sim: () => (nav === 'artifact' ? 'sim.html' : '?page=sim'),
 })
 
 function initialRegion() {
@@ -270,8 +275,8 @@ function Rise({ children, delay = 0 }: { children: ReactNode; delay?: number }) 
 }
 
 /** Their page change, halved for static pages: this page fades and grows to 1.02 about the middle of the screen, then
- *  the link is followed; the next page arrives from 0.98 (in FieldFilm). Plain navigation without motion. Kept for links
- *  between pages, which the region page alone doesn't have. */
+ *  the link is followed; the next page arrives from 0.98 (in FieldFilm). Plain navigation without motion. Used by the
+ *  links between the region page and the Simulator. */
 function useLeave(motion: boolean): Leave {
   return (e) => {
     if (!motion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
@@ -469,6 +474,8 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
     try { window.localStorage.setItem(MOTION_KEY, on ? 'on' : 'off') } catch { /* storage can be blocked */ }
   }
   const [region, setRegion] = useState(initialRegion)
+  const links = linksFor(nav)
+  const leave = useLeave(motion)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const motionRef = useRef(motion)
   motionRef.current = motion
@@ -517,8 +524,14 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
         className="relative min-h-screen overflow-x-clip bg-[color:var(--ground)] font-[family-name:var(--f-ui)] text-sm text-[color:var(--bone)] antialiased"
       >
         {/* the page switch */}
-        {which === 'regions' ? <RegionsPage region={region} onRegion={(id) => { setRegion(id); writeRegion(nav, id) }} nav={nav} /> : null}
-        <Footer />
+        {which === 'sim' ? (
+          <Suspense fallback={<div className="h-[100svh] bg-[#03060A]" />}>
+            <Simulator home={links.regions(region)} regionsHref={links.regions} leave={leave} motion={motion} setMotion={setMotion} nav={nav} />
+          </Suspense>
+        ) : (
+          <RegionsPage region={region} onRegion={(id) => { setRegion(id); writeRegion(nav, id) }} nav={nav} links={links} leave={leave} />
+        )}
+        {which === 'sim' ? null : <Footer />}
       </div>
     </MotionContext.Provider>
   )
@@ -527,7 +540,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
 /** The region page: the region's name over its footage and the verdict, every section of the audit in order, then how
  *  Anchor reads a count, the six region tiles and the tagline. The region tabs, the top bar's select and the tiles all
  *  pick the region; the year picked in one figure is shared by the others. */
-function RegionsPage({ region, onRegion, nav }: { region: string; onRegion: (id: string) => void; nav: Nav }) {
+function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; onRegion: (id: string) => void; nav: Nav; links: Links; leave: Leave }) {
   const d = useMemo(() => regionData(region), [region])
   const [year, setYear] = useState(() => defaultYear(d))
   const [mode, setModeState] = useState<CalendarMode>(() => (readParam('cal') === 'count' ? 'count' : 'anomaly'))
@@ -541,10 +554,9 @@ function RegionsPage({ region, onRegion, nav }: { region: string; onRegion: (id:
   }
   const small = useMedia('(max-width: 639px)')
   const pick = (id: string) => { onRegion(id); setYear(defaultYear(regionData(id))) }
-  const links = linksFor(nav)
   return (
     <>
-      <TopBar region={region} onRegion={pick} />
+      <TopBar region={region} onRegion={pick} sim={links.sim()} leave={leave} />
       <main>
         <RegionHero d={d} onPick={pick} />
         <Orbits d={d} year={year} onYear={setYear} />
@@ -644,6 +656,7 @@ function Footer() {
             })}
             <li>Three passes of one day: NASA Worldview / GIBS, public domain</li>
             <li>One fire day in Pará, 2 Sep 2024: NASA Worldview / GIBS, VIIRS true colour</li>
+            <li>Simulator maps, Aug to Nov 2025: NASA Worldview / GIBS, VIIRS true colour and fire detections</li>
           </ul>
         </div>
       </div>
@@ -660,6 +673,9 @@ const CREDITS: { name: string; links: { text: string; href: string }[] }[] = [
   { name: 'USFS fire occurrence database (FPA-FOD), 7th ed., Short 2026', links: [{ text: 'doi:10.2737/RDS-2013-0009.7', href: 'https://doi.org/10.2737/RDS-2013-0009.7' }] },
   { name: 'Punjab burn timing: Jethva 2026, Remote Sensing', links: [{ text: 'doi:10.3390/rs18101506', href: JETHVA }] },
   { name: 'Satellite imagery: NASA Worldview / GIBS', links: [{ text: 'worldview.earthdata.nasa.gov', href: 'https://worldview.earthdata.nasa.gov' }] },
+  { name: 'Land outlines: Natural Earth, public domain', links: [{ text: 'naturalearthdata.com', href: 'https://www.naturalearthdata.com' }] },
+  { name: 'Simulator country list: mledoze/countries, ODbL', links: [{ text: 'github.com/mledoze/countries', href: 'https://github.com/mledoze/countries' }] },
+  { name: 'Simulator place search: Nominatim, © OpenStreetMap contributors, ODbL', links: [{ text: 'openstreetmap.org/copyright', href: 'https://www.openstreetmap.org/copyright' }] },
 ]
 /** The public repository, when the build is told it (the deploy sets it); no link otherwise. */
 const REPO_URL = (import.meta.env.VITE_REPO_URL as string | undefined) || ''
@@ -713,7 +729,7 @@ const secondaryButton = cn(
 )
 
 /** Clear over the region's name at first; solid once the page moves, so the sections scroll under it. */
-function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) => void }) {
+function TopBar({ region, onRegion, sim, leave }: { region: string; onRegion: (id: string) => void; sim: string; leave: Leave }) {
   const [solid, setSolid] = useState(false)
   useEffect(() => {
     const check = (e?: Event) => {
@@ -753,6 +769,7 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
         </nav>
         <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:col-span-2 xl:min-w-max xl:justify-self-end">
           <MockTag show={regionData(region).mock} className="hidden bg-[color:var(--plate)] sm:inline-block" />
+          <a href={sim} onClick={leave} className={cn(underline, 'hidden whitespace-nowrap text-sm text-[color:var(--bone)] sm:inline', focusRing)}>Simulator</a>
           <RegionSelect value={region} onChange={onRegion} classes={selectClasses} />
           <div className="xl:hidden"><SectionsIndex /></div>
         </div>
