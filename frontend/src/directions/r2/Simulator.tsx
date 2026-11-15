@@ -348,7 +348,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
             <nav aria-label="Pages" className="flex items-center gap-3 sm:gap-5">
               <a href={overviewHref ?? home} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Overview</a>
               <a href={regionsHref(region ?? 'br-amazon')} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Regions</a>
-              <span aria-current="page" className="border-b border-[color:var(--bone)] py-2 text-[color:var(--bone)]">Simulator</span>
+              <span aria-current="page" className="border-b border-[color:var(--bone)] py-2 text-[color:var(--bone)]">Explore</span>
               <a href={methodHref ?? (nav === 'artifact' ? 'method.html' : '?page=method')} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Method</a>
             </nav>
             <ElasticSwitch checked={motion} onCheckedChange={setMotion} label="Motion" />
@@ -357,7 +357,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
       </header>
 
       <main className="fixed inset-x-0 bottom-0 top-14 flex bg-[#03060A]">
-        {place ? <h1 className="sr-only">Simulator: {place.name}</h1> : null}
+        {place ? <h1 className="sr-only">Explore: {place.name}</h1> : null}
         {wide ? (
           <aside aria-label="Place" className="relative z-20 flex w-[340px] shrink-0 flex-col border-r border-[color:var(--hairline)] bg-[color:var(--ground)] xl:w-[352px]">
             <div className="border-b border-[color:var(--hairline)] p-3">{search}</div>

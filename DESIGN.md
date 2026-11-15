@@ -164,7 +164,7 @@ Anchor is a dark, quiet field document about time of day. The ground is near-bla
 
 Density is low at the top of each page and rises toward the evidence: a full-height framed photograph or a region's name over its footage first, then a finding stated in one sentence with its caveat beside it, then shared-scale rows, charts and tables. Motion is slow on arrival and quick on response, and the reader can turn all of it off from the footer.
 
-The site covers four pages, Overview, Regions, Simulator and Method, built from one shared set of tokens and parts. Every number on screen comes from the team's data files, and mock data is always labelled.
+The site covers four pages, Overview, Regions, Explore and Method, built from one shared set of tokens and parts. Every number on screen comes from the team's data files, and mock data is always labelled.
 
 **Key Characteristics:**
 - Black ground, bone text, hairline rules; the photographs carry the colour.
@@ -224,7 +224,7 @@ A near-monochrome dark palette in which colour is information, never decoration.
 - **Body large** (400, 18px): lead lines beside headings, place names in rows, the caveat on wide screens; held to about 30ch beside a heading.
 - **Body** (400, 14px): the working size for links, buttons, nav, chips and paragraphs; paragraphs are held to the 36rem measure.
 - **Label** (400, 12px, tabular figures): axis ticks, column heads, captions, footnotes, plates, credits.
-- **Simulator instrument steps:** the Simulator's docked panels run one step denser. **Readout** (500, 22px, 1.25, -0.01em) carries its page title and the big figures in each panel; **Label small** (400, 11px, tabular figures) carries map tags, legends, pass times and panel fine print; **Nav compact** (400, 13px) is its bar's links on phones, where the Motion switch shares the row.
+- **Explore instrument steps:** the Explore page's docked panels run one step denser. **Readout** (500, 22px, 1.25, -0.01em) carries its page title and the big figures in each panel; **Label small** (400, 11px, tabular figures) carries map tags, legends, pass times and panel fine print; **Nav compact** (400, 13px) is its bar's links on phones, where the Motion switch shares the row.
 
 ### Named Rules
 **The Tabular Time Rule.** Every clock time, minute count and percentage is set in tabular figures so values align and do not jitter while they animate.
@@ -248,13 +248,13 @@ Breakpoints are Tailwind's defaults (640, 768, 1024px). Everything works at 390p
 
 ## Elevation & Depth
 
-The system is flat. Depth comes from tonal steps (ground, surface, raised), from hairlines, and from photographs under graded dark scrims. Shadows exist in exactly four places: menus that open over the page, the sliding thumb of a segmented control, the motion switch's knob, and the region tags pinned to the Simulator's globe.
+The system is flat. Depth comes from tonal steps (ground, surface, raised), from hairlines, and from photographs under graded dark scrims. Shadows exist in exactly four places: menus that open over the page, the sliding thumb of a segmented control, the motion switch's knob, and the region tags pinned to the Explore page's globe.
 
 ### Shadow Vocabulary
 - **Menu** (`box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5)`): select menus and other popovers.
 - **Thumb** (`box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)`): the moving thumb in a segmented control.
 - **Knob** (`box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35)`): the motion switch's knob.
-- **Map tag** (`box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4)`): the region tags on the Simulator's globe (dark plates with a bone edge and 3px corners), so they lift off the satellite picture.
+- **Map tag** (`box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4)`): the region tags on the Explore page's globe (dark plates with a bone edge and 3px corners), so they lift off the satellite picture.
 
 ### Named Rules
 **The Scrim Not Shadow Rule.** Words placed on a photograph sit on a ground-tinted gradient scrim (from the bottom, or from the left on wide screens) or on a dark plate, never on a drop shadow or text shadow.

@@ -317,7 +317,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
   const validation = isValidation(d.id)
   const sim = (
     <a href={links.sim(d.id)} onClick={leave} className={primaryButton}>
-      Open in the Simulator <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
+      Open in Explore <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
     </a>
   )
   const lookLine = look ? (

@@ -15,7 +15,7 @@
  * read only where the year's status is ok. The satellite pictures are NASA Worldview / GIBS (credited in the footer).
  */
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
-import { ArrowDown, ArrowRight, ArrowUpRight } from 'lucide-react'
+import { ArrowDown, ArrowUpRight } from 'lucide-react'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { StickyScroll, type StickyStep } from '@/components/ui/sticky-scroll-reveal'
@@ -23,7 +23,7 @@ import { LOOK_RANGE, REGIONS, fmtRange, hm, lookChange, phrase, pct, regionData 
 import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, IMG, JETHVA, Reveal, Rule, SatMark, SiteBar, ease, focusRing, glideTo, numWord, primaryButton, shell, textLink, underline, useInView,
+  CAVEAT, FEATURED, IMG, JETHVA, Reveal, Rule, SatMark, SiteBar, focusRing, glideTo, numWord, primaryButton, shell, textLink, underline, useInView,
   useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -97,8 +97,9 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
       <SiteBar page="overview" links={links} leave={leave} />
       <main>
         <Park onFound={toFinding} />
+        <Later />
         <OneDay />
-        <Finding links={links} leave={leave} />
+        <Finding />
         <Doors links={links} leave={leave} />
       </main>
     </>
@@ -109,13 +110,12 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
 
 function Park({ onFound }: { onFound: (e: ReactMouseEvent<HTMLAnchorElement>) => void }) {
   const motion = useMotion()
-  // 0: the first count; 1: the second line arrives; 2: the clock has moved to 3:00
-  const [stage, setStage] = useState(motion.on ? 0 : 2)
+  // the picture settles from a slight zoom once the page has drawn
+  const [settled, setSettled] = useState(!motion.on)
   useEffect(() => {
-    if (!motion.on) { setStage(2); return }
-    const a = window.setTimeout(() => setStage(1), 650)
-    const b = window.setTimeout(() => setStage(2), 1500)
-    return () => { window.clearTimeout(a); window.clearTimeout(b) }
+    if (!motion.on) { setSettled(true); return }
+    const t = window.setTimeout(() => setSettled(true), 300)
+    return () => window.clearTimeout(t)
   }, [motion.on])
   const p = OVERVIEW_PHOTO
   return (
@@ -136,7 +136,7 @@ function Park({ onFound }: { onFound: (e: ReactMouseEvent<HTMLAnchorElement>) =>
               className={cn(
                 'absolute inset-0 size-full object-cover object-[var(--focus-phone)] sm:object-[var(--focus)]',
                 motion.on && `transition-transform duration-[2600ms] ${expo}`,
-                motion.on && stage === 0 ? 'scale-[1.06]' : 'scale-100',
+                motion.on && !settled ? 'scale-[1.06]' : 'scale-100',
               )}
             />
             {/* phones: the band melts into the frame below it */}
@@ -149,18 +149,7 @@ function Park({ onFound }: { onFound: (e: ReactMouseEvent<HTMLAnchorElement>) =>
             <h1 id="park-h" className="max-w-[15ch] text-balance text-[clamp(38px,5.6vw,88px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]">
               Imagine counting people in a park every day at <span className="tabular-nums">1:30</span>.
             </h1>
-            <p
-              className={cn(
-                'mt-6 max-w-[30ch] text-balance text-[clamp(20px,2vw,30px)] leading-[1.2] tracking-[-0.01em] text-[color:var(--bone2)]',
-                motion.on && `transition-[opacity,transform] duration-1000 ${expo}`,
-                stage >= 1 ? 'translate-x-0 opacity-100' : '-translate-x-6 opacity-0',
-              )}
-            >
-              Years later you count at <span className="tabular-nums text-[color:var(--bone)]">3:00</span> and find more people. Did more people come, or did you just
-              show up at a busier time?
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-4">
-              <ParkClock moved={stage >= 2} />
+            <div className="mt-8">
               <a href="#finding" onClick={onFound} className={primaryButton}>
                 See what we found <ArrowDown size={16} strokeWidth={1.5} aria-hidden />
               </a>
@@ -178,15 +167,46 @@ function Park({ onFound }: { onFound: (e: ReactMouseEvent<HTMLAnchorElement>) =>
   )
 }
 
+/** Years later: the second count, on its own below the photograph, with the clock moving from 1:30 to 3:00 the first
+ *  time it comes into view. */
+function Later() {
+  const motion = useMotion()
+  const [ref, seen] = useInView<HTMLDivElement>(motion.on, 0.6)
+  const [moved, setMoved] = useState(!motion.on)
+  useEffect(() => {
+    if (!seen) return
+    if (!motion.on) { setMoved(true); return }
+    const t = window.setTimeout(() => setMoved(true), 450)
+    return () => window.clearTimeout(t)
+  }, [seen, motion.on])
+  return (
+    <section aria-labelledby="later-h">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 pb-16 pt-14 lg:grid-cols-12 lg:gap-x-6 lg:pb-24 lg:pt-20')}>
+        <div className="lg:col-span-8">
+          <h2 id="later-h" className="max-w-[20ch] text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em]">
+            Years later you count at <span className="tabular-nums">3:00</span> and find more people.
+          </h2>
+          <p className="mt-5 max-w-[28ch] text-balance text-[clamp(22px,2.2vw,32px)] leading-[1.2] tracking-[-0.01em] text-[color:var(--bone2)]">
+            Did more people come, or did you just show up at a busier time?
+          </p>
+        </div>
+        <div ref={ref} className="lg:col-span-4 lg:self-end">
+          <ParkClock moved={moved} big />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /** The park's two counts on one stretch of afternoon: a ring at 1:30, the dot at 3:00. Bone, not amber: this is the
  *  park, not a satellite. The same ring-and-dot reads Aqua's move further down. */
-function ParkClock({ moved }: { moved: boolean }) {
+function ParkClock({ moved, big = false }: { moved: boolean; big?: boolean }) {
   const motion = useMotion()
   const travel = motion.on ? `transition-[left,width] duration-1000 ${expo}` : ''
   return (
-    <span role="img" aria-label="The count moved from 1:30 to 3:00." className="flex items-center gap-4 text-sm tabular-nums text-[color:var(--bone2)]">
+    <span role="img" aria-label="The count moved from 1:30 to 3:00." className={cn('flex items-center gap-4 tabular-nums text-[color:var(--bone2)]', big ? 'text-lg' : 'text-sm')}>
       <span>1:30</span>
-      <span aria-hidden className="relative block h-3 w-28 sm:w-40">
+      <span aria-hidden className={cn('relative block h-3', big ? 'w-full max-w-64 flex-1' : 'w-28 sm:w-40')}>
         <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[color:var(--bone-30)]" />
         <span className={cn('absolute left-0 top-1/2 h-0.5 -translate-y-1/2 bg-[color:var(--bone)]', travel)} style={{ width: moved ? '100%' : '0%' }} />
         <span className="absolute left-0 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[color:var(--bone)] bg-[color:var(--ground)]" />
@@ -370,7 +390,7 @@ function DayLine({ step }: { step: number }) {
 
 /* ---------- The finding, the caveat beside it, and the six places on shared scales ---------- */
 
-function Finding({ links, leave }: { links: Links; leave: Leave }) {
+function Finding() {
   return (
     <section id="finding" aria-labelledby="finding-h" className="scroll-mt-14">
       {/* the page's one change of ground: the finding on bone, the way their key statements sit on a lighter band */}
@@ -385,15 +405,16 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
         </div>
       </div>
       <div className={cn(shell, 'pb-16 lg:pb-24')}>
-        <Places links={links} leave={leave} />
+        <Places />
       </div>
     </section>
   )
 }
 
-const COLS = 'md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.85fr)_minmax(0,1.7fr)_minmax(0,0.7fr)_20px]'
+const COLS = 'md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.85fr)_minmax(0,1.7fr)_minmax(0,0.7fr)]'
 
-function Places({ links, leave }: { links: Links; leave: Leave }) {
+/** The six places as a table to read, not a menu: the way into each place's page is the Regions door at the end. */
+function Places() {
   const th = 'text-xs text-[color:var(--bone3)]'
   return (
     <div className="mt-14">
@@ -406,11 +427,10 @@ function Places({ links, leave }: { links: Links; leave: Leave }) {
           <StripAxis />
         </span>
         <span className={th}>Unusual?</span>
-        <span />
       </div>
       <ol className="mt-3 border-t border-[color:var(--hairline)]">
         {ROWS.map((r, i) => (
-          <PlaceRow key={r.id} r={r} i={i} href={links.regions(r.id)} leave={leave} />
+          <PlaceRow key={r.id} r={r} i={i} />
         ))}
       </ol>
       <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
@@ -423,13 +443,11 @@ function Places({ links, leave }: { links: Links; leave: Leave }) {
   )
 }
 
-function PlaceRow({ r, i, href, leave }: { r: Row; i: number; href: string; leave: Leave }) {
+function PlaceRow({ r, i }: { r: Row; i: number }) {
   const motion = useMotion()
   const photo = photoFor(r.id)
-  const later = r.look ? `${r.look.minutes} minutes later (${r.look.old} to ${r.look.now})` : 'not in the data'
-  const count = r.read ? `${pct(r.read.gap)} (how sure we are: ${fmtRange(r.read.lo, r.read.hi)})` : `too few fires to read in ${YEAR}`
-  const verdict = r.read ? (r.read.unusual ? 'unusual' : 'not unusual') : 'our test case'
-  const label = 'mb-1.5 block text-xs text-[color:var(--bone3)] md:hidden'
+  // the column names show above each value on phones; on wide screens the header row shows them and these stay for screen readers
+  const label = 'mb-1.5 block text-xs text-[color:var(--bone3)] md:sr-only'
   const chip = r.read ? (
     <span className={cn('inline-block rounded px-2 py-0.5 text-sm', r.read.unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone2)]')}>
       {r.read.unusual ? 'Unusual' : 'Not unusual'}
@@ -439,17 +457,7 @@ function PlaceRow({ r, i, href, leave }: { r: Row; i: number; href: string; leav
   )
   return (
     <Reveal as="li" delay={i * 80}>
-      <a
-        href={href}
-        onClick={leave}
-        aria-label={`${r.name}: Aqua looks ${later}; ${YEAR} count vs what we’d expect ${count}; ${verdict}. Open its page.`}
-        className={cn(
-          'group grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 border-b border-[color:var(--hairline)] py-5 hover:bg-[color:var(--surface)] md:gap-x-6 md:py-4',
-          COLS,
-          ease,
-          focusRing,
-        )}
-      >
+      <div className={cn('grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
         <span className="flex min-w-0 items-center gap-4">
           <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:h-16 md:w-24">
             <img
@@ -459,7 +467,7 @@ function PlaceRow({ r, i, href, leave }: { r: Row; i: number; href: string; leav
               height={480}
               loading="lazy"
               style={{ objectPosition: photo.focus }}
-              className="size-full object-cover transition-transform duration-500 ease-[var(--ease)] group-hover:scale-105 motion-reduce:transition-none"
+              className="size-full object-cover"
             />
           </span>
           <span className="min-w-0 text-lg font-medium leading-tight text-[color:var(--bone)] md:text-xl">{r.name}</span>
@@ -468,6 +476,7 @@ function PlaceRow({ r, i, href, leave }: { r: Row; i: number; href: string; leav
         <span className="col-span-2 md:col-span-1">
           <span className={label}>How much later Aqua looks</span>
           <span className="text-lg tabular-nums text-[color:var(--bone)]">+{r.look?.minutes ?? '—'} min</span>
+          {r.look ? <span className="sr-only"> (from {r.look.old} to {r.look.now})</span> : null}
           {r.look ? <MiniShift old={r.look.old} now={r.look.now} /> : null}
         </span>
         <span className="col-span-2 md:col-span-1">
@@ -484,8 +493,7 @@ function PlaceRow({ r, i, href, leave }: { r: Row; i: number; href: string; leav
           <span className="md:hidden"><StripAxis /></span>
         </span>
         <span className="hidden md:block">{chip}</span>
-        <ArrowRight aria-hidden size={16} strokeWidth={1.5} className="hidden self-center text-[color:var(--bone3)] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[color:var(--bone)] md:block" />
-      </a>
+      </div>
     </Reveal>
   )
 }
@@ -566,7 +574,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
         <Door
           href={links.regions()}
           leave={leave}
-          title="Explore the regions"
+          title="Regions"
           line="Six places, year by year."
           className="min-h-[380px] lg:col-span-7 lg:row-span-2 lg:min-h-[620px]"
           art={
@@ -586,7 +594,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
         <Door
           href={links.sim()}
           leave={leave}
-          title="Try the Simulator"
+          title="Explore"
           line="Switch Aqua between its two times. Play one fire day."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}sim/${FEATURED}-context.jpg`} alt="" loading="lazy" className={pic} style={{ objectPosition: '30% 62%' }} />}
