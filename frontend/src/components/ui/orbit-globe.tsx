@@ -209,7 +209,13 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
   orbitsRef.current = orbits
   const angles = React.useRef(new Map<string, number>())
   const clock = React.useRef({ t: 0 })
-  const scene = React.useRef<null | { draw: (dt: number, isLive: boolean) => boolean }>(null)
+  const scene = React.useRef<null | { draw: (dt: number, isLive: boolean) => boolean; repaint: () => void }>(null)
+  // the reader's own turn of the globe, by dragging it; it stays wherever it is left
+  const view = React.useRef({ yaw: 0, pitch: 0 })
+  const drag = React.useRef<null | { x: number; y: number; yaw: number; pitch: number; id: number }>(null)
+  const frame = React.useRef(0)
+  const [turned, setTurned] = React.useState(false)
+  const [grabbing, setGrabbing] = React.useState(false)
 
   React.useEffect(() => {
     const el = boxRef.current
@@ -239,7 +245,15 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
     const rLon = (w0 + e0) / 2
     // hold the view on the region: noon under the Sun, the region's latitude tipped to the middle of the face
     const c0 = Math.cos(rLat), s0r = Math.sin(rLat)
-    const tilt = (p: V3): V3 => [p[0], c0 * p[1] - s0r * p[2], s0r * p[1] + c0 * p[2]]
+    // then the reader's turn: yaw about the vertical axis, pitch about the horizontal one
+    let turn = { cy: 1, sy: 0, cp: 1, sp: 0 }
+    const aim = () => { const v = view.current; turn = { cy: Math.cos(v.yaw), sy: Math.sin(v.yaw), cp: Math.cos(v.pitch), sp: Math.sin(v.pitch) } }
+    aim()
+    const tilt = (p: V3): V3 => {
+      const y1 = c0 * p[1] - s0r * p[2], z1 = s0r * p[1] + c0 * p[2]
+      const x2 = turn.cy * p[0] + turn.sy * z1, z2 = -turn.sy * p[0] + turn.cy * z1
+      return [x2, turn.cp * y1 - turn.sp * z2, turn.sp * y1 + turn.cp * z2]
+    }
     const geo = (lonDeg: number, latDeg: number): V3 => {
       const la = latDeg * RAD, d = (lonDeg - rLon) * RAD
       return tilt([Math.cos(la) * Math.sin(d), Math.sin(la), Math.cos(la) * Math.cos(d)])
@@ -256,12 +270,19 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
     }
     const front = (p: V3) => p[2] > 0
 
-    // the still globe, once: ocean, light, graticule, land, coastlines, the region, its day path
+    // the region's day path: its latitude from sunrise to sunset
+    const dayPt = (h: number) => tilt([Math.cos(rLat) * Math.sin(angleOf(h)), Math.sin(rLat), Math.cos(rLat) * Math.cos(angleOf(h))])
+
+    // the still globe: ocean, light, graticule, land, coastlines, the region, its day path; painted again only when
+    // the reader turns it
     const base = document.createElement('canvas')
     base.width = canvas.width
     base.height = canvas.height
     const g = base.getContext('2d')
     if (!g) return
+    const paintBase = () => {
+    g.setTransform(1, 0, 0, 1, 0, 0)
+    g.clearRect(0, 0, base.width, base.height)
     g.setTransform(dpr, 0, 0, dpr, 0, 0)
     g.lineCap = 'round'
     g.lineJoin = 'round'
@@ -313,8 +334,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
       line(g, pts, R, front)
     }
     g.stroke()
-    // the region's day path: its latitude from sunrise to sunset, an hour tick each hour
-    const dayPt = (h: number) => tilt([Math.cos(rLat) * Math.sin(angleOf(h)), Math.sin(rLat), Math.cos(rLat) * Math.cos(angleOf(h))])
+    // the day path, an hour tick each hour
     const path: V3[] = []
     for (let h = rise; h < set; h += 0.1) path.push(dayPt(h))
     path.push(dayPt(set))
@@ -341,6 +361,8 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
     g.strokeText(region.name, nx, ny - 4)
     g.fillStyle = col.fg
     g.fillText(region.name, nx, ny - 4)
+    }
+    paintBase()
 
     // each orbit's node is set so its day-side track crosses the region's latitude at the satellite's look time there
     const cross = { north: crossing('north', rLat), south: crossing('south', rLat) }
@@ -426,7 +448,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
       }
       return settling
     }
-    scene.current = { draw }
+    scene.current = { draw, repaint: () => { aim(); paintBase(); draw(0, false) } }
     draw(0, false)
     return () => { scene.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -483,11 +505,48 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
   })()
   const rowY = (row: number) => axisY + (compact ? 36 : 40) + row * 20
 
+  // drag to turn: about 0.6° per pixel at a typical size; up and down tip it, never past the poles
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
+    drag.current = { x: e.clientX, y: e.clientY, yaw: view.current.yaw, pitch: view.current.pitch, id: e.pointerId }
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setGrabbing(true)
+  }
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    const k = Math.PI / Math.max(240, L.R * 3)
+    view.current = { yaw: d.yaw + (e.clientX - d.x) * k, pitch: Math.max(-1.2, Math.min(1.2, d.pitch + (e.clientY - d.y) * k)) }
+    if (!frame.current) frame.current = requestAnimationFrame(() => { frame.current = 0; scene.current?.repaint() })
+  }
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (drag.current?.id !== e.pointerId) return
+    drag.current = null
+    setGrabbing(false)
+    setTurned(Math.abs(view.current.yaw) > 0.01 || Math.abs(view.current.pitch) > 0.01)
+  }
+  const reset = () => {
+    view.current = { yaw: 0, pitch: 0 }
+    scene.current?.repaint()
+    setTurned(false)
+  }
+
   return (
-    <div ref={boxRef} role="img" aria-label={label} className={cn('relative w-full', className)} style={{ height: H + 20 * rows, ...style }} {...props}>
+    <div className={cn('relative w-full', className)} style={{ height: H + 20 * rows, ...style }} {...props}>
+    <div
+      ref={boxRef}
+      role="img"
+      aria-label={label}
+      className="relative size-full touch-pan-y select-none"
+      style={{ cursor: grabbing ? 'grabbing' : 'grab' }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
       <canvas ref={canvasRef} aria-hidden className="absolute inset-x-0 top-0 block" style={{ width: L.W, height: L.H }} />
       {W > 0 ? (
-        <svg aria-hidden width={L.W} height={H + 20 * rows} className="absolute inset-x-0 top-0 block overflow-visible" fontSize={fontSize}>
+        <svg aria-hidden width={L.W} height={H + 20 * rows} className="pointer-events-none absolute inset-x-0 top-0 block overflow-visible" fontSize={fontSize}>
           <line x1={xAt(6)} x2={xAt(18)} y1={axisY} y2={axisY} stroke={ink.grid} strokeWidth={1} />
           {HOURS.map((h) => (
             <line key={h} x1={xAt(h)} x2={xAt(h)} y1={axisY - 3} y2={axisY + 3} stroke={ink.grid} strokeWidth={1} />
@@ -544,6 +603,17 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
           })}
         </svg>
       ) : null}
+    </div>
+    {turned ? (
+      <button
+        type="button"
+        onClick={reset}
+        className="absolute right-0 top-0 rounded px-3 py-2 text-xs"
+        style={{ color: ink.fg, background: ink.ground, border: `1px solid ${ink.grid}` }}
+      >
+        Back to the Sun’s view
+      </button>
+    ) : null}
     </div>
   )
 }

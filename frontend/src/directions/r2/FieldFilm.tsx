@@ -422,6 +422,34 @@ function useStage(sectionRef: RefObject<HTMLElement | null>, stageRef: RefObject
   }, [on, sectionRef, stageRef])
 }
 
+/* ---------- In-page links glide to their section instead of jumping ---------- */
+
+let glideFrame = 0
+const GLIDE_STOPS = ['wheel', 'touchstart', 'keydown', 'mousedown'] as const
+/** Scroll the page to an element (or the top), honouring its scroll margin. With motion on it glides in 0.4 to 0.7 s,
+ *  eased in and out, and stops the moment the reader scrolls; with motion off it jumps. */
+function glideTo(target: Element | 'top', motion: boolean) {
+  cancelAnimationFrame(glideFrame)
+  const margin = target === 'top' ? 0 : parseFloat(getComputedStyle(target).scrollMarginTop) || 0
+  const y = target === 'top' ? 0 : Math.max(0, target.getBoundingClientRect().top + window.scrollY - margin)
+  const start = window.scrollY
+  const dist = y - start
+  if (!motion || Math.abs(dist) < 2) { window.scrollTo(0, y); return }
+  const dur = Math.min(720, 380 + Math.abs(dist) * 0.06)
+  const t0 = performance.now()
+  const off = () => { for (const ev of GLIDE_STOPS) window.removeEventListener(ev, stop) }
+  const stop = () => { cancelAnimationFrame(glideFrame); off() }
+  for (const ev of GLIDE_STOPS) window.addEventListener(ev, stop, { passive: true })
+  const step = (now: number) => {
+    const t = Math.min(1, (now - t0) / dur)
+    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+    window.scrollTo(0, start + dist * e)
+    if (t < 1) glideFrame = requestAnimationFrame(step)
+    else off()
+  }
+  glideFrame = requestAnimationFrame(step)
+}
+
 /* ---------- Pages ---------- */
 
 export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Nav }) {
@@ -436,6 +464,31 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Na
   const links = linksFor(nav)
   const leave = useLeave(motion)
   const rootRef = useRef<HTMLDivElement | null>(null)
+  const motionRef = useRef(motion)
+  motionRef.current = motion
+
+  // links to a section (#calendar, #how, the section index…) glide there instead of jumping; keyboard users land on
+  // the section's heading
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = (e.target as Element | null)?.closest?.('a[href^="#"]')
+      const id = a ? decodeURIComponent(a.getAttribute('href')!.slice(1)) : ''
+      const el = id && !id.includes('=') ? document.getElementById(id) : null
+      if (!el) return
+      e.preventDefault()
+      glideTo(id === 'top' ? 'top' : el, motionRef.current)
+      if (e.detail === 0) {
+        const f = (el.querySelector('h1, h2') as HTMLElement | null) ?? el
+        if (!f.hasAttribute('tabindex')) f.setAttribute('tabindex', '-1')
+        f.focus({ preventScroll: true })
+      }
+    }
+    root.addEventListener('click', onClick)
+    return () => root.removeEventListener('click', onClick)
+  }, [])
 
   useEffect(() => {
     const root = rootRef.current
@@ -620,6 +673,7 @@ const REPO_URL = (import.meta.env.VITE_REPO_URL as string | undefined) || ''
 
 /** Phone and tablet index (below 1280 px): the same sections; the ones this comp doesn't have are listed, disabled. */
 function SectionsIndex() {
+  const motion = useMotion()
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger aria-label="Sections" className={menuClasses.trigger}>
@@ -634,7 +688,7 @@ function SectionsIndex() {
                 key={s.id}
                 disabled={!live}
                 className={menuClasses.item}
-                onSelect={() => { if (live) document.getElementById(s.id)?.scrollIntoView() }}
+                onSelect={() => { const el = live ? document.getElementById(s.id) : null; if (el) glideTo(el, motion.on) }}
               >
                 {s.label}{live ? '' : ' · full build'}
               </DropdownMenu.Item>
@@ -1163,7 +1217,7 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
             orbits={orbits}
             region={{ name: statementName(d.id), bbox: region.bbox }}
             span={{ from: 'viirs', to: 'aqua' }}
-            running={motion.on}
+            running={false}
             ink={GLOBE_INK}
             label={description}
             day={sun ? { rise: sun.rise, set: sun.set } : undefined}
@@ -1192,7 +1246,7 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
             </div>
           </div>
           <figcaption className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--bone3)]">
-            <span>Heights to scale: Aqua and Terra fly about 705 km up, the VIIRS satellites about 830 km. The satellites are shown moving faster than they really do.</span>
+            <span>Drag the globe to turn it. Heights to scale: Aqua and Terra fly about 705 km up, the VIIRS satellites about 830 km.</span>
             {sun ? <span>The dashed path is daylight on {dateText(sun.mid)}, the middle of the fire season: sunrise {fmtHM(sun.rise)}, sunset {fmtHM(sun.set)}, local solar time.</span> : null}
             <span>Source: drift/{d.id}.json</span>
             <MockTag show={d.mock} />
