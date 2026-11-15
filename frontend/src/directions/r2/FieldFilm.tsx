@@ -17,6 +17,7 @@ import {
   type RegionData, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
+import { AnchorLogo } from '@/components/brand/anchor-logo'
 
 /* ---------- Tokens: black ground, bone text, one sage band; the photographs carry the colour ---------- */
 
@@ -239,7 +240,7 @@ export default function FieldFilm() {
     setYear(defaultYear(regionData(id)))
     const p = new URLSearchParams(window.location.search)
     p.set('region', id)
-    window.history.replaceState(null, '', `?${p.toString()}${window.location.hash}`)
+    try { window.history.replaceState(null, '', `?${p.toString()}${window.location.hash}`) } catch { /* sandboxed frames may refuse history writes */ }
   }
 
   return (
@@ -265,15 +266,6 @@ export default function FieldFilm() {
 }
 
 /* ---------- Top bar: transparent on the photograph, no blur ---------- */
-
-function Mark() {
-  // a tick standing on an axis: the one clock the counts are held to
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" className="shrink-0">
-      <path d="M1 15h16v2H1zM5 3h2v12H5z" fill="currentColor" />
-    </svg>
-  )
-}
 
 /** Phone and tablet index (below 1280 px): the same sections; the ones this comp doesn't have are listed, disabled. */
 function SectionsIndex() {
@@ -311,9 +303,8 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
   return (
     <header className="absolute inset-x-0 top-0 z-20">
       <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
-        <a href="#verdict" className={cn('flex shrink-0 items-center gap-2 rounded text-lg font-medium leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
-          <Mark />
-          Anchor
+        <a href="#verdict" aria-label="Anchor, back to the verdict" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
+          <AnchorLogo height={20} />
         </a>
         <nav aria-label="Sections" className="hidden xl:col-span-6 xl:flex xl:justify-center">
           <ul className="flex items-center gap-6 text-sm">
