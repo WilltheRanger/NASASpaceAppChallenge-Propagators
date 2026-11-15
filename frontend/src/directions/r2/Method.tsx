@@ -1,3 +1,4 @@
+import p9Followup from '../../../../data/out/p9-followup.json'
 /*
  * THESIS: How we know, in plain steps, with every technical detail one click deeper.
  * OWN-WORLD: Anchor dark, bone text, Albert Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
@@ -218,14 +219,14 @@ function Steps() {
     },
     {
       title: 'Learn the old relationship',
-      description: 'From 2012 to 2020 Aqua and VIIRS looked at about the same time. That tells us how many fires Aqua counts for every 100 VIIRS counts.',
-      figure: ratio != null ? <p className="text-sm text-[color:var(--bone2)]"><span className="block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]">{Math.round(ratio * 100)}</span>Aqua fires for every 100 VIIRS fires over the Amazon, 2012–2020</p> : null,
+      description: 'From 2012 to 2020 Aqua and VIIRS looked at about the same time. That tells us how many daytime detections Aqua records for every 100 VIIRS detections on matched days.',
+      figure: ratio != null ? <p className="text-sm text-[color:var(--bone2)]"><span className="block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]">{Math.round(ratio * 100)}</span>Aqua detections for every 100 VIIRS detections over the Amazon, 2012–2020</p> : null,
       details: detail('Details', <p>The exchange rate is Aqua’s daytime detections divided by S-NPP’s on matched days, 2012–2020 (audit file, baseline ratio). VIIRS sees more small fires than Aqua (see the real-fires test), so the rate is below 1.</p>),
     },
     {
       title: 'Estimate what we’d expect',
-      description: 'For each later year, VIIRS’s count and that old relationship give what Aqua would have counted at its old time.',
-      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className="block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]">{fmtInt(y.fixed)}</span>fires we’d expect from Aqua over the Amazon in {y.year}</p> : null,
+      description: 'For each later year, VIIRS’s count and that earlier relationship give an Aqua-equivalent benchmark. It does not establish what Aqua would have counted if only its look time changed.',
+      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className="block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]">{fmtInt(y.fixed)}</span>daytime detections in the Aqua-equivalent benchmark over the Amazon in {y.year}</p> : null,
       details: detail('Details', <p>The fixed-clock benchmark: S-NPP’s count times the 2012–2020 exchange rate, on the same days, in Aqua-equivalent units. A day when either satellite returned no data is dropped. The monthly calendar uses the same rate, filled from NOAA-20 where S-NPP is missing.</p>),
     },
     {
@@ -322,6 +323,14 @@ function Checks() {
                       {c.rule_implemented ? (<><dt className="text-[color:var(--bone3)]">As scored</dt><dd>{cleanRule(c.rule_implemented)}</dd></>) : null}
                     </dl>
                   ) : null}
+                  {c.id === 'P9' ? (
+                    <aside className="mt-4 border-l-2 border-[color:var(--hairline)] pl-4" aria-label="P9 follow-up, separate from original test">
+                      <h4 className="font-medium">Completed VIIRS follow-up, not a new pass</h4>
+                      <p className="mt-2">All {p9Followup.complete_dates} fixed dates (2018–2020), {p9Followup.expected_swaths} swaths, were acquired. Under the original 45° view limit there were {p9Followup.primary_eligible} eligible afternoon center-date observations. The separate 85° sensitivity found {fmtInt(p9Followup.sensitivity_eligible)} center-date observations and {p9Followup.discordant_fires} discordant fires. Repeated centers across dates are not independent observations.</p>
+                      <p className="mt-2">All six biomes remain insufficiently identified: no beta or confidence interval can be estimated under the unchanged gates. This does not turn the original MODIS-surrogate test above into a pass or validate a causal timing correction.</p>
+                      <a href={p9Followup.report_url} target="_blank" rel="noreferrer" className={textLink}>Final acquisition and identification report</a>
+                    </aside>
+                  ) : null}
                   {c.id === 'P8' ? <p className="mt-3 text-xs"><a href="#detection" className={textLink}>The real-fires test</a></p> : null}
                   {c.id === 'P3' ? <p className="mt-3 text-xs"><a href="#inpe" className={textLink}>How well we match INPE</a></p> : null}
                 </AccordionContent>
@@ -342,7 +351,7 @@ const DET_SATS = [
   { key: 'Aqua', label: 'Aqua', color: 'var(--sat-aqua)', shape: 'filled' as DetShape },
   { key: 'Terra', label: 'Terra', color: 'var(--sat-terra)', shape: 'hollow' as DetShape },
 ]
-const sizeLabel = (s: string) => s.replace(/^>\s*(\d+)/, (_, n) => `Over ${fmtInt(Number(n))}`).replace(/(\d+)-(\d+)/, (_, a, b) => `${fmtInt(Number(a))}–${fmtInt(Number(b))}`)
+const sizeLabel = (s: string) => s.replace(/\s+acres$/i, '').replace(/^>\s*(\d+)/, (_, n) => `Over ${fmtInt(Number(n))}`).replace(/(\d+)-(\d+)/, (_, a, b) => `${fmtInt(Number(a))}–${fmtInt(Number(b))}`)
 const share = (v: number) => `${(v * 100).toFixed(0)}%`
 /** Whole acres, rounded half to even as the team's pipeline (Python) rounds, so 946.5 reads 946 here and in the checks. */
 const acres = (v: number) => { const f = Math.floor(v); const r = v - f === 0.5 ? (f % 2 === 0 ? f : f + 1) : Math.round(v); return fmtInt(r) }
@@ -560,7 +569,7 @@ function InpeMatch() {
           {p3 ? <p className="mt-4 text-sm text-[color:var(--bone2)]">Check P3: <StatusChip status={p3.status} /></p> : null}
         </div>
         <div className="min-w-0 lg:col-span-8">
-          <p className="mb-4 text-lg font-medium">The Amazon’s fires by year</p>
+          <p className="mb-4 text-lg font-medium">The Amazon’s hotspot detections by year</p>
           <InpeChart />
           <p className="mt-3 text-xs text-[color:var(--bone3)]">Sources: INPE Programa Queimadas; the team’s reproduction table (analysis/brazil-data); checks.json, P3.</p>
         </div>
@@ -630,7 +639,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       t: 'NASA reprocessed VIIRS files in May 2025.',
       b: 'The fix, for still heat sources labelled as vegetation fires, touches the timing and fire-size inputs, which filter by fire type, not the all-types counts the comparison uses. Product versions aren’t yet recorded per file.',
     },
-    { t: `Nothing after ${lastYear} yet.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files.` },
+    { t: `The historical calendar ends in ${lastYear}.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files. A separate rolling seven-day 2026 NRT snapshot has been acquired, but it cannot complete the year and is not part of this calibrated calendar.` },
     {
       t: 'Aqua and Terra are near the end of their missions.',
       b: (

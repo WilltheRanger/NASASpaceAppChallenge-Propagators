@@ -84,14 +84,14 @@ function Idea() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-5">
           <h2 id="idea-h" className="text-balance text-[clamp(26px,2.6vw,36px)] font-medium leading-[1.15] tracking-[-0.015em]">
-            Aqua is a NASA satellite that counts fires. It now looks more than an hour later than it used to ({RANGE}).
+            Aqua is a NASA satellite that records fire detections. It now looks more than an hour later than it used to ({RANGE}).
           </h2>
           <Reveal delay={100}>
             <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">Fires change during the day, so a later look can count more or fewer.</p>
           </Reveal>
           <Reveal delay={200}>
             <p className="mt-3 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">
-              Satellites that kept their time let Anchor estimate what Aqua would have counted at its old time, and compare.
+              Satellites that kept their time let Anchor build a benchmark from their earlier relationship with Aqua, and compare. This does not isolate what changing the time caused.
             </p>
           </Reveal>
           <Reveal delay={300}>
@@ -279,8 +279,7 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
             })}
           </ol>
           <p className="mt-4 max-w-[60rem] text-xs text-[color:var(--bone3)]">
-            Look times are local sun time, 2012–2020 against {YEAR}. Unusual: further from what we’d expect than any year from 2012 to 2020. How sure we are: the
-            real difference is very likely inside this range. Sources: drift and audit files, one per place.
+            Look times are local sun time, 2012–2020 against {YEAR}. Unusual: further from what we’d expect than any year from 2012 to 2020. The displayed uncertainty is a 95% bootstrap interval, conditional on the sampling method. It is not a probability that a causal effect lies inside the range. Sources: drift and audit files, one per place.
           </p>
         </div>
 
