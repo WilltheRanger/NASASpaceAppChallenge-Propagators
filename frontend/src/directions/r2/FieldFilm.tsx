@@ -28,7 +28,7 @@ import { StickyScroll } from '@/components/ui/sticky-scroll-reveal'
 import { photoFor } from '@/r2/photos'
 import {
   CAVEAT, FEATURED, Footer, JETHVA, MockTag, More, MotionContext, SiteBar, TOKENS, andList, ease, focusRing, glideTo, linksFor, primaryButton, readMotion, secondaryButton,
-  shell, statement, statementName, storeMotion, textLink, title, useEasedScroll, useLeave, useMedia, useMotion, usePortalTokens,
+  shell, statement, statementName, storeMotion, textLink, title, useEasedScroll, useLeave, useStartAtTop, useMedia, useMotion, usePortalTokens,
   type Leave, type Links, type Nav, type Page,
 } from './common'
 
@@ -104,6 +104,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
 
   // wheel and trackpad scrolling eases toward its target; not on the Simulator, whose page doesn't scroll
   useEasedScroll(motion && which !== 'sim')
+  useStartAtTop()
 
   // links to a section (#calendar…) glide there instead of jumping; keyboard users land on the section's heading
   useEffect(() => {
@@ -130,7 +131,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
   useEffect(() => {
     const root = rootRef.current
     if (!root?.animate) return
-    if (motion) root.animate([{ opacity: 0, transform: 'scale(0.98)' }, { opacity: 1, transform: 'none' }], { duration: 350, easing: EASE })
+    if (motion) root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: EASE })
     // coming back through history must not land on a faded page
     const back = (e: PageTransitionEvent) => { if (e.persisted) root.getAnimations().forEach((a) => a.cancel()) }
     window.addEventListener('pageshow', back)
@@ -162,7 +163,6 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
             ) : (
               <RegionsPage region={region} onRegion={(id) => { setRegion(id); writeParams(nav, { region: id }) }} nav={nav} links={links} leave={leave} />
             )}
-            <Footer links={links} leave={leave} />
           </Suspense>
         )}
       </div>
