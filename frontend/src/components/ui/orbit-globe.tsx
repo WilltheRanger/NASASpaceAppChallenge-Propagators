@@ -1,15 +1,15 @@
 /**
- * Orbit globe: the Earth seen from the Sun's side, turning, with the orbits of the satellites that look at it. Adapted
- * from the 21st.dev "Wireframe Dotted Globe" (moazamtrade): a turning halftone globe with a faint graticule and thin
- * coastlines on black, here drawn in the caller's colours. The satellites ride above the surface as in "Globe Satellites"
- * (shuding), with fading trails after "Orbital Hero Section" (yura).
+ * Orbit globe: the region at local noon, seen from the Sun's side, with the orbits of the satellites that look at it.
+ * Adapted from the 21st.dev "Wireframe Dotted Globe" (moazamtrade): a halftone globe with a faint graticule and thin
+ * coastlines on black, here held still on the region and drawn in the caller's colours. The satellites ride above the
+ * surface as in "Globe Satellites" (shuding), with fading trails after "Orbital Hero Section" (yura).
  *
- * The view is physical. The reader looks from the Sun, so the whole face is lit and no sun is drawn: morning is the left
- * edge, noon the middle, evening the right edge. A sun-synchronous orbit keeps the same angle to the sunlight, so each
- * orbit is a hoop over the poles that stays put while the Earth turns under it, and its ground track is the line of one
- * local time. A region carried across the face passes under each track at that satellite's look time. Orbits are drawn
- * higher than their 700 km so they clear the globe; the Earth's turn and the orbits keep their real ratio, about 14.6
- * orbits a day.
+ * The view is physical. The reader looks from the Sun at the region at noon, so the whole face is lit and no sun is
+ * drawn: morning is to the left, evening to the right. A sun-synchronous orbit keeps the same angle to the sunlight, so
+ * each orbit is a hoop over the poles along the line of one local time. The Earth's turn carries the region along its
+ * day path (the dashed line through it, drawn at the orbits' height) under each orbit in turn; where an orbit crosses
+ * that path is the satellite's look time there, and the time line below is laid out to match. Orbit heights are to
+ * scale (about 700 km); the satellites fly faster than life.
  */
 import * as React from 'react'
 import { COAST, LAND, LAT_ROWS } from '@/r2/globe-land'
@@ -19,7 +19,7 @@ import { useMeasuredWidth } from '@/components/ui/series-chart'
 export interface GlobeOrbit {
   id: string
   label: string
-  /** local time, in hours, of the satellite's look */
+  /** local time, in hours, of the satellite's look at the region */
   time: number
   /** the time as written, e.g. "13:53" */
   timeText: string
@@ -49,11 +49,11 @@ export interface GlobeInk {
 
 export interface OrbitGlobeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   orbits: GlobeOrbit[]
-  /** the region, lit on the globe: [west, south, east, north] in degrees */
-  region?: { name: string; bbox: readonly [number, number, number, number] }
+  /** the region the view holds on, lit on the globe: [west, south, east, north] in degrees */
+  region: { name: string; bbox: readonly [number, number, number, number] }
   /** a bar on the time line between two orbits' times, e.g. the minutes Aqua has added to the fixed clock */
   span?: { from: string; to: string }
-  /** turn the Earth and fly the satellites; false holds one still moment, the region at noon */
+  /** fly the satellites along their orbits; false holds each one where it crosses the region's day path */
   running: boolean
   ink: GlobeInk
   /** what a screen reader hears for the whole figure */
@@ -63,18 +63,17 @@ export interface OrbitGlobeProps extends Omit<React.HTMLAttributes<HTMLDivElemen
 const RAD = Math.PI / 180
 const TAU = Math.PI * 2
 const INCLINATION = 98.2 * RAD
-const ORBIT_SECONDS = 6
-const DAY_SECONDS = ORBIT_SECONDS * 14.6
-const TRAIL = 0.24 // of an orbit
+const ORBIT_SECONDS = 9
+const TRAIL = 0.2 // of an orbit
 const HOURS = Array.from({ length: 13 }, (_, i) => 6 + i)
 
 /** how far east of the noon line a local time sits */
 const angleOf = (hours: number) => (hours - 12) * 15 * RAD
 
-/** view axes: x east (right), y north (up), z toward the Sun and the reader */
+/** world axes: x east (right), y north (up), z toward the Sun and the reader */
 type V3 = [number, number, number]
 
-/** A unit vector along the orbit at argument of latitude u (0 at the ascending node). */
+/** A unit vector along the orbit at argument of latitude u (0 at the ascending node), the node at angle a east of noon. */
 function orbitPoint(a: number, dayPass: 'north' | 'south', u: number): V3 {
   // the ascending node faces the Sun for a northbound day pass, and the night side otherwise
   const n = dayPass === 'north' ? a : a + Math.PI
@@ -86,8 +85,13 @@ function orbitPoint(a: number, dayPass: 'north' | 'south', u: number): V3 {
   return [cu * dx + su * ci * ex, su * si, cu * dz + su * ci * ez]
 }
 
-/** just north of the day-side equator, in front of the globe */
-const stillU = (dayPass: 'north' | 'south') => (dayPass === 'north' ? 0.5 : Math.PI - 0.5)
+/** Where the day-side pass crosses latitude lat: its argument of latitude, and how far east of the node that point sits. */
+function crossing(dayPass: 'north' | 'south', lat: number) {
+  const s = Math.max(-0.999, Math.min(0.999, Math.sin(lat) / Math.sin(INCLINATION)))
+  const u = dayPass === 'north' ? Math.asin(s) : Math.PI - Math.asin(s)
+  const p = orbitPoint(0, dayPass, u)
+  return { u, shift: Math.atan2(p[0], p[2]) }
+}
 
 function resolveColor(el: Element, c: string) {
   const m = /^var\((--[^),\s]+)/.exec(c.trim())
@@ -109,24 +113,23 @@ function withAlpha(color: string, a: number) {
   return color
 }
 
-/** The land as unit vectors on the sphere, once. */
+/** The land as longitude and latitude, once. */
 const DOTS = (() => {
   let n = 0
   for (const row of LAND) for (let q = 2; q < row.length; q += 2) n += row[q + 1]
-  const lon = new Float32Array(n), cl = new Float32Array(n), sl = new Float32Array(n), lonDeg = new Float32Array(n), latDeg = new Float32Array(n)
+  const lon = new Float32Array(n), lat = new Float32Array(n)
   let k = 0
   for (const row of LAND) {
-    const lat = -90 + ((row[0] + 0.5) * 180) / LAT_ROWS
-    const cells = row[1]
+    const la = -90 + ((row[0] + 0.5) * 180) / LAT_ROWS
     for (let q = 2; q < row.length; q += 2) {
       for (let i = row[q]; i < row[q] + row[q + 1]; i++) {
-        const lo = -180 + ((i + 0.5) * 360) / cells
-        lon[k] = lo * RAD; cl[k] = Math.cos(lat * RAD); sl[k] = Math.sin(lat * RAD); lonDeg[k] = lo; latDeg[k] = lat
+        lon[k] = -180 + ((i + 0.5) * 360) / row[1]
+        lat[k] = la
         k++
       }
     }
   }
-  return { n, lon, cl, sl, lonDeg, latDeg, step: (180 / LAT_ROWS) * RAD }
+  return { n, lon, lat, step: (180 / LAT_ROWS) * RAD }
 })()
 
 interface Layout { W: number; H: number; cx: number; cy: number; R: number; Ro: number; axisY: number; compact: boolean }
@@ -134,10 +137,10 @@ interface Layout { W: number; H: number; cx: number; cy: number; R: number; Ro: 
 function layoutFor(W: number): Layout {
   const compact = W < 560
   const R = Math.max(96, Math.min(compact ? 150 : 232, W * (compact ? 0.36 : 0.3)))
-  const Ro = R * 1.18
+  const Ro = R * 1.11 // 705 km over a 6,371 km Earth: to scale
   const cy = 14 + Ro
   const axisY = cy + Ro + 24
-  return { W, H: Math.round(axisY + (compact ? 70 : 76)), cx: W / 2, cy, R, Ro, axisY, compact }
+  return { W, H: Math.round(axisY + (compact ? 50 : 54)), cx: W / 2, cy, R, Ro, axisY, compact }
 }
 
 /** Labels under the time line: centred on their marks; a pair too close to sit side by side splits, the earlier one
@@ -182,14 +185,16 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
   const live = running && inView
   const inkKey = JSON.stringify(ink)
   const orbitsKey = orbits.map((o) => `${o.id}:${o.time}:${o.color}`).join('|')
-  const regionKey = region ? `${region.name}:${region.bbox.join(',')}` : ''
+  const regionKey = `${region.name}:${region.bbox.join(',')}`
+  const [w0, s0, e0, n0] = region.bbox
+  const rLat = ((s0 + n0) / 2) * RAD
 
-  // read by the drawing loop, so a change of year never restarts the Earth's turn
+  // read by the drawing loop, so a change of year never restarts the satellites
   const orbitsRef = React.useRef(orbits)
   orbitsRef.current = orbits
   const angles = React.useRef(new Map<string, number>())
-  const clock = React.useRef({ t: 0, last: 0 })
-  const scene = React.useRef<null | { draw: (dt: number, isLive: boolean) => void }>(null)
+  const clock = React.useRef({ t: 0 })
+  const scene = React.useRef<null | { draw: (dt: number, isLive: boolean) => boolean }>(null)
 
   React.useEffect(() => {
     const el = boxRef.current
@@ -199,7 +204,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
     return () => io.disconnect()
   }, [])
 
-  // the scene for this size, these colours and this region; a frame is drawn on demand
+  // the scene for this size, these colours and this region: the globe drawn once, the orbits on demand
   React.useEffect(() => {
     const canvas = canvasRef.current
     const box = boxRef.current
@@ -215,91 +220,165 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
       surface: resolveColor(box, ink.surface),
       land: resolveColor(box, ink.land),
     }
-    const font = `${L.compact ? 12 : 13}px ${getComputedStyle(box).fontFamily}`
     const { cx, cy, R, Ro } = L
-
-    // the region's dots, and its centre
-    const inRegion = new Uint8Array(DOTS.n)
-    let rLon = 0, rLat = 0
-    if (region) {
-      const [w, s, e, nn] = region.bbox
-      for (let k = 0; k < DOTS.n; k++) inRegion[k] = DOTS.lonDeg[k] >= w && DOTS.lonDeg[k] <= e && DOTS.latDeg[k] >= s && DOTS.latDeg[k] <= nn ? 1 : 0
-      rLon = (w + e) / 2
-      rLat = (s + nn) / 2
+    const rLon = (w0 + e0) / 2
+    // hold the view on the region: noon under the Sun, the region's latitude tipped to the middle of the face
+    const c0 = Math.cos(rLat), s0r = Math.sin(rLat)
+    const tilt = (p: V3): V3 => [p[0], c0 * p[1] - s0r * p[2], s0r * p[1] + c0 * p[2]]
+    const geo = (lonDeg: number, latDeg: number): V3 => {
+      const la = latDeg * RAD, d = (lonDeg - rLon) * RAD
+      return tilt([Math.cos(la) * Math.sin(d), Math.sin(la), Math.cos(la) * Math.cos(d)])
     }
-    // where the Earth starts: still, the region at noon; running, the region just before the morning look
-    const startLon = (isLive: boolean) => rLon + (isLive ? 37.5 : 0)
+    const S = (p: V3, r: number) => [cx + p[0] * r, cy - p[1] * r] as const
+    const line = (g: CanvasRenderingContext2D, pts: V3[], r: number, visible: (p: V3) => boolean) => {
+      let pen = false
+      for (const p of pts) {
+        if (!visible(p)) { pen = false; continue }
+        const [x, y] = S(p, r)
+        if (pen) g.lineTo(x, y)
+        else { g.moveTo(x, y); pen = true }
+      }
+    }
+    const front = (p: V3) => p[2] > 0
+
+    // the still globe, once: ocean, light, graticule, land, coastlines, the region, its day path
+    const base = document.createElement('canvas')
+    base.width = canvas.width
+    base.height = canvas.height
+    const g = base.getContext('2d')
+    if (!g) return
+    g.setTransform(dpr, 0, 0, dpr, 0, 0)
+    g.lineCap = 'round'
+    g.lineJoin = 'round'
+    g.beginPath(); g.arc(cx, cy, R, 0, TAU)
+    g.fillStyle = col.surface; g.fill()
+    const glow = g.createRadialGradient(cx, cy, 0, cx, cy, R)
+    glow.addColorStop(0, withAlpha(col.fg, 0.1))
+    glow.addColorStop(0.75, withAlpha(col.fg, 0.03))
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0.32)')
+    g.fillStyle = glow; g.fill()
+    g.lineWidth = 1
+    for (let m = -180; m < 180; m += 30) {
+      const pts: V3[] = []
+      for (let la = -90; la <= 90; la += 4) pts.push(geo(m, la))
+      g.strokeStyle = withAlpha(col.land, 0.1); g.beginPath(); line(g, pts, R, front); g.stroke()
+    }
+    for (const la of [-60, -30, 0, 30, 60]) {
+      const pts: V3[] = []
+      for (let m = -180; m <= 180; m += 4) pts.push(geo(m, la))
+      g.strokeStyle = withAlpha(col.land, la === 0 ? 0.2 : 0.1); g.beginPath(); line(g, pts, R, front); g.stroke()
+    }
+    // land dots, brighter toward the middle of the face; the region's in the text colour
+    const dotR = Math.max(0.6, R * DOTS.step * 0.3)
     const BUCKETS = 6
     const buckets: number[][] = Array.from({ length: BUCKETS * 2 }, () => [])
-    const dotR = Math.max(0.6, R * DOTS.step * 0.3)
-    const pulses: { color: string; start: number }[] = []
-    let lastLocal: number | null = null
-    let wasLive = false
-
-    const project = (lonRad: number, cl: number, sl: number, lc: number): V3 => {
-      const d = lonRad - lc
-      return [cl * Math.sin(d), sl, cl * Math.cos(d)]
+    for (let k = 0; k < DOTS.n; k++) {
+      const p = geo(DOTS.lon[k], DOTS.lat[k])
+      if (p[2] <= 0.02) continue
+      const mine = DOTS.lon[k] >= w0 && DOTS.lon[k] <= e0 && DOTS.lat[k] >= s0 && DOTS.lat[k] <= n0
+      const [x, y] = S(p, R)
+      buckets[Math.min(BUCKETS - 1, Math.floor(p[2] * BUCKETS)) + (mine ? BUCKETS : 0)].push(x, y)
     }
+    buckets.forEach((pts, bi) => {
+      if (!pts.length) return
+      const lit = ((bi % BUCKETS) + 0.5) / BUCKETS
+      const mine = bi >= BUCKETS
+      g.fillStyle = withAlpha(mine ? col.fg : col.land, mine ? 0.5 + 0.5 * lit : 0.2 + 0.55 * lit)
+      const r = mine ? dotR * 1.25 : dotR
+      g.beginPath()
+      for (let q = 0; q < pts.length; q += 2) { g.moveTo(pts[q] + r, pts[q + 1]); g.arc(pts[q], pts[q + 1], r, 0, TAU) }
+      g.fill()
+    })
+    g.strokeStyle = withAlpha(col.land, 0.4)
+    g.lineWidth = 0.75
+    g.beginPath()
+    for (const c of COAST) {
+      const pts: V3[] = []
+      for (let q = 0; q < c.length; q += 2) pts.push(geo(c[q] / 10, c[q + 1] / 10))
+      line(g, pts, R, front)
+    }
+    g.stroke()
+    // the region's day path: its latitude from sunrise to sunset, an hour tick each hour
+    const dayPt = (h: number) => tilt([Math.cos(rLat) * Math.sin(angleOf(h)), Math.sin(rLat), Math.cos(rLat) * Math.cos(angleOf(h))])
+    const path: V3[] = []
+    for (let h = 6; h <= 18.001; h += 0.1) path.push(dayPt(h))
+    g.setLineDash([2, 4])
+    g.strokeStyle = withAlpha(col.fg, 0.55)
+    g.lineWidth = 1.25
+    g.beginPath(); line(g, path, Ro, () => true); g.stroke()
+    g.setLineDash([])
+    for (const h of HOURS) {
+      const [x, y] = S(dayPt(h), Ro)
+      g.strokeStyle = withAlpha(col.fg, h % 6 === 0 ? 0.6 : 0.35)
+      g.beginPath(); g.moveTo(x, y - (h % 6 === 0 ? 5 : 3)); g.lineTo(x, y + (h % 6 === 0 ? 5 : 3)); g.stroke()
+    }
+    g.strokeStyle = withAlpha(col.fg, 0.3)
+    g.lineWidth = 1
+    g.beginPath(); g.arc(cx, cy, R, 0, TAU); g.stroke()
+    // the region's name, above its northern edge
+    const [nx, ny] = S(geo(rLon, Math.min(85, n0 + 2.5)), R)
+    g.font = `${L.compact ? 12 : 13}px ${getComputedStyle(box).fontFamily}`
+    g.textAlign = 'center'
+    g.textBaseline = 'bottom'
+    g.lineWidth = 4
+    g.strokeStyle = col.ground
+    g.strokeText(region.name, nx, ny - 4)
+    g.fillStyle = col.fg
+    g.fillText(region.name, nx, ny - 4)
+
+    // each orbit's node is set so its day-side track crosses the region's latitude at the satellite's look time there
+    const cross = { north: crossing('north', rLat), south: crossing('south', rLat) }
+    const nodeFor = (o: GlobeOrbit) => angleOf(o.time) - cross[o.dayPass].shift
 
     const draw = (dt: number, isLive: boolean) => {
-      if (isLive !== wasLive) { pulses.length = 0; lastLocal = null; wasLive = isLive }
-      const t = clock.current.t
       const list = orbitsRef.current
       const colorOf = new Map(list.map((o) => [o.id, resolveColor(box, o.color)]))
+      let settling = false
       for (const o of list) {
-        const goal = angleOf(o.time)
+        const goal = nodeFor(o)
         const cur = angles.current.get(o.id)
         if (cur == null || !isLive) { angles.current.set(o.id, goal); continue }
         const next = cur + (goal - cur) * (1 - Math.exp(-dt / 0.14))
-        angles.current.set(o.id, Math.abs(goal - next) < 1e-4 ? goal : next)
+        const done = Math.abs(goal - next) < 1e-4
+        angles.current.set(o.id, done ? goal : next)
+        if (!done) settling = true
       }
-      // the longitude under the Sun: the Earth turns east, so it runs west
-      const lcDeg = startLon(isLive) - (isLive ? (t / DAY_SECONDS) * 360 : 0)
-      const lc = lcDeg * RAD
-      const satU = (o: GlobeOrbit) => (isLive ? (t / ORBIT_SECONDS) * TAU + (o.phase ?? 0) * TAU : stillU(o.dayPass))
-      const S = (p: V3, r: number) => [cx + p[0] * r, cy - p[1] * r] as const
+      const t = clock.current.t
+      // still, each satellite sits up its orbit to the north, clear of the day path; flying, it starts from there
+      const north = (o: GlobeOrbit) => cross[o.dayPass].u + (o.dayPass === 'north' ? 0.8 : -0.8)
+      const satU = (o: GlobeOrbit) => (isLive ? north(o) + (t / ORBIT_SECONDS) * TAU + (o.phase ?? 0) * TAU : north(o))
+      const pt = (o: GlobeOrbit, u: number) => tilt(orbitPoint(angles.current.get(o.id) ?? nodeFor(o), o.dayPass, u))
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, L.W, L.H)
       ctx.lineCap = 'round'
       ctx.lineJoin = 'round'
 
-      const hoop = (o: GlobeOrbit, front: boolean) => {
-        const a = angles.current.get(o.id) ?? angleOf(o.time)
+      const hoop = (o: GlobeOrbit, isFront: boolean) => {
         const c = colorOf.get(o.id) ?? col.fg
-        // the orbit in space: clear where it stands off the globe, barely there across the face
-        ctx.lineWidth = 1
-        const inner = (R / Ro) ** 2
-        for (const off of [true, false]) {
-          ctx.strokeStyle = withAlpha(c, front ? (off ? 0.34 : 0.08) : 0.12)
-          ctx.beginPath()
-          let pen = false
-          for (let s = 0; s <= 240; s++) {
-            const p = orbitPoint(a, o.dayPass, (s / 240) * TAU)
-            const outside = p[0] * p[0] + p[1] * p[1] > inner
-            if ((p[2] >= 0) !== front || outside !== off) { pen = false; continue }
-            const [x, y] = S(p, Ro)
-            if (pen) ctx.lineTo(x, y)
-            else { ctx.moveTo(x, y); pen = true }
-          }
-          ctx.stroke()
-        }
+        const pts: V3[] = []
+        for (let s = 0; s <= 240; s++) pts.push(pt(o, (s / 240) * TAU))
+        // the orbit in space: solid in front of the globe, dashed behind it
+        ctx.setLineDash(isFront ? [] : [3, 5])
+        ctx.lineWidth = isFront ? 1.75 : 1.25
+        ctx.strokeStyle = withAlpha(c, isFront ? 0.85 : 0.4)
+        ctx.beginPath(); line(ctx, pts, Ro, (p) => (p[2] >= 0) === isFront); ctx.stroke()
+        ctx.setLineDash([])
         // the trail, then the satellite in the page's marker for it
         const u = satU(o)
-        const n = 36
-        ctx.lineWidth = 2
-        for (let s = 0; s < n; s++) {
-          const p1 = orbitPoint(a, o.dayPass, u - TRAIL * TAU * (1 - s / n))
-          const p2 = orbitPoint(a, o.dayPass, u - TRAIL * TAU * (1 - (s + 1) / n))
-          if ((p1[2] >= 0) !== front) continue
-          ctx.strokeStyle = withAlpha(c, 0.85 * ((s + 1) / n) ** 1.6)
-          ctx.beginPath()
-          ctx.moveTo(...S(p1, Ro))
-          ctx.lineTo(...S(p2, Ro))
-          ctx.stroke()
+        if (isLive) {
+          const n = 30
+          ctx.lineWidth = 2.5
+          for (let s = 0; s < n; s++) {
+            const p1 = pt(o, u - TRAIL * TAU * (1 - s / n))
+            const p2 = pt(o, u - TRAIL * TAU * (1 - (s + 1) / n))
+            if ((p1[2] >= 0) !== isFront) continue
+            ctx.strokeStyle = withAlpha(c, 0.9 * ((s + 1) / n) ** 1.6)
+            ctx.beginPath(); ctx.moveTo(...S(p1, Ro)); ctx.lineTo(...S(p2, Ro)); ctx.stroke()
+          }
         }
-        const p = orbitPoint(a, o.dayPass, u)
-        if ((p[2] >= 0) !== front) return
+        const p = pt(o, u)
+        if ((p[2] >= 0) !== isFront) return
         const [x, y] = S(p, Ro)
         ctx.lineWidth = 2
         if (o.marker === 'filled') {
@@ -316,161 +395,38 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
         }
       }
 
-      // behind the globe
       for (const o of list) hoop(o, false)
-
-      // the globe, lit face-on: brightest under the Sun, darkening to sunrise and sunset at the edges
-      ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU)
-      ctx.fillStyle = col.surface; ctx.fill()
-      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R)
-      glow.addColorStop(0, withAlpha(col.fg, 0.1))
-      glow.addColorStop(0.75, withAlpha(col.fg, 0.03))
-      glow.addColorStop(1, 'rgba(0, 0, 0, 0.32)')
-      ctx.fillStyle = glow; ctx.fill()
-
-      // graticule: meridians every 30° turning with the Earth, parallels every 30°, the equator a little firmer
-      ctx.lineWidth = 1
-      const line = (pts: V3[], alpha: number) => {
-        ctx.strokeStyle = withAlpha(col.land, alpha)
-        ctx.beginPath()
-        let pen = false
-        for (const p of pts) {
-          if (p[2] <= 0) { pen = false; continue }
-          const [x, y] = S(p, R)
-          if (pen) ctx.lineTo(x, y)
-          else { ctx.moveTo(x, y); pen = true }
-        }
-        ctx.stroke()
-      }
-      for (let m = -180; m < 180; m += 30) {
-        const pts: V3[] = []
-        for (let la = -90; la <= 90; la += 5) pts.push(project(m * RAD, Math.cos(la * RAD), Math.sin(la * RAD), lc))
-        line(pts, 0.1)
-      }
-      for (const la of [-60, -30, 0, 30, 60]) {
-        const pts: V3[] = []
-        for (let m = -180; m <= 180; m += 5) pts.push(project(m * RAD, Math.cos(la * RAD), Math.sin(la * RAD), lc))
-        line(pts, la === 0 ? 0.22 : 0.1)
-      }
-
-      // land: halftone dots, brighter toward the middle of the face; the region's in the text colour
-      for (const b of buckets) b.length = 0
-      for (let k = 0; k < DOTS.n; k++) {
-        const d = DOTS.lon[k] - lc
-        const z = DOTS.cl[k] * Math.cos(d)
-        if (z <= 0.02) continue
-        const x = cx + R * DOTS.cl[k] * Math.sin(d)
-        const y = cy - R * DOTS.sl[k]
-        const bi = Math.min(BUCKETS - 1, Math.floor(z * BUCKETS)) + (inRegion[k] ? BUCKETS : 0)
-        buckets[bi].push(x, y)
-      }
-      for (let bi = 0; bi < buckets.length; bi++) {
-        const pts = buckets[bi]
-        if (!pts.length) continue
-        const lit = ((bi % BUCKETS) + 0.5) / BUCKETS
-        const mine = bi >= BUCKETS
-        ctx.fillStyle = withAlpha(mine ? col.fg : col.land, mine ? 0.45 + 0.55 * lit : 0.22 + 0.6 * lit)
-        const r = mine ? dotR * 1.25 : dotR
-        ctx.beginPath()
-        for (let q = 0; q < pts.length; q += 2) { ctx.moveTo(pts[q] + r, pts[q + 1]); ctx.arc(pts[q], pts[q + 1], r, 0, TAU) }
-        ctx.fill()
-      }
-
-      // coastlines
-      ctx.strokeStyle = withAlpha(col.land, 0.4)
-      ctx.lineWidth = 0.75
-      ctx.beginPath()
-      for (const c of COAST) {
-        let pen = false
-        for (let q = 0; q < c.length; q += 2) {
-          const lo = (c[q] / 10) * RAD, la = (c[q + 1] / 10) * RAD
-          const p = project(lo, Math.cos(la), Math.sin(la), lc)
-          if (p[2] <= 0) { pen = false; continue }
-          const [x, y] = S(p, R)
-          if (pen) ctx.lineTo(x, y)
-          else { ctx.moveTo(x, y); pen = true }
-        }
-      }
-      ctx.stroke()
-
-      // each satellite's ground track: the line of its local time, where it looks
-      for (const o of list) {
-        const a = angles.current.get(o.id) ?? angleOf(o.time)
-        ctx.strokeStyle = withAlpha(colorOf.get(o.id) ?? col.fg, 0.75)
-        ctx.lineWidth = 1.5
-        ctx.beginPath()
-        let pen = false
-        for (let s = 0; s <= 200; s++) {
-          const p = orbitPoint(a, o.dayPass, (s / 200) * TAU)
-          if (p[2] <= 0) { pen = false; continue }
-          const [x, y] = S(p, R)
-          if (pen) ctx.lineTo(x, y)
-          else { ctx.moveTo(x, y); pen = true }
-        }
-        ctx.stroke()
-      }
-
-      // the limb
-      ctx.strokeStyle = withAlpha(col.fg, 0.3)
-      ctx.lineWidth = 1
-      ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke()
-
-      // the region: a look pulses from it as it passes under each track; its name rides with it
-      if (region) {
-        const p = project(rLon * RAD, Math.cos(rLat * RAD), Math.sin(rLat * RAD), lc)
-        const local = (((12 + (rLon - lcDeg) / 15) % 24) + 24) % 24
-        if (isLive && lastLocal != null && local > lastLocal && local - lastLocal < 1) {
-          for (const o of list) if (lastLocal < o.time && local >= o.time) pulses.push({ color: colorOf.get(o.id) ?? col.fg, start: t })
-        }
-        lastLocal = local
-        if (p[2] > 0.05) {
-          const [x, y] = S(p, R)
-          const top = region.bbox[3] + 2.5
-          const [nx, ny] = S(project(rLon * RAD, Math.cos(top * RAD), Math.sin(top * RAD), lc), R)
-          for (let q = pulses.length - 1; q >= 0; q--) {
-            const age = t - pulses[q].start
-            if (age > 1.2) { pulses.splice(q, 1); continue }
-            const k = age / 1.2
-            ctx.strokeStyle = withAlpha(pulses[q].color, 0.9 * (1 - k))
-            ctx.lineWidth = 2
-            ctx.beginPath(); ctx.arc(x, y, 6 + 26 * Math.sqrt(k), 0, TAU); ctx.stroke()
-          }
-          ctx.globalAlpha = Math.min(1, (p[2] - 0.05) / 0.25)
-          ctx.font = font
-          ctx.textBaseline = 'bottom'
-          ctx.textAlign = 'center'
-          ctx.lineWidth = 4
-          ctx.strokeStyle = col.ground
-          ctx.strokeText(region.name, nx, ny - 4)
-          ctx.fillStyle = col.fg
-          ctx.fillText(region.name, nx, ny - 4)
-          ctx.textAlign = 'start'
-          ctx.globalAlpha = 1
-        }
-      }
-
-      // in front of the globe
+      ctx.drawImage(base, 0, 0, L.W, L.H)
       for (const o of list) hoop(o, true)
+      // where each orbit crosses the region's day path: the satellite's look there
+      for (const o of list) {
+        const c = colorOf.get(o.id) ?? col.fg
+        const [x, y] = S(pt(o, cross[o.dayPass].u), Ro)
+        ctx.beginPath(); ctx.arc(x, y, 4.5, 0, TAU)
+        ctx.fillStyle = col.ground; ctx.fill()
+        ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.stroke()
+      }
+      return settling
     }
     scene.current = { draw }
-    draw(0, live)
+    draw(0, false)
     return () => { scene.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [W, L, inkKey, regionKey])
 
-  // a change of year redraws the still view (the running loop eases it in on its own)
+  // a change of year: redraw (the running loop eases it in on its own)
   React.useEffect(() => {
     if (!live) scene.current?.draw(0, false)
   }, [orbitsKey, live])
 
-  // the running clock: only while motion is on and the figure is on screen
+  // the satellites' clock: only while motion is on and the figure is on screen
   React.useEffect(() => {
     if (!live) return
     let raf = 0
-    clock.current.last = performance.now()
+    let last = performance.now()
     const tick = (now: number) => {
-      const dt = Math.min(0.1, (now - clock.current.last) / 1000)
-      clock.current.last = now
+      const dt = Math.min(0.1, (now - last) / 1000)
+      last = now
       clock.current.t += dt
       scene.current?.draw(dt, true)
       raf = requestAnimationFrame(tick)
@@ -479,14 +435,15 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
     return () => cancelAnimationFrame(raf)
   }, [live])
 
-  // the time line under the globe: the day from sunrise to sunset, where each track crosses the equator
-  const { cx, R, axisY, compact, H } = L
-  const xAt = (h: number) => cx + R * Math.sin(angleOf(h))
-  const hourLabels = compact ? [6, 12, 18] : [6, 9, 12, 15, 18]
+  // the time line under the globe: the region's day from sunrise to sunset, laid out as its day path is
+  const { cx, axisY, compact, H } = L
+  const xAt = (h: number) => cx + L.Ro * Math.cos(rLat) * Math.sin(angleOf(h))
+  const hourLabels = (compact ? [6, 12, 18] : [6, 9, 12, 15, 18]).filter((h) => orbits.every((o) => Math.abs(xAt(o.time) - xAt(h)) > (compact ? 16 : 24)))
   const hourText = (h: number) => (compact ? String(h).padStart(2, '0') : `${String(h).padStart(2, '0')}:00`)
   const text = (o: GlobeOrbit) => (compact ? o.label : `${o.label} ${o.timeText}`)
   const charW = compact ? 6.6 : 7.4
   const placed = placeLabels(orbits.map((o) => ({ id: o.id, x: xAt(o.time), w: text(o).length * charW })), L.W)
+  const rows = Math.max(0, ...[...placed.values()].map((p) => p.row))
   const spanBar = (() => {
     if (!span) return null
     const a = orbits.find((o) => o.id === span.from)
@@ -498,10 +455,10 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
   const rowY = (row: number) => axisY + (compact ? 36 : 40) + row * 20
 
   return (
-    <div ref={boxRef} role="img" aria-label={label} className={cn('relative w-full', className)} style={{ height: H, ...style }} {...props}>
-      <canvas ref={canvasRef} aria-hidden className="absolute inset-0 block" style={{ width: L.W, height: L.H }} />
+    <div ref={boxRef} role="img" aria-label={label} className={cn('relative w-full', className)} style={{ height: H + 20 * rows, ...style }} {...props}>
+      <canvas ref={canvasRef} aria-hidden className="absolute inset-x-0 top-0 block" style={{ width: L.W, height: L.H }} />
       {W > 0 ? (
-        <svg aria-hidden width={L.W} height={L.H} className="absolute inset-0 block overflow-visible" fontSize={compact ? 12 : 13}>
+        <svg aria-hidden width={L.W} height={H + 20 * rows} className="absolute inset-x-0 top-0 block overflow-visible" fontSize={compact ? 12 : 13}>
           <line x1={xAt(6)} x2={xAt(18)} y1={axisY} y2={axisY} stroke={ink.grid} strokeWidth={1} />
           {HOURS.map((h) => (
             <line key={h} x1={xAt(h)} x2={xAt(h)} y1={axisY - 3} y2={axisY + 3} stroke={ink.grid} strokeWidth={1} />

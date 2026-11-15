@@ -1075,7 +1075,8 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
     return () => window.clearInterval(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, d.id])
-  if (!dr || !years.length) return null
+  const region = REGIONS.find((r) => r.id === d.id)
+  if (!dr || !years.length || !region) return null
 
   const orbits: GlobeOrbit[] = [
     { id: 'terra', label: 'Terra', time: hm(dr.terra_lst), timeText: dr.terra_lst, dayPass: 'south', marker: 'hollow', color: 'var(--bone3)', phase: 0.62 },
@@ -1084,13 +1085,12 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
   ]
   const order = [...orbits].sort((a, b) => a.time - b.time).map((o) => (o.id === 'viirs' ? 'the fixed clock’s' : `${o.label}’s`))
   const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
-  const region = REGIONS.find((r) => r.id === d.id)
   const play = () => {
     if (playing) { setPlaying(false); return }
     if (years.indexOf(year) >= years.length - 1) onYear(years[0])
     setPlaying(true)
   }
-  const description = `The Earth seen from the Sun’s side in ${dr.year}, turning under three orbits: ${d.phrase.the} passes under Terra’s at ${dr.terra_lst}, the fixed clock’s at ${dr.viirs_lst} and Aqua’s at ${dr.aqua_lst} local solar time.`
+  const description = `${statementName(d.id)} at noon in ${dr.year}, seen from the Sun’s side, with three orbits: its day carries it under Terra’s track at ${dr.terra_lst}, the fixed clock’s at ${dr.viirs_lst} and Aqua’s at ${dr.aqua_lst} local solar time.`
 
   return (
     <section id="orbits" aria-labelledby="orbits-h" className="scroll-mt-20">
@@ -1098,9 +1098,10 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
         <div className="lg:col-span-4">
           <h2 id="orbits-h" className={title}>{orbitsHeading(d)}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            You are looking at the Earth from the Sun’s side: morning on the left, noon in the middle, evening on the right.
-            Each satellite’s orbit keeps its angle to the sunlight while the Earth turns beneath it, so {d.phrase.the} passes
-            under {order[0]} first, then {order[1]}, then {order[2]}, at the same time every day.
+            {statementName(d.id)} at noon, seen from the Sun’s side: morning to the left, evening to the right. Each orbit
+            keeps its angle to the sunlight, so each orbit runs along a line of one time of day. The Earth’s turn carries{' '}
+            {d.phrase.the} along the dashed path, under {order[0]} orbit first, then {order[1]}, then {order[2]}. Drag the
+            years under the globe to see the orbits move.
           </p>
           <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
             <dt className="text-[color:var(--bone3)]">Year</dt>
@@ -1112,42 +1113,46 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
             <dt className="text-[color:var(--bone3)]">Aqua</dt>
             <dd className="tabular-nums">{dr.aqua_lst} <span className="text-[color:var(--bone3)]">{Math.abs(shift)} min {shift >= 0 ? 'after' : 'before'} the fixed clock</span></dd>
           </dl>
-          <div className="mt-6 flex items-center gap-4">
-            <button
-              type="button"
-              onClick={play}
-              aria-pressed={playing}
-              className={cn('inline-flex size-9 shrink-0 items-center justify-center rounded border border-[color:var(--bone-30)] text-[color:var(--bone)] hover:bg-[color:var(--hairline)]', ease, focusRing)}
-            >
-              {playing ? <Pause size={16} strokeWidth={1.5} aria-hidden /> : <Play size={16} strokeWidth={1.5} aria-hidden />}
-              <span className="sr-only">{playing ? 'Pause the years' : 'Play the years'}</span>
-            </button>
-            <YearSlider
-              value={dr.year}
-              onChange={(y) => { setPlaying(false); onYear(y) }}
-              min={years[0]}
-              max={years[years.length - 1]}
-              valueText={(y) => String(y)}
-              classes={sliderClasses}
-              label="Year shown on the globe"
-            />
-          </div>
-          <div className="mt-2 flex justify-between pl-13 text-xs tabular-nums text-[color:var(--bone3)]">
-            <span>{years[0]}</span><span>{years[years.length - 1]}</span>
-          </div>
         </div>
 
         <figure className="m-0 min-w-0 lg:col-span-8">
           <OrbitGlobe
             orbits={orbits}
-            region={region ? { name: statementName(d.id), bbox: region.bbox } : undefined}
+            region={{ name: statementName(d.id), bbox: region.bbox }}
             span={{ from: 'viirs', to: 'aqua' }}
             running={motion.on}
             ink={GLOBE_INK}
             label={description}
           />
-          <figcaption className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--bone3)]">
-            <span>Not to scale: the orbits sit about 700 km up and are drawn higher; the day runs about 900 times faster.</span>
+          {/* the years, under the Earth: dragging them moves the orbits */}
+          <div className="mx-auto mt-6 max-w-[34rem]">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={play}
+                aria-pressed={playing}
+                className={cn('inline-flex size-9 shrink-0 items-center justify-center rounded border border-[color:var(--bone-30)] text-[color:var(--bone)] hover:bg-[color:var(--hairline)]', ease, focusRing)}
+              >
+                {playing ? <Pause size={16} strokeWidth={1.5} aria-hidden /> : <Play size={16} strokeWidth={1.5} aria-hidden />}
+                <span className="sr-only">{playing ? 'Pause the years' : 'Play the years'}</span>
+              </button>
+              <YearSlider
+                value={dr.year}
+                onChange={(y) => { setPlaying(false); onYear(y) }}
+                min={years[0]}
+                max={years[years.length - 1]}
+                valueText={(y) => String(y)}
+                classes={sliderClasses}
+                label="Year shown on the globe"
+              />
+              <span className="w-10 shrink-0 text-right text-sm tabular-nums text-[color:var(--bone)]">{dr.year}</span>
+            </div>
+            <div aria-hidden className="mt-1 flex justify-between pl-13 pr-14 text-xs tabular-nums text-[color:var(--bone3)]">
+              <span>{years[0]}</span><span>{years[years.length - 1]}</span>
+            </div>
+          </div>
+          <figcaption className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--bone3)]">
+            <span>Orbit heights to scale, about 700 km up; the satellites fly faster than life.</span>
             <span>Source: drift/{d.id}.json</span>
             <MockTag show={d.mock} />
           </figcaption>
@@ -1159,21 +1164,22 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
 
 /* ---------- Three passes, one day: one frame, switched between the passes ---------- */
 
-const AMAZON_2026 = regionData('br-amazon').driftAt(2026)
+// the passes were photographed on 4 Sep 2026; their typical look times come from the latest year in the drift file
+const AMAZON_LOOK = (() => { const d = regionData('br-amazon'); return d.drift.find((r) => r.year === 2026) ?? d.lastDrift })()
 type PassKey = 'terra' | 'viirs' | 'aqua'
 const PASSES: { key: PassKey; name: string; when: string; control: string; look?: string; wide: string; square: string; fit: string; alt: string }[] = [
   {
-    key: 'terra', name: 'Terra', when: 'morning', control: 'Terra', look: AMAZON_2026?.terra_lst,
+    key: 'terra', name: 'Terra', when: 'morning', control: 'Terra', look: AMAZON_LOOK?.terra_lst,
     wide: `${IMG}amazon-terra-2026-09-04.jpg`, square: `${IMG}prints/amazon-terra-sq.jpg`, fit: 'object-left',
     alt: 'Terra, morning pass, 4 Sep 2026: hazy smoke and a few clouds over the forest',
   },
   {
-    key: 'viirs', name: 'VIIRS', when: 'fixed clock', control: 'VIIRS (fixed clock)', look: AMAZON_2026?.viirs_lst,
+    key: 'viirs', name: 'VIIRS', when: 'fixed clock', control: 'VIIRS (fixed clock)', look: AMAZON_LOOK?.viirs_lst,
     wide: `${IMG}amazon-viirs-2026-09-04.jpg`, square: `${IMG}prints/amazon-viirs-sq.jpg`, fit: 'object-center',
     alt: 'VIIRS, early afternoon pass on the fixed clock, 4 Sep 2026: small cumulus clouds spread across the same forest',
   },
   {
-    key: 'aqua', name: 'Aqua', when: 'later afternoon', control: 'Aqua', look: AMAZON_2026?.aqua_lst,
+    key: 'aqua', name: 'Aqua', when: 'later afternoon', control: 'Aqua', look: AMAZON_LOOK?.aqua_lst,
     wide: `${IMG}amazon-aqua-2026-09-04.jpg`, square: `${IMG}prints/amazon-aqua-sq.jpg`, fit: 'object-center',
     alt: 'Aqua, later afternoon pass, 4 Sep 2026: towering clouds over the same forest',
   },
@@ -1240,7 +1246,7 @@ function Passes({ d }: { d: RegionData }) {
             <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-tile)]" />
             <div aria-hidden className="absolute bottom-4 left-4 right-4">
               <p className="text-sm font-medium text-[color:var(--bone)]">{active.name} · {active.when}</p>
-              {active.look ? <p className="mt-1 text-xs text-[color:var(--bone-80)]">Typical look {active.look} in 2026</p> : null}
+              {active.look ? <p className="mt-1 text-xs text-[color:var(--bone-80)]">Typical look {active.look} in {AMAZON_LOOK?.year}</p> : null}
             </div>
           </div>
           <figcaption className="mt-4 text-xs text-[color:var(--bone3)]">
