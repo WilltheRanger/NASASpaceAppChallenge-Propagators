@@ -105,16 +105,16 @@ const TOKENS = {
 const container = 'mx-auto w-full max-w-[var(--maxw)] px-4 md:px-8'
 const ease = 'transition-colors duration-150 ease-[var(--ease)]'
 // No outline-none here: in Tailwind v4 it sets --tw-outline-style to none and would hide these rings.
-const ringLight = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]'
-const ringLightInset = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--ink)]'
-const ringDark = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wtext)]'
-const ringDarkInset = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--wtext)]'
+const ringLight = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]'
+const ringLightInset = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--ink)]'
+const ringDark = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--wtext)]'
+const ringDarkInset = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--wtext)]'
 const heading32 = 'text-balance text-[length:var(--fs-32)] font-normal leading-9 tracking-[var(--track-32)]'
-const btn = cn('inline-flex h-12 items-center justify-center gap-2 rounded-lg px-5 text-sm font-medium', ease, ringLight)
+const btn = cn('inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg px-5 text-sm font-medium', ease, ringLight)
 
 const selectClasses = {
   trigger: cn(
-    'inline-flex h-9 min-w-0 items-center gap-2 rounded-lg border border-[var(--hair)] bg-[var(--card)] pl-3 pr-2 text-sm text-[color:var(--ink)]',
+    'inline-flex h-9 min-w-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--hair)] bg-[var(--card)] pl-3 pr-2 text-sm text-[color:var(--ink)]',
     '[&>span:first-child]:truncate hover:border-[var(--hair-strong)]', ease, ringLight,
   ),
   icon: 'shrink-0 text-[color:var(--ink3)]',
@@ -124,7 +124,7 @@ const selectClasses = {
 
 const menuClasses = {
   trigger: cn(
-    'inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--hair)] bg-[var(--card)] text-[color:var(--ink2)]',
+    'inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--hair)] bg-[var(--card)] text-[color:var(--ink2)]',
     'hover:border-[var(--hair-strong)] hover:text-[color:var(--ink)]', ease, ringLight,
   ),
   content: 'z-50 min-w-48 rounded-xl border border-[var(--hair)] bg-[var(--card)] p-1 font-[family-name:var(--font)] text-sm text-[color:var(--ink)] shadow-[var(--shadow-win)]',
@@ -134,7 +134,7 @@ const menuClasses = {
 const modeClasses = {
   root: 'inline-flex h-8 items-center rounded-lg bg-[var(--raised)] p-0.5',
   item: cn(
-    'h-7 rounded-md px-3 text-sm text-[color:var(--wtext2)] data-[state=off]:hover:text-[color:var(--wtext)]',
+    'h-7 cursor-pointer rounded-md px-3 text-sm text-[color:var(--wtext2)] data-[state=off]:hover:text-[color:var(--wtext)]',
     'data-[state=on]:bg-[var(--wtext)] data-[state=on]:text-[color:var(--win)]', ease, ringDark,
   ),
 }
@@ -246,12 +246,12 @@ export default function Operating() {
 
 /* ---------- Top bar ---------- */
 
-/** The mark: a clock face held at 13:30, the fixed hour every count is anchored to. */
+/** The mark: a dial with one hand held at the 1:30 position, the fixed hour every count is anchored to. */
 function Mark() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden className="shrink-0">
       <circle cx="10" cy="10" r="9" style={{ fill: 'var(--ink)' }} />
-      <path d="M10 10 L13.5 6.5 M10 10 L10 16" fill="none" strokeWidth="1.75" strokeLinecap="round" style={{ stroke: 'var(--page)' }} />
+      <path d="M10 10 L15 5" fill="none" strokeWidth="2" strokeLinecap="round" style={{ stroke: 'var(--page)' }} />
     </svg>
   )
 }
@@ -374,7 +374,7 @@ function RegionList({ all, regionId, onRegion }: { all: RegionData[]; regionId: 
             key={r.id}
             value={r.id}
             className={cn(
-              'flex h-9 w-full items-center justify-between gap-3 rounded-lg px-3 text-left',
+              'flex h-9 w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 text-left',
               'data-[state=off]:hover:bg-[var(--panel)] data-[state=on]:bg-[var(--raised)] data-[state=on]:shadow-[var(--inset-hi)]',
               ease, ringDarkInset,
             )}
@@ -546,7 +546,7 @@ function Readout({ d, year }: { d: RegionData; year: number }) {
   const audit = d.years.find((y) => y.year === yr)
   const { hc, change } = verdictLines(d)
   return (
-    <div className="flex flex-col border-t border-[var(--whair)] p-4 md:p-6 lg:border-l lg:border-t-0">
+    <div className="border-t border-[var(--whair)] p-4 md:p-6 lg:border-l lg:border-t-0">
       <p className="text-[length:var(--fs-32)] leading-9 text-[color:var(--wtext)]">{yr}</p>
       {dr ? (
         <dl className="mt-4 flex flex-col gap-2 text-sm">
@@ -559,28 +559,32 @@ function Readout({ d, year }: { d: RegionData; year: number }) {
         </dl>
       ) : null}
 
-      <div className="mt-6 min-h-28 border-t border-[var(--whair)] pt-6">
-        <p className="text-sm text-[color:var(--wtext2)]">Clock effect</p>
-        {!audit ? (
-          <p className="mt-1 text-sm text-[color:var(--wtext3)]">No audit for this year</p>
-        ) : audit.verdict === 'na' ? (
-          <>
-            <p className="mt-1 text-xl font-medium text-[color:var(--wtext)]">Not enough fires</p>
-            <p className="mt-1 text-xs text-[color:var(--wtext3)]">to measure the clock effect</p>
-          </>
-        ) : (
-          <>
-            <p className="mt-1 text-xl font-medium text-[color:var(--wtext)]">{pct(audit.gap!)}</p>
-            <p className="mt-1 text-pretty text-xs text-[color:var(--wtext3)]">
-              <span className="whitespace-nowrap">({fmtRange(audit.lo!, audit.hi!)})</span>
-              {' · '}
-              {audit.verdict === 'clock' ? 'outside' : 'within'} the {noiseFloor(d)} noise floor
-            </p>
-          </>
-        )}
+      <div className="mt-5 border-t border-[var(--whair)] pt-5">
+        {/* fixed height for every state, so scrubbing the year never moves the group below */}
+        <div className="min-h-18 lg:min-h-22">
+          <p className="text-sm text-[color:var(--wtext2)]">Clock effect</p>
+          {!audit ? (
+            <p className="mt-1 text-sm text-[color:var(--wtext3)]">No audit for this year</p>
+          ) : audit.verdict === 'na' ? (
+            <>
+              <p className="mt-1 text-xl font-medium text-[color:var(--wtext)]">Not enough fires</p>
+              <p className="mt-1 text-xs text-[color:var(--wtext3)]">to measure the clock effect</p>
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-xl font-medium text-[color:var(--wtext)]">{pct(audit.gap!)}</p>
+              {/* one line where it fits; in the 280 px column the range and the noise floor take a line each */}
+              <p className="mt-1 text-xs text-[color:var(--wtext3)]">
+                <span className="whitespace-nowrap lg:block">({fmtRange(audit.lo!, audit.hi!)})</span>
+                <span className="lg:hidden"> · </span>
+                <span className="whitespace-nowrap lg:block">{audit.verdict === 'clock' ? 'outside' : 'within'} the {noiseFloor(d)} noise floor</span>
+              </p>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="mt-6 border-t border-[var(--whair)] pt-6 lg:mt-auto">
+      <div className="mt-5 border-t border-[var(--whair)] pt-5">
         <p className="text-sm text-[color:var(--wtext2)]">{hc.from} → {hc.to}</p>
         {hc.ok ? (
           <dl className="mt-2 flex flex-col gap-2 text-sm">
@@ -613,7 +617,7 @@ function RegionsIndex({ all, regionId, onRegion }: { all: RegionData[]; regionId
                   type="button"
                   aria-pressed={loaded}
                   onClick={() => onRegion(r.id)}
-                  className={cn('group grid w-full grid-cols-1 rounded-lg py-6 text-left md:grid-cols-12 md:gap-x-6 md:py-8', ringLightInset)}
+                  className={cn('group grid w-full cursor-pointer grid-cols-1 rounded-lg py-6 text-left md:grid-cols-12 md:gap-x-6 md:py-8', ringLightInset)}
                 >
                   <span
                     className={cn(
@@ -667,7 +671,7 @@ function CalendarSection({ d, mode, onMode }: { d: RegionData; mode: CalendarMod
                   key={fmt}
                   type="button"
                   onClick={fmt === 'CSV' ? () => downloadCalendarCsv(d) : undefined}
-                  className={cn('inline-flex h-8 items-center rounded-lg px-2 text-sm text-[color:var(--wtext2)] hover:text-[color:var(--wtext)]', ease, ringDark)}
+                  className={cn('inline-flex h-8 cursor-pointer items-center rounded-lg px-2 text-sm text-[color:var(--wtext2)] hover:text-[color:var(--wtext)]', ease, ringDark)}
                 >
                   {fmt}
                 </button>

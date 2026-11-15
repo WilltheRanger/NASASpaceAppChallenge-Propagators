@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle, RegionSelect, YearSlider } from '@/r2/controls'
+import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 import {
   REGIONS, SECTIONS, calendarFinding, calendarGrid, fmtRange, hm, minutesBetween, pct, regionData, verdictHeadline, verdictLines,
   type RegionData, type Verdict,
@@ -38,14 +39,15 @@ const BASE_TOKENS = {
   '--ease': 'cubic-bezier(0.22, 1, 0.36, 1)',
 } as const
 
-// Neutral black scrims only, for legibility on the photograph (no hue anywhere in them).
-const SCRIM_TOP = 'linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 20%)'
+// Neutral black scrims for legibility on the photograph; no hue anywhere in them.
+// behind the top bar: eased so the links stay at 4.5:1 over the brightest cumulus, gone by a quarter of the height
+const SCRIM_TOP = 'linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.74) 6%, rgba(0, 0, 0, 0.45) 14%, rgba(0, 0, 0, 0) 26%)'
 const SCRIMS_WIDE = [
   SCRIM_TOP,
   // a soft one behind the verdict block, lower left
   'radial-gradient(ellipse 52% 58% at 22% 72%, rgba(0, 0, 0, 0.56) 0%, rgba(0, 0, 0, 0.4) 45%, rgba(0, 0, 0, 0) 100%)',
   // a soft one behind the pass line, lower right
-  'radial-gradient(ellipse 42% 42% at 78% 86%, rgba(0, 0, 0, 0.48) 0%, rgba(0, 0, 0, 0) 100%)',
+  'radial-gradient(ellipse 44% 46% at 78% 84%, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.36) 50%, rgba(0, 0, 0, 0) 100%)',
   // black from 0% at mid-height to 85% at the bottom, eased
   'linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.34) 58%, rgba(0, 0, 0, 0.56) 66%, rgba(0, 0, 0, 0.7) 75%, rgba(0, 0, 0, 0.8) 86%, rgba(0, 0, 0, 0.85) 100%)',
 ].join(', ')
@@ -153,34 +155,6 @@ const defaultYear = (d: RegionData) => d.latestOk?.year ?? d.years[d.years.lengt
 function initialRegion() {
   const r = new URLSearchParams(window.location.search).get('region')
   return r && REGIONS.some((x) => x.id === r) ? r : 'br-amazon'
-}
-
-function summaryText(d: RegionData) {
-  const { look, change } = verdictLines(d)
-  return [
-    `Anchor · ${d.name} · MOCK`,
-    '',
-    verdictHeadline(d),
-    `${look} ${change}`,
-    '',
-    'Clock effect by year',
-    ['Year', 'Clock effect', 'Range', 'Reading'].join('\t'),
-    ...d.years.map((y) => [y.year, effectText(y), rangeText(y), READING[y.verdict]].join('\t')),
-    `Source: audit/${d.id}.json · MOCK`,
-    '',
-    AI_NOTE,
-  ].join('\n')
-}
-
-function downloadSummary(d: RegionData) {
-  const url = URL.createObjectURL(new Blob([summaryText(d)], { type: 'text/plain;charset=utf-8' }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `anchor-${d.id}-summary-mock.txt`
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 /* ---------- Shared classes ---------- */
@@ -606,11 +580,13 @@ function Calendar({ d, mode, onMode, small }: { d: RegionData; mode: CalendarMod
               <span className="sr-only">Years {first} to {last}</span>
             </span>
             <div className="flex items-center gap-4 sm:ml-auto">
+              {/* CSV is wired to the shared download; PNG and SVG stay inert in this comp */}
               {['CSV', 'PNG', 'SVG'].map((fmt) => (
                 <button
                   key={fmt}
                   type="button"
                   aria-label={`Download ${fmt}`}
+                  onClick={fmt === 'CSV' ? () => downloadCalendarCsv(d) : undefined}
                   className={cn('h-9 rounded text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}
                 >
                   {fmt}
@@ -618,7 +594,7 @@ function Calendar({ d, mode, onMode, small }: { d: RegionData; mode: CalendarMod
               ))}
             </div>
           </div>
-          <div className="mt-6 rounded-lg border border-[color:var(--hairline)] bg-[color:var(--surface)] p-4 sm:p-6">
+          <div className="mt-6 rounded-lg border border-[color:var(--hairline)] bg-[color:var(--surface)] p-6">
             <FireCalendar
               years={grid.years}
               cells={grid.cells}
