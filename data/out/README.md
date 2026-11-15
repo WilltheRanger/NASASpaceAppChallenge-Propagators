@@ -13,7 +13,8 @@ Synthetic placeholders used while the app was being built live in `data/mock/` a
 | `daylight/` | `analysis/daylight/daylight.py` | Daylight left after each satellite's alert (see `analysis/daylight/README.md`) |
 | `sim/amazon-2024-09-02.json` | `analysis/simulation/response_sim.py` | One fire day in Pará. The app reads only its real detections and pass times |
 | `regions.json` | `analysis/statistics/audit.py` | The six preset regions and their boxes |
+| `global/grid.json`, `global/cells/` | `analysis/global/global_grid.py` | Exploratory: the clock audit on a 2° grid (L 2024 and 2025 with intervals, Aqua's look-time shift, a "too few fires" mask) and a monthly calendar per readable cell. Not checked against a national reference series (see `analysis/global/README.md`) |
 
 **AI disclosure:** the code that writes these files was written with AI assistance (see "Use of AI" in the main
 README), so the data here is AI-assisted output. Team members ran the pipelines and reviewed the results. The daylight
-files also carry `"ai_assisted": true`.
+and global files also carry `"ai_assisted": true`.

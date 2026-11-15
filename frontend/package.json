@@ -5,7 +5,9 @@
   "description": "Anchor: the fire record on a fixed clock. Team Propagators, NASA Space Apps 2026.",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-global.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-global.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "artifact": "vite build --config vite.artifact.config.ts && node scripts/artifact-page.mjs"

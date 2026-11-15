@@ -423,6 +423,7 @@ export const SECTIONS = [
   { id: 'two-clocks', label: 'Two clocks', inComp: false },
   { id: 'audit', label: 'Audit', inComp: false },
   { id: 'calendar', label: 'Calendar', inComp: true },
+  { id: 'global', label: 'World map', inComp: true },
   { id: 'checks', label: 'Checks', inComp: false },
   { id: 'detection', label: 'Detection', inComp: false },
   { id: 'limits', label: 'Limits', inComp: false },
