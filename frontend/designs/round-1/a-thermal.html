@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anchor · Round 1 · A · Thermal</title>
+<meta name="generator" content="Team Propagators">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="../data.js"></script>
+<style>
+  :root {
+    --bg: #07060B; --surface: #110F19; --raised: #1A1725;
+    --line: rgba(255, 240, 230, 0.10); --line-2: rgba(255, 240, 230, 0.18);
+    --text: #F4EFEA; --text-2: #B9B0A8; --text-3: #8C847D;
+    --ember: #FF7A1A; --ember-ink: #1A0A00; --cyan: #4FD8E8; --violet: #B49CFF;
+    --mock: #FFD23F;
+    --sans: "Archivo", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-variation-settings: "wdth" 100; }
+  a { color: inherit; }
+  .mono { font-family: var(--mono); font-feature-settings: "tnum" 1, "zero" 1; }
+
+  /* top bar */
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 28px; padding: 0 32px; background: rgba(7, 6, 11, 0.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 19px; letter-spacing: -0.01em; font-variation-settings: "wdth" 90; }
+  .nav { display: flex; gap: 18px; font-family: var(--mono); font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; }
+  .nav a { text-decoration: none; padding: 6px 0; }
+  .nav a[aria-current] { color: var(--text); box-shadow: inset 0 -2px 0 var(--ember); }
+  .bar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .region { height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--surface); color: var(--text); font: 500 14px var(--sans); cursor: pointer; }
+  .badge-mock { font: 700 11px var(--mono); color: var(--bg); background: var(--mock); padding: 4px 7px; border-radius: 4px; letter-spacing: 0.04em; }
+
+  /* hero */
+  .hero { position: relative; min-height: 860px; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .hero canvas, .hero .still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero .still { display: none; filter: grayscale(1) brightness(0.55) sepia(0.6) hue-rotate(-20deg) saturate(2); }
+  .no-gl .hero canvas { display: none; } .no-gl .hero .still { display: block; }
+  .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(7,6,11,0.94) 0%, rgba(7,6,11,0.86) 38%, rgba(7,6,11,0.25) 70%, rgba(7,6,11,0.55) 100%); }
+  .hero-grid { position: relative; max-width: 1440px; margin: 0 auto; padding: 64px 48px 40px; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 40px; align-items: start; }
+  .fig { font: 500 12px/1.4 var(--mono); color: var(--text-2); }
+  .fig b { color: var(--text); font-weight: 600; }
+  .readout { margin: 22px 0 10px; display: flex; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+  .readout svg { display: block; }
+  .readout .cap { font: 500 13px/1.45 var(--mono); color: var(--text-2); padding-bottom: 6px; }
+  .readout .cap strong { display: block; color: var(--ember); font-weight: 700; }
+  .readout .cap .fixed { color: var(--cyan); }
+  h1 { margin: 26px 0 0; font-size: 42px; line-height: 1.12; font-weight: 520; letter-spacing: -0.015em; max-width: 21ch; text-wrap: balance; }
+  h1 em { font-style: normal; color: var(--ember); }
+  .checks { margin-top: 28px; display: grid; grid-template-columns: repeat(3, minmax(0, auto)); gap: 0; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(17, 15, 25, 0.78); width: fit-content; }
+  .stat { padding: 14px 20px; border-right: 1px solid var(--line); }
+  .stat:last-child { border-right: 0; }
+  .stat .k { font: 500 12px var(--mono); color: var(--text-3); }
+  .stat .v { margin-top: 6px; font: 600 28px/1 var(--mono); letter-spacing: -0.02em; }
+  .stat .r { margin-top: 6px; font: 400 12px var(--mono); color: var(--text-2); }
+  .v.official { color: var(--text); } .v.fixed { color: var(--cyan); } .v.gap { color: var(--ember); }
+  .years { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font: 500 12px var(--mono); padding: 7px 10px; border-radius: 6px; border: 1px solid var(--line-2); color: var(--text-2); background: rgba(17,15,25,0.7); }
+  .chip b { color: var(--text); font-weight: 600; margin-right: 6px; }
+  .chip.hit { border-color: rgba(255,122,26,0.65); color: #FFD9BF; background: rgba(255,122,26,0.12); }
+  .chip.na { border-style: dashed; }
+  .legend-line { margin-top: 10px; font: 400 12px var(--mono); color: var(--text-3); }
+  .actions { margin-top: 30px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .btn { height: 46px; padding: 0 20px; display: inline-flex; align-items: center; gap: 10px; border-radius: 9px; font: 600 15px var(--sans); text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+  .btn.primary { background: var(--ember); color: var(--ember-ink); }
+  .btn.ghost { border-color: var(--line-2); color: var(--text); background: rgba(17,15,25,0.6); }
+  .source { margin-top: 26px; font: 400 12px/1.5 var(--mono); color: var(--text-3); max-width: 64ch; }
+
+  /* dial */
+  .dial-wrap { justify-self: end; width: 100%; max-width: 520px; padding: 20px 22px 18px; border: 1px solid var(--line-2); border-radius: 16px; background: rgba(10, 9, 15, 0.72); backdrop-filter: blur(6px); }
+  .dial-head { display: flex; justify-content: space-between; align-items: baseline; font: 500 12px var(--mono); color: var(--text-2); }
+  .dial-head b { color: var(--text); font-weight: 600; }
+  #dial { display: block; width: 100%; height: auto; margin-top: 6px; }
+  .scrub { margin-top: 6px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; font: 500 12px var(--mono); color: var(--text-3); }
+  input[type=range] { width: 100%; accent-color: var(--ember); height: 28px; }
+  .key { margin-top: 10px; display: flex; gap: 16px; flex-wrap: wrap; font: 500 12px var(--mono); color: var(--text-2); }
+  .key i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .credit { position: absolute; right: 24px; bottom: 16px; font: 400 11px var(--mono); color: rgba(244,239,234,0.62); text-align: right; max-width: 58ch; }
+
+  /* next section glimpse */
+  .sec { max-width: 1440px; margin: 0 auto; padding: 64px 48px 72px; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 48px; }
+  .sec .num { font: 600 13px var(--mono); color: var(--ember); }
+  .sec h2 { margin: 10px 0 0; font-size: 30px; line-height: 1.15; font-weight: 560; letter-spacing: -0.01em; }
+  .sec p { margin: 14px 0 0; color: var(--text-2); font-size: 16px; line-height: 1.55; }
+  .figure { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 18px 20px 14px; }
+  .figure .tb { display: flex; justify-content: space-between; font: 500 12px var(--mono); color: var(--text-3); }
+  .figure .tb span + span { margin-left: 14px; }
+  #drift { display: block; width: 100%; height: 280px; margin-top: 8px; }
+
+  @media (max-width: 900px) {
+    .nav { display: none; }
+    .hero-grid { grid-template-columns: minmax(0, 1fr); padding: 36px 20px 28px; }
+    .dial-wrap { justify-self: stretch; }
+    h1 { font-size: 30px; }
+    .checks { grid-template-columns: minmax(0, 1fr); width: 100%; }
+    .stat { border-right: 0; border-bottom: 1px solid var(--line); }
+    .scrim { background: linear-gradient(180deg, rgba(7,6,11,0.55) 0%, rgba(7,6,11,0.92) 30%, rgba(7,6,11,0.96) 100%); }
+    .sec { grid-template-columns: minmax(0, 1fr); padding: 40px 20px; gap: 20px; }
+    .credit { position: static; padding: 0 20px 16px; text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hero canvas { display: none; } .hero .still { display: block; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 7 7" aria-hidden="true"><g fill="#FF7A1A"><rect x="3" y="0" width="1" height="1"/><rect x="2" y="1" width="3" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="2" y="6" width="3" height="1"/></g></svg>
+    Anchor
+  </div>
+  <nav class="nav" aria-label="Sections">
+    <a href="#v" aria-current="true">0.0 Verdict</a><a href="#c">1.0 Clock</a><a href="#">2.0 Two clocks</a><a href="#">3.0 Audit</a><a href="#">4.0 Calendar</a><a href="#">5.0 Checks</a><a href="#">6.0 What satellites miss</a><a href="#">7.0 Limits</a>
+  </nav>
+  <div class="bar-right">
+    <span class="badge-mock" title="Synthetic placeholder numbers from data/mock">MOCK DATA</span>
+    <button class="region" type="button" aria-haspopup="listbox">Amazon (Brazil)
+      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="v" aria-labelledby="verdict-h">
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <img class="still" src="../assets/amazon-viirs-fires-2024-08-23.jpg" alt="">
+  <div class="scrim"></div>
+  <div class="hero-grid">
+    <div>
+      <div class="fig"><b>0.0 Verdict</b> · Amazon (Brazil) · look time in local solar time</div>
+      <div class="readout">
+        <svg id="flip" role="img" aria-label="Aqua looked at 14:12 in 2026"></svg>
+        <div class="cap"><strong id="cap-sat">Aqua, 2026</strong>the satellite INPE's official count uses<br><span class="fixed" id="cap-fixed">VIIRS 13:18 · the fixed clock</span></div>
+      </div>
+      <h1 id="verdict-h">Aqua's later clock added about <em>22%</em> to the Amazon's 2025 count. On a fixed clock, 2024→2025 fell <em>29.5%</em>, not 26.8%.</h1>
+      <div class="checks" role="group" aria-label="Headline check, 2024 to 2025">
+        <div class="stat"><div class="k">Official, Aqua-based</div><div class="v official">−26.8%</div><div class="r">2024 → 2025</div></div>
+        <div class="stat"><div class="k">Fixed clock</div><div class="v fixed">−29.5%</div><div class="r">2024 → 2025</div></div>
+        <div class="stat"><div class="k">Clock effect, 2025</div><div class="v gap">+22.4%</div><div class="r">range +16.4 to +28.4</div></div>
+      </div>
+      <div class="years" aria-label="Clock effect by year">
+        <span class="chip"><b>2021</b>+2.1% within noise</span>
+        <span class="chip"><b>2022</b>+4.2% within noise</span>
+        <span class="chip hit"><b>2023</b>+11.3% clock</span>
+        <span class="chip hit"><b>2024</b>+17.9% clock</span>
+        <span class="chip hit"><b>2025</b>+22.4% clock</span>
+      </div>
+      <div class="legend-line">Noise floor ±5% from 2012–2020 placebo years · "clock" = whole error range outside it</div>
+      <div class="actions">
+        <a class="btn primary" href="#c">Explore the calendar
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+        <a class="btn ghost" href="#">Download summary</a>
+      </div>
+      <div class="source">Source: NASA FIRMS (MODIS C6.1, VIIRS 375 m) processed by the Anchor pipeline · audit/br-amazon.json · <span style="color:var(--mock)">MOCK numbers</span></div>
+    </div>
+    <div class="dial-wrap" role="group" aria-label="Look-time dial">
+      <div class="dial-head"><span>FIG. 1 · <b>Three clocks, one sky</b></span><span id="dial-year">2026</span></div>
+      <svg id="dial" viewBox="0 0 460 460" role="img" aria-label="24-hour dial with each satellite's look time"></svg>
+      <div class="scrub"><span>2012</span><input id="year" type="range" min="2012" max="2026" step="1" value="2026" aria-label="Year"><span>2026</span></div>
+      <div class="key"><span><i style="background:#FF7A1A"></i>Aqua · drifting later</span><span><i style="background:#4FD8E8"></i>VIIRS · fixed ~13:30</span><span><i style="background:#B49CFF"></i>Terra · drifting earlier</span></div>
+    </div>
+  </div>
+  <div class="credit">FIG. 0 · NOAA-20 VIIRS true colour with thermal anomalies, Rondônia, 23 Aug 2024 · NASA Worldview / GIBS · false-colour shader by Anchor</div>
+</section>
+
+<section class="sec" id="c" aria-labelledby="clock-h">
+  <div>
+    <div class="num">1.0</div>
+    <h2 id="clock-h">The clock moved</h2>
+    <p>Aqua's look time over the Amazon held at 13:12 until 2020, then slid later every year. VIIRS stayed put. Terra slid the other way.</p>
+  </div>
+  <div class="figure">
+    <div class="tb"><span>FIG. 2 · Median look time, local solar time · drift/br-amazon.json</span><span><span>Table</span><span>CSV</span><span>PNG</span><span>SVG</span></span></div>
+    <svg id="drift" viewBox="0 0 900 280" role="img" aria-label="Look time by year for Aqua, VIIRS and Terra"></svg>
+  </div>
+</section>
+</main>
+
+<script>
+const D = window.ANCHOR_DATA;
+const hm = s => { const [h, m] = s.split(':').map(Number); return h + m / 60; };
+const fmt = h => { const hh = Math.floor(h), mm = Math.round((h - hh) * 60); return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0'); };
+const NS = 'http://www.w3.org/2000/svg';
+const el = (n, a, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+
+/* flip-disk readout (5x7 digits) */
+const GLYPH = { '0':['01110','10001','10011','10101','11001','10001','01110'], '1':['00100','01100','00100','00100','00100','00100','01110'], '2':['01110','10001','00001','00010','00100','01000','11111'], '3':['11111','00010','00100','00010','00001','10001','01110'], '4':['00010','00110','01010','10010','11111','00010','00010'], '5':['11111','10000','11110','00001','00001','10001','01110'], '6':['00110','01000','10000','11110','10001','10001','01110'], '7':['11111','00001','00010','00100','01000','01000','01000'], '8':['01110','10001','10001','01110','10001','10001','01110'], '9':['01110','10001','10001','01111','00001','00010','01100'], ':':['0','0','1','0','1','0','0'] };
+function flip(svg, text, color, cell) {
+  svg.innerHTML = '';
+  const cols = []; for (const ch of text) { const g = GLYPH[ch]; for (let c = 0; c < g[0].length; c++) cols.push(g.map(r => r[c] === '1')); cols.push(null); }
+  cols.pop();
+  const w = cols.length * cell, h = 7 * cell;
+  svg.setAttribute('width', w); svg.setAttribute('height', h); svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  cols.forEach((col, x) => { for (let y = 0; y < 7; y++) { const on = col && col[y]; el('circle', { cx: x * cell + cell / 2, cy: y * cell + cell / 2, r: cell * 0.42, fill: on ? color : '#1C1926' }, svg); } });
+}
+
+/* dial */
+const dial = document.getElementById('dial');
+const C = 230, R = 196;
+const pos = (h, r) => { const a = (h - 12) / 24 * Math.PI * 2; return [C + r * Math.sin(a), C - r * Math.cos(a)]; };
+function arcPath(h0, h1, r) { const [x0, y0] = pos(h0, r), [x1, y1] = pos(h1, r); const large = (h1 - h0) > 12 ? 1 : 0; return `M${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1}`; }
+function drawDial(year) {
+  const d = D.drift.find(y => y.year === year);
+  const aq = hm(d.aqua_lst), vi = hm(d.viirs_lst), te = hm(d.terra_lst);
+  dial.innerHTML = '';
+  el('circle', { cx: C, cy: C, r: R + 8, fill: 'none', stroke: 'rgba(255,240,230,0.14)', 'stroke-width': 1 }, dial);
+  el('path', { d: arcPath(6, 18, R - 14), fill: 'none', stroke: 'rgba(255,240,230,0.06)', 'stroke-width': 26 }, dial);
+  for (let i = 0; i < 96; i++) { const h = i / 4; const major = i % 4 === 0; const [x0, y0] = pos(h, R); const [x1, y1] = pos(h, R - (major ? 14 : 6)); el('line', { x1: x0, y1: y0, x2: x1, y2: y1, stroke: major ? 'rgba(244,239,234,0.55)' : 'rgba(244,239,234,0.2)', 'stroke-width': major ? 1.5 : 1 }, dial); }
+  [[0, '00'], [6, '06'], [12, '12'], [18, '18']].forEach(([h, t]) => { const [x, y] = pos(h, R - 36); const tx = el('text', { x, y: y + 4, 'text-anchor': 'middle', fill: '#8C847D', 'font-family': 'JetBrains Mono', 'font-size': 13 }, dial); tx.textContent = t; });
+  el('path', { d: arcPath(Math.min(vi, aq), Math.max(vi, aq), R - 60), fill: 'none', stroke: '#FF7A1A', 'stroke-width': 6, 'stroke-linecap': 'round', opacity: 0.85 }, dial);
+  const gapMin = Math.round((aq - vi) * 60);
+  const [gx, gy] = pos((vi + aq) / 2, R - 84);
+  const gt = el('text', { x: gx, y: gy + 4, 'text-anchor': 'middle', fill: '#FFD9BF', 'font-family': 'JetBrains Mono', 'font-size': 13, 'font-weight': 600 }, dial); gt.textContent = (gapMin >= 0 ? '+' : '−') + fmt(Math.abs(gapMin) / 60).replace(/^0/, '');
+  [[te, '#B49CFF', 'Terra'], [vi, '#4FD8E8', 'VIIRS'], [aq, '#FF7A1A', 'Aqua']].forEach(([h, col, name]) => {
+    const [x, y] = pos(h, R - 18); el('line', { x1: C, y1: C, x2: x, y2: y, stroke: col, 'stroke-width': name === 'Aqua' ? 3 : 2, 'stroke-linecap': 'round' }, dial);
+    el('circle', { cx: x, cy: y, r: 6, fill: col }, dial);
+    const [lx, ly] = pos(h, R + 24); const t = el('text', { x: lx, y: ly + 4, 'text-anchor': 'middle', fill: col, 'font-family': 'JetBrains Mono', 'font-size': 12, 'font-weight': 600 }, dial); t.textContent = fmt(h);
+  });
+  el('circle', { cx: C, cy: C, r: 5, fill: '#F4EFEA' }, dial);
+  document.getElementById('dial-year').textContent = year;
+  flip(document.getElementById('flip'), d.aqua_lst, '#FF7A1A', 13);
+  document.getElementById('flip').setAttribute('aria-label', `Aqua looked at ${d.aqua_lst} in ${year}`);
+  document.getElementById('cap-sat').textContent = `Aqua, ${year}`;
+  document.getElementById('cap-fixed').textContent = `VIIRS ${d.viirs_lst} · the fixed clock`;
+}
+const yr = document.getElementById('year');
+yr.addEventListener('input', () => drawDial(+yr.value));
+drawDial(2026);
+
+/* drift chart */
+(function () {
+  const s = document.getElementById('drift'), W = 900, H = 280, L = 56, Rr = 20, T = 16, B = 34;
+  const x = y => L + (y - 2012) / 14 * (W - L - Rr), y = h => T + (16 - h) / 8 * (H - T - B);
+  for (let h = 8; h <= 16; h += 2) { el('line', { x1: L, x2: W - Rr, y1: y(h), y2: y(h), stroke: 'rgba(255,240,230,0.08)' }, s); const t = el('text', { x: L - 10, y: y(h) + 4, 'text-anchor': 'end', fill: '#8C847D', 'font-family': 'JetBrains Mono', 'font-size': 12 }, s); t.textContent = String(h).padStart(2, '0') + ':00'; }
+  for (let yy = 2012; yy <= 2026; yy += 2) { const t = el('text', { x: x(yy), y: H - 10, 'text-anchor': 'middle', fill: '#8C847D', 'font-family': 'JetBrains Mono', 'font-size': 12 }, s); t.textContent = yy; }
+  el('rect', { x: x(2021), y: T, width: x(2026) - x(2021), height: H - T - B, fill: 'rgba(255,122,26,0.06)' }, s);
+  [['aqua_lst', '#FF7A1A'], ['viirs_lst', '#4FD8E8'], ['terra_lst', '#B49CFF']].forEach(([k, col]) => {
+    el('polyline', { points: D.drift.map(d => `${x(d.year)},${y(hm(d[k]))}`).join(' '), fill: 'none', stroke: col, 'stroke-width': 2.5, 'stroke-linejoin': 'round' }, s);
+    const last = D.drift[D.drift.length - 1]; el('circle', { cx: x(last.year), cy: y(hm(last[k])), r: 4, fill: col }, s);
+  });
+  const t = el('text', { x: x(2021) + 8, y: T + 16, fill: '#FFB37A', 'font-family': 'JetBrains Mono', 'font-size': 12 }, s); t.textContent = 'drift years · 2021→';
+})();
+
+/* thermal shader */
+(function () {
+  const cv = document.getElementById('gl');
+  const gl = cv.getContext('webgl', { premultipliedAlpha: false });
+  if (!gl || matchMedia('(prefers-reduced-motion: reduce)').matches) { document.documentElement.classList.add('no-gl'); return; }
+  const vs = `attribute vec2 p; varying vec2 uv; void main(){ uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
+  const fs = `precision mediump float; varying vec2 uv; uniform sampler2D img; uniform sampler2D ramp; uniform vec2 res; uniform vec2 ires; uniform float t;
+  vec2 cover(vec2 u){ float ra = res.x / res.y, ri = ires.x / ires.y; vec2 s = ra > ri ? vec2(1.0, ri / ra) : vec2(ra / ri, 1.0); return (u - 0.5) * s + 0.5; }
+  float fire(vec2 u){ vec3 c = texture2D(img, u).rgb; return smoothstep(0.12, 0.42, c.r - max(c.g, c.b)); }
+  void main(){
+    vec2 u = cover(vec2(uv.x, 1.0 - uv.y));
+    vec3 c = texture2D(img, u).rgb;
+    float lum = dot(c, vec3(0.299, 0.587, 0.114));
+    vec2 px = 1.0 / ires; float glow = 0.0;
+    for (int i = -2; i <= 2; i++) for (int j = -2; j <= 2; j++) glow += fire(u + vec2(float(i), float(j)) * px * 2.0);
+    glow /= 25.0;
+    float f = fire(u);
+    float scan = fract(t * 0.05); float d = u.x - scan; float band = exp(-d * d * 1400.0) + 0.35 * exp(-d * d * 60.0) * step(d, 0.0);
+    float v = clamp(0.06 + lum * 0.40 + glow * 1.6 + f * 0.55 + band * 0.10, 0.0, 1.0);
+    vec3 col = texture2D(ramp, vec2(v, 0.5)).rgb;
+    col += band * vec3(0.10, 0.12, 0.16);
+    gl_FragColor = vec4(col, 1.0);
+  }`;
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s); return s; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const tex = (unit, src, filter) => { const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); };
+  /* inferno colormap, deciles (matplotlib) */
+  const stops = ['#000004', '#160b39', '#420a68', '#6a176e', '#932667', '#bc3754', '#dd513a', '#f37819', '#fca50a', '#f6d746', '#fcffa4'];
+  const rc = document.createElement('canvas'); rc.width = 256; rc.height = 1; const rx = rc.getContext('2d'); const g = rx.createLinearGradient(0, 0, 256, 0); stops.forEach((s, i) => g.addColorStop(i / 10, s)); rx.fillStyle = g; rx.fillRect(0, 0, 256, 1);
+  tex(1, rc, gl.LINEAR);
+  const im = new Image(); im.src = '../assets/amazon-viirs-fires-2024-08-23.jpg';
+  im.onload = () => {
+    tex(0, im, gl.LINEAR);
+    gl.uniform1i(gl.getUniformLocation(pr, 'img'), 0); gl.uniform1i(gl.getUniformLocation(pr, 'ramp'), 1);
+    gl.uniform2f(gl.getUniformLocation(pr, 'ires'), im.width, im.height);
+    const uRes = gl.getUniformLocation(pr, 'res'), uT = gl.getUniformLocation(pr, 't');
+    const t0 = performance.now();
+    const frame = now => {
+      const w = cv.clientWidth * Math.min(devicePixelRatio, 1.5), h = cv.clientHeight * Math.min(devicePixelRatio, 1.5);
+      if (cv.width !== Math.round(w) || cv.height !== Math.round(h)) { cv.width = Math.round(w); cv.height = Math.round(h); gl.viewport(0, 0, cv.width, cv.height); }
+      gl.uniform2f(uRes, cv.width, cv.height); gl.uniform1f(uT, (now - t0) / 1000 + 6.0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  };
+})();
+</script>
+</body>
+</html>

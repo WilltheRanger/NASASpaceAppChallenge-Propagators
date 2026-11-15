@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anchor · Round 1 · C · Spec sheet</title>
+<meta name="generator" content="Team Propagators">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Martian+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="../data.js"></script>
+<style>
+  :root {
+    --cobalt: #2043D6; --cobalt-deep: #142C99; --cobalt-ink: #E9EDFF;
+    --paper: #F4F4F0; --card: #FFFFFF; --ink: #0E0F12; --ink-2: #3D4049; --ink-3: #5F6370; --rule: #DADBD5;
+    --orange: #FF5A1F; --orange-ink: #1A0700; --teal: #00826F; --mock: #FFD23F;
+    --sans: "Schibsted Grotesk", system-ui, sans-serif; --mono: "Martian Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); }
+  .bar { height: 60px; display: flex; align-items: center; gap: 28px; padding: 0 36px; background: var(--paper); border-bottom: 1px solid var(--rule); }
+  .brand { display: flex; align-items: center; gap: 10px; font: 800 20px var(--sans); letter-spacing: -0.02em; }
+  .nav { display: flex; gap: 4px; font: 500 11px var(--mono); color: var(--ink-3); white-space: nowrap; overflow: hidden; }
+  .nav a { color: inherit; text-decoration: none; padding: 7px 9px; border-radius: 6px; }
+  .nav a[aria-current] { background: var(--ink); color: var(--paper); }
+  .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .badge-mock { font: 600 10px var(--mono); background: var(--mock); padding: 5px 8px; border-radius: 4px; }
+  .region { height: 36px; padding: 0 12px; border: 1px solid var(--ink); border-radius: 6px; background: var(--card); font: 600 14px var(--sans); display: inline-flex; gap: 8px; align-items: center; color: var(--ink); }
+
+  .hero { background: var(--cobalt); color: #fff; position: relative; }
+  .hero-in { max-width: 1440px; margin: 0 auto; padding: 56px 36px 200px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; }
+  .kick { grid-column: 1 / 13; display: flex; gap: 16px; font: 500 12px var(--mono); color: var(--cobalt-ink); }
+  .kick b { color: #fff; }
+  .head { grid-column: 1 / 8; }
+  h1 { margin: 26px 0 0; font: 700 76px/0.98 var(--sans); letter-spacing: -0.035em; text-wrap: balance; }
+  .verdict { margin: 26px 0 0; font: 500 22px/1.4 var(--sans); color: var(--cobalt-ink); max-width: 30em; }
+  .verdict strong { color: #fff; font-weight: 700; }
+  .verdict .o { color: #FFB59A; }
+  .actions { margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { height: 48px; padding: 0 20px; border-radius: 8px; display: inline-flex; align-items: center; gap: 10px; font: 700 15px var(--sans); text-decoration: none; }
+  .btn.primary { background: var(--orange); color: var(--orange-ink); }
+  .btn.line { border: 1.5px solid rgba(255,255,255,0.7); color: #fff; }
+  .globe { grid-column: 8 / 13; position: relative; margin-top: -10px; }
+  .globe canvas { width: 100%; aspect-ratio: 1; display: block; }
+  .globe .list { position: absolute; right: 0; bottom: 18px; font: 500 11px/1.9 var(--mono); color: var(--cobalt-ink); text-align: right; }
+  .globe .list b { color: #fff; } .globe .list i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--orange); margin-left: 8px; vertical-align: middle; }
+  .fig-cap { position: absolute; left: 0; top: 6px; font: 500 11px var(--mono); color: var(--cobalt-ink); }
+
+  .specs { grid-column: 1 / 13; margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .spec { background: var(--card); color: var(--ink); border-radius: 12px; padding: 18px 20px 16px; display: grid; grid-template-rows: auto auto auto 1fr; }
+  .spec .top { display: flex; justify-content: space-between; align-items: center; }
+  .spec .name { font: 800 22px var(--sans); letter-spacing: -0.01em; }
+  .tag { font: 600 10px var(--mono); padding: 5px 8px; border-radius: 4px; border: 1px solid currentColor; }
+  .spec .lab { margin-top: 16px; font: 500 11px var(--mono); color: var(--ink-3); }
+  .spec .num { margin-top: 4px; display: flex; align-items: baseline; gap: 10px; }
+  .spec .num span:first-child { font: 700 64px/1 var(--sans); letter-spacing: -0.04em; font-feature-settings: "tnum" 1; }
+  .spec .num span:last-child { font: 600 13px var(--mono); color: var(--ink-3); }
+  .spec .row { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: end; gap: 12px; font: 500 12px var(--mono); color: var(--ink-2); }
+  .spec svg { display: block; }
+
+  .product { max-width: 1368px; margin: -150px auto 0; position: relative; background: var(--card); border-radius: 16px; border: 1px solid var(--rule); box-shadow: 0 30px 60px -30px rgba(14,15,18,0.35); display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  .pane { padding: 22px 24px 20px; }
+  .pane + .pane { border-left: 1px solid var(--rule); }
+  .pane-h { display: flex; justify-content: space-between; align-items: baseline; }
+  .pane-h h2 { margin: 0; font: 700 18px var(--sans); }
+  .pane-h h2 small { font: 500 11px var(--mono); color: var(--ink-3); margin-right: 8px; }
+  .tools { font: 500 11px var(--mono); color: var(--ink-3); display: flex; gap: 12px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font: 500 12px var(--mono); table-layout: fixed; }
+  th { text-align: left; font: 500 10.5px var(--mono); color: var(--ink-3); padding: 0 0 8px; border-bottom: 1px solid var(--ink); }
+  td { padding: 9px 0; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  td.y { font-weight: 600; } td.n, th.n { text-align: right; } td.bar { padding-right: 18px; } td.bar .ro { margin-top: 3px; white-space: nowrap; font-size: 11.5px; }
+  .eb { position: relative; height: 18px; } .eb span { position: absolute; top: 0; height: 100%; } .eb .nb { background: #ECEEF5; } .eb .z { width: 1px; background: #5F6370; } .eb .b { top: 5px; height: 8px; background: #9AA0B4; } .eb .b.hit { background: #FF5A1F; } .eb .w { top: 8px; height: 2px; background: #0E0F12; border-left: 1.5px solid #0E0F12; border-right: 1.5px solid #0E0F12; box-sizing: content-box; } .eb .w::before { content: none; }
+  .verd { font: 600 10px var(--mono); padding: 4px 6px; border-radius: 4px; }
+  .verd.hit { background: #FFE6DB; color: #A33100; } .verd.ok { background: #ECEEF5; color: #3D4049; }
+  #cal { display: block; width: 100%; margin-top: 12px; }
+  .legend { margin-top: 10px; display: flex; gap: 10px; align-items: center; font: 500 10.5px var(--mono); color: var(--ink-3); }
+  .ramp { width: 160px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, #2166AC, #67A9CF, #D1E5F0, #F7F7F7, #FDDBC7, #EF8A62, #B2182B); }
+  .foot { max-width: 1368px; margin: 14px auto 64px; padding: 0 4px; font: 500 11px/1.6 var(--mono); color: var(--ink-3); }
+
+  @media (max-width: 900px) {
+    .nav { display: none; } .bar { padding: 0 16px; }
+    .hero-in { padding: 32px 16px 120px; grid-template-columns: minmax(0, 1fr); }
+    .kick, .head, .globe, .specs { grid-column: 1 / -1; }
+    h1 { font-size: 44px; } .verdict { font-size: 18px; }
+    .globe { max-width: 320px; margin: 16px auto 0; }
+    .specs { grid-template-columns: minmax(0, 1fr); }
+    .product { margin: -90px 16px 0; grid-template-columns: minmax(0, 1fr); }
+    .pane + .pane { border-left: 0; border-top: 1px solid var(--rule); }
+    .foot { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="8.5" fill="none" stroke="#0E0F12" stroke-width="2"/><path d="M13 1v6M13 19v6M1 13h6M19 13h6" stroke="#0E0F12" stroke-width="2"/><circle cx="17.9" cy="6.0" r="2.6" fill="#FF5A1F"/></svg>
+    Anchor
+  </div>
+  <nav class="nav" aria-label="Sections"><a href="#" aria-current="true">0.0 Verdict</a><a href="#">1.0 Clock</a><a href="#">2.0 Two clocks</a><a href="#">3.0 Audit</a><a href="#">4.0 Calendar</a><a href="#">5.0 Checks</a><a href="#">6.0 Misses</a><a href="#">7.0 Limits</a></nav>
+  <div class="right"><span class="badge-mock">MOCK DATA</span><button class="region" type="button">Amazon (Brazil) <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
+</header>
+
+<main>
+<section class="hero" aria-labelledby="h">
+  <div class="hero-in">
+    <div class="kick"><b>0.0 Verdict</b><span>Amazon (Brazil)</span><span>Audit years 2021–2025</span><span>Baseline 2012–2020</span></div>
+    <div class="head">
+      <h1 id="h">The official count moved with the satellite's clock.</h1>
+      <p class="verdict">From 2024 to 2025 the Amazon's official, Aqua-based count fell <strong>26.8%</strong>. On a fixed 13:30 clock it fell <strong>29.5%</strong>. Aqua's later look added <strong class="o">+22.4%</strong> (range +16.4 to +28.4) to 2025.</p>
+      <div class="actions">
+        <a class="btn primary" href="#">Explore the calendar <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a>
+        <a class="btn line" href="#">Download summary</a>
+      </div>
+    </div>
+    <div class="globe" aria-hidden="true">
+      <div class="fig-cap">FIG. 1 · Six preset regions</div>
+      <canvas id="globe"></canvas>
+      <div class="list"><b>Amazon</b><i></i><br>Cerrado<i style="opacity:.5"></i><br>Pantanal<i style="opacity:.5"></i><br>Argentina<i style="opacity:.5"></i><br>Punjab + Haryana<i style="opacity:.5"></i><br>California<i style="opacity:.5"></i></div>
+    </div>
+    <div class="specs">
+      <article class="spec"><div class="top"><span class="name">AQUA</span><span class="tag" style="color:#C2410C">drifting later</span></div><div class="lab">Look time 2026 · local solar</div><div class="num"><span id="s-aqua">14:12</span><span>+1:00 vs 2012–20</span></div><div class="row"><span>INPE's reference satellite</span><svg id="sp-aqua" width="150" height="34"></svg></div></article>
+      <article class="spec"><div class="top"><span class="name">VIIRS</span><span class="tag" style="color:#2043D6">fixed clock</span></div><div class="lab">Look time 2026 · local solar</div><div class="num"><span id="s-viirs">13:18</span><span>±0:00 vs 2012–20</span></div><div class="row"><span>Anchor's fixed clock</span><svg id="sp-viirs" width="150" height="34"></svg></div></article>
+      <article class="spec"><div class="top"><span class="name">TERRA</span><span class="tag" style="color:#00826F">drifting earlier</span></div><div class="lab">Look time 2026 · local solar</div><div class="num"><span id="s-terra">10:02</span><span>−0:52 vs 2012–20</span></div><div class="row"><span>The opposite clock</span><svg id="sp-terra" width="150" height="34"></svg></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="product" aria-label="Audit and calendar preview">
+  <div class="pane">
+    <div class="pane-h"><h2><small>3.0</small>Audit · Amazon</h2><div class="tools"><span>Table</span><span>CSV</span><span>PNG</span></div></div>
+    <table>
+      <colgroup><col style="width:54px"><col><col style="width:92px"><col style="width:92px"><col style="width:104px"></colgroup>
+      <thead><tr><th>Year</th><th>Clock effect ± range · noise ±5%</th><th class="n">Aqua-based</th><th class="n">Fixed clock</th><th class="n">Verdict</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="pane">
+    <div class="pane-h"><h2><small>4.0</small>Calendar · vs median</h2><div class="tools"><span>Count</span><span style="color:var(--ink)">Anomaly</span><span>CSV</span></div></div>
+    <svg id="cal" viewBox="0 0 520 210" role="img" aria-label="Monthly anomaly 2021 to 2026"></svg>
+    <div class="legend"><span>below median</span><span class="ramp"></span><span>above</span><span style="margin-left:auto">▨ provisional</span></div>
+  </div>
+</section>
+<div class="foot">Source: NASA FIRMS (MODIS C6.1, VIIRS 375 m) via the Anchor pipeline · drift, audit, calendar/br-amazon.json · MOCK numbers · Land: Natural Earth via world-atlas (public domain)</div>
+</main>
+
+<script>
+const D = window.ANCHOR_DATA, NS = 'http://www.w3.org/2000/svg';
+const el = (n, a, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const hm = s => { const [h, m] = s.split(':').map(Number); return h + m / 60; };
+
+/* spec sparklines */
+[['aqua', 'aqua_lst', '#C2410C'], ['viirs', 'viirs_lst', '#2043D6'], ['terra', 'terra_lst', '#00826F']].forEach(([id, k, col]) => {
+  const s = document.getElementById('sp-' + id), vals = D.drift.map(d => hm(d[k])), mn = 9.5, mx = 14.6;
+  const pts = vals.map((v, i) => `${4 + i * (142 / (vals.length - 1))},${30 - (v - mn) / (mx - mn) * 26}`).join(' ');
+  el('polyline', { points: pts, fill: 'none', stroke: col, 'stroke-width': 2 }, s);
+  const last = pts.split(' ').pop().split(','); el('circle', { cx: last[0], cy: last[1], r: 3, fill: col }, s);
+});
+
+/* audit rows */
+(function () {
+  const tb = document.getElementById('rows'), nf = D.audit.baseline.noise_floor * 100;
+  D.audit.years.forEach(y => {
+    const tr = document.createElement('tr');
+    const lo = (y.L_lo - 1) * 100, hi = (y.L_hi - 1) * 100, hit = lo > nf || hi < -nf;
+    const X = v => ((v + 10) / 45 * 100).toFixed(2) + '%';
+    const svg = `<div class="eb"><span class="nb" style="left:${X(-nf)};width:${(2 * nf / 45 * 100).toFixed(2)}%"></span><span class="z" style="left:${X(0)}"></span><span class="b ${hit ? 'hit' : ''}" style="left:${X(Math.min(0, y.gap_pct))};width:${(Math.abs(y.gap_pct) / 45 * 100).toFixed(2)}%"></span><span class="w" style="left:${X(lo)};width:${((hi - lo) / 45 * 100).toFixed(2)}%"></span></div>`;
+    tr.innerHTML = `<td class="y">${y.year}</td><td class="bar">${svg}<div class="ro">+${y.gap_pct.toFixed(1)}% <span style="color:#5F6370">range ${lo.toFixed(1)} to ${hi.toFixed(1)}</span></div></td><td class="n">${y.aqua_count.toLocaleString('en-US')}</td><td class="n">${y.fixed_count.toLocaleString('en-US')}</td><td class="n"><span class="verd ${hit ? 'hit' : 'ok'}">${hit ? 'clock' : 'within noise'}</span></td>`;
+    tb.appendChild(tr);
+  });
+})();
+
+/* calendar strip, 2021-2026, diverging anomaly (ColorBrewer RdBu) */
+(function () {
+  const s = document.getElementById('cal');
+  const ramp = ['#2166AC', '#67A9CF', '#D1E5F0', '#F7F7F7', '#FDDBC7', '#EF8A62', '#B2182B'];
+  const col = a => a == null ? '#E4E4DE' : ramp[Math.max(0, Math.min(6, Math.round(a / 20) + 3))];
+  ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].forEach((m, i) => { const t = el('text', { x: 52 + i * 38 + 17, y: 12, 'text-anchor': 'middle', 'font-family': 'Martian Mono', 'font-size': 10, fill: '#5F6370' }, s); t.textContent = m; });
+  const defs = el('defs', {}, s); const pat = el('pattern', { id: 'hatch', width: 5, height: 5, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs); el('line', { x1: 0, y1: 0, x2: 0, y2: 5, stroke: 'rgba(14,15,18,0.35)', 'stroke-width': 1.5 }, pat);
+  for (let yr = 2021; yr <= 2026; yr++) {
+    const r = yr - 2021, y = 20 + r * 31;
+    const t = el('text', { x: 0, y: y + 19, 'font-family': 'Martian Mono', 'font-size': 11, fill: '#3D4049' }, s); t.textContent = yr;
+    for (let m = 1; m <= 12; m++) {
+      const rec = D.calendar.find(c => c.ym === `${yr}-${String(m).padStart(2, '0')}`);
+      const x = 52 + (m - 1) * 38;
+      if (!rec) { el('rect', { x, y, width: 34, height: 27, rx: 3, fill: 'none', stroke: '#DADBD5', 'stroke-dasharray': '3 3' }, s); continue; }
+      el('rect', { x, y, width: 34, height: 27, rx: 3, fill: col(rec.anomaly_pct) }, s);
+      if (rec.flags.includes('provisional')) el('rect', { x, y, width: 34, height: 27, rx: 3, fill: 'url(#hatch)' }, s);
+      if (rec.flags.includes('outage')) el('circle', { cx: x + 28, cy: y + 6, r: 2.5, fill: '#0E0F12' }, s);
+    }
+  }
+})();
+</script>
+<script type="module">
+import { geoOrthographic, geoContains, geoDistance, geoGraticule10, geoPath } from 'https://cdn.jsdelivr.net/npm/d3-geo@3.1.1/+esm';
+import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm';
+const cv = document.getElementById('globe'), ctx = cv.getContext('2d');
+const regions = [['Amazon', -5.7, -58.5, true], ['Cerrado', -13.5, -50.9], ['Pantanal', -18.65, -57.05], ['Argentina', -38.45, -63.6], ['Punjab + Haryana', 30.1, 75.7], ['California', 37.25, -119.3]];
+const topo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-110m.json')).json();
+const land = feature(topo, topo.objects.land);
+const pts = [];
+for (let lat = -84; lat <= 84; lat += 1.8) { const step = 1.8 / Math.max(0.2, Math.cos(lat * Math.PI / 180)); for (let lon = -180; lon < 180; lon += step) if (geoContains(land, [lon, lat])) pts.push([lon, lat]); }
+let lon0 = -66;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame() {
+  const dpr = 2, W = cv.clientWidth * dpr; if (cv.width !== W) { cv.width = W; cv.height = W; }
+  const r = W * 0.42, proj = geoOrthographic().scale(r).translate([W / 2, W / 2]).rotate([-lon0, 12]).clipAngle(90);
+  const center = [lon0, -12];
+  ctx.clearRect(0, 0, W, W);
+  ctx.beginPath(); ctx.arc(W / 2, W / 2, r, 0, Math.PI * 2); ctx.fillStyle = '#1A39C2'; ctx.fill(); ctx.strokeStyle = 'rgba(233,237,255,0.45)'; ctx.lineWidth = 1.5; ctx.stroke();
+  const path = geoPath(proj, ctx); ctx.beginPath(); path(geoGraticule10()); ctx.strokeStyle = 'rgba(233,237,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = 'rgba(244,246,255,0.82)';
+  for (const p of pts) { if (geoDistance(p, center) > Math.PI / 2 - 0.02) continue; const [x, y] = proj(p); ctx.beginPath(); ctx.arc(x, y, 2.1, 0, Math.PI * 2); ctx.fill(); }
+  ctx.font = `500 ${11 * dpr}px "Martian Mono", monospace`;
+  for (const [name, lat, lon, hero] of regions) {
+    if (geoDistance([lon, lat], center) > Math.PI / 2 - 0.05) continue;
+    const [x, y] = proj([lon, lat]);
+    if (hero) { ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.strokeStyle = '#FF5A1F'; ctx.lineWidth = 3; ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(x, y, hero ? 7 : 5, 0, Math.PI * 2); ctx.fillStyle = '#FF5A1F'; ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.fillText(name, x + 20, y + 7); ctx.fillStyle = 'rgba(244,246,255,0.82)';
+  }
+  if (!reduce) { lon0 += 0.04; requestAnimationFrame(frame); }
+}
+frame();
+</script>
+</body>
+</html>
