@@ -92,7 +92,7 @@ export function StickyScroll({ steps, panel, initial = 0, onActive, top = '6rem'
                 {s.mark ? <span className="tabular-nums">{s.mark} </span> : null}{s.title}
               </span>
               {s.description ? (
-                <span className={cn('mt-2 block max-w-[var(--measure,36rem)] text-sm', !still && 'transition-colors duration-500', on ? 'text-[color:var(--bone2)]' : 'text-[color:var(--bone3)]')}>
+                <span className={cn('mt-2 block max-w-[var(--measure,36rem)] text-base', !still && 'transition-colors duration-500', on ? 'text-[color:var(--bone2)]' : 'text-[color:var(--bone3)]')}>
                   {s.description}
                 </span>
               ) : null}

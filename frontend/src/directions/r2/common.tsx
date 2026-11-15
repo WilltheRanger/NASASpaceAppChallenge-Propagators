@@ -8,7 +8,7 @@ import 'lenis/dist/lenis.css'
 import { AnchorLogo, AnchorMark } from '@/components/brand/anchor-logo'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { REGIONS, phrase, regionData } from '@/r2/data'
-import { photoFor } from '@/r2/photos'
+import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import { cn } from '@/lib/utils'
 
 /* ---------- Tokens: black ground, bone text; the photographs carry the colour, and each satellite has one on the charts ---------- */
@@ -473,6 +473,7 @@ export function Footer({ links, leave }: { links: Links; leave: Leave }) {
                 </li>
               )
             })}
+            <li>Overview, wildfire smoke at dusk: <a href={OVERVIEW_PHOTO.url} target="_blank" rel="noreferrer" className={link}>{OVERVIEW_PHOTO.by}</a> on Unsplash</li>
             <li>Three looks at one Amazon day: NASA Worldview / GIBS, public domain</li>
             <li>One fire day in Pará, 2 Sep 2024: NASA Worldview / GIBS, VIIRS true colour</li>
             <li>Explore maps: NASA Worldview / GIBS and NASA Blue Marble</li>
