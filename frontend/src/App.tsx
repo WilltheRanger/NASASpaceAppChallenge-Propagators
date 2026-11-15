@@ -1,4 +1,4 @@
-// The site: the landing (/) and the audit (?page=app). Round 1 (rejected, kept for the record) opens in development
+// The site: the region page (/; ?page=app, the audit page's old address, opens it too). Round 1 (rejected, kept for the record) opens in development
 // only, at ?round=1&d=a..e; the deployed build leaves it out. Round 2's other comps are kept as renders in designs/round-2/.
 import { lazy, Suspense, type ComponentType } from 'react'
 import Site from './directions/r2/FieldFilm' // static, so the page arrives in one request rather than two in a row

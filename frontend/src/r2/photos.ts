@@ -1,8 +1,8 @@
 // One Unsplash photograph per preset region (free to use under the Unsplash License), and a 12-second clip per region
 // chosen by the team (Pexels and Pixabay clips under their own free licences; the Pantanal clip is from The Nature
 // Project's YouTube film): one continuous shot, slowed to the same camera pace and graded to the same look by
-// scripts/region-video.py, 1920x1080, silent, in public/video/regions/, with its first frame as the poster. The landing
-// plays each once per showing, from the top, never looped. Every photographer and videographer is credited in the page
+// scripts/region-video.py, 1920x1080, silent, in public/video/regions/, with its first frame as the poster. The region
+// page's hero plays each once per showing, from the top, never looped. Every photographer and videographer is credited in the page
 // footer, with where the clip was filmed when that isn't the region itself. No people appear in any of them.
 
 export interface RegionPhoto {

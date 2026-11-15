@@ -67,6 +67,11 @@ export interface OrbitGlobeProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   /** the region's daylight on the day shown (local mean solar time, hours): the day path runs from sunrise to sunset;
    *  06:00 to 18:00 when not given */
   day?: { rise: number; set: number }
+  /** every year's look times (hours, by orbit id), drawn under the globe as one row a year in place of the single time
+   *  line; the chosen year is bright, and picking a row (pointer or arrow keys) chooses it */
+  years?: { year: number; times: Record<string, number> }[]
+  year?: number
+  onYear?: (year: number) => void
 }
 
 const RAD = Math.PI / 180
@@ -188,7 +193,7 @@ function placeLabels(items: { id: string; x: number; w: number }[], W: number) {
   return out
 }
 
-export function OrbitGlobe({ orbits, region, span, running, ink, label, day, className, style, ...props }: OrbitGlobeProps) {
+export function OrbitGlobe({ orbits, region, span, running, ink, label, day, years, year, onYear, className, style, ...props }: OrbitGlobeProps) {
   const boxRef = React.useRef<HTMLDivElement>(null)
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const W = useMeasuredWidth(boxRef)
@@ -209,7 +214,13 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
   orbitsRef.current = orbits
   const angles = React.useRef(new Map<string, number>())
   const clock = React.useRef({ t: 0 })
-  const scene = React.useRef<null | { draw: (dt: number, isLive: boolean) => boolean }>(null)
+  const scene = React.useRef<null | { draw: (dt: number, isLive: boolean) => boolean; repaint: () => void }>(null)
+  // the reader's own turn of the globe, by dragging it; it stays wherever it is left
+  const view = React.useRef({ yaw: 0, pitch: 0 })
+  const drag = React.useRef<null | { x: number; y: number; yaw: number; pitch: number; id: number }>(null)
+  const frame = React.useRef(0)
+  const [turned, setTurned] = React.useState(false)
+  const [grabbing, setGrabbing] = React.useState(false)
 
   React.useEffect(() => {
     const el = boxRef.current
@@ -239,7 +250,19 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
     const rLon = (w0 + e0) / 2
     // hold the view on the region: noon under the Sun, the region's latitude tipped to the middle of the face
     const c0 = Math.cos(rLat), s0r = Math.sin(rLat)
-    const tilt = (p: V3): V3 => [p[0], c0 * p[1] - s0r * p[2], s0r * p[1] + c0 * p[2]]
+    // the reader's drag spins the globe about the Earth's own axis and tips it toward a pole, like a desk globe: north
+    // stays up; with no drag this is exactly the hold on the region
+    let turn = { cy: 1, sy: 0, ct: c0, st: s0r }
+    const aim = () => {
+      const v = view.current
+      const lat = Math.max(-1.45, Math.min(1.45, rLat + v.pitch))
+      turn = { cy: Math.cos(v.yaw), sy: Math.sin(v.yaw), ct: Math.cos(lat), st: Math.sin(lat) }
+    }
+    aim()
+    const tilt = (p: V3): V3 => {
+      const x1 = turn.cy * p[0] + turn.sy * p[2], z1 = -turn.sy * p[0] + turn.cy * p[2]
+      return [x1, turn.ct * p[1] - turn.st * z1, turn.st * p[1] + turn.ct * z1]
+    }
     const geo = (lonDeg: number, latDeg: number): V3 => {
       const la = latDeg * RAD, d = (lonDeg - rLon) * RAD
       return tilt([Math.cos(la) * Math.sin(d), Math.sin(la), Math.cos(la) * Math.cos(d)])
@@ -256,12 +279,19 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
     }
     const front = (p: V3) => p[2] > 0
 
-    // the still globe, once: ocean, light, graticule, land, coastlines, the region, its day path
+    // the region's day path: its latitude from sunrise to sunset
+    const dayPt = (h: number) => tilt([Math.cos(rLat) * Math.sin(angleOf(h)), Math.sin(rLat), Math.cos(rLat) * Math.cos(angleOf(h))])
+
+    // the still globe: ocean, light, graticule, land, coastlines, the region, its day path; painted again only when
+    // the reader turns it
     const base = document.createElement('canvas')
     base.width = canvas.width
     base.height = canvas.height
     const g = base.getContext('2d')
     if (!g) return
+    const paintBase = () => {
+    g.setTransform(1, 0, 0, 1, 0, 0)
+    g.clearRect(0, 0, base.width, base.height)
     g.setTransform(dpr, 0, 0, dpr, 0, 0)
     g.lineCap = 'round'
     g.lineJoin = 'round'
@@ -313,8 +343,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
       line(g, pts, R, front)
     }
     g.stroke()
-    // the region's day path: its latitude from sunrise to sunset, an hour tick each hour
-    const dayPt = (h: number) => tilt([Math.cos(rLat) * Math.sin(angleOf(h)), Math.sin(rLat), Math.cos(rLat) * Math.cos(angleOf(h))])
+    // the day path, an hour tick each hour
     const path: V3[] = []
     for (let h = rise; h < set; h += 0.1) path.push(dayPt(h))
     path.push(dayPt(set))
@@ -341,6 +370,8 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
     g.strokeText(region.name, nx, ny - 4)
     g.fillStyle = col.fg
     g.fillText(region.name, nx, ny - 4)
+    }
+    paintBase()
 
     // each orbit's node is set so its day-side track crosses the region's latitude at the satellite's look time there
     const cross = { north: crossing('north', rLat), south: crossing('south', rLat) }
@@ -426,7 +457,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
       }
       return settling
     }
-    scene.current = { draw }
+    scene.current = { draw, repaint: () => { aim(); paintBase(); draw(0, false) } }
     draw(0, false)
     return () => { scene.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -483,11 +514,70 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
   })()
   const rowY = (row: number) => axisY + (compact ? 36 : 40) + row * 20
 
+  // drag to turn: about 0.6° per pixel at a typical size; up and down tip it, never past the poles
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
+    drag.current = { x: e.clientX, y: e.clientY, yaw: view.current.yaw, pitch: view.current.pitch, id: e.pointerId }
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setGrabbing(true)
+  }
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    const k = Math.PI / Math.max(240, L.R * 3)
+    view.current = { yaw: d.yaw + (e.clientX - d.x) * k, pitch: Math.max(-1.2, Math.min(1.2, d.pitch + (e.clientY - d.y) * k)) }
+    if (!frame.current) frame.current = requestAnimationFrame(() => { frame.current = 0; scene.current?.repaint() })
+  }
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (drag.current?.id !== e.pointerId) return
+    drag.current = null
+    setGrabbing(false)
+    setTurned(Math.abs(view.current.yaw) > 0.01 || Math.abs(view.current.pitch) > 0.01)
+  }
+  const reset = () => {
+    view.current = { yaw: 0, pitch: 0 }
+    scene.current?.repaint()
+    setTurned(false)
+  }
+
+  // the ladder's geometry: hour labels on top, a row a year, the sunset line through them
+  const ladder = years && years.length ? years : null
+  const rowH = compact ? 15 : 18
+  const lTop = axisY - 26
+  const oy = 26
+  const ladderH = ladder ? ladder.length * rowH : 0
+  const height = ladder ? lTop + oy + ladderH + 28 : H + 20 * rows
+  const yearIndex = ladder ? Math.max(0, ladder.findIndex((r) => r.year === year)) : 0
+  const pickRow = (clientY: number, el: HTMLElement) => {
+    if (!ladder) return
+    const i = Math.max(0, Math.min(ladder.length - 1, Math.floor((clientY - el.getBoundingClientRect().top - oy) / rowH)))
+    if (ladder[i].year !== year) onYear?.(ladder[i].year)
+  }
+  const shape = (o: GlobeOrbit, x: number, y: number, on: boolean) => {
+    const r = on ? 5 : 3.5
+    if (o.marker === 'filled') return <circle cx={x} cy={y} r={r} fill={o.color} stroke={ink.ground} strokeWidth={on ? 2 : 1} />
+    if (o.marker === 'hollow') return <circle cx={x} cy={y} r={r - 0.5} fill={ink.ground} stroke={o.color} strokeWidth={2} />
+    return <rect x={x - r * 0.85} y={y - r * 0.85} width={r * 1.7} height={r * 1.7} transform={`rotate(45 ${x} ${y})`} fill={o.color} stroke={ink.ground} strokeWidth={1} />
+  }
+  const chosen = ladder?.[yearIndex]
+  const ladderText = chosen ? `${chosen.year}: ${orbits.map((o) => `${o.label} ${clockText(chosen.times[o.id] ?? o.time)}`).join(', ')}` : ''
+
   return (
-    <div ref={boxRef} role="img" aria-label={label} className={cn('relative w-full', className)} style={{ height: H + 20 * rows, ...style }} {...props}>
+    <div className={cn('relative w-full', className)} style={{ height, ...style }} {...props}>
+    <div
+      ref={boxRef}
+      role="img"
+      aria-label={label}
+      className="relative size-full touch-pan-y select-none"
+      style={{ cursor: grabbing ? 'grabbing' : 'grab' }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
       <canvas ref={canvasRef} aria-hidden className="absolute inset-x-0 top-0 block" style={{ width: L.W, height: L.H }} />
-      {W > 0 ? (
-        <svg aria-hidden width={L.W} height={H + 20 * rows} className="absolute inset-x-0 top-0 block overflow-visible" fontSize={fontSize}>
+      {W > 0 && !ladder ? (
+        <svg aria-hidden width={L.W} height={H + 20 * rows} className="pointer-events-none absolute inset-x-0 top-0 block overflow-visible" fontSize={fontSize}>
           <line x1={xAt(6)} x2={xAt(18)} y1={axisY} y2={axisY} stroke={ink.grid} strokeWidth={1} />
           {HOURS.map((h) => (
             <line key={h} x1={xAt(h)} x2={xAt(h)} y1={axisY - 3} y2={axisY + 3} stroke={ink.grid} strokeWidth={1} />
@@ -544,6 +634,73 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, cla
           })}
         </svg>
       ) : null}
+    </div>
+    {ladder && W > 0 ? (
+      <div
+        role="slider"
+        tabIndex={0}
+        aria-label="Year shown on the globe"
+        aria-valuemin={ladder[0].year}
+        aria-valuemax={ladder[ladder.length - 1].year}
+        aria-valuenow={chosen?.year}
+        aria-valuetext={ladderText}
+        className="absolute inset-x-0 rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        style={{ top: lTop, height: oy + ladderH + 28, cursor: 'pointer', touchAction: 'pan-y' }}
+        onPointerDown={(e) => { if (e.button !== 0) return; e.currentTarget.setPointerCapture(e.pointerId); pickRow(e.clientY, e.currentTarget) }}
+        onPointerMove={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) pickRow(e.clientY, e.currentTarget) }}
+        onKeyDown={(e) => {
+          const step: Record<string, number> = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1, PageUp: -3, PageDown: 3 }
+          let i = yearIndex
+          if (e.key in step) i += step[e.key]
+          else if (e.key === 'Home') i = 0
+          else if (e.key === 'End') i = ladder.length - 1
+          else return
+          e.preventDefault()
+          i = Math.max(0, Math.min(ladder.length - 1, i))
+          if (ladder[i].year !== year) onYear?.(ladder[i].year)
+        }}
+      >
+        <svg aria-hidden width={L.W} height={oy + ladderH + 28} className="block overflow-visible" fontSize={compact ? 11 : 12}>
+          {(compact ? [6, 12, 18] : [6, 9, 12, 15, 18]).map((h) => (
+            <text key={h} x={xAt(h)} y={oy - 10} textAnchor={h === 6 ? 'start' : h === 18 ? 'end' : 'middle'} fill={ink.muted}>{hourText(h)}</text>
+          ))}
+          <line x1={xAt(6)} x2={xAt(18)} y1={oy - 2} y2={oy - 2} stroke={ink.grid} strokeWidth={1} />
+          {chosen ? <rect x={xAt(6) - (compact ? 40 : 48)} y={oy + yearIndex * rowH} width={xAt(18) - xAt(6) + (compact ? 48 : 56)} height={rowH} rx={3} fill={ink.surface} /> : null}
+          {day ? <line x1={xAt(set)} x2={xAt(set)} y1={oy - 2} y2={oy + ladderH} stroke={ink.fg} strokeOpacity={0.5} strokeWidth={1} /> : null}
+          {orbits.filter((o) => o.id !== 'viirs').map((o) => (
+            <polyline
+              key={`path-${o.id}`}
+              points={ladder.map((r, i) => `${xAt(r.times[o.id] ?? o.time).toFixed(1)},${(oy + i * rowH + rowH / 2).toFixed(1)}`).join(' ')}
+              fill="none"
+              stroke={o.color}
+              strokeOpacity={0.35}
+              strokeWidth={1}
+            />
+          ))}
+          {ladder.map((r, i) => {
+            const y = oy + i * rowH + rowH / 2
+            const on = i === yearIndex
+            return (
+              <g key={r.year} opacity={on ? 1 : 0.45}>
+                <text x={xAt(6) - (compact ? 8 : 12)} y={y} textAnchor="end" dominantBaseline="central" fill={on ? ink.fg : ink.muted} fontWeight={on ? 500 : 400}>{r.year}</text>
+                {orbits.map((o) => <g key={o.id}>{shape(o, xAt(r.times[o.id] ?? o.time), y, on)}</g>)}
+              </g>
+            )
+          })}
+          {day ? <text x={xAt(set)} y={oy + ladderH + 18} textAnchor="end" fill={ink.muted}>Sunset {clockText(set)}</text> : null}
+        </svg>
+      </div>
+    ) : null}
+    {turned ? (
+      <button
+        type="button"
+        onClick={reset}
+        className="absolute right-0 top-0 rounded px-3 py-2 text-xs"
+        style={{ color: ink.fg, background: ink.ground, border: `1px solid ${ink.grid}` }}
+      >
+        Reset view
+      </button>
+    ) : null}
     </div>
   )
 }

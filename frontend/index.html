@@ -18,10 +18,10 @@
   <script>(() => {
     const u = location.search + location.hash
     if (/[?&#](region|round)=/.test(u)) return
+    // ?page=app, the audit page's old address, opens the region page, which starts on the same poster
+    if (/[?&#]page=/.test(u) && !/[?&#]page=app(&|#|$)/.test(u)) return
     const l = document.createElement('link'); l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high'
-    if (/[?&#]page=app/.test(u)) { l.href = 'img/regions/br-amazon.jpg'; l.imageSrcset = 'img/regions/br-amazon-sm.jpg 720w, img/regions/br-amazon.jpg 1920w'; l.imageSizes = '100vw' }
-    else if (/[?&#]page=/.test(u)) return
-    else l.href = 'video/regions/br-amazon-poster.jpg'
+    l.href = 'video/regions/br-amazon-poster.jpg'
     document.head.appendChild(l)
   })()</script>
   <style>html, body { background: #0B0D0B; color: #ECE9E1; color-scheme: dark; }</style>

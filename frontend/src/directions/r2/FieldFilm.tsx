@@ -1,18 +1,19 @@
-// Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request), now two pages.
-// Landing (D's original layout, kept): each region's name as a statement over its photograph at full bleed, the page
-// stepping through the six regions until one is picked; how Anchor reads a count on a bone band; the six regions as
-// photograph tiles; the tagline. App: the verdict beside the region's photograph, the year reel on a ruler, the Earth
-// seen from the Sun turning under the three orbits, the three passes of one day, the clock effect by year against the
-// placebo range, then the calendar, the checks, detection, limits and who it's for.
+// Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request), now one region page.
+// The region's name as a statement over its drone footage at full bleed, with the six regions as tabs under it; the
+// verdict; then the Earth seen from the Sun turning under the three orbits, the three passes of one day, the daylight an
+// alert leaves, the two clocks, the clock effect by year against the placebo range, the calendar, the checks, detection,
+// limits and who it's for. The region tabs and the top bar's select change every section and the URL.
+// The old landing's teaching sections (how Anchor reads a count, the region tiles, the tagline) are parked in
+// landing-parts.tsx for the new landing page. Pages are routed in one place: Page, linksFor and the switch in FieldFilm().
 // Black and bone; each satellite has one colour on chart lines and marks, never on a chart's background. Square media,
 // 4 px on small controls. Motion follows Anduril's patterns as read from their code (designs/round-2/anduril-study.md),
 // behind a footer switch seeded from the reader's reduced-motion setting.
 // Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag. Region photographs and drone
 // footage are credited in the footer. Pass imagery: NASA Worldview / GIBS, public domain.
-import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
+import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type RefObject } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
+import { ArrowDown, ArrowRight, Menu } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle, RegionSelect } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
@@ -21,7 +22,6 @@ import {
   type Check, type DayFire, type DetectionRate, type MonthRange, type RegionData, type SatKey, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
-import { FilmstripScrub } from '@/components/ui/filmstrip-scrub'
 import { AnomalyChart, type AnomalyPoint } from '@/components/ui/anomaly-chart'
 import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/series-chart'
 import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
@@ -70,7 +70,7 @@ const TOKENS = {
   '--fs-32': '32px',
   '--fs-40': '40px',
   '--fs-72': '72px',
-  // the landing's statement: the region's name, and the closing line
+  // the statement: the region's name (and the parked closing line)
   '--fs-display': 'clamp(56px, 11vw, 168px)',
   '--lh-display': '1.02',
   '--track-display': '-0.03em',
@@ -151,7 +151,7 @@ function useMedia(query: string) {
 
 const IMG = `${import.meta.env.BASE_URL}img/`
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
-const FEATURED = 'br-amazon'
+export const FEATURED = 'br-amazon'
 /** True while any preset region still reads mock files. */
 const ANY_MOCK = REGIONS.some((r) => regionData(r.id).mock)
 
@@ -170,16 +170,22 @@ const placeboText = (d: RegionData) => `${pct(d.placebo[0])} to ${pct(d.placebo[
 
 const defaultYear = (d: RegionData) => d.latestOk?.year ?? d.years[d.years.length - 1]?.year ?? d.lastDrift?.year ?? 2025
 
-type Nav = 'dev' | 'artifact'
-type Page = 'landing' | 'app'
-type Links = { app: (r: string) => string; landing: (r: string) => string }
-type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
+/* ---------- Pages: the routing, in one place ---------- */
 
-/** Where the two pages live: query strings on the site (one index.html); two files in the comment artifact, the region
- *  in the hash. */
-const linksFor = (nav: Nav): Links => ({
-  app: (r) => (nav === 'artifact' ? `app.html#region=${r}` : `?page=app&region=${r}`),
-  landing: (r) => (nav === 'artifact' ? `index.html#region=${r}` : `?region=${r}`),
+type Nav = 'dev' | 'artifact'
+/** The site's pages. The region page holds every section; the Simulator and a new landing page will join it here. */
+type Page = 'regions'
+/** Page names as the URL (?page=…) or the comment artifact's data-page gives them. "app" was the audit page's address,
+ *  so old links open the region page; no name, or a name this build doesn't know, opens it too. */
+const PAGE_NAMES: Record<string, Page> = { regions: 'regions', app: 'regions' }
+const pageNamed = (name?: string | null): Page => (name && Object.hasOwn(PAGE_NAMES, name) ? PAGE_NAMES[name] : 'regions')
+export type Links = { regions: (r: string) => string }
+export type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
+
+/** Where each page lives: a query string on the site (one index.html); its own file in the comment artifact, the region
+ *  in the hash. For links from other pages (the parked landing parts, the pages to come). */
+export const linksFor = (nav: Nav): Links => ({
+  regions: (r) => (nav === 'artifact' ? `index.html#region=${r}` : `?region=${r}`),
 })
 
 function initialRegion() {
@@ -231,41 +237,12 @@ function readMotion() {
   return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 const MotionContext = createContext<{ on: boolean; set: (on: boolean) => void }>({ on: true, set: () => {} })
-const useMotion = () => useContext(MotionContext)
+export const useMotion = () => useContext(MotionContext)
 
-/** True once the element has been `threshold` in view (their InView: 0.05 for slices, 0.5 for cards); true at once
- *  without motion or without IntersectionObserver, so nothing can stay hidden. */
-function useInView<T extends Element>(motion: boolean, threshold = 0.05) {
-  const ref = useRef<T | null>(null)
-  const [seen, setSeen] = useState(!motion)
-  useEffect(() => {
-    if (!motion) { setSeen(true); return }
-    const el = ref.current
-    if (!el || typeof IntersectionObserver === 'undefined') { setSeen(true); return }
-    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setSeen(true); io.disconnect() } }, { threshold })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [motion, threshold])
-  return [ref, seen] as const
-}
-
-/** Their line rise (SplitText + y 100% → 0, 1000 ms easeOutExpo), for a whole title: it rises from behind a mask the
- *  first time half of it is in view. */
-function Rise({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
-  const motion = useMotion()
-  const [ref, seen] = useInView<HTMLDivElement>(motion.on, 0.5)
-  return (
-    <div ref={ref} className="overflow-hidden pb-1">
-      <div style={{ transitionDelay: `${delay}ms` }} className={cn('transition-transform duration-1000 ease-[var(--ease)]', seen ? 'translate-y-0' : 'translate-y-full')}>
-        {children}
-      </div>
-    </div>
-  )
-}
-
-/** Their page change, halved for two static pages: this page fades and grows to 1.02 about the middle of the screen,
- *  then the link is followed; the next page arrives from 0.98 (in FieldFilm). Plain navigation without motion. */
-function useLeave(motion: boolean): Leave {
+/** Their page change, halved for static pages: this page fades and grows to 1.02 about the middle of the screen, then
+ *  the link is followed; the next page arrives from 0.98 (in FieldFilm). Plain navigation without motion. Kept for links
+ *  between pages, which the region page alone doesn't have. */
+export function useLeave(motion: boolean): Leave {
   return (e) => {
     if (!motion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
     const href = e.currentTarget.getAttribute('href')
@@ -296,7 +273,7 @@ function effectHeading(d: RegionData) {
 const INPE_CONTEXT = 'INPE’s Programa Queimadas, Brazil’s official fire statistic, counts the hotspots of one reference satellite, Aqua. Our reproduction of its series matches it (check P3).'
 const JETHVA = 'https://doi.org/10.3390/rs18101506'
 
-/** The verdict's sentences, shared by the landing and the audit page; Punjab reads as the validation case. */
+/** The verdict's sentences, under the region's name; Punjab reads as the validation case. */
 function VerdictBody({ d, size = 'lg' }: { d: RegionData; size?: 'lg' | 'sm' }) {
   const v = verdictLines(d)
   const lead = cn('max-w-[var(--measure)] text-[color:var(--bone2)]', size === 'lg' ? 'text-lg' : 'text-base')
@@ -326,11 +303,10 @@ function VerdictBody({ d, size = 'lg' }: { d: RegionData; size?: 'lg' | 'sm' }) 
 
 /* ---------- Shared classes ---------- */
 
-const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
+export const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
 const ease = 'transition-colors duration-150 ease-[var(--ease)]'
-const slideEase = 'transition-transform duration-240 ease-[var(--ease)] motion-reduce:transition-none'
 const title = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
-const shell = 'mx-auto w-full max-w-[var(--maxw)] px-4 sm:px-8'
+export const shell = 'mx-auto w-full max-w-[var(--maxw)] px-4 sm:px-8'
 /** Their link underline: draws in from the left on hover, leaves to the right. */
 const underline = cn(
   'relative rounded after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-right after:scale-x-0 after:bg-current after:content-[\'\']',
@@ -422,20 +398,72 @@ function useStage(sectionRef: RefObject<HTMLElement | null>, stageRef: RefObject
   }, [on, sectionRef, stageRef])
 }
 
+/* ---------- In-page links glide to their section instead of jumping ---------- */
+
+let glideFrame = 0
+const GLIDE_STOPS = ['wheel', 'touchstart', 'keydown', 'mousedown'] as const
+/** Scroll the page to an element (or the top), honouring its scroll margin. With motion on it glides in 0.4 to 0.7 s,
+ *  eased in and out, and stops the moment the reader scrolls; with motion off it jumps. */
+function glideTo(target: Element | 'top', motion: boolean) {
+  cancelAnimationFrame(glideFrame)
+  const margin = target === 'top' ? 0 : parseFloat(getComputedStyle(target).scrollMarginTop) || 0
+  const y = target === 'top' ? 0 : Math.max(0, target.getBoundingClientRect().top + window.scrollY - margin)
+  const start = window.scrollY
+  const dist = y - start
+  if (!motion || Math.abs(dist) < 2) { window.scrollTo(0, y); return }
+  const dur = Math.min(720, 380 + Math.abs(dist) * 0.06)
+  const t0 = performance.now()
+  const off = () => { for (const ev of GLIDE_STOPS) window.removeEventListener(ev, stop) }
+  const stop = () => { cancelAnimationFrame(glideFrame); off() }
+  for (const ev of GLIDE_STOPS) window.addEventListener(ev, stop, { passive: true })
+  const step = (now: number) => {
+    const t = Math.min(1, (now - t0) / dur)
+    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+    window.scrollTo(0, start + dist * e)
+    if (t < 1) glideFrame = requestAnimationFrame(step)
+    else off()
+  }
+  glideFrame = requestAnimationFrame(step)
+}
+
 /* ---------- Pages ---------- */
 
-export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Nav }) {
+/** `page` names the page to draw (the comment artifact passes its data-page); without it, the URL's ?page= does. */
+export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: Nav }) {
   usePortalTokens()
-  const which: Page = page ?? (new URLSearchParams(window.location.search).get('page') === 'app' ? 'app' : 'landing')
+  const which = pageNamed(page ?? new URLSearchParams(window.location.search).get('page'))
   const [motion, setMotionState] = useState(readMotion)
   const setMotion = (on: boolean) => {
     setMotionState(on)
     try { window.localStorage.setItem(MOTION_KEY, on ? 'on' : 'off') } catch { /* storage can be blocked */ }
   }
   const [region, setRegion] = useState(initialRegion)
-  const links = linksFor(nav)
-  const leave = useLeave(motion)
   const rootRef = useRef<HTMLDivElement | null>(null)
+  const motionRef = useRef(motion)
+  motionRef.current = motion
+
+  // links to a section (#calendar, the section index…) glide there instead of jumping; keyboard users land on the
+  // section's heading
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = (e.target as Element | null)?.closest?.('a[href^="#"]')
+      const id = a ? decodeURIComponent(a.getAttribute('href')!.slice(1)) : ''
+      const el = id && !id.includes('=') ? document.getElementById(id) : null
+      if (!el) return
+      e.preventDefault()
+      glideTo(id === 'top' ? 'top' : el, motionRef.current)
+      if (e.detail === 0) {
+        const f = (el.querySelector('h1, h2') as HTMLElement | null) ?? el
+        if (!f.hasAttribute('tabindex')) f.setAttribute('tabindex', '-1')
+        f.focus({ preventScroll: true })
+      }
+    }
+    root.addEventListener('click', onClick)
+    return () => root.removeEventListener('click', onClick)
+  }, [])
 
   useEffect(() => {
     const root = rootRef.current
@@ -457,32 +485,17 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Na
         data-motion={motion ? 'on' : 'off'}
         className="relative min-h-screen overflow-x-clip bg-[color:var(--ground)] font-[family-name:var(--f-ui)] text-sm text-[color:var(--bone)] antialiased"
       >
-        {which === 'app' ? (
-          <AppPage region={region} onRegion={(id) => { setRegion(id); writeRegion(nav, id) }} links={links} leave={leave} nav={nav} />
-        ) : (
-          <LandingPage region={region} setRegion={setRegion} onPick={(id) => writeRegion(nav, id)} links={links} leave={leave} />
-        )}
+        {/* the page switch */}
+        {which === 'regions' ? <RegionsPage region={region} onRegion={(id) => { setRegion(id); writeRegion(nav, id) }} nav={nav} /> : null}
         <Footer />
       </div>
     </MotionContext.Provider>
   )
 }
 
-function LandingPage({ region, setRegion, onPick, links, leave }: { region: string; setRegion: (id: string) => void; onPick: (id: string) => void; links: Links; leave: Leave }) {
-  return (
-    <>
-      <LandingTopBar app={links.app(region)} leave={leave} />
-      <main>
-        <LandingHero region={region} setRegion={setRegion} onPick={onPick} app={links.app(region)} leave={leave} />
-        <HowItWorks />
-        <RegionIndex links={links} leave={leave} />
-        <Closing href={links.app(region)} leave={leave} />
-      </main>
-    </>
-  )
-}
-
-function AppPage({ region, onRegion, links, leave, nav }: { region: string; onRegion: (id: string) => void; links: Links; leave: Leave; nav: Nav }) {
+/** The region page: the region's name over its footage and the verdict, then every section in order. The region tabs
+ *  and the top bar's select both pick the region; the year picked in one figure is shared by the others. */
+function RegionsPage({ region, onRegion, nav }: { region: string; onRegion: (id: string) => void; nav: Nav }) {
   const d = useMemo(() => regionData(region), [region])
   const [year, setYear] = useState(() => defaultYear(d))
   const [mode, setModeState] = useState<CalendarMode>(() => (readParam('cal') === 'count' ? 'count' : 'anomaly'))
@@ -498,10 +511,9 @@ function AppPage({ region, onRegion, links, leave, nav }: { region: string; onRe
   const pick = (id: string) => { onRegion(id); setYear(defaultYear(regionData(id))) }
   return (
     <>
-      <AppTopBar region={region} onRegion={pick} home={links.landing(region)} leave={leave} />
+      <TopBar region={region} onRegion={pick} />
       <main>
-        <AppStatement d={d} />
-        <AppVerdict d={d} />
+        <RegionHero d={d} onPick={pick} />
         <Orbits d={d} year={year} onYear={setYear} />
         <Passes d={d} />
         <Daylight d={d} year={year} onYear={setYear} small={small} />
@@ -620,6 +632,7 @@ const REPO_URL = (import.meta.env.VITE_REPO_URL as string | undefined) || ''
 
 /** Phone and tablet index (below 1280 px): the same sections; the ones this comp doesn't have are listed, disabled. */
 function SectionsIndex() {
+  const motion = useMotion()
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger aria-label="Sections" className={menuClasses.trigger}>
@@ -634,7 +647,7 @@ function SectionsIndex() {
                 key={s.id}
                 disabled={!live}
                 className={menuClasses.item}
-                onSelect={() => { if (live) document.getElementById(s.id)?.scrollIntoView() }}
+                onSelect={() => { const el = live ? document.getElementById(s.id) : null; if (el) glideTo(el, motion.on) }}
               >
                 {s.label}{live ? '' : ' · full build'}
               </DropdownMenu.Item>
@@ -652,7 +665,7 @@ function MockTag({ show = true, className }: { show?: boolean; className?: strin
   return <span className={cn('shrink-0 rounded border border-[color:var(--hairline)] px-2 py-1 text-xs text-[color:var(--bone)]', className)}>Mock data</span>
 }
 
-const primaryButton = cn(
+export const primaryButton = cn(
   'inline-flex h-12 items-center justify-center gap-2 rounded bg-[color:var(--bone)] px-5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]',
   ease,
   focusRing,
@@ -663,37 +676,8 @@ const secondaryButton = cn(
   focusRing,
 )
 
-/** Landing: transparent on the photograph, as before; the way into the audit at the right. */
-function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
-  return (
-    <header className="absolute inset-x-0 top-0 z-20">
-      <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
-        <a href="#top" aria-label="Anchor, back to the top" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
-          <AnchorLogo height={20} />
-        </a>
-        <nav aria-label="On this page" className="hidden md:block xl:col-span-6 xl:justify-self-center">
-          <ul className="flex items-center gap-6 text-sm">
-            <li><a href="#how" className={cn(underline, 'text-[color:var(--bone)]', focusRing)}>How it works</a></li>
-            <li><a href="#regions" className={cn(underline, 'text-[color:var(--bone)]', focusRing)}>Regions</a></li>
-          </ul>
-        </nav>
-        <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:col-span-3">
-          <MockTag show={ANY_MOCK} className="hidden bg-[color:var(--plate)] sm:inline-block" />
-          <a
-            href={app}
-            onClick={leave}
-            className={cn('inline-flex h-9 items-center rounded bg-[color:var(--bone)] px-3 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]', ease, focusRing)}
-          >
-            Open the audit
-          </a>
-        </div>
-      </div>
-    </header>
-  )
-}
-
-/** App: clear over the statement at first; solid once the page moves, so the audit scrolls under it. */
-function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion: (id: string) => void; home: string; leave: Leave }) {
+/** Clear over the region's name at first; solid once the page moves, so the sections scroll under it. */
+function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) => void }) {
   const [solid, setSolid] = useState(false)
   useEffect(() => {
     const check = (e?: Event) => {
@@ -713,7 +697,7 @@ function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion
       )}
     >
       <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
-        <a href={home} onClick={leave} aria-label="Anchor home" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-2 xl:justify-self-start', focusRing)}>
+        <a href="#top" aria-label="Anchor, back to the top" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-2 xl:justify-self-start', focusRing)}>
           <AnchorLogo height={20} />
         </a>
         <nav aria-label="Sections" className="hidden xl:col-span-8 xl:flex xl:justify-center">
@@ -741,11 +725,9 @@ function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion
   )
 }
 
-/* ---------- Landing hero: a statement piece, the region's name on its ground; the verdict follows below ---------- */
+/* ---------- The hero: a statement piece, the region's name on its ground; the verdict follows below ---------- */
 
-const DWELL = 'animate-[anchor-dwell_7s_linear_forwards]'
-
-/** A region's media on the landing: its drone loop where one exists (muted, looping, playing only while shown), else its
+/** A region's media in the hero: its drone loop where one exists (muted, playing only while shown), else its
  *  photograph with a slow push-in so the stills don't sit frozen between the loops. Without motion, the still photograph
  *  (or the loop's first frame) and nothing moving. */
 function RegionMedia({ id, active, className }: { id: string; active: boolean; className?: string }) {
@@ -753,8 +735,8 @@ function RegionMedia({ id, active, className }: { id: string; active: boolean; c
   const p = photoFor(id)
   const ref = useRef<HTMLVideoElement | null>(null)
   const v = p.video
-  // one continuous shot per showing: each time the region comes up it starts from the top and plays once, holding its
-  // last frame if the tour is paused; no loop, so the picture never jumps back
+  // one continuous shot per showing: each time the region is picked it starts from the top and plays once, then holds
+  // its last frame; no loop, so the picture never jumps back
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -795,36 +777,27 @@ function RegionMedia({ id, active, className }: { id: string; active: boolean; c
     />
   )
 }
-const statement = 'text-balance text-[length:var(--fs-display)] font-medium leading-[0.92] tracking-[-0.04em]'
-const titleLarge = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
+export const statement = 'text-balance text-[length:var(--fs-display)] font-medium leading-[0.92] tracking-[-0.04em]'
+export const titleLarge = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
 /** The statement's wording: "The Amazon", not "Amazon" (which reads as the company); places that take no article stay bare. */
 const statementName = (id: string) => {
   const the = phrase(id).the
   return the.startsWith('the ') ? `The ${the.slice(4)}` : phrase(id).short
 }
 
-function LandingHero({ region, setRegion, onPick, app, leave }: { region: string; setRegion: (id: string) => void; onPick: (id: string) => void; app: string; leave: Leave }) {
-  const motion = useMotion()
-  const d = useMemo(() => regionData(region), [region])
-  const ids = REGIONS.map((r) => r.id)
-  // the tour: on until a region is picked; held while paused, while the tabs have focus, or once the reader scrolls
-  const [auto, setAuto] = useState(true)
-  const [paused, setPaused] = useState(false)
-  const [held, setHeld] = useState(false)
+/** The region's name over its footage, the six region tabs, and the verdict. The region changes when the reader picks
+ *  one, here or in the top bar, and at no other time: there is no tour, since every section below follows the pick. */
+function RegionHero({ d, onPick }: { d: RegionData; onPick: (id: string) => void }) {
+  const region = d.id
   const [moved, setMoved] = useState(false)
   const sectionRef = useRef<HTMLElement | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
-  // the landing's statement stays still; the zoom-out reveal opens the audit page instead
+  // the statement stays still; the zoom-out reveal (FRAME, useStage) is parked until the team wants it
   const hold = false
   useStage(sectionRef, stageRef, hold, (v) => setMoved(v > 0.04))
   // photographs load as their region is first shown, then stay for the crossfade
   const [loaded, setLoaded] = useState<string[]>([region])
   useEffect(() => { setLoaded((l) => (l.includes(region) ? l : [...l, region])) }, [region])
-
-  const touring = motion.on && auto
-  const running = touring && !paused && !held && !moved
-  const next = () => setRegion(ids[(ids.indexOf(region) + 1) % ids.length])
-  const pick = (id: string) => { setAuto(false); setRegion(id); onPick(id) }
 
   return (
     <>
@@ -857,15 +830,11 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
         </div>
         {/* the region tabs along the bottom edge, on a dark plate; they step aside once the reader scrolls */}
         <div className={cn('bg-[color:var(--plate)]', FADE_SOON, moved && 'pointer-events-none')} aria-hidden={moved || undefined} {...({ inert: moved ? '' : undefined } as Record<string, unknown>)}>
-          <div
-            className={cn(shell, 'flex items-start gap-4 py-5')}
-            onFocus={() => setHeld(true)}
-            onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHeld(false) }}
-          >
+          <div className={cn(shell, 'flex items-start gap-4 py-5')}>
             <ToggleGroup.Root
               type="single"
               value={region}
-              onValueChange={(v) => { if (v) pick(v) }}
+              onValueChange={(v) => { if (v) onPick(v) }}
               aria-label="Region shown"
               className="grid flex-1 grid-cols-3 gap-x-4 gap-y-3 md:grid-cols-6 md:gap-x-6"
             >
@@ -876,226 +845,34 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
                   className={cn('relative pt-3 text-left text-sm leading-5 text-[color:var(--bone2)] hover:text-[color:var(--bone)] data-[state=on]:text-[color:var(--bone)]', ease, focusRing)}
                 >
                   <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-[color:var(--bone-20)]" />
-                  {r.id === region ? (
-                    <span
-                      key={touring ? 'tour' : 'still'}
-                      aria-hidden
-                      onAnimationEnd={touring ? next : undefined}
-                      style={{ animationPlayState: running ? 'running' : 'paused' }}
-                      className={cn('absolute inset-x-0 top-0 h-0.5 origin-left bg-[color:var(--bone)]', touring && DWELL)}
-                    />
-                  ) : null}
+                  {r.id === region ? <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-[color:var(--bone)]" /> : null}
                   {phrase(r.id).short}
                 </ToggleGroup.Item>
               ))}
             </ToggleGroup.Root>
-            {touring ? (
-              <button
-                type="button"
-                onClick={() => setPaused((v) => !v)}
-                aria-label={paused ? 'Resume the tour of the regions' : 'Pause the tour of the regions'}
-                className={cn('mt-1.5 inline-flex size-8 shrink-0 items-center justify-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}
-              >
-                {paused ? <Play size={16} strokeWidth={1.5} aria-hidden /> : <Pause size={16} strokeWidth={1.5} aria-hidden />}
-              </button>
-            ) : null}
           </div>
         </div>
         </div>
         </div>
       </section>
 
-      {/* the verdict and the way in, rising under the framed photograph */}
-      <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-4', hold && '-mt-[40svh]')}>
+      {/* the verdict, rising under the framed photograph; the fixed top bar needs the larger scroll margin */}
+      <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-20', hold && '-mt-[40svh]')}>
         <div className={cn(shell, 'grid grid-cols-1 py-16 xl:grid-cols-12 xl:gap-x-6 xl:py-20')}>
           <div className="xl:col-span-8">
             <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
             <VerdictBody d={d} />
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href={app} onClick={leave} className={primaryButton}>
-                <span>Open the audit<span className="hidden sm:inline"> for {d.phrase.the}</span></span>
+              <a href="#calendar" className={primaryButton}>
+                Explore the calendar
                 <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
               </a>
-              <a href="#how" className={secondaryButton}>How it works</a>
+              <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>Download summary</button>
             </div>
           </div>
         </div>
       </section>
     </>
-  )
-}
-
-/* ---------- App opening: a still statement, the region's name on its photograph; the verdict follows ---------- */
-
-/** The audit opens on the region's photograph with its name, still: the drone loops play on the landing, and the
- *  zoom-out reveal (useStage, FRAME…) is parked until the team wants it. */
-function AppStatement({ d }: { d: RegionData }) {
-  const p = photoFor(d.id)
-  return (
-    <section id="top" aria-labelledby="region-h" className="relative isolate flex h-[78svh] max-h-[1040px] min-h-[560px] flex-col">
-      <div className="absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]">
-        <img
-          key={d.id}
-          src={p.src}
-          srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
-          sizes="100vw"
-          alt={p.alt}
-          width={p.width}
-          height={p.height}
-          style={{ objectPosition: p.focus }}
-          className="absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover"
-        />
-        <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
-      </div>
-      <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
-        <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
-        <h1 id="region-h" className={statement}>
-          <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
-        </h1>
-      </div>
-    </section>
-  )
-}
-
-/** The verdict under the statement, then the reel. */
-function AppVerdict({ d }: { d: RegionData }) {
-  return (
-    <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-20">
-      <div className={cn(shell, 'grid grid-cols-1 py-16 xl:grid-cols-12 xl:gap-x-6 xl:py-20')}>
-        <div className="xl:col-span-8">
-          <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
-          <VerdictBody d={d} />
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a href="#calendar" className={primaryButton}>
-              Explore the calendar
-              <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
-            </a>
-            <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>Download summary</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Pass line: when each satellite looked, 06:00 to 18:00 ---------- */
-
-const AXIS_FROM = 6
-const AXIS_TO = 18
-const HOURS = Array.from({ length: AXIS_TO - AXIS_FROM + 1 }, (_, i) => AXIS_FROM + i)
-const LABELLED = HOURS.filter((h) => (h - AXIS_FROM) % 2 === 0)
-const at = (hours: number) => ((hours - AXIS_FROM) / (AXIS_TO - AXIS_FROM)) * 100
-const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
-
-/** When each satellite looked, as a reel of years: drag or arrow through the frames and the large frame
- *  crossfades from year to year, so Aqua's mark walks later; each strip cell zooms on the fixed clock and Aqua. */
-const MONTH_NOTCHES = Array.from({ length: 12 }, (_, k) => k)
-/** A ruler cell for a year: a notch per month, a taller one where the year starts, the tallest mid-year under the playhead. */
-const rulerThumb = (year: number) => (
-  <div className="absolute inset-0">
-    {MONTH_NOTCHES.map((k) => (
-      <span
-        key={k}
-        style={{ left: `${(k / 12) * 100}%` }}
-        className={cn(
-          'absolute top-0 w-px bg-[color:var(--bone-30)] group-data-[active=true]:bg-[color:var(--bone-80)]',
-          k === 6 ? 'h-5' : k === 0 ? 'h-3' : 'hidden h-1.5 sm:block',
-        )}
-      />
-    ))}
-    <span className="absolute bottom-0 left-1/2 hidden -translate-x-1/2 text-xs leading-4 tabular-nums text-[color:var(--bone3)] group-data-[active=true]:text-[color:var(--bone)] sm:block">{year}</span>
-  </div>
-)
-const REEL_VARS = { '--fs-accent': 'var(--bone)', '--fs-cell': 'var(--surface)' } as CSSProperties
-
-/** When each satellite looked in one year, as an instrument line on a 06:00 to 18:00 axis. Each satellite has its own
- *  marker and pin: Aqua, the one that drifts, a filled dot under a solid flag carrying its time and the minutes it added;
- *  the fixed clock (VIIRS) a green diamond; Terra a hollow ring. The drift itself is a bar on the axis from the fixed clock to Aqua.
- *  Colours come from the page tokens, so the figure works on black and, re-inked, on the bone band. */
-function PassFigure({ dr, year }: { dr: Drift; year: number }) {
-  const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
-  const later = shift >= 0
-  const xa = at(hm(dr.aqua_lst))
-  const xf = at(hm(dr.viirs_lst))
-  const xt = at(hm(dr.terra_lst))
-  const vars = {
-    '--xa': `${xa}%`,
-    '--xf': `${xf}%`,
-    '--xt': `${xt}%`,
-    '--bar-x': `${Math.min(xa, xf)}%`,
-    '--bar-k': `${Math.abs(xa - xf) / 100}`,
-  } as CSSProperties
-  const description = `When each satellite looked in ${year}: Terra ${dr.terra_lst}, fixed clock ${dr.viirs_lst}, Aqua ${dr.aqua_lst}, ${Math.abs(shift)} minutes ${later ? 'after' : 'before'} the fixed clock`
-  // each satellite rides a full-width layer moved with translateX, so a change of year slides it (instant without motion)
-  const layer = cn('absolute inset-x-0 top-0 h-full', slideEase)
-  const axis = 'top-20 sm:top-24' // 80 px, 96 px
-  const marker = cn('absolute left-0 -translate-x-1/2 -translate-y-1/2', axis)
-  const label = 'absolute whitespace-nowrap text-xs leading-4 sm:text-sm sm:leading-5'
-  // Aqua's flag hangs centred over its pin, and turns to hang leftwards near the right edge
-  const flagSide = xa > 84 ? '-translate-x-full left-px' : xa < 12 ? '-left-px' : '-translate-x-1/2'
-
-  return (
-    <div role="img" aria-label={description} style={vars} className="relative h-28 overflow-hidden sm:h-32">
-      {/* the day, 06:00 to 18:00 */}
-      <span aria-hidden className={cn('absolute inset-x-0 h-px bg-[color:var(--bone-30)]', axis)} />
-      {HOURS.map((h) => (
-        <span
-          key={h}
-          aria-hidden
-          style={{ '--xh': `${at(h)}%` } as CSSProperties}
-          className={cn('absolute left-[var(--xh)] h-1.5 w-px -translate-y-1/2 bg-[color:var(--bone-30)]', axis)}
-        />
-      ))}
-      {LABELLED.map((h, i) => (
-        <span
-          key={h}
-          aria-hidden
-          style={{ '--xh': `${at(h)}%` } as CSSProperties}
-          className={cn(
-            'absolute left-[var(--xh)] top-23 text-xs leading-4 text-[color:var(--bone3)] sm:top-27',
-            i === 0 ? '' : i === LABELLED.length - 1 ? '-translate-x-full' : '-translate-x-1/2',
-          )}
-        >
-          {hourLabel(h)}
-        </span>
-      ))}
-      {/* the minutes the later look added: a bar along the axis from the fixed clock to Aqua */}
-      <span
-        aria-hidden
-        className={cn('absolute inset-x-0 h-1 origin-left -translate-y-1/2 translate-x-[var(--bar-x)] scale-x-[var(--bar-k)] bg-[color:var(--sat-aqua)]', axis, slideEase)}
-      />
-
-      {/* Terra: a hollow ring, the lowest label, set to the left of its pin */}
-      <div aria-hidden className={cn(layer, 'translate-x-[var(--xt)]')}>
-        <span className="absolute left-0 top-[62px] h-[18px] w-px -translate-x-1/2 bg-[color:var(--sat-terra)] sm:top-[74px] sm:h-[22px]" />
-        <span className={cn(marker, 'size-2.5 rounded-full border-2 border-[color:var(--sat-terra)] bg-[color:var(--figure-bg,var(--surface))]')} />
-        <span className={cn(label, '-left-2 top-[46px] -translate-x-full text-[color:var(--bone3)] sm:top-[54px]')}>Terra {dr.terra_lst}</span>
-      </div>
-
-      {/* the fixed clock: a green diamond; its label sits on the side away from Aqua, so the two never touch */}
-      <div aria-hidden className={cn(layer, 'translate-x-[var(--xf)]')}>
-        <span className="absolute left-0 top-[42px] h-[38px] w-px -translate-x-1/2 bg-[color:var(--sat-viirs)] sm:top-[50px] sm:h-[46px]" />
-        <span className={cn(marker, 'size-2.5 rotate-45 bg-[color:var(--sat-viirs)]')} />
-        <span className={cn(label, 'top-[26px] text-[color:var(--bone3)] sm:top-[30px]', later ? '-left-2 -translate-x-full' : 'left-2')}>
-          Fixed clock {dr.viirs_lst}
-        </span>
-      </div>
-
-      {/* Aqua: the one that moves; a solid flag with its time and the minutes it added, a filled dot on the axis */}
-      <div aria-hidden className={cn(layer, 'translate-x-[var(--xa)]')}>
-        <span className="absolute left-0 top-5 h-15 w-0.5 -translate-x-1/2 bg-[color:var(--sat-aqua)] sm:top-6 sm:h-18" />
-        <span className={cn(marker, 'size-3 rounded-full bg-[color:var(--sat-aqua)] ring-2 ring-[color:var(--figure-bg,var(--surface))]')} />
-        <span
-          className={cn(
-            'absolute top-0 flex h-5 items-center gap-1.5 whitespace-nowrap rounded-[3px] bg-[color:var(--sat-aqua)] px-1.5 text-xs font-medium text-[color:var(--figure-on,var(--ink))] sm:h-6 sm:px-2 sm:text-sm',
-            flagSide,
-          )}
-        >
-          Aqua {dr.aqua_lst}
-          <span className="font-normal opacity-75">{later ? '+' : '−'}{Math.abs(shift)} min</span>
-        </span>
-      </div>
-    </div>
   )
 }
 
@@ -1117,10 +894,6 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
   const motion = useMotion()
   const dr = d.driftAt(year)
   const years = d.drift.map((r) => r.year)
-  const frames = useMemo(
-    () => d.drift.map((r) => ({ id: String(r.year), valueText: `${r.year}: Terra ${r.terra_lst}, fixed clock ${r.viirs_lst}, Aqua ${r.aqua_lst}`, preview: null, thumb: rulerThumb(r.year) })),
-    [d],
-  )
   const region = REGIONS.find((r) => r.id === d.id)
   const dl = useMemo(() => daylight(d), [d])
   if (!dr || !years.length || !region) return null
@@ -1143,8 +916,8 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
             {statementName(d.id)} at noon, seen from the Sun’s side: morning to the left, evening to the right. Each orbit
             keeps its angle to the sunlight, so each orbit runs along a line of one time of day. The Earth’s turn carries{' '}
-            {d.phrase.the} along the dashed path, under {order[0]} orbit first, then {order[1]}, then {order[2]}. Drag the
-            years under the globe to see the orbits move.
+            {d.phrase.the} along the dashed path, under {order[0]} orbit first, then {order[1]}, then {order[2]}. Pick a year
+            in the chart under the globe, by pointer or arrow keys, to see the orbits move.
           </p>
           <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
             <dt className="text-[color:var(--bone3)]">Year</dt>
@@ -1163,36 +936,16 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
             orbits={orbits}
             region={{ name: statementName(d.id), bbox: region.bbox }}
             span={{ from: 'viirs', to: 'aqua' }}
-            running={motion.on}
+            running={false}
             ink={GLOBE_INK}
             label={description}
             day={sun ? { rise: sun.rise, set: sun.set } : undefined}
+            years={d.drift.map((r) => ({ year: r.year, times: { terra: hm(r.terra_lst), viirs: hm(r.viirs_lst), aqua: hm(r.aqua_lst) } }))}
+            year={dr.year}
+            onYear={onYear}
           />
-          {/* the years, under the Earth, on the reel's ruler: dragging it moves the orbits */}
-          <div className="mt-6" style={REEL_VARS}>
-            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-              <p className="text-sm text-[color:var(--bone2)]">When each satellite looked · drag along the years</p>
-              <p className="text-sm tabular-nums text-[color:var(--bone)]">
-                {dr.year} · Aqua {dr.aqua_lst}, {Math.abs(shift)} min {shift >= 0 ? 'after' : 'before'} the fixed clock
-              </p>
-            </div>
-            <FilmstripScrub
-              frames={frames}
-              frameIndex={Math.max(0, years.indexOf(dr.year))}
-              onFrameIndexChange={(i) => onYear(years[i])}
-              scrubberLabel="Year shown on the globe"
-              variant="ruler"
-              still={!motion.on}
-              playheadClassName="sm:bottom-5"
-              previewClassName="hidden"
-              stripClassName="h-8 sm:h-12"
-            />
-            <div aria-hidden className="mt-2 flex justify-between text-xs tabular-nums text-[color:var(--bone3)] sm:hidden">
-              <span>{years[0]}</span><span>{years[years.length - 1]}</span>
-            </div>
-          </div>
           <figcaption className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--bone3)]">
-            <span>Heights to scale: Aqua and Terra fly about 705 km up, the VIIRS satellites about 830 km. The satellites are shown moving faster than they really do.</span>
+            <span>Drag the globe to turn it. Heights to scale: Aqua and Terra fly about 705 km up, the VIIRS satellites about 830 km.</span>
             {sun ? <span>The dashed path is daylight on {dateText(sun.mid)}, the middle of the fire season: sunrise {fmtHM(sun.rise)}, sunset {fmtHM(sun.set)}, local solar time.</span> : null}
             <span>Source: drift/{d.id}.json</span>
             <MockTag show={d.mock} />
@@ -2262,145 +2015,6 @@ function About() {
             </p>
           </div>
         </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Landing: how Anchor reads a count, on a bone band ---------- */
-
-function HowItWorks() {
-  const motion = useMotion()
-  const d = useMemo(() => regionData(FEATURED), [])
-  const y = d.latestOk?.year ?? 2025
-  const dr = d.driftAt(y)
-  const [ref, seen] = useInView<HTMLOListElement>(motion.on, 0.3)
-  const first = d.drift[0], last = d.lastDrift
-  const steps = [
-    {
-      t: 'The reference satellite drifted',
-      b: `INPE’s official fire counts for Brazil follow one reference satellite, Aqua, which for years looked at about the same time of day.${d.driftStart && first && last ? ` Since ${d.driftStart} its look over the Amazon has moved later: ${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}.` : ''}`,
-    },
-    { t: 'Fires and clouds change through the day', b: 'So a count that follows a drifting clock can change with the time it looks as well as with the fires. Which way, and by how much, has to be measured, not assumed.' },
-    { t: 'We hold the clock still', b: 'VIIRS still looks at the same time. We turn its counts into an Aqua-equivalent estimate, month by month, and set Aqua’s own count beside it, with a 95% range and the 2012–2020 placebo range. The gap shows where the two part; on its own it doesn’t say how much the timing caused.' },
-  ]
-  // the pass figure, re-inked for the bone ground
-  const inked = {
-    '--bone': 'var(--ink)',
-    '--bone3': '#4E514A',
-    '--bone-30': 'rgba(11, 13, 11, 0.3)',
-    '--bone-80': 'rgba(11, 13, 11, 0.8)',
-    '--sat-aqua': '#A65D00',
-    '--sat-terra': '#2266A4',
-    '--sat-viirs': '#1C7F4C',
-    '--figure-bg': '#ECE9E1',
-    '--figure-on': '#ECE9E1',
-  } as CSSProperties
-  return (
-    <section id="how" aria-labelledby="how-h" className="scroll-mt-4 bg-[color:var(--bone)] text-[color:var(--ink)]">
-      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
-        <div className="lg:col-span-4">
-          <Rise><h2 id="how-h" className={titleLarge}>How we read a fire count</h2></Rise>
-          <p className="mt-4 max-w-[var(--measure)] text-sm">The Amazon in {y}, from the team’s data files{d.mock ? ' (mock for now)' : ''}.</p>
-        </div>
-        <div className="min-w-0 lg:col-span-8">
-          {dr ? <div style={inked}><PassFigure dr={dr} year={y} /></div> : null}
-          {/* their rule + slide: each step's rule draws, then its words arrive from the left, 100 ms apart */}
-          <ol ref={ref} className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-6">
-            {steps.map((s, i) => (
-              <li key={s.t} className="relative pt-4">
-                <span
-                  aria-hidden
-                  style={{ transitionDelay: `${i * 100}ms` }}
-                  className={cn('absolute inset-x-0 top-0 h-px origin-left bg-[color:var(--ink)] transition-transform duration-1000 ease-[var(--ease)]', seen ? 'scale-x-100' : 'scale-x-0')}
-                />
-                <div
-                  style={{ transitionDelay: `${200 + i * 100}ms` }}
-                  className={cn('transition-[opacity,transform] duration-1000 ease-[var(--ease)]', seen ? 'translate-x-0 opacity-100' : '-translate-x-[10%] opacity-0')}
-                >
-                  <p className="text-lg font-medium">{s.t}</p>
-                  <p className="mt-2 text-sm">{s.b}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Landing: the six regions as photograph tiles ---------- */
-
-function RegionIndex({ links, leave }: { links: Links; leave: Leave }) {
-  const motion = useMotion()
-  const [ref, seen] = useInView<HTMLUListElement>(motion.on, 0.2)
-  return (
-    <section id="regions" aria-labelledby="regions-h" className={cn(shell, 'scroll-mt-4 py-24')}>
-      <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
-        <div className="lg:col-span-4"><Rise><h2 id="regions-h" className={titleLarge}>Six regions, one fixed clock</h2></Rise></div>
-        <p className="max-w-[var(--measure)] text-sm text-[color:var(--bone2)] lg:col-span-8 lg:self-end">
-          Each audit opens on its verdict, then shows when each satellite looked, the clock effect year by year and the fire calendar.
-        </p>
-      </div>
-      <ul ref={ref} className="mt-10 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {REGIONS.map((r, i) => (
-          <RegionTile key={r.id} id={r.id} name={r.name} i={i} seen={seen} href={links.app(r.id)} leave={leave} />
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-/** Their product tile: media, title, one line, ↗. */
-function RegionTile({ id, name, i, seen, href, leave }: { id: string; name: string; i: number; seen: boolean; href: string; leave: Leave }) {
-  const p = photoFor(id)
-  const verdict = useMemo(() => verdictHeadline(regionData(id)), [id])
-  return (
-    <li
-      style={{ transitionDelay: `${i * 80}ms` }}
-      className={cn('transition-[opacity,transform] duration-500 ease-[var(--ease)]', seen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0')}
-    >
-      <a href={href} onClick={leave} className={cn('group relative block aspect-4/3 overflow-hidden bg-[color:var(--surface)]', focusRing)}>
-        <img
-          src={p.srcSm}
-          alt=""
-          width={720}
-          height={Math.round((720 * p.height) / p.width)}
-          loading="lazy"
-          style={{ objectPosition: p.focus }}
-          className="size-full object-cover transition-transform duration-500 ease-[var(--ease)] group-hover:scale-[1.03]"
-        />
-        <span aria-hidden className="absolute inset-0 bg-[image:var(--scrim-card)]" />
-        <span className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4">
-          <span className="min-w-0">
-            <span className="block text-lg font-medium text-[color:var(--bone)]">{name}</span>
-            <span className="mt-1 block text-sm text-[color:var(--bone-80)]">{verdict}</span>
-          </span>
-          <ArrowUpRight
-            size={18}
-            strokeWidth={1.5}
-            aria-hidden
-            className="mb-0.5 shrink-0 text-[color:var(--bone)] transition-transform duration-300 ease-[var(--ease)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-          />
-        </span>
-      </a>
-    </li>
-  )
-}
-
-/** Their closing slogan, as Anchor's tagline, with one last way in. */
-function Closing({ href, leave }: { href: string; leave: Leave }) {
-  return (
-    <section aria-labelledby="close-h" className="border-t border-[color:var(--hairline)]">
-      <div className={cn(shell, 'flex flex-col items-center py-24 text-center sm:py-32')}>
-        <Rise>
-          <h2 id="close-h" className={statement}>Count the fires, not the clock.</h2>
-        </Rise>
-        <a href={href} onClick={leave} className={cn(primaryButton, 'mt-10')}>
-          Open the audit
-          <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
-        </a>
       </div>
     </section>
   )
