@@ -24,10 +24,11 @@ import { SeriesChart, type Series } from '@/components/ui/series-chart'
 import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { ScrollSpy } from '@/components/ui/scroll-spy'
-import { StickyScroll } from '@/components/ui/sticky-scroll-reveal'
+import { YearRuler } from '@/components/ui/year-ruler'
+import { inRegion } from '@/r2/region-shapes'
 import { photoFor } from '@/r2/photos'
 import {
-  CAVEAT, FEATURED, Footer, JETHVA, MockTag, More, MotionContext, SiteBar, TOKENS, andList, ease, focusRing, glideTo, linksFor, primaryButton, readMotion, secondaryButton,
+  CAVEAT, FEATURED, Footer, JETHVA, MockTag, More, MotionContext, PageNext, SatMark, SiteBar, TOKENS, andList, ease, focusRing, glideTo, linksFor, primaryButton, readMotion, secondaryButton,
   shell, statement, statementName, storeMotion, textLink, title, useEasedScroll, useLeave, useStartAtTop, useMedia, useMotion, usePortalTokens,
   type Leave, type Links, type Nav, type Page,
 } from './common'
@@ -241,6 +242,18 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         {/* the world map's data is fetched from the site; the comment artifact doesn't carry it, so it is left out there */}
         {live ? <GlobalLayer region={d.id} small={small} /> : null}
       </main>
+      <PageNext page="regions" links={links} leave={leave} regionsHref={links.regions(region)} />
+      <Footer
+        links={links}
+        leave={leave}
+        notes={[
+          <>Fires are counted on the days both satellites sent data.</>,
+          <>Unusual means further from what we’d expect than any year from 2012 to 2020. For {d.phrase.the} that usual range is {usualText(d)}.</>,
+          <>Look times are local sun time: the middle of each satellite’s fire detections that year.</>,
+          <>Calendar: normal is the middle value for that month, 2002–2025, counted by VIIRS and scaled to Aqua’s count.</>,
+          <>Files for {d.phrase.the}: drift, audit, twoclocks and calendar, in the team’s data/out folder.{d.mock || d.twoMock ? ' Some of these are mock data.' : ''}</>,
+        ]}
+      />
     </>
   )
 }
@@ -320,13 +333,6 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
       Open in Explore <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
     </a>
   )
-  const lookLine = look ? (
-    <p className="text-sm text-[color:var(--bone2)]">
-      Aqua looked at <span className="tabular-nums text-[color:var(--bone)]">{look.old}</span> in 2012–2020 and at{' '}
-      <span className="tabular-nums text-[color:var(--bone)]">{look.now}</span> in {look.year}: {look.minutes} minutes later. VIIRS kept its time
-      (<span className="tabular-nums">{look.viirs}</span>).
-    </p>
-  ) : null
   if (validation) {
     const nov = novemberRatio(d)
     const a = nov.find((r) => r.year === 2016), b = nov[nov.length - 1]
@@ -343,7 +349,6 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             </div>
             <div className="mt-8 flex flex-wrap gap-3">{sim}</div>
           </div>
-          <Aside>{lookLine}</Aside>
         </div>
       </section>
     )
@@ -370,17 +375,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             <RollingDigits text={pct(y.gap)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
           </p>
-          <dl className="mt-6 grid max-w-[var(--measure)] grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
-            <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
-            <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
-            <dt className="text-[color:var(--bone3)]">What we’d expect</dt>
-            <dd className="tabular-nums">{y.fixed != null ? fmtInt(y.fixed) : '—'}</dd>
-            <dt className="text-[color:var(--bone3)]">How sure we are</dt>
-            <dd className="tabular-nums">{rangeText(y)}</dd>
-            <dt className="text-[color:var(--bone3)]">Usual range</dt>
-            <dd className="tabular-nums">{usualText(d)} <span className="text-[color:var(--bone3)]">in 2012–2020</span></dd>
-          </dl>
-          <p className="mt-3 max-w-[var(--measure)] text-xs text-[color:var(--bone3)]">Counted on the days both satellites sent data. Unusual means further from what we’d expect than any year from 2012 to 2020.</p>
+          <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{CAVEAT}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
@@ -388,26 +383,31 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             </button>
           </div>
         </div>
-        <Aside>
-          {lookLine}
+        <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
+          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
+            <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
+            <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
+            <dt className="text-[color:var(--bone3)]">What we’d expect</dt>
+            <dd className="tabular-nums">{y.fixed != null ? fmtInt(y.fixed) : '—'}</dd>
+            <dt className="text-[color:var(--bone3)]">How sure we are</dt>
+            <dd className="tabular-nums">{rangeText(y)}</dd>
+            <dt className="text-[color:var(--bone3)]">Usual range</dt>
+            <dd className="tabular-nums">{usualText(d)}</dd>
+            {look ? (
+              <>
+                <dt className="text-[color:var(--bone3)]">Aqua looks</dt>
+                <dd className="tabular-nums">{look.minutes} min later</dd>
+              </>
+            ) : null}
+          </dl>
           {d.id === 'us-california' ? (
-            <p className="text-sm text-[color:var(--bone2)]">
-              How well does each satellite see small fires? <a href={links.method('detection')} onClick={leave} className={textLink}>See the real-fires test</a>.
+            <p className="mt-4 text-sm text-[color:var(--bone2)]">
+              <a href={links.method('detection')} onClick={leave} className={textLink}>How well each satellite sees small fires</a>
             </p>
           ) : null}
-        </Aside>
+        </div>
       </div>
     </section>
-  )
-}
-
-/** The caveat beside every finding, and the place's look times under it. */
-function Aside({ children }: { children?: ReactNode }) {
-  return (
-    <aside aria-label="Read this with the result" className="flex flex-col gap-5 lg:col-span-4 lg:col-start-9 lg:pt-2">
-      <p className="rounded-[4px] border border-[color:var(--bone-30)] p-4 text-base text-[color:var(--bone)]">{CAVEAT}</p>
-      {children}
-    </aside>
   )
 }
 
@@ -415,27 +415,10 @@ function Aside({ children }: { children?: ReactNode }) {
 
 const GLOBE_INK = { fg: 'var(--bone)', muted: 'var(--bone3)', grid: 'var(--bone-20)', ground: 'var(--ground)', surface: 'var(--surface)', land: 'var(--bone2)' }
 
-function lookSteps(d: RegionData) {
-  const base = d.baseLook
-  const first = d.drift[0], last = d.lastDrift
-  if (!base || !first || !last) return []
-  const baseRow = d.drift.find((r) => r.year <= 2020 && r.aqua_lst === base) ?? first
-  const start = d.driftStart ? d.drift.find((r) => r.year === d.driftStart) : null
-  const later = (t: string) => minutesBetween(t, base)
-  const steps: { mark: string; title: string; description: string; year: number }[] = [
-    { mark: '2012–2020', title: `Aqua looks at ${base}`, description: `Its usual time. VIIRS looks at about the same time, ${baseRow.viirs_lst}.`, year: baseRow.year },
-  ]
-  if (start && start.year !== last.year) steps.push({ mark: String(start.year), title: 'Aqua starts looking later', description: `${start.aqua_lst}, ${later(start.aqua_lst)} minutes later than its usual time.`, year: start.year })
-  steps.push({ mark: String(last.year), title: `Aqua looks at ${last.aqua_lst}`, description: `${later(last.aqua_lst)} minutes later than in 2012–2020. VIIRS kept its time (${last.viirs_lst}). Terra now looks earlier (${last.terra_lst}).`, year: last.year })
-  return steps
-}
-
 function LookTimes({ d }: { d: RegionData }) {
-  const motion = useMotion()
-  const steps = useMemo(() => lookSteps(d), [d])
-  const [year, setYear] = useState(() => steps[steps.length - 1]?.year ?? d.lastDrift?.year ?? 2025)
+  const [year, setYear] = useState(() => d.lastDrift?.year ?? 2025)
   const region = REGIONS.find((r) => r.id === d.id)
-  if (!steps.length || !region) return null
+  if (!d.drift.length || !region) return null
   const dr = d.driftAt(year)
   const later = d.baseLook ? minutesBetween(dr.aqua_lst, d.baseLook) : 0
   const orbits: GlobeOrbit[] = [
@@ -444,38 +427,50 @@ function LookTimes({ d }: { d: RegionData }) {
     { id: 'aqua', label: 'Aqua', time: hm(dr.aqua_lst), timeText: dr.aqua_lst, dayPass: 'north', marker: 'filled', color: 'var(--sat-aqua)', altitudeKm: 705, phase: 0, flag: later >= 2 ? `+${later} min` : undefined },
   ]
   const description = `${statementName(d.id)} at noon in ${dr.year}, with each satellite’s path: Terra looks at ${dr.terra_lst}, VIIRS at ${dr.viirs_lst} and Aqua at ${dr.aqua_lst}, local sun time.`
-  const panel = () => (
-    <figure className="m-0 mx-auto w-full max-w-[580px]">
-      <OrbitGlobe
-        orbits={orbits}
-        region={{ name: statementName(d.id), bbox: region.bbox }}
-        running={false}
-        ink={GLOBE_INK}
-        label={description}
-        years={d.drift.map((r) => ({ year: r.year, times: { terra: hm(r.terra_lst), viirs: hm(r.viirs_lst), aqua: hm(r.aqua_lst) } }))}
-        year={dr.year}
-        onYear={setYear}
-      />
-      <figcaption className="mt-3 text-xs text-[color:var(--bone3)]">
-        {statementName(d.id)} at noon: morning on the left, evening on the right. Each ring is a satellite’s path; each row below is a year. Drag the globe; pick a year. Source: drift/{d.id}.json
-      </figcaption>
-    </figure>
-  )
+  const row = 'flex items-baseline justify-between gap-4 border-t border-[color:var(--hairline)] py-2.5'
   return (
     <section id="look" aria-labelledby="look-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
-      <div className={cn(shell, 'pb-16 pt-16 lg:pb-8')}>
-        <h2 id="look-h" className={title}>When each satellite looked</h2>
-        <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">Local sun time, year by year. Aqua’s amber dot moves later; VIIRS’s green diamond stays put.</p>
-        <StickyScroll
-          className="mt-10"
-          label={`Aqua’s look over ${d.phrase.the}, three moments`}
-          steps={steps.map((s) => ({ mark: s.mark, title: s.title, description: s.description }))}
-          initial={steps.length - 1}
-          onActive={(i) => setYear(steps[i].year)}
-          top="8.5rem"
-          motion={motion.on}
-          panel={panel}
-        />
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
+        <div className="lg:col-span-4">
+          <h2 id="look-h" className={title}>When each satellite looked</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">Drag the year. Aqua moves later; VIIRS stays put.</p>
+          <dl aria-live="polite" className="mt-8 max-w-sm text-sm">
+            <div className={row}>
+              <dt className="flex items-center gap-2 text-[color:var(--bone2)]"><SatMark sat="aqua" />Aqua in {dr.year}</dt>
+              <dd className="tabular-nums">{dr.aqua_lst}{later >= 2 ? <span className="text-[color:var(--bone3)]"> · {later} min later</span> : null}</dd>
+            </div>
+            <div className={row}>
+              <dt className="flex items-center gap-2 text-[color:var(--bone2)]"><SatMark sat="viirs" />VIIRS</dt>
+              <dd className="tabular-nums">{dr.viirs_lst}</dd>
+            </div>
+            <div className={row}>
+              <dt className="flex items-center gap-2 text-[color:var(--bone2)]"><SatMark sat="terra" />Terra</dt>
+              <dd className="tabular-nums">{dr.terra_lst}</dd>
+            </div>
+          </dl>
+        </div>
+        <figure className="m-0 mx-auto w-full min-w-0 max-w-[620px] lg:col-span-8">
+          <OrbitGlobe
+            orbits={orbits}
+            region={{ name: statementName(d.id), bbox: region.bbox }}
+            inside={(lon, lat) => inRegion(d.id, lon, lat, region.bbox)}
+            running={false}
+            ink={GLOBE_INK}
+            label={description}
+          />
+          <YearRuler
+            className="mt-2"
+            years={d.drift.map((r) => r.year)}
+            year={dr.year}
+            onYear={setYear}
+            marks={d.driftStart ? [d.driftStart] : []}
+            label={`Year shown for ${d.phrase.the}`}
+            valueText={(y) => { const r = d.driftAt(y); return `${y}: Aqua ${r.aqua_lst}, VIIRS ${r.viirs_lst}, Terra ${r.terra_lst}` }}
+          />
+          <figcaption className="mt-2 text-xs text-[color:var(--bone3)]">
+            Each ring is a satellite’s path over {d.phrase.the} at noon. Drag the globe to turn it.{d.driftStart ? ' The amber dot on the ruler is the year Aqua’s look started to move.' : ''}
+          </figcaption>
+        </figure>
       </div>
     </section>
   )
@@ -551,7 +546,8 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
             formatTick={tickText}
             legend={{ outside: 'Unusual', inside: 'Not unusual', range: 'How sure we are' }}
           />
-          <table className="mt-8 w-full border-collapse text-sm tabular-nums">
+          <More label="Show the numbers" className="mt-4">
+          <table className="mt-2 w-full border-collapse text-sm tabular-nums">
             <caption className="sr-only">Aqua’s count against what we’d expect, by year, for {d.name}</caption>
             <thead>
               <tr className="border-b border-[color:var(--hairline)]">
@@ -579,10 +575,12 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               ))}
             </tbody>
           </table>
-          <p className="mt-3 text-xs text-[color:var(--bone3)]">Counted on the days both satellites sent data. Usual range {usualText(d)}. Source: audit/{d.id}.json{d.mock ? ' · MOCK' : ''}</p>
+          </More>
+          <MockTag show={d.mock} className="mt-3 inline-block" />
           {v.whole.length ? (
-            <div className="mt-10 border-t border-[color:var(--hairline)] pt-4 text-sm">
-              <p className="text-[color:var(--bone2)]">Whole years, {v.from} to {v.to}, all twelve months</p>
+            <More label={hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}>
+            <div className="mt-2 text-sm">
+              <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, all twelve months</p>
               <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
                 {v.whole.map((r) => (
                   <Fragment key={r.name}>
@@ -594,6 +592,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               </dl>
               {hasOfficialSeries(d.id) ? <p className="mt-3 text-xs text-[color:var(--bone3)]">INPE’s Programa Queimadas is Brazil’s official count; it follows one satellite, Aqua.</p> : null}
             </div>
+            </More>
           ) : null}
         </div>
       </div>
@@ -658,8 +657,8 @@ function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; ye
           </p>
           {failed.length ? (
             <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
-              {failed.length === 2 ? 'Both checks' : 'A check'} of this idea failed ({andList(failed)}), so read it as a description, not proof.{' '}
-              <a href={links.method('checks')} onClick={leave} className={textLink}>See the checks</a>
+              {failed.length === 2 ? 'Two tests of this idea didn’t hold up' : 'A test of this idea didn’t hold up'}, so read it as a description, not proof.{' '}
+              <a href={links.method('checks')} onClick={leave} className={textLink}>See the tests</a>
             </p>
           ) : null}
           {t ? (
@@ -693,7 +692,7 @@ function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; ye
               formatTick={tickText}
               ink={{ fg: 'var(--bone2)', grid: 'var(--hairline)', surface: 'var(--ground)', guide: 'var(--bone)' }}
             />
-            <p className="mt-3 text-xs text-[color:var(--bone3)]">Source: twoclocks/{d.id}.json{d.twoMock ? ' · MOCK' : ''}</p>
+            <MockTag show={d.twoMock} className="mt-3 inline-block" />
           </figure>
           <More label="More detail: Aqua’s change minus Terra’s">
             <figure className="m-0 mt-3" style={diffVars}>
@@ -805,9 +804,6 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
-          <p className="mt-4 text-xs text-[color:var(--bone3)]">
-            Normal: the middle value for that month, 2002–2025. Counted by the VIIRS satellites, scaled to Aqua’s count. Source: calendar/{d.id}.json{d.mock ? ' · MOCK' : ''}
-          </p>
           <a href={`#top`} className={cn('mt-6 inline-flex min-h-11 items-center gap-1 text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
             Pick another place <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />
           </a>
