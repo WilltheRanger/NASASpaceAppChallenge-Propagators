@@ -2,6 +2,7 @@
 under each satellite pass as the alert source. Shows how a pass's clock time limits daylight response.
 
 Usage: python3 analysis/simulation/response_sim.py RAW_DIR data/out/sim
+       python3 analysis/simulation/response_sim.py --live TILES_DIR LAT LON OUT_DIR   (any place, last 7 days)
 Inputs : RAW_DIR/{modis,viirs-snpp,viirs-jpss1}_2024_Brazil.csv (FIRMS yearly country files)
 Outputs: OUT_DIR/amazon-2024-09-02.json (fires, units, trips and summary per alert source)
 All times are local solar time (UTC + lon/15). Bases and unit performance are illustrative assumptions.
@@ -9,12 +10,16 @@ All times are local solar time (UTC + lon/15). Bases and unit performance are il
 import sys, os, json
 import numpy as np, pandas as pd
 
-raw, out = sys.argv[1], sys.argv[2]
+LIVE = sys.argv[1] == "--live"  # --live TILES_DIR LAT LON OUT_DIR: any place, from live_tiles.py output
+raw, out = (sys.argv[2], sys.argv[5]) if LIVE else (sys.argv[1], sys.argv[2])
 DAY, BOX = "2024-09-02", (-56.5, -8.5, -51.5, -5.5)  # west, south, east, north: BR-163 to Sao Felix do Xingu
 CELL = 0.05  # detections in touching 0.05 deg cells (about 5.5 km) form one fire
 SAT = {"Aqua": "Aqua", "Terra": "Terra", "N": "S-NPP", "N20": "NOAA-20", "1": "NOAA-20"}
 SOURCES = {"Terra": ["Terra"], "VIIRS": ["S-NPP", "NOAA-20"], "Aqua": ["Aqua"],
            "All satellites": ["Terra", "S-NPP", "NOAA-20", "Aqua"]}
+if LIVE:  # S-NPP has been off since 2 November 2026; live VIIRS is NOAA-20 and NOAA-21
+    SOURCES = {"Terra": ["Terra"], "VIIRS": ["NOAA-20", "NOAA-21"], "Aqua": ["Aqua"],
+               "All satellites": ["Terra", "NOAA-20", "NOAA-21", "Aqua"]}
 # illustrative bases at towns in the area; not real deployments
 BASES = [("Novo Progresso", -7.14, -55.38), ("Sao Felix do Xingu", -6.64, -51.99), ("Castelo de Sonhos", -8.32, -55.09)]
 UNITS = [("H1", "helicopter", 0), ("H2", "helicopter", 1),
@@ -34,6 +39,27 @@ def load():
     d = pd.concat(fr, ignore_index=True)
     d["sat"] = d.satellite.map(SAT)
     d["lst"] = (d.acq_time // 100 + d.acq_time % 100 / 60 + d.longitude / 15) % 24
+    return d
+
+def load_live(lat0, lon0):
+    # a box the size of the Amazon scenario around the point; its busiest day in the last 7; nearest towns as bases
+    global DAY, BOX, BASES
+    BOX = (lon0 - 2.5, lat0 - 1.5, lon0 + 2.5, lat0 + 1.5)
+    w, s, e, n = BOX
+    meta = json.load(open(os.path.join(raw, "index.json")))
+    rows = [r for t in meta["tiles"] if t["south"] < n and t["south"] + meta["tile_deg"] > s
+            and t["west"] < e and t["west"] + meta["tile_deg"] > w
+            for r in json.load(open(os.path.join(raw, "tiles", t["tile"])))]
+    d = pd.DataFrame(rows, columns=["latitude", "longitude", "acq_date", "acq_time", "sat", "frp"])
+    d = d[d.longitude.between(w, e) & d.latitude.between(s, n)]
+    if d.empty: sys.exit("no daytime detections within the box in the last 7 days")
+    DAY = d.acq_date.value_counts().idxmax()
+    d = d[d.acq_date == DAY].copy()
+    d["lst"] = (d.acq_time // 100 + d.acq_time % 100 / 60 + d.longitude / 15) % 24
+    pl = [p for p in json.load(open(os.path.join(raw, "places.json"), encoding="utf-8")) if w <= p[2] <= e and s <= p[1] <= n]
+    pl.sort(key=lambda p: km((lat0, lon0), (p[1], p[2])))
+    BASES = [(p[0], p[1], p[2]) for p in pl[:3]] or [("Search point", lat0, lon0)]
+    BASES += [BASES[-1]] * (3 - len(BASES))
     return d
 
 def cluster(d):
@@ -106,7 +132,7 @@ def simulate(fires, sources, dusk, lat):
         first_alert=round(min(a[0] for a in alerts), 2) if alerts else None,
         daylight_left_at_first_alert_h=round(dusk - min(a[0] for a in alerts), 2) if alerts else None)
 
-d = cluster(load())
+d = cluster(load_live(float(sys.argv[3]), float(sys.argv[4])) if LIVE else load())
 dusk = round(float(sunset(np.mean(BOX[1::2]), DAY)), 3)
 fires = []
 pass_end = d.groupby("sat").lst.max().to_dict()  # a pass is usable once it has finished over the area
@@ -137,7 +163,8 @@ res = {"day": DAY, "box": BOX, "sunset_lst": dusk, "passes_lst": passes,
                        "NASA FIRMS states for near-real-time data (within 3 hours of a satellite observation).",
        "runs": {f"{lat:g}": {name: {"satellites": SOURCES[name], "summary": s, "trips": t}
                              for name, (t, s) in r.items()} for lat, r in runs.items()}}
-with open(os.path.join(out, f"amazon-{DAY}.json"), "w") as fh:
+name = f"live-{float(sys.argv[3]):.2f}_{float(sys.argv[4]):.2f}-{DAY}" if LIVE else f"amazon-{DAY}"
+with open(os.path.join(out, f"{name}.json"), "w") as fh:
     json.dump(res, fh, indent=1)
 print("fires", len(fires), "detections", len(d), "sunset", dusk, "passes", passes)
 for lat, r in runs.items():

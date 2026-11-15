@@ -14,6 +14,8 @@ import { Fragment, Suspense, createContext, lazy, useContext, useEffect, useMemo
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { ArrowDown, ArrowRight, ArrowUpRight, Menu } from 'lucide-react'
+import Lenis from 'lenis'
+import 'lenis/dist/lenis.css'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle, RegionSelect } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
@@ -437,6 +439,9 @@ function useStage(sectionRef: RefObject<HTMLElement | null>, stageRef: RefObject
 /* ---------- In-page links glide to their section instead of jumping ---------- */
 
 let glideFrame = 0
+// eased wheel scrolling while motion is on (FieldFilm starts and stops it); the page still scrolls natively underneath
+let lenis: Lenis | null = null
+const glideEase = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 const GLIDE_STOPS = ['wheel', 'touchstart', 'keydown', 'mousedown'] as const
 /** Scroll the page to an element (or the top), honouring its scroll margin. With motion on it glides in 0.4 to 0.7 s,
  *  eased in and out, and stops the moment the reader scrolls; with motion off it jumps. */
@@ -448,14 +453,14 @@ function glideTo(target: Element | 'top', motion: boolean) {
   const dist = y - start
   if (!motion || Math.abs(dist) < 2) { window.scrollTo(0, y); return }
   const dur = Math.min(720, 380 + Math.abs(dist) * 0.06)
+  if (lenis) { lenis.scrollTo(y, { duration: dur / 1000, easing: glideEase }); return }
   const t0 = performance.now()
   const off = () => { for (const ev of GLIDE_STOPS) window.removeEventListener(ev, stop) }
   const stop = () => { cancelAnimationFrame(glideFrame); off() }
   for (const ev of GLIDE_STOPS) window.addEventListener(ev, stop, { passive: true })
   const step = (now: number) => {
     const t = Math.min(1, (now - t0) / dur)
-    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-    window.scrollTo(0, start + dist * e)
+    window.scrollTo(0, start + dist * glideEase(t))
     if (t < 1) glideFrame = requestAnimationFrame(step)
     else off()
   }
@@ -479,6 +484,18 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
   const rootRef = useRef<HTMLDivElement | null>(null)
   const motionRef = useRef(motion)
   motionRef.current = motion
+
+  // wheel and trackpad scrolling eases toward its target; touch stays native, and motion off restores plain scrolling.
+  // Not on the Simulator: its page doesn't scroll, and the wheel belongs to the map's zoom.
+  useEffect(() => {
+    if (!motion || which === 'sim') return
+    const l = new Lenis({ autoRaf: true, lerp: 0.085, smoothWheel: true, syncTouch: false })
+    lenis = l
+    // an open menu locks the page (body[data-scroll-locked]); the eased scroll pauses with it
+    const lock = new MutationObserver(() => (document.body.hasAttribute('data-scroll-locked') ? l.stop() : l.start()))
+    lock.observe(document.body, { attributes: true, attributeFilter: ['data-scroll-locked'] })
+    return () => { lock.disconnect(); l.destroy(); if (lenis === l) lenis = null }
+  }, [motion, which])
 
   // links to a section (#calendar, the section index…) glide there instead of jumping; keyboard users land on the
   // section's heading
@@ -577,7 +594,7 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
   )
 }
 
-/* ---------- Footer: credits, the AI note, the motion switch ---------- */
+/* ---------- Footer: credits, the motion switch ---------- */
 
 /** Their animation switch: two words with a pill that slides between them; role="switch". */
 function MotionSwitch() {
