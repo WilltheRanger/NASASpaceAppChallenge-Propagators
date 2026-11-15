@@ -9,6 +9,7 @@ Method : research/execution-plan.md section 4.D-4.E; definitions in analysis/sta
 """
 import sys, os, json
 import numpy as np, pandas as pd
+from scipy.optimize import least_squares
 np.seterr(divide="ignore", invalid="ignore")  # empty bootstrap replicates become nan and are dropped in ci()
 
 src, dst, sdir = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -74,6 +75,19 @@ def num(x, nd=3):
 def hhmm(h):
     if h is None or not np.isfinite(h): return None
     m = int(round(h * 60)); return f"{m // 60:02d}:{m % 60:02d}"
+
+def g(t, p):
+    # log fire activity at local solar time t: background b plus a Gaussian peak at h with width sigma
+    b, h, s = np.exp(p[0]), p[1], np.exp(p[2])
+    return np.log(b + np.exp(-(t - h) ** 2 / (2 * s * s)))
+
+LO, HI = [np.log(1e-3), 11.0, np.log(0.5)], [np.log(10.0), 19.0, np.log(8.0)]
+
+def fit_curve(D, tA, tT, w, x0=None):
+    # log(Aqua/Terra) on the same days = g(Aqua time) - g(Terra time); same MODIS sensor, so no offset
+    r = lambda p: (g(tA, p) - g(tT, p) - D) * w
+    starts = [x0] if x0 is not None else [[np.log(0.2), h0, np.log(2.5)] for h0 in (13.0, 15.0, 17.0)]
+    return min((least_squares(r, x, bounds=(LO, HI)) for x in starts), key=lambda z: z.cost).x
 
 def write(rel, obj):
     p = os.path.join(dst, rel); os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -148,10 +162,19 @@ for biome in BIOMES:
     beta_base = Dr[:, bi].sum(1) / gap[bi].sum()
     X = np.c_[np.ones(ny), gap]
     coef = np.linalg.lstsq(X, Dr.T, rcond=None)[0]  # (2, NB+1): intercept, slope over 2012-2025
+    # curved fire-day model fitted to the same points; K_y = activity at Aqua's look time vs. its 2012-2020 time
+    tAy = np.array([t(y, "Aqua") for y in YEARS]); tTy = np.array([t(y, "Terra") for y in YEARS])
+    ok_ = np.isfinite(Dr[0]) & np.isfinite(tAy) & np.isfinite(tTy)
+    sd = np.nanstd(Dr[1:], axis=0); w = 1 / np.where(sd > 0, sd, np.nan)
+    pc = fit_curve(Dr[0, ok_], tAy[ok_], tTy[ok_], w[ok_])
+    pb = np.array([fit_curve(Dr[i, ok_], tAy[ok_], tTy[ok_], w[ok_], pc) if np.isfinite(Dr[i, ok_]).all() else [np.nan] * 3
+                   for i in range(1, NB + 1)])
+    P = np.vstack([pc, pb])  # (NB+1, 3)
+    Kc = np.exp(np.array([[g(tAy[i], q) - g(tA0, q) for i in range(ny)] for q in P]))  # (NB+1, years)
     for i, y in enumerate(YEARS):
         fd_rows.append(dict(biome=biome, year=y, aqua_lst=t(y, "Aqua"), terra_lst=t(y, "Terra"), gap_h=gap[i],
                             log_aqua_over_terra=Dr[0, i], lo=ci(Dr[:, i])[0], hi=ci(Dr[:, i])[1]))
-    res[biome] = dict(beta_base=beta_base, slope=coef[1], intercept=coef[0], tA0=tA0, tT0=tT0, wk=wk, cuts=cuts,
+    res[biome] = dict(P=P, Kc=Kc, t_obs=(np.nanmin(tTy), np.nanmax(tAy)), beta_base=beta_base, slope=coef[1], intercept=coef[0], tA0=tA0, tT0=tT0, wk=wk, cuts=cuts,
                       R=L(A, V, BASE, 2021)[2], ratio=A[0, bi].sum() / V[0, bi].sum(), c=c)
 
 audit = pd.DataFrame(rows); plac = pd.DataFrame(pl_rows); tc = pd.DataFrame(tc_rows)
@@ -168,16 +191,38 @@ for b in BIOMES:
     audit.loc[audit.biome == b, "beta_base"] = r["beta_base"][0]
     audit.loc[audit.biome == b, "L_pred"] = np.exp(r["beta_base"][0] * (audit.loc[audit.biome == b, "aqua_lst"] - r["tA0"]))
 audit["shift_h"] = audit.aqua_lst - audit.biome.map({b: res[b]["tA0"] for b in BIOMES})
+for col, fn in [("K", lambda k: k[0]), ("K_lo", lambda k: ci(k)[0]), ("K_hi", lambda k: ci(k)[1])]:
+    audit[col] = [fn(res[r.biome]["Kc"][:, r.year - 2012]) for r in audit.itertuples()]
+audit["aqua_corrected"] = audit.aqua_count / audit.K  # MODIS-only drift correction, independent of VIIRS
+audit["K_in_L_ci"] = (audit.K >= audit.L_lo) & (audit.K <= audit.L_hi)
 audit.to_csv(os.path.join(sdir, "audit_by_biome.csv"), index=False, float_format="%.5g")
 plac.to_csv(os.path.join(sdir, "placebo_by_biome.csv"), index=False, float_format="%.5g")
 tc.to_csv(os.path.join(sdir, "twoclocks_by_biome.csv"), index=False, float_format="%.5g")
 fd.to_csv(os.path.join(sdir, "fireday_by_biome.csv"), index=False, float_format="%.5g")
 refs.to_csv(os.path.join(sdir, "reference_satellite_by_biome.csv"), index=False, float_format="%.5g")
+pd.DataFrame([dict(biome=b, b=np.exp(res[b]["P"][0, 0]), b_lo=ci(np.exp(res[b]["P"][:, 0]))[0], b_hi=ci(np.exp(res[b]["P"][:, 0]))[1],
+                   h=res[b]["P"][0, 1], h_lo=ci(res[b]["P"][:, 1])[0], h_hi=ci(res[b]["P"][:, 1])[1],
+                   sigma=np.exp(res[b]["P"][0, 2]), sigma_lo=ci(np.exp(res[b]["P"][:, 2]))[0],
+                   sigma_hi=ci(np.exp(res[b]["P"][:, 2]))[1], aqua_lst_2012_2020=res[b]["tA0"]) for b in BIOMES]).to_csv(
+    os.path.join(sdir, "fireday_curve.csv"), index=False, float_format="%.5g")
 pd.DataFrame([dict(biome=b, beta_base=res[b]["beta_base"][0], beta_base_lo=ci(res[b]["beta_base"])[0],
                    beta_base_hi=ci(res[b]["beta_base"])[1], slope_2012_2025=res[b]["slope"][0],
                    intercept_2012_2025=res[b]["intercept"][0], frp_cut1=res[b]["cuts"][0], frp_cut2=res[b]["cuts"][1],
                    baseline_ratio=res[b]["ratio"]) for b in BIOMES]).to_csv(
     os.path.join(sdir, "fireday_slopes.csv"), index=False, float_format="%.5g")
+
+def curve_json(r):
+    # relative fire activity vs. Aqua's 2012-2020 look time, 06:00-19:00, with a 95% band
+    P, ts = r["P"], np.arange(6.0, 19.01, 0.25)
+    G = np.array([g(ts, q) - g(r["tA0"], q) for q in P])
+    band = np.nanpercentile(G[1:], [2.5, 97.5], axis=0)
+    h = P[:, 1]
+    return {"model": "activity(t) = b + exp(-(t - h)^2 / (2 sigma^2)), fitted to log(Aqua/Terra) near-nadir counts",
+            "b": num(np.exp(P[0, 0])), "h": num(h[0]), "sigma": num(np.exp(P[0, 2])),
+            "h_ci95": [num(x) for x in ci(h)], "peak_constrained": bool(ci(h)[1] < HI[1] - 0.05),
+            "observed_range": [hhmm(r["t_obs"][0]), hhmm(r["t_obs"][1])],  # outside this the curve is extrapolated
+            "points": [{"t": num(x, 2), "rel": num(np.exp(G[0, i])), "lo": num(np.exp(band[0, i])),
+                        "hi": num(np.exp(band[1, i]))} for i, x in enumerate(ts)]}
 
 START = {"Aqua": "2002-07", "S-NPP": "2012-01", "NOAA-20": "2018-01"}  # first month with data
 raw_m = daily_all.assign(ym=daily_all.date.str[:7]).groupby(["biome", "ym", "satellite"])[COL].sum()
@@ -213,7 +258,12 @@ for rid, b in REG.items():
                                "slope_ci95": [num(x) for x in ci(r["slope"])]},
         "years": [{"year": int(q.year), "aqua_lst": hhmm(q.aqua_lst), "terra_lst": hhmm(q.terra_lst),
                    "gap_h": num(q.gap_h), "log_aqua_over_terra": num(q.log_aqua_over_terra), "lo": num(q.lo),
-                   "hi": num(q.hi)} for q in fd[fd.biome == b].itertuples()]})
+                   "hi": num(q.hi)} for q in fd[fd.biome == b].itertuples()],
+        "curve": curve_json(r),
+        "modis_only_check": [{"year": int(q.year), "K": num(q.K), "K_lo": num(q.K_lo), "K_hi": num(q.K_hi),
+                              "A_nadir": num(q.A), "A_lo": num(q.A_lo), "A_hi": num(q.A_hi), "L": num(q.L)}
+                             for q in audit[audit.biome == b].merge(tc[["biome", "year", "A", "A_lo", "A_hi"]],
+                                                                    on=["biome", "year"]).itertuples()]})
 
     # fixed-clock calendar: Aqua before 2012 (its clock had not drifted), then S-NPP x R_m in Aqua units;
     # S-NPP outage days are filled with NOAA-20 x their 2018-2025 overlap ratio
