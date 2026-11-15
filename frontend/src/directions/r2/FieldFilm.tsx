@@ -1,15 +1,18 @@
 // Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request). Field footage of the thing itself:
-// the burning forest seen from orbit at full bleed with the verdict set on its darkest part, a pass line where Aqua's
-// tick slides later as the year changes, the same scene at three hours as an uneven photo grid, one sage band of clock
-// effects, then the calendar. Black, bone and sage; small labels set on images at their lower left.
+// the burning forest seen from orbit at full bleed, the verdict on it and a pass line along its bottom edge where
+// Aqua's tick slides later as the year changes; one frame you can switch between the three passes of a single day;
+// one sage band of clock effects drawn against the noise floor; then the calendar.
+// Black, bone and sage; small labels set on images at their lower left; square media, 4 px on small controls.
 // Every number comes from src/r2/data.ts (data/mock, labelled MOCK). Imagery: NASA Worldview / GIBS, public domain.
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { ArrowRight } from 'lucide-react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import * as ToggleGroup from '@radix-ui/react-toggle-group'
+import { ArrowRight, Menu } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle, RegionSelect, YearSlider } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 import {
-  REGIONS, SECTIONS, calendarFinding, calendarGrid, fmtRange, hm, minutesBetween, pct, regionData, verdictHeadline, verdictLines,
+  MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, fmtRange, hm, minutesBetween, pct, regionData, verdictHeadline, verdictLines,
   type RegionData, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
@@ -39,22 +42,12 @@ const BASE_TOKENS = {
 } as const
 
 // Neutral black scrims for legibility on the photograph; no hue anywhere in them.
-// behind the top bar: eased so the links stay at 4.5:1 over the brightest cumulus, gone by a quarter of the height
+// The top bar's plate is eased so the links hold 4.5:1 over the brightest cumulus; it is gone by a quarter of the height.
 const SCRIM_TOP = 'linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.74) 6%, rgba(0, 0, 0, 0.45) 14%, rgba(0, 0, 0, 0) 26%)'
-const SCRIMS_WIDE = [
-  SCRIM_TOP,
-  // a soft one behind the verdict block, lower left
-  'radial-gradient(ellipse 52% 58% at 22% 72%, rgba(0, 0, 0, 0.56) 0%, rgba(0, 0, 0, 0.4) 45%, rgba(0, 0, 0, 0) 100%)',
-  // a soft one behind the pass line, lower right
-  'radial-gradient(ellipse 44% 46% at 78% 84%, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.36) 50%, rgba(0, 0, 0, 0) 100%)',
-  // black from 0% at mid-height to 85% at the bottom, eased
-  'linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.34) 58%, rgba(0, 0, 0, 0.56) 66%, rgba(0, 0, 0, 0.7) 75%, rgba(0, 0, 0, 0.8) 86%, rgba(0, 0, 0, 0.85) 100%)',
-].join(', ')
-// phones and tablets: the verdict block fills most of the image, so the bottom scrim starts higher
-const SCRIMS_NARROW = [
-  SCRIM_TOP,
-  'linear-gradient(180deg, rgba(0, 0, 0, 0) 12%, rgba(0, 0, 0, 0.5) 30%, rgba(0, 0, 0, 0.7) 48%, rgba(0, 0, 0, 0.8) 70%, rgba(0, 0, 0, 0.85) 100%)',
-].join(', ')
+// one bottom ramp, at most 0.6
+const RAMP = 'linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.32) 66%, rgba(0, 0, 0, 0.5) 84%, rgba(0, 0, 0, 0.6) 100%)'
+// a soft local plate behind the verdict block, where the photograph is brightest
+const PLATE_VERDICT = 'radial-gradient(ellipse 70% 64% at 28% 52%, rgba(0, 0, 0, 0.68) 0%, rgba(0, 0, 0, 0.56) 45%, rgba(0, 0, 0, 0) 100%)'
 
 const TOKENS = {
   ...BASE_TOKENS,
@@ -70,12 +63,15 @@ const TOKENS = {
   '--maxw': '1440px',
   '--measure': '36rem',
   '--hero-h': 'clamp(720px, 100svh, 960px)',
-  '--hero-h-sm': '640px',
   '--select-max': '168px',
   '--select-max-wide': '240px',
-  '--scrims-wide': SCRIMS_WIDE,
-  '--scrims-narrow': SCRIMS_NARROW,
+  '--scrims-wide': [SCRIM_TOP, PLATE_VERDICT, RAMP].join(', '),
+  '--scrims-narrow': [SCRIM_TOP, RAMP].join(', '),
   '--scrim-tile': 'linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.5) 22%, rgba(0, 0, 0, 0) 52%)',
+  // the pass line's plate along the bottom edge of the photograph
+  '--plate': 'rgba(11, 13, 11, 0.86)',
+  // the ±noise band on the sage table: ink at 12% over sage, solid so stacked rows read as one band
+  '--sage-band': '#67776A',
   // calendar (dark; brighter = further from the median): sand above, slate below
   '--cal-up-1': '#3F301B',
   '--cal-up-2': '#604825',
@@ -97,14 +93,15 @@ const TOKENS = {
   '--cal-cell': '#121413',
   '--cal-empty': 'transparent',
   '--cal-gap': '2px',
-  '--cal-radius': '2px',
+  '--cal-radius': '0px',
   '--cal-hatch': 'rgba(236, 233, 225, 0.35)',
   '--cal-focus': '#ECE9E1',
+  '--cal-highlight': '#ECE9E1',
   '--cal-fg': '#ECE9E1',
   '--cal-muted': '#8B8D86',
 } as const
 
-/** Radix Select portals its menu to <body>, outside the root div: mirror the tokens there, and paint the body ground. */
+/** Radix menus portal to <body>, outside the root div: mirror the tokens there, and paint the body ground. */
 function usePortalTokens() {
   useEffect(() => {
     const s = document.body.style
@@ -138,13 +135,14 @@ const IMG = `${import.meta.env.BASE_URL}img/`
 const HERO_SRC = `${IMG}amazon-viirs-fires-2024-08-23.jpg`
 const HERO_LABEL = 'VIIRS · 23 Aug 2024 · smoke and active fires over the Amazon · NASA Worldview / GIBS'
 
-/** Sections of this comp; the rest of the index belongs to the full build. */
+/** Sections that exist in this comp; the rest of the index belongs to the full build. */
 const IN_COMP = new Set<string>(['verdict', 'clock', 'audit', 'calendar'])
 
 const READING: Record<Verdict, string> = { clock: 'Clock effect', noise: 'Within noise', na: 'Not enough fires' }
 const DATA_NOTE = "Every number comes from the team's JSON files; this comp uses mock data."
 
 type AuditRow = RegionData['years'][number]
+type Drift = RegionData['drift'][number]
 const effectText = (y: AuditRow) => (y.gap == null ? '—' : pct(y.gap))
 const rangeText = (y: AuditRow) => (y.lo == null || y.hi == null ? '—' : fmtRange(y.lo, y.hi))
 const noiseText = (d: RegionData) => `±${Number(d.noise.toFixed(1))}%`
@@ -156,38 +154,68 @@ function initialRegion() {
   return r && REGIONS.some((x) => x.id === r) ? r : 'br-amazon'
 }
 
+/** The audit band's heading, as a finding: the run of latest years whose whole range sits outside the noise floor. */
+function effectHeading(d: RegionData) {
+  const n = noiseText(d)
+  let i = d.years.length - 1
+  while (i >= 0 && d.years[i].verdict === 'na') i--
+  if (i < 0) return `Not enough fires in ${d.phrase.the} to measure the clock effect`
+  if (d.years[i].verdict === 'noise') return `In ${d.years[i].year} the official count holds: the clock effect sits within the ${n} noise floor`
+  let s = i
+  while (s > 0 && d.years[s - 1].verdict === 'clock') s--
+  return s < i
+    ? `Since ${d.years[s].year} the clock effect sits outside the ${n} noise floor`
+    : `In ${d.years[i].year} the clock effect sits outside the ${n} noise floor`
+}
+
 /* ---------- Shared classes ---------- */
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
 const ease = 'transition-colors duration-150 ease-[var(--ease)]'
+const slideEase = 'transition-transform duration-240 ease-[var(--ease)] motion-reduce:transition-none'
 const title = 'text-balance text-[length:var(--fs-32)] font-medium leading-9 tracking-[var(--track-title)]'
 const shell = 'mx-auto w-full max-w-[var(--maxw)] px-4 sm:px-8'
 
 const selectClasses = {
   trigger: cn(
-    'inline-flex h-9 min-w-0 max-w-[var(--select-max)] items-center gap-2 rounded-lg border border-[color:var(--hairline)] bg-[color:var(--surface)] pl-3 pr-2 text-sm text-[color:var(--bone)] sm:max-w-[var(--select-max-wide)]',
+    'inline-flex h-9 min-w-0 max-w-[var(--select-max)] items-center gap-2 rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] pl-3 pr-2 text-sm text-[color:var(--bone)] sm:max-w-[var(--select-max-wide)]',
     '[&>span:first-child]:truncate hover:bg-[color:var(--raised)]',
     ease,
     focusRing,
   ),
   icon: 'shrink-0 text-[color:var(--bone3)]',
   content:
-    'z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border border-[color:var(--hairline)] bg-[color:var(--surface)] p-1 font-[family-name:var(--f-ui)] text-[color:var(--bone)] shadow-[var(--shadow-menu)]',
+    'z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] p-1 font-[family-name:var(--f-ui)] text-[color:var(--bone)] shadow-[var(--shadow-menu)]',
   item: cn(
-    'relative flex h-9 cursor-default select-none items-center gap-2 rounded px-3 text-sm text-[color:var(--bone)] outline-none',
+    'relative flex h-9 cursor-default select-none items-center gap-2 px-3 text-sm text-[color:var(--bone)] outline-none',
     'data-[highlighted]:bg-[color:var(--raised)] data-[state=checked]:font-medium',
     ease,
   ),
 }
 
+const menuClasses = {
+  trigger: cn(
+    'inline-flex size-9 shrink-0 items-center justify-center rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] text-[color:var(--bone)] hover:bg-[color:var(--raised)]',
+    ease,
+    focusRing,
+  ),
+  content:
+    'z-50 min-w-48 overflow-hidden rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] p-1 font-[family-name:var(--f-ui)] text-[color:var(--bone)] shadow-[var(--shadow-menu)]',
+  item: cn(
+    'flex h-9 cursor-default select-none items-center px-3 text-sm text-[color:var(--bone)] outline-none',
+    'data-[highlighted]:bg-[color:var(--raised)] data-[disabled]:text-[color:var(--bone3)]',
+    ease,
+  ),
+}
+
 const sliderClasses = {
-  root: 'relative flex h-12 min-w-0 flex-1 cursor-pointer touch-none select-none items-center',
+  root: 'relative flex h-8 w-full cursor-pointer touch-none select-none items-center',
   track: 'relative h-0.5 grow bg-[color:var(--bone-20)]',
   thumb: cn('block size-4 rounded-full bg-[color:var(--bone)] hover:bg-[color:var(--bone-hover)]', ease, focusRing),
 }
 
 const modeClasses = {
-  root: 'inline-flex h-9 overflow-hidden rounded-lg bg-[color:var(--raised)]',
+  root: 'inline-flex h-9 overflow-hidden rounded bg-[color:var(--raised)]',
   item: cn(
     'h-9 px-4 text-sm text-[color:var(--bone2)] outline-none data-[state=off]:hover:text-[color:var(--bone)]',
     'focus-visible:shadow-[var(--ring-in)] data-[state=on]:bg-[color:var(--bone)] data-[state=on]:text-[color:var(--ink)] data-[state=on]:focus-visible:shadow-[var(--ring-in-on)]',
@@ -221,7 +249,7 @@ export default function FieldFilm() {
       <TopBar region={region} onRegion={onRegion} />
       <main>
         <Hero d={d} year={year} onYear={setYear} />
-        <Passes />
+        <Passes d={d} />
         <ClockEffect d={d} />
         <Calendar d={d} mode={mode} onMode={setMode} small={small} />
       </main>
@@ -244,6 +272,38 @@ function Mark() {
       <path d="M1 15h16v2H1zM5 3h2v12H5z" fill="currentColor" />
     </svg>
   )
+}
+
+/** Phone and tablet index (below 1280 px): the same sections; the ones this comp doesn't have are listed, disabled. */
+function SectionsIndex() {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger aria-label="Sections" className={menuClasses.trigger}>
+        <Menu size={18} strokeWidth={1.5} aria-hidden />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content sideOffset={6} align="end" className={menuClasses.content}>
+          {SECTIONS.map((s) => {
+            const live = IN_COMP.has(s.id)
+            return (
+              <DropdownMenu.Item
+                key={s.id}
+                disabled={!live}
+                className={menuClasses.item}
+                onSelect={() => { if (live) document.getElementById(s.id)?.scrollIntoView() }}
+              >
+                {s.label}{live ? '' : ' · full build'}
+              </DropdownMenu.Item>
+            )
+          })}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  )
+}
+
+function MockTag({ className }: { className?: string }) {
+  return <span className={cn('shrink-0 rounded border border-[color:var(--hairline)] px-2 py-1 text-xs text-[color:var(--bone)]', className)}>Mock data</span>
 }
 
 function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) => void }) {
@@ -272,84 +332,96 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
                     {s.label}
                   </a>
                 ) : (
-                  <span aria-disabled="true" className="cursor-default text-[color:var(--bone2)]">{s.label}</span>
+                  <span aria-disabled="true" title="In the full build" className="cursor-default text-[color:var(--bone3)]">{s.label}</span>
                 )}
               </li>
             ))}
           </ul>
         </nav>
-        <div className="flex min-w-0 items-center justify-end gap-3 xl:col-span-3">
-          <span className="shrink-0 rounded border border-[color:var(--hairline)] px-2 py-1 text-xs text-[color:var(--bone)]">Mock data</span>
+        <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:col-span-3">
+          <MockTag className="hidden sm:inline-block" />
           <RegionSelect value={region} onChange={onRegion} classes={selectClasses} />
+          <div className="xl:hidden"><SectionsIndex /></div>
         </div>
       </div>
     </header>
   )
 }
 
-/* ---------- Hero: the VIIRS scene at full bleed, the verdict on its darkest part ---------- */
+/* ---------- Hero: the VIIRS scene, the verdict on it, the pass line along its bottom edge ---------- */
 
 function Hero({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
   const { look, change } = verdictLines(d)
+  const latest = d.latestOk
+  const range = latest && latest.lo != null && latest.hi != null ? `Range ${fmtRange(latest.lo, latest.hi)} (latest audit year)` : null
   return (
-    <section id="verdict" aria-labelledby="verdict-h">
-      <div className="relative isolate flex min-h-[var(--hero-h-sm)] flex-col md:min-h-[var(--hero-h)]">
+    <section id="verdict" aria-labelledby="verdict-h" className="relative isolate">
+      {/* the photograph: the top of the page on phones and tablets, the whole hero from 1280 px */}
+      <div className="absolute inset-x-0 top-0 -z-10 h-90 overflow-hidden sm:h-120 xl:bottom-0 xl:h-auto">
         <img
           src={HERO_SRC}
           alt="Smoke and active fires over the Amazon, VIIRS true colour, 23 Aug 2024"
           width={1600}
           height={960}
-          className="absolute inset-0 -z-10 size-full object-cover"
+          className="size-full object-cover xl:object-top"
         />
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[image:var(--scrims-narrow)] xl:bg-[image:var(--scrims-wide)]" />
-
-        <div className={cn(shell, 'flex flex-1 flex-col')}>
-          <div aria-hidden className="h-16 shrink-0 xl:h-18" />
-          <div className="mt-auto grid grid-cols-1 pt-12 xl:grid-cols-12 xl:items-end xl:gap-x-6">
-            <div className="xl:col-span-6">
-              <h1
-                id="verdict-h"
-                className="text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)] md:text-[length:var(--fs-72)]"
-              >
-                {verdictHeadline(d)}
-              </h1>
-              <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="#calendar"
-                  className={cn(
-                    'inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[color:var(--bone)] px-5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]',
-                    ease,
-                    focusRing,
-                  )}
-                >
-                  Explore the calendar
-                  <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
-                </a>
-                <button
-                  type="button"
-                  onClick={() => downloadSummary(d)}
-                  className={cn(
-                    'inline-flex h-12 items-center justify-center rounded-lg border border-[color:var(--bone-30)] px-5 text-sm font-medium text-[color:var(--bone)] hover:bg-[color:var(--hairline)]',
-                    ease,
-                    focusRing,
-                  )}
-                >
-                  Download summary
-                </button>
-              </div>
-            </div>
-            <div className="hidden xl:col-span-5 xl:col-start-8 xl:block">
-              <PassLine d={d} year={year} onYear={onYear} />
-            </div>
-          </div>
-          <p className="mt-10 pb-6 text-xs text-[color:var(--bone-80)]">{HERO_LABEL}</p>
-        </div>
+        <div aria-hidden className="absolute inset-0 bg-[image:var(--scrims-narrow)] xl:bg-[image:var(--scrims-wide)]" />
       </div>
 
-      {/* below xl the pass line leaves the photograph and sits on the black ground */}
-      <div className={cn(shell, 'pt-8 xl:hidden')}>
-        <PassLine d={d} year={year} onYear={onYear} />
+      <div className="flex flex-col xl:min-h-[var(--hero-h)]">
+        <div className={cn(shell, 'flex flex-1 flex-col')}>
+          <div aria-hidden className="h-16 shrink-0 xl:h-18" />
+          {/* phones and tablets: clear photograph, its label at the lower left; the verdict follows on black */}
+          <div className="flex h-74 flex-col items-start justify-end gap-2 pb-4 sm:h-104 xl:hidden">
+            <MockTag className="sm:hidden" />
+            <p className="text-xs text-[color:var(--bone-80)]">{HERO_LABEL}</p>
+          </div>
+
+          <div className="pt-10 xl:mt-auto xl:pt-12">
+            <div className="xl:grid xl:grid-cols-12 xl:gap-x-6">
+              <div className="xl:col-span-8">
+                <h1
+                  id="verdict-h"
+                  className="text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)] md:text-[length:var(--fs-72)]"
+                >
+                  {verdictHeadline(d)}
+                </h1>
+                {range ? <p className="mt-4 text-sm text-[color:var(--bone2)]">{range}</p> : null}
+                <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                  <a
+                    href="#calendar"
+                    className={cn(
+                      'inline-flex h-12 items-center justify-center gap-2 rounded bg-[color:var(--bone)] px-5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]',
+                      ease,
+                      focusRing,
+                    )}
+                  >
+                    Explore the calendar
+                    <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => downloadSummary(d)}
+                    className={cn(
+                      'inline-flex h-12 items-center justify-center rounded border border-[color:var(--bone-30)] px-5 text-sm font-medium text-[color:var(--bone)] hover:bg-[color:var(--hairline)]',
+                      ease,
+                      focusRing,
+                    )}
+                  >
+                    Download summary
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p className="mt-8 hidden pb-6 text-xs text-[color:var(--bone-80)] xl:block">{HERO_LABEL}</p>
+          </div>
+        </div>
+
+        {/* the pass line: along the bottom edge on a dark plate from 1280 px, on the black ground below that */}
+        <div className="mt-12 xl:mt-0 xl:bg-[color:var(--plate)]">
+          <PassLine d={d} year={year} onYear={onYear} />
+        </div>
       </div>
     </section>
   )
@@ -366,10 +438,26 @@ const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
 
 function PassLine({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
   const dr = d.driftAt(year)
-  if (!dr) return <p className="text-sm text-[color:var(--bone2)]">Look times for {d.phrase.the} are not in the data yet.</p>
+  return (
+    <div className={cn(shell, 'grid grid-cols-1 gap-y-6 xl:grid-cols-12 xl:gap-x-6 xl:gap-y-0 xl:py-6')}>
+      <p className="text-sm text-[color:var(--bone2)] xl:col-span-3 xl:row-start-1">When each satellite looked</p>
+      {dr ? (
+        <>
+          <div className="xl:col-span-9 xl:col-start-4 xl:row-span-2 xl:row-start-1 xl:self-end">
+            <PassFigure dr={dr} year={year} />
+          </div>
+          <div className="xl:col-span-3 xl:row-start-2 xl:self-end">
+            <YearControl d={d} year={year} onYear={onYear} />
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-[color:var(--bone2)]">Look times for {d.phrase.the} are not in the data yet.</p>
+      )}
+    </div>
+  )
+}
 
-  const first = d.drift[0].year
-  const last = d.drift[d.drift.length - 1].year
+function PassFigure({ dr, year }: { dr: Drift; year: number }) {
   const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
   const later = shift >= 0
   const xa = at(hm(dr.aqua_lst))
@@ -380,138 +468,223 @@ function PassLine({ d, year, onYear }: { d: RegionData; year: number; onYear: (y
     '--xf': `${xf}%`,
     '--xt': `${xt}%`,
     '--bar-x': `${Math.min(xa, xf)}%`,
-    '--bar-w': `${Math.abs(xa - xf)}%`,
-    // labels sit at three heights (Aqua highest); the fixed clock's label also sits on the side away from Aqua,
-    // at least 8 px clear of Aqua's tick, so the two never touch however close the times are
-    '--fixed-x': later ? 'min(var(--xf), calc(var(--xa) - 8px))' : 'max(var(--xf), calc(var(--xa) + 8px))',
+    '--bar-k': `${Math.abs(xa - xf) / 100}`,
   } as CSSProperties
   const description = `When each satellite looked in ${year}: Terra ${dr.terra_lst}, fixed clock ${dr.viirs_lst}, Aqua ${dr.aqua_lst}, ${Math.abs(shift)} minutes ${later ? 'after' : 'before'} the fixed clock`
+  // each mark rides a full-width layer moved with translateX, so a change of year slides it (instant under reduced motion)
+  const layer = cn('absolute inset-x-0 top-0 h-full', slideEase)
+  const tick = 'absolute left-0 w-0.5 -translate-x-1/2'
+  const label = 'absolute whitespace-nowrap text-xs leading-4 sm:text-sm sm:leading-5'
+
+  return (
+    <div role="img" aria-label={description} style={vars} className="relative h-26 overflow-hidden sm:h-30">
+      {/* three label heights, Aqua highest; each label sits 8 px beside the top of its own tick */}
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xa)]')}>
+        <span className={cn(tick, 'top-1 h-19 bg-[color:var(--bone)] sm:h-23')} />
+        <span className={cn(label, 'top-0 text-[color:var(--bone)]', xa > 80 ? '-left-2 -translate-x-full' : 'left-2')}>Aqua {dr.aqua_lst}</span>
+      </div>
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xf)]')}>
+        <span className={cn(tick, 'top-6 h-14 bg-[color:var(--sage)] sm:top-7 sm:h-17')} />
+        {/* the fixed clock's label sits on the side away from Aqua, so the two never touch */}
+        <span className={cn(label, 'top-5 text-[color:var(--sage)] sm:top-6', later ? '-left-2 -translate-x-full' : 'left-2')}>Fixed clock {dr.viirs_lst}</span>
+      </div>
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xt)]')}>
+        <span className={cn(tick, 'top-11 h-9 bg-[color:var(--bone3)] sm:top-13 sm:h-11')} />
+        <span className={cn(label, '-left-2 top-10 -translate-x-full text-[color:var(--bone3)] sm:top-12')}>Terra {dr.terra_lst}</span>
+      </div>
+
+      <span aria-hidden className="absolute inset-x-0 top-20 h-px bg-[color:var(--bone-30)] sm:top-24" />
+      {HOURS.map((h) => (
+        <span
+          key={h}
+          aria-hidden
+          style={{ '--xh': `${at(h)}%` } as CSSProperties}
+          className="absolute left-[var(--xh)] top-20 h-1 w-px bg-[color:var(--bone-30)] sm:top-24"
+        />
+      ))}
+      {/* the minutes Aqua's later look added, on the axis between the fixed clock and Aqua */}
+      <span
+        aria-hidden
+        className={cn(
+          'absolute inset-x-0 top-20 h-0.5 origin-left -translate-y-1/2 translate-x-[var(--bar-x)] scale-x-[var(--bar-k)] bg-[color:var(--bone)] sm:top-24',
+          slideEase,
+        )}
+      />
+      {LABELLED.map((h, i) => (
+        <span
+          key={h}
+          aria-hidden
+          style={{ '--xh': `${at(h)}%` } as CSSProperties}
+          className={cn(
+            'absolute left-[var(--xh)] top-22 text-xs leading-4 text-[color:var(--bone3)] sm:top-26',
+            i === 0 ? '' : i === LABELLED.length - 1 ? '-translate-x-full' : '-translate-x-1/2',
+          )}
+        >
+          {hourLabel(h)}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function YearControl({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+  const first = d.drift[0].year
+  const last = d.drift[d.drift.length - 1].year
+  const span = Math.max(1, last - first)
+  const years = Array.from({ length: last - first + 1 }, (_, i) => first + i)
+  // Radix keeps the 16 px thumb inside the track: its centre sits at p% plus 8 px × (1 − p / 50)
+  const pos = (y: number) => {
+    const p = ((y - first) / span) * 100
+    return `calc(${p.toFixed(3)}% + ${(8 * (1 - p / 50)).toFixed(3)}px)`
+  }
   const valueText = (y: number) => {
     const r = d.driftAt(y)
     return r ? `${y}: fixed clock ${r.viirs_lst}, Aqua ${r.aqua_lst}, Terra ${r.terra_lst}` : String(y)
   }
-
-  const label = 'absolute whitespace-nowrap text-xs leading-4 sm:text-sm sm:leading-5'
-  const tick = 'absolute w-0.5 -translate-x-1/2'
-
   return (
     <div>
-      <p className="text-sm text-[color:var(--bone2)]">When each satellite looked · {year}</p>
-      <div role="img" aria-label={description} style={vars} className="relative mt-4 h-26 sm:h-30">
-        <span className={cn(label, 'left-[var(--xa)] top-0 text-[color:var(--bone)]', xa > 80 && '-translate-x-full')}>Aqua {dr.aqua_lst}</span>
-        <span className={cn(label, 'left-[var(--fixed-x)] top-5 text-[color:var(--sage)] sm:top-6', later && '-translate-x-full')}>Fixed clock {dr.viirs_lst}</span>
-        <span className={cn(label, 'left-[var(--xt)] top-10 -translate-x-full text-[color:var(--bone3)] sm:top-12')}>Terra {dr.terra_lst}</span>
-
-        <span aria-hidden className={cn(tick, 'left-[var(--xa)] top-5 h-15 bg-[color:var(--bone)] sm:top-6 sm:h-18')} />
-        <span aria-hidden className={cn(tick, 'left-[var(--xf)] top-10 h-10 bg-[color:var(--sage)] sm:top-12 sm:h-12')} />
-        <span aria-hidden className={cn(tick, 'left-[var(--xt)] top-15 h-5 bg-[color:var(--bone3)] sm:top-18 sm:h-6')} />
-
-        <span aria-hidden className="absolute inset-x-0 top-20 h-px bg-[color:var(--bone-30)] sm:top-24" />
-        {HOURS.map((h) => (
-          <span
-            key={h}
-            aria-hidden
-            style={{ '--xh': `${at(h)}%` } as CSSProperties}
-            className="absolute left-[var(--xh)] top-20 h-1 w-px bg-[color:var(--bone-30)] sm:top-24"
-          />
-        ))}
-        {/* the minutes Aqua's later look added, on the axis between the fixed clock and Aqua */}
-        <span aria-hidden className="absolute left-[var(--bar-x)] top-20 h-0.5 w-[var(--bar-w)] -translate-y-1/2 bg-[color:var(--bone)] sm:top-24" />
-        {LABELLED.map((h, i) => (
-          <span
-            key={h}
-            aria-hidden
-            style={{ '--xh': `${at(h)}%` } as CSSProperties}
-            className={cn(
-              'absolute left-[var(--xh)] top-22 text-xs leading-4 text-[color:var(--bone3)] sm:top-26',
-              i === 0 ? '' : i === LABELLED.length - 1 ? '-translate-x-full' : '-translate-x-1/2',
-            )}
-          >
-            {hourLabel(h)}
-          </span>
-        ))}
+      <div aria-hidden className="relative h-5">
+        <span style={{ '--x': pos(year) } as CSSProperties} className="absolute left-[var(--x)] top-0 -translate-x-1/2 text-sm leading-5 text-[color:var(--bone)]">
+          {year}
+        </span>
       </div>
-      <div className="mt-4 flex h-12 items-center gap-4">
-        <span className="text-xs text-[color:var(--bone3)]">{first}</span>
+      <div className="relative">
         <YearSlider value={year} onChange={onYear} min={first} max={last} valueText={valueText} classes={sliderClasses} label="Year" />
-        <span className="text-xs text-[color:var(--bone3)]">{last}</span>
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-7 h-1">
+          {years.map((y) => (
+            <span key={y} style={{ '--x': pos(y) } as CSSProperties} className="absolute left-[var(--x)] top-0 h-1 w-px -translate-x-1/2 bg-[color:var(--bone-30)]" />
+          ))}
+        </div>
+      </div>
+      <div aria-hidden className="mt-1 flex justify-between text-xs text-[color:var(--bone3)]">
+        <span>{first}</span>
+        <span>{last}</span>
       </div>
     </div>
   )
 }
 
-/* ---------- Three passes, one day: an uneven photo grid, labels set on the images ---------- */
+/* ---------- Three passes, one day: one frame, switched between the passes ---------- */
 
-const PASSES = [
+const AMAZON_2026 = regionData('br-amazon').driftAt(2026)
+type PassKey = 'terra' | 'viirs' | 'aqua'
+const PASSES: { key: PassKey; name: string; when: string; control: string; look?: string; wide: string; square: string; fit: string; alt: string }[] = [
   {
-    key: 'aqua',
-    src: `${IMG}amazon-aqua-2026-09-04.jpg`,
-    w: 936,
-    h: 720,
-    label: 'Aqua · later afternoon pass',
-    alt: 'Aqua, later afternoon, 4 Sep 2026: towering clouds over the same stretch of forest',
-    cell: 'col-span-2 aspect-4/3 lg:col-span-5 lg:row-span-2 lg:aspect-auto',
-    fit: 'object-center',
+    key: 'terra', name: 'Terra', when: 'morning', control: 'Terra', look: AMAZON_2026?.terra_lst,
+    wide: `${IMG}amazon-terra-2026-09-04.jpg`, square: `${IMG}prints/amazon-terra-sq.jpg`, fit: 'object-left',
+    alt: 'Terra, morning pass, 4 Sep 2026: hazy smoke and a few clouds over the forest',
   },
   {
-    key: 'terra',
-    src: `${IMG}prints/amazon-terra-sq.jpg`,
-    w: 720,
-    h: 720,
-    label: 'Terra · morning pass',
-    alt: 'Terra, morning, 4 Sep 2026: hazy smoke and a few clouds over the same forest',
-    cell: 'aspect-square lg:col-span-3',
-    fit: 'object-left',
+    key: 'viirs', name: 'VIIRS', when: 'fixed clock', control: 'VIIRS (fixed clock)', look: AMAZON_2026?.viirs_lst,
+    wide: `${IMG}amazon-viirs-2026-09-04.jpg`, square: `${IMG}prints/amazon-viirs-sq.jpg`, fit: 'object-center',
+    alt: 'VIIRS, early afternoon pass on the fixed clock, 4 Sep 2026: small cumulus clouds spread across the same forest',
   },
   {
-    key: 'viirs',
-    src: `${IMG}prints/amazon-viirs-sq.jpg`,
-    w: 720,
-    h: 720,
-    label: 'VIIRS · the fixed 13:30 clock',
-    alt: 'VIIRS, early afternoon, 4 Sep 2026: small cumulus clouds spread across the same forest',
-    cell: 'aspect-square lg:col-span-3',
-    fit: 'object-center',
+    key: 'aqua', name: 'Aqua', when: 'later afternoon', control: 'Aqua', look: AMAZON_2026?.aqua_lst,
+    wide: `${IMG}amazon-aqua-2026-09-04.jpg`, square: `${IMG}prints/amazon-aqua-sq.jpg`, fit: 'object-center',
+    alt: 'Aqua, later afternoon pass, 4 Sep 2026: towering clouds over the same forest',
   },
 ]
 
-function Passes() {
+function Passes({ d }: { d: RegionData }) {
+  const [shown, setShown] = useState<PassKey>('aqua')
+  const active = PASSES.find((p) => p.key === shown) ?? PASSES[2]
+  const example = d.id !== 'br-amazon'
   return (
-    <section id="clock" aria-labelledby="passes-h" className={cn(shell, 'pb-24 pt-24')}>
+    <section id="clock" aria-labelledby="passes-h" className={cn(shell, 'py-24')}>
       <div className="grid grid-cols-1 gap-y-8 lg:grid-cols-12 lg:gap-x-6">
         <div className="lg:col-span-4">
-          <h2 id="passes-h" className={title}>The same forest at three hours</h2>
+          <h2 id="passes-h" className={title}>By the later afternoon pass, clouds have built and more fires are burning</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
             Same place on 4 Sep 2026, seen in the morning, early afternoon and later afternoon. Clouds build and more fires
             burn as the day goes on, so a later look counts more.
           </p>
-        </div>
-        <div className="lg:col-span-8">
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-8 lg:gap-6">
+          <ToggleGroup.Root
+            type="single"
+            value={shown}
+            onValueChange={(v) => { if (v) setShown(v as PassKey) }}
+            aria-label="Pass shown in the frame"
+            className="mt-8 grid grid-cols-3 gap-2"
+          >
             {PASSES.map((p) => (
-              <figure key={p.key} className={cn('relative overflow-hidden rounded bg-[color:var(--surface)]', p.cell)}>
-                <img src={p.src} alt={p.alt} width={p.w} height={p.h} loading="lazy" className={cn('absolute inset-0 size-full object-cover', p.fit)} />
-                <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-tile)]" />
-                <figcaption className="absolute inset-x-4 bottom-4 text-balance text-sm font-medium text-[color:var(--bone)]">{p.label}</figcaption>
-              </figure>
+              <ToggleGroup.Item key={p.key} value={p.key} className={cn('group block min-w-0 text-left', focusRing)}>
+                <span className="relative block aspect-square overflow-hidden bg-[color:var(--surface)]">
+                  <img
+                    src={p.square}
+                    alt=""
+                    width={720}
+                    height={720}
+                    loading="lazy"
+                    className="size-full object-cover opacity-50 transition-opacity duration-150 ease-[var(--ease)] group-hover:opacity-80 group-data-[state=on]:opacity-100"
+                  />
+                  <span aria-hidden className="absolute inset-0 hidden shadow-[var(--ring-in)] group-data-[state=on]:block" />
+                </span>
+                <span className={cn('mt-2 block truncate text-xs text-[color:var(--bone2)] group-hover:text-[color:var(--bone)] group-data-[state=on]:text-[color:var(--bone)] sm:text-sm', ease)}>
+                  {p.control}
+                </span>
+              </ToggleGroup.Item>
             ))}
-          </div>
-          <p className="mt-4 text-xs text-[color:var(--bone3)]">Imagery: NASA Worldview / GIBS, true colour</p>
+          </ToggleGroup.Root>
         </div>
+
+        <figure className="m-0 lg:col-span-8">
+          <div role="img" aria-label={active.alt} className="relative aspect-5/4 overflow-hidden bg-[color:var(--surface)]">
+            {PASSES.map((p) => (
+              <img
+                key={p.key}
+                src={p.wide}
+                alt=""
+                width={936}
+                height={720}
+                loading="lazy"
+                className={cn(
+                  'absolute inset-0 size-full object-cover transition-opacity duration-240 ease-[var(--ease)] motion-reduce:transition-none',
+                  p.fit,
+                  p.key === shown ? 'opacity-100' : 'opacity-0',
+                )}
+              />
+            ))}
+            <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-tile)]" />
+            <div aria-hidden className="absolute bottom-4 left-4 right-4">
+              <p className="text-sm font-medium text-[color:var(--bone)]">{active.name} · {active.when}</p>
+              {active.look ? <p className="mt-1 text-xs text-[color:var(--bone-80)]">Typical look {active.look} in 2026</p> : null}
+            </div>
+          </div>
+          <figcaption className="mt-4 text-xs text-[color:var(--bone3)]">
+            {example ? 'Example scene: Amazon, 4 Sep 2026 · ' : ''}Imagery: NASA Worldview / GIBS, true colour
+          </figcaption>
+        </figure>
       </div>
     </section>
   )
 }
 
-/* ---------- Clock effect by year: the one sage band ---------- */
+/* ---------- Clock effect by year: the one sage band, each range drawn against the noise floor ---------- */
+
+function rangeAxis(d: RegionData) {
+  const known = d.years.filter((y) => y.lo != null && y.hi != null)
+  const lo = Math.min(-d.noise, ...known.map((y) => y.lo!))
+  const hi = Math.max(d.noise, ...known.map((y) => y.hi!))
+  const step = hi - lo > 60 ? 20 : 10
+  const a = Math.floor(lo / step) * step
+  const b = Math.ceil(hi / step) * step
+  const ticks: number[] = []
+  for (let v = a; v <= b; v += step) ticks.push(v)
+  return { x: (v: number) => `${(((v - a) / (b - a)) * 100).toFixed(3)}%`, ticks }
+}
+
+const tickText = (v: number) => (v === 0 ? '0%' : pct(v, 0))
 
 function ClockEffect({ d }: { d: RegionData }) {
+  const { why } = verdictLines(d)
+  const axis = rangeAxis(d)
+  const band = { '--n0': axis.x(-d.noise), '--nw': `calc(${axis.x(d.noise)} - ${axis.x(-d.noise)})` } as CSSProperties
   const cell = 'py-4 align-baseline'
   return (
     <section id="audit" aria-labelledby="audit-h" className="bg-[color:var(--sage)] text-[color:var(--ink)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
-          <h2 id="audit-h" className={title}>Clock effect by year</h2>
+          <h2 id="audit-h" className={title}>{effectHeading(d)}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm">
             How much Aqua's later look changed each year's official count, with its range. Years whose whole range sits
             outside {noiseText(d)} show a clock effect.
@@ -520,14 +693,28 @@ function ClockEffect({ d }: { d: RegionData }) {
         <div className="lg:col-span-8">
           <table className="w-full border-collapse text-left">
             <caption className="sr-only">
-              Clock effect by year for {d.name}: how much Aqua's later look changed the official count, its range, and the reading against the {noiseText(d)} noise floor
+              Clock effect by year for {d.name}: how much Aqua's later look changed the official count, its range drawn against the {noiseText(d)} noise floor, and the reading
             </caption>
             <thead>
               <tr className="border-b border-[color:var(--ink-20)] text-xs">
-                <th scope="col" className="pb-2 pr-4 font-normal">Year</th>
-                <th scope="col" className="px-4 pb-2 text-right font-normal">Clock effect</th>
-                <th scope="col" className="hidden px-4 pb-2 text-right font-normal sm:table-cell">Range</th>
-                <th scope="col" className="pb-2 pl-4 font-normal sm:pl-12">Reading</th>
+                <th scope="col" className="pb-2 pr-4 align-bottom font-normal">Year</th>
+                <th scope="col" className="px-4 pb-2 text-right align-bottom font-normal">Clock effect</th>
+                <th scope="col" className="hidden px-4 pb-2 text-right align-bottom font-normal sm:table-cell">Range</th>
+                <th scope="col" className="hidden w-2/5 px-4 pb-2 align-bottom font-normal sm:table-cell">
+                  <span className="sr-only">Range against the {noiseText(d)} noise floor</span>
+                  <span aria-hidden className="relative block h-4">
+                    {axis.ticks.map((v, i) => (
+                      <span
+                        key={v}
+                        style={{ '--x': axis.x(v) } as CSSProperties}
+                        className={cn('absolute left-[var(--x)] top-0 leading-4', i === 0 ? '' : i === axis.ticks.length - 1 ? '-translate-x-full' : '-translate-x-1/2')}
+                      >
+                        {tickText(v)}
+                      </span>
+                    ))}
+                  </span>
+                </th>
+                <th scope="col" className="pb-2 pl-4 align-bottom font-normal">Reading</th>
               </tr>
             </thead>
             <tbody>
@@ -539,11 +726,27 @@ function ClockEffect({ d }: { d: RegionData }) {
                     <span className="block text-sm tabular-nums sm:hidden">{rangeText(y)}</span>
                   </td>
                   <td className={cn(cell, 'hidden px-4 text-right text-sm tabular-nums sm:table-cell')}>{rangeText(y)}</td>
-                  <td className={cn(cell, 'pl-4 text-sm sm:pl-12')}>{READING[y.verdict]}</td>
+                  <td className="hidden px-4 py-4 align-top sm:table-cell">
+                    <div aria-hidden style={band} className="relative h-7">
+                      {/* the noise band runs the full row height, so the rows read as one shaded strip */}
+                      <span className="absolute -inset-y-4 left-[var(--n0)] w-[var(--nw)] bg-[color:var(--sage-band)]" />
+                      {y.lo != null && y.hi != null && y.gap != null ? (
+                        <span
+                          style={{ '--b0': axis.x(y.lo), '--bw': `calc(${axis.x(y.hi)} - ${axis.x(y.lo)})`, '--bp': axis.x(y.gap) } as CSSProperties}
+                          className="absolute inset-0"
+                        >
+                          <span className="absolute left-[var(--b0)] top-1/2 h-1 w-[var(--bw)] -translate-y-1/2 bg-[color:var(--ink)]" />
+                          <span className="absolute left-[var(--bp)] top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-[color:var(--ink)]" />
+                        </span>
+                      ) : null}
+                    </div>
+                  </td>
+                  <td className={cn(cell, 'pl-4 text-sm')}>{READING[y.verdict]}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {why ? <p className="mt-6 max-w-[var(--measure)] text-sm">{why}</p> : null}
           <p className="mt-4 text-xs">Source: audit/{d.id}.json · MOCK</p>
         </div>
       </div>
@@ -557,6 +760,8 @@ function Calendar({ d, mode, onMode, small }: { d: RegionData; mode: CalendarMod
   const grid = useMemo(() => calendarGrid(d), [d])
   const f = calendarFinding(d)
   const finding = f ? `${f.label} sat furthest above its median, ${pct(f.anomaly, 0)}` : 'Every month in this range sits near its median'
+  const [mon, yr] = f ? f.label.split(' ') : []
+  const highlight = f ? { year: Number(yr), month: MONTHS.indexOf(mon) } : null
   const first = grid.years[grid.years.length - 1]
   const last = grid.years[0]
   const sentence =
@@ -578,22 +783,15 @@ function Calendar({ d, mode, onMode, small }: { d: RegionData; mode: CalendarMod
               <span aria-hidden>{first} → {last}</span>
               <span className="sr-only">Years {first} to {last}</span>
             </span>
-            <div className="flex items-center gap-4 sm:ml-auto">
-              {/* CSV is wired to the shared download; PNG and SVG stay inert in this comp */}
-              {['CSV', 'PNG', 'SVG'].map((fmt) => (
-                <button
-                  key={fmt}
-                  type="button"
-                  aria-label={`Download ${fmt}`}
-                  onClick={fmt === 'CSV' ? () => downloadCalendarCsv(d) : undefined}
-                  className={cn('h-9 rounded text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}
-                >
-                  {fmt}
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={() => downloadCalendarCsv(d)}
+              className={cn('h-9 rounded text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)] sm:ml-auto', ease, focusRing)}
+            >
+              Download CSV
+            </button>
           </div>
-          <div className="mt-6 rounded-lg border border-[color:var(--hairline)] bg-[color:var(--surface)] p-6">
+          <div className="mt-6 border-y border-[color:var(--hairline)] py-6">
             <FireCalendar
               years={grid.years}
               cells={grid.cells}
@@ -602,10 +800,12 @@ function Calendar({ d, mode, onMode, small }: { d: RegionData; mode: CalendarMod
               render="fill"
               cellHeight={small ? 20 : 24}
               monthLabels={small ? 'initial' : 'short'}
-              label={`Fire calendar for ${d.name}, ${mode === 'anomaly' ? 'each month against its median' : 'fixed-clock hotspot count'}`}
+              highlight={highlight}
+              label={`Fire calendar for ${d.name}, ${mode === 'anomaly' ? 'each month against its median' : 'fixed-clock hotspot count'}${f ? `; ${f.label} is ringed` : ''}`}
             />
           </div>
-          <CalendarLegend mode={mode} render="fill" className="mt-4" />
+          {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
+          <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
           <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: calendar/{d.id}.json · VIIRS 375 m in Aqua-equivalent units · MOCK</p>
         </div>
       </div>

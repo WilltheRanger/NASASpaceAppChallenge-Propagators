@@ -144,7 +144,7 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
                   {!empty && render === 'squares' ? <Square cell={cell!} mode={mode} maxCount={maxCount} size={cellHeight} /> : null}
                   {empty ? <span aria-hidden className="block h-px w-2" style={{ background: 'var(--cal-muted)', opacity: 0.6 }} /> : null}
                   {prov ? <span aria-hidden className="pointer-events-none absolute inset-0" style={{ borderRadius: 'inherit', backgroundImage: 'repeating-linear-gradient(135deg, var(--cal-hatch) 0 1px, transparent 1px 4px)' }} /> : null}
-                  {outage ? <span aria-hidden className="absolute right-[2px] top-[2px] h-[7px] w-[7px] rounded-full" style={{ background: 'var(--cal-cell)', boxShadow: 'inset 0 0 0 1.5px var(--cal-fg)' }} /> : null}
+                  {outage ? <span aria-hidden className="absolute right-[1px] top-[1px] h-[5px] w-[5px] rounded-full" style={{ background: 'var(--cal-cell)', boxShadow: 'inset 0 0 0 1.25px var(--cal-fg)' }} /> : null}
                 </button>
               )
             })}
@@ -160,7 +160,8 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
 
 /** Squares mode: area encodes magnitude; anomaly sign is ink (above the median) or grey (below). */
 function Square({ cell, mode, maxCount, size }: { cell: CalendarCell; mode: CalendarMode; maxCount: number; size: number }) {
-  const max = size - 6
+  // leave a 6 px margin so a corner mark (outage) never lands on the square
+  const max = size - 12
   if (mode === 'count') {
     const k = Math.sqrt(Math.max(0, cell.fixed ?? 0) / Math.max(1, maxCount))
     const s = Math.max(3, Math.round(k * max))
