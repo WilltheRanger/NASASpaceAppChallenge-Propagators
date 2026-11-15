@@ -40,3 +40,39 @@ python3 -m unittest discover -s analysis/p9-swath-access/tests -v
 - [Collection 2 fire-product guide](https://www.earthdata.nasa.gov/s3fs-public/2025-06/VIIRS_C2_AF-375m_User_Guide_1.2.pdf)
 
 No shared history, team branches, deployed app or results were changed.
+
+## Acquired pilot (November 15, 2026)
+
+NASA Earthdata/LAADS authorization succeeded. All four actual pilot files are
+available locally: S-NPP and NOAA-20 fire masks and their matching 375 m
+geolocation swaths. `pilot_result.json` records byte counts and SHA-256 hashes;
+raw satellite files are deliberately not committed.
+
+`pilot.py` implements a **coverage-aware engineering pilot**, not formal P9:
+40,000 fixed 0.01-degree grid centers in the discovery box, nearest geolocated
+native pixel within 375 m, both sensor zeniths <=45 degrees, and classes 5/8/9
+usable in both. The settings were fixed before running the pilot, but this is
+still a post-hoc engineering exercise, not preregistration. It explicitly
+includes observed non-fire pixels rather than treating absent FIRMS detections
+as clear-sky zeros.
+
+Result: **376 common usable centers, all clear non-fire**. S-NPP contributes
+407 usable centers under the viewing-angle rule, NOAA-20 38,024. The masks do
+contain regional fires (10 nominal S-NPP pixels and 9 nominal NOAA-20 pixels),
+but none enter this common sample. Do not relax filters or choose a different
+box merely to obtain a favorable result. The observed swaths start 48 minutes
+apart. One such pair cannot identify a time slope separately from instrument
+bias, much less establish P9 across six biomes.
+
+Reproduce after obtaining the manifest-named files:
+
+```sh
+python pilot.py --data /path/to/downloads --out pilot_result.json
+```
+
+Dependencies: numpy, scipy, h5py. This pilot uses nearest-center sampling, not
+exact footprint-overlap integration; its grid samples are spatially dependent.
+Formal continuation requires a prospectively fixed spatial/seasonal sample of
+2018–2020 pairs, coverage and geometry controls, and sufficient timing variation
+before assessing unchanged 2023–2025 regional drift outcomes. The authentication
+blocker is resolved; full calibration acquisition/analysis is not yet complete.
