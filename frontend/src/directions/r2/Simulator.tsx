@@ -1150,7 +1150,7 @@ function WorldControl({ grid, layer, setLayer, year, setYear, hover, closeIn, wi
                 </span>
                 <span>above</span>
               </div>
-              <p className="mt-2 min-h-8 text-xs leading-4 tabular-nums text-[color:var(--bone)]" aria-live="off" title={`Strong colour: unusual for that square. Faint: not unusual. Outline only: too few fires to read. ${fmtInt(tally.ok)} squares can be read; ${fmtInt(tally.up + tally.down)} are unusual.`}>
+              <p className="mt-2 min-h-8 text-xs leading-4 tabular-nums text-[color:var(--bone)]" aria-live="off" title={`Strong colour: unusual for that square. Faint: not unusual. Outline: too few fires to read. ${fmtInt(tally.ok)} squares can be read; ${fmtInt(tally.up + tally.down)} are unusual.`}>
                 {hover ? `${cellName(hover)}: ${h && h.ok && h.L != null && h.lo != null && h.hi != null ? `${pctOf(h.L)}, ${h.outside ? 'unusual' : 'not unusual'}` : 'too few fires to read'}` : 'Point at a square to read it. Click it for more.'}
               </p>
             </>

@@ -250,7 +250,7 @@ function LookClock({ now, old, oldText, later, onYear }: { now: (typeof LOOKS)[n
   const gutter = 64, pad = 14
   const x = (h: number) => gutter + ((h - from) / (to - from)) * Math.max(0, W - gutter - pad)
   const timeAt = (px: number) => from + ((px - gutter) / Math.max(1, W - gutter - pad)) * (to - from)
-  const rowA = 26, rowV = 62, axis = 88
+  const rowA = 46, rowV = 80, axis = 104
   const move = motion.on ? `transition-[left,width] duration-300 ${expo}` : ''
   const hours = Array.from({ length: to - from + 1 }, (_, i) => from + i)
   // dragging the dot picks the year whose look time is nearest
@@ -272,7 +272,7 @@ function LookClock({ now, old, oldText, later, onYear }: { now: (typeof LOOKS)[n
         role="img"
         aria-label={`In ${now.year} Aqua looked at ${now.aquaText} and VIIRS at ${now.viirsText}. In 2012 to 2020 Aqua looked at ${oldText}.`}
         className="relative mt-2 w-full select-none"
-        style={{ height: 112 }}
+        style={{ height: 128 }}
       >
         {W > 0 ? (
           <>
@@ -300,7 +300,8 @@ function LookClock({ now, old, oldText, later, onYear }: { now: (typeof LOOKS)[n
               style={{ left: gutter, right: 0, top: rowA }}
             />
             <span aria-hidden className={cn('pointer-events-none absolute z-20 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--sat-aqua)] ring-2 ring-[color:var(--ground)]', move)} style={{ left: xa, top: rowA }} />
-            <span aria-hidden className={cn('pointer-events-none absolute z-20 flex -translate-y-1/2 items-center gap-2 whitespace-nowrap pl-3.5 text-sm tabular-nums text-[color:var(--bone)]', move)} style={{ left: xa, top: rowA }}>
+            {/* its time sits above the dot, kept inside the figure at either end */}
+            <span aria-hidden className={cn('pointer-events-none absolute z-20 flex items-center gap-2 whitespace-nowrap text-sm tabular-nums text-[color:var(--bone)]', move)} style={{ left: Math.max(gutter - 8, Math.min(xa - (later >= 2 ? 56 : 20), W - (later >= 2 ? 116 : 44))), top: rowA - 36 }}>
               {now.aquaText}
               {later >= 2 ? <span className="rounded-[3px] bg-[color:var(--sat-aqua)] px-1.5 text-xs font-medium text-[color:var(--ink)]">+{later} min</span> : null}
             </span>

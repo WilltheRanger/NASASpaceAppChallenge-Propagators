@@ -287,18 +287,34 @@ export function useEasedScroll(on: boolean) {
   }, [on])
 }
 
-/** A page opens at its top. A browser (or a frame that holds the page) can carry the last page's scroll position over;
- *  coming back through history keeps the position the reader left, and a link to a section (#checks) is left alone. */
+/** A page opens at its top: a browser, or a frame that holds the page, can carry the last page's scroll position
+ *  over. Going back or forward returns to where the reader was on that page (kept for the session, and applied once
+ *  the page is tall enough, since its sections load after it opens). A link to a section (#checks) is left alone. */
 export function useStartAtTop() {
   useEffect(() => {
+    const key = `anchor-scroll:${window.location.pathname}${window.location.search}`
+    const save = () => { try { window.sessionStorage.setItem(key, String(Math.round(window.scrollY))) } catch { /* storage can be blocked */ } }
+    window.addEventListener('pagehide', save)
+    const jump = (y: number) => { if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else window.scrollTo(0, y) }
     const nav = performance.getEntriesByType?.('navigation')[0] as PerformanceNavigationTiming | undefined
     const hash = decodeURIComponent(window.location.hash.slice(1))
-    if (nav?.type === 'back_forward' || (hash && !hash.includes('='))) return
-    const top = () => { if (window.scrollY > 0) { if (lenis) lenis.scrollTo(0, { immediate: true, force: true }); else window.scrollTo(0, 0) } }
-    top()
-    // once more after the first paint, when a late restore would have landed
-    const raf = requestAnimationFrame(top)
-    return () => cancelAnimationFrame(raf)
+    let timer = 0, raf = 0
+    if (nav?.type === 'back_forward') {
+      let y = 0
+      try { y = Number(window.sessionStorage.getItem(key)) || 0 } catch { /* storage can be blocked */ }
+      let tries = 0
+      const go = () => {
+        if (document.documentElement.scrollHeight - window.innerHeight >= y || tries++ > 40) jump(y)
+        else timer = window.setTimeout(go, 50)
+      }
+      if (y > 0) go()
+    } else if (!hash || hash.includes('=')) {
+      const top = () => { if (window.scrollY > 0) jump(0) }
+      top()
+      // once more after the first paint, when a late restore would have landed
+      raf = requestAnimationFrame(top)
+    }
+    return () => { window.removeEventListener('pagehide', save); window.clearTimeout(timer); cancelAnimationFrame(raf) }
   }, [])
 }
 
