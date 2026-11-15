@@ -30,6 +30,10 @@ export interface GlobeOrbit {
   color: string
   /** where along its orbit the satellite starts, 0 to 1, so they don't bunch */
   phase?: number
+  /** the label's text colour (default: the figure's text colour) */
+  labelColor?: string
+  /** draws the label as a solid flag in the orbit's colour, with this note after the time, e.g. "+35 min" */
+  flag?: string
 }
 
 export interface GlobeInk {
@@ -440,9 +444,20 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
   const xAt = (h: number) => cx + L.Ro * Math.cos(rLat) * Math.sin(angleOf(h))
   const hourLabels = (compact ? [6, 12, 18] : [6, 9, 12, 15, 18]).filter((h) => orbits.every((o) => Math.abs(xAt(o.time) - xAt(h)) > (compact ? 16 : 24)))
   const hourText = (h: number) => (compact ? String(h).padStart(2, '0') : `${String(h).padStart(2, '0')}:00`)
-  const text = (o: GlobeOrbit) => (compact ? o.label : `${o.label} ${o.timeText}`)
-  const charW = compact ? 6.6 : 7.4
-  const placed = placeLabels(orbits.map((o) => ({ id: o.id, x: xAt(o.time), w: text(o).length * charW })), L.W)
+  const text = (o: GlobeOrbit) => [o.label, compact ? null : o.timeText, o.flag].filter(Boolean).join(' ')
+  // label widths measured in the page's own font once it is known, estimated before that
+  const fontSize = compact ? 12 : 13
+  const family = boxRef.current ? getComputedStyle(boxRef.current).fontFamily : ''
+  const measure = React.useMemo(() => {
+    const c = typeof document !== 'undefined' ? document.createElement('canvas').getContext('2d') : null
+    return (t: string, weight = 400) => {
+      if (!c || !family) return t.length * fontSize * 0.56
+      c.font = `${weight} ${fontSize}px ${family}`
+      return c.measureText(t).width
+    }
+  }, [family, fontSize])
+  const widthOf = (o: GlobeOrbit) => (o.flag ? measure(text(o), 500) + 14 : measure(text(o)))
+  const placed = placeLabels(orbits.map((o) => ({ id: o.id, x: xAt(o.time), w: widthOf(o) })), L.W)
   const rows = Math.max(0, ...[...placed.values()].map((p) => p.row))
   const spanBar = (() => {
     if (!span) return null
@@ -458,7 +473,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
     <div ref={boxRef} role="img" aria-label={label} className={cn('relative w-full', className)} style={{ height: H + 20 * rows, ...style }} {...props}>
       <canvas ref={canvasRef} aria-hidden className="absolute inset-x-0 top-0 block" style={{ width: L.W, height: L.H }} />
       {W > 0 ? (
-        <svg aria-hidden width={L.W} height={H + 20 * rows} className="absolute inset-x-0 top-0 block overflow-visible" fontSize={compact ? 12 : 13}>
+        <svg aria-hidden width={L.W} height={H + 20 * rows} className="absolute inset-x-0 top-0 block overflow-visible" fontSize={fontSize}>
           <line x1={xAt(6)} x2={xAt(18)} y1={axisY} y2={axisY} stroke={ink.grid} strokeWidth={1} />
           {HOURS.map((h) => (
             <line key={h} x1={xAt(h)} x2={xAt(h)} y1={axisY - 3} y2={axisY + 3} stroke={ink.grid} strokeWidth={1} />
@@ -483,10 +498,27 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
                 ) : (
                   <rect x={x - 3.5} y={axisY - 3.5} width={7} height={7} fill={o.color} transform={`rotate(45 ${x} ${axisY})`} />
                 )}
-                <text x={pos.tx} y={y} textAnchor={pos.anchor} fill={ink.fg}>
-                  {o.label}
-                  {compact ? null : <tspan fill={ink.muted}> {o.timeText}</tspan>}
-                </text>
+                {o.flag ? (
+                  (() => {
+                    // a solid flag in the orbit's colour, hung as the label would be
+                    const w = widthOf(o)
+                    const left = pos.anchor === 'end' ? pos.tx - w + 7 : pos.anchor === 'middle' ? pos.tx - w / 2 : pos.tx - 7
+                    return (
+                      <g>
+                        <rect x={left} y={y - 13} width={w} height={20} rx={3} fill={o.color} />
+                        <text x={left + 7} y={y} fill={ink.ground} fontWeight={500}>
+                          {o.label}{compact ? null : ` ${o.timeText}`}
+                          <tspan fontWeight={400} fillOpacity={0.75}> {o.flag}</tspan>
+                        </text>
+                      </g>
+                    )
+                  })()
+                ) : (
+                  <text x={pos.tx} y={y} textAnchor={pos.anchor} fill={o.labelColor ?? ink.fg}>
+                    {o.label}
+                    {compact ? null : <tspan fill={o.labelColor ?? ink.muted}> {o.timeText}</tspan>}
+                  </text>
+                )}
               </g>
             )
           })}

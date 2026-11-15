@@ -17,7 +17,7 @@ mkdirSync(join(out, 'img', 'prints'), { recursive: true })
 mkdirSync(join(out, 'img', 'regions'), { recursive: true })
 for (const f of images) copyFileSync(join('public', 'img', f), join(out, 'img', f))
 // the drone loops and their posters
-const videos = ['br-amazon', 'in-punjab-haryana', 'us-california'].flatMap((r) => [`${r}.mp4`, `${r}-poster.jpg`])
+const videos = ['br-amazon', 'us-california'].flatMap((r) => [`${r}.mp4`, `${r}-poster.jpg`])
 mkdirSync(join(out, 'video', 'regions'), { recursive: true })
 for (const f of videos) copyFileSync(join('public', 'video', 'regions', f), join(out, 'video', 'regions', f))
 

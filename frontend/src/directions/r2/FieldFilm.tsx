@@ -13,7 +13,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
-import { ModeToggle, RegionSelect, YearSlider } from '@/r2/controls'
+import { ModeToggle, RegionSelect } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 import {
   CHECKS, MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, countName, fmtRange, hm, minutesBetween, pct, phrase, regionData, verdictHeadline, verdictLines,
@@ -314,12 +314,6 @@ const menuClasses = {
   ),
 }
 
-const sliderClasses = {
-  root: 'relative flex h-8 w-full cursor-pointer touch-none select-none items-center',
-  track: 'relative h-0.5 grow bg-[color:var(--bone-20)]',
-  thumb: cn('block size-4 rounded-full bg-[color:var(--bone)] hover:bg-[color:var(--bone-hover)]', ease, focusRing),
-}
-
 const modeClasses = {
   root: 'inline-flex h-9 overflow-hidden rounded bg-[color:var(--raised)]',
   item: cn(
@@ -444,7 +438,7 @@ function AppPage({ region, onRegion, links, leave }: { region: string; onRegion:
       <AppTopBar region={region} onRegion={pick} home={links.landing(region)} leave={leave} />
       <main>
         <AppStatement d={d} />
-        <AppVerdict d={d} year={year} onYear={setYear} />
+        <AppVerdict d={d} />
         <Orbits d={d} year={year} onYear={setYear} />
         <Passes d={d} />
         <TwoClocks d={d} year={year} onYear={setYear} small={small} />
@@ -653,11 +647,15 @@ function RegionMedia({ id, active, className }: { id: string; active: boolean; c
   const p = photoFor(id)
   const ref = useRef<HTMLVideoElement | null>(null)
   const v = p.video
+  // one continuous shot per showing: each time the region comes up it starts from the top and plays once, holding its
+  // last frame if the tour is paused; no loop, so the picture never jumps back
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (active && motion.on) el.play().catch(() => { /* autoplay can be refused; the poster stays */ })
-    else el.pause()
+    if (active && motion.on) {
+      try { el.currentTime = 0 } catch { /* not seekable yet; it starts from the top anyway */ }
+      el.play().catch(() => { /* autoplay can be refused; the poster stays */ })
+    } else el.pause()
   }, [active, motion.on])
   if (v) {
     return (
@@ -667,7 +665,6 @@ function RegionMedia({ id, active, className }: { id: string; active: boolean; c
           src={v.src}
           poster={v.poster}
           muted
-          loop
           playsInline
           autoPlay={active && motion.on}
           preload={active ? 'auto' : 'metadata'}
@@ -856,7 +853,7 @@ function AppStatement({ d }: { d: RegionData }) {
 }
 
 /** The verdict under the statement, then the reel. */
-function AppVerdict({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+function AppVerdict({ d }: { d: RegionData }) {
   const { look, change } = verdictLines(d)
   return (
     <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-20">
@@ -872,9 +869,6 @@ function AppVerdict({ d, year, onYear }: { d: RegionData; year: number; onYear: 
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>Download summary</button>
           </div>
         </div>
-      </div>
-      <div className="border-y border-[color:var(--hairline)] bg-[color:var(--surface)]">
-        <PassReel d={d} year={year} onYear={onYear} />
       </div>
     </section>
   )
@@ -892,66 +886,23 @@ const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
 /** When each satellite looked, as a reel of years: drag or arrow through the frames and the large frame
  *  crossfades from year to year, so Aqua's mark walks later; each strip cell zooms on the fixed clock and Aqua. */
 const MONTH_NOTCHES = Array.from({ length: 12 }, (_, k) => k)
-
-function PassReel({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
-  const motion = useMotion()
-  const years = d.drift.map((r) => r.year)
-  const dr = d.driftAt(year)
-  const frames = useMemo(() => {
-    return d.drift.map((r) => {
-      return {
-        id: String(r.year),
-        valueText: `${r.year}: Terra ${r.terra_lst}, fixed clock ${r.viirs_lst}, Aqua ${r.aqua_lst}`,
-        preview: <PassFigure dr={r} year={r.year} />,
-        // a ruler: a notch per month, a taller one where the year starts, the tallest mid-year under the playhead
-        thumb: (
-          <div className="absolute inset-0">
-            {MONTH_NOTCHES.map((k) => (
-              <span
-                key={k}
-                style={{ left: `${(k / 12) * 100}%` }}
-                className={cn(
-                  'absolute top-0 w-px bg-[color:var(--bone-30)] group-data-[active=true]:bg-[color:var(--bone-80)]',
-                  k === 6 ? 'h-5' : k === 0 ? 'h-3' : 'hidden h-1.5 sm:block',
-                )}
-              />
-            ))}
-            <span className="absolute bottom-0 left-1/2 hidden -translate-x-1/2 text-xs leading-4 tabular-nums text-[color:var(--bone3)] group-data-[active=true]:text-[color:var(--bone)] sm:block">{r.year}</span>
-          </div>
-        ),
-      }
-    })
-  }, [d])
-  if (!dr || !frames.length) {
-    return <div className={cn(shell, 'py-6')}><p className="text-sm text-[color:var(--bone2)]">Look times for {d.phrase.the} are not in the data yet.</p></div>
-  }
-  const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
-  const reelVars = { '--fs-accent': 'var(--bone)', '--fs-cell': 'var(--surface)' } as CSSProperties
-  return (
-    <div className={cn(shell, 'py-6')} style={reelVars}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <p className="text-sm text-[color:var(--bone2)]">When each satellite looked · drag along the years</p>
-        <p className="text-sm tabular-nums text-[color:var(--bone)]">
-          {year} · Aqua {dr.aqua_lst}, {Math.abs(shift)} min {shift >= 0 ? 'after' : 'before'} the fixed clock
-        </p>
-      </div>
-      <FilmstripScrub
-        frames={frames}
-        frameIndex={Math.max(0, years.indexOf(year))}
-        onFrameIndexChange={(i) => onYear(years[i])}
-        scrubberLabel="Year shown on the reel"
-        variant="ruler"
-        still={!motion.on}
-        playheadClassName="sm:bottom-5"
-        previewClassName="mt-4 h-28 sm:h-32"
-        stripClassName="mt-4 h-8 sm:h-12"
+/** A ruler cell for a year: a notch per month, a taller one where the year starts, the tallest mid-year under the playhead. */
+const rulerThumb = (year: number) => (
+  <div className="absolute inset-0">
+    {MONTH_NOTCHES.map((k) => (
+      <span
+        key={k}
+        style={{ left: `${(k / 12) * 100}%` }}
+        className={cn(
+          'absolute top-0 w-px bg-[color:var(--bone-30)] group-data-[active=true]:bg-[color:var(--bone-80)]',
+          k === 6 ? 'h-5' : k === 0 ? 'h-3' : 'hidden h-1.5 sm:block',
+        )}
       />
-      <div aria-hidden className="mt-2 flex justify-between text-xs tabular-nums text-[color:var(--bone3)] sm:hidden">
-        <span>{years[0]}</span><span>{years[years.length - 1]}</span>
-      </div>
-    </div>
-  )
-}
+    ))}
+    <span className="absolute bottom-0 left-1/2 hidden -translate-x-1/2 text-xs leading-4 tabular-nums text-[color:var(--bone3)] group-data-[active=true]:text-[color:var(--bone)] sm:block">{year}</span>
+  </div>
+)
+const REEL_VARS = { '--fs-accent': 'var(--bone)', '--fs-cell': 'var(--surface)' } as CSSProperties
 
 /** When each satellite looked in one year, as an instrument line on a 06:00 to 18:00 axis. Each satellite has its own
  *  marker and pin: Aqua, the one that drifts, a filled dot under a solid flag carrying its time and the minutes it added;
@@ -1062,39 +1013,25 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
   const motion = useMotion()
   const dr = d.driftAt(year)
   const years = d.drift.map((r) => r.year)
-  const [playing, setPlaying] = useState(false)
-  const yearRef = useRef(year)
-  yearRef.current = year
-  useEffect(() => {
-    if (!playing) return
-    const id = window.setInterval(() => {
-      const i = years.indexOf(yearRef.current)
-      if (i < 0 || i >= years.length - 1) { setPlaying(false); return }
-      onYear(years[i + 1])
-    }, 900)
-    return () => window.clearInterval(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing, d.id])
+  const frames = useMemo(
+    () => d.drift.map((r) => ({ id: String(r.year), valueText: `${r.year}: Terra ${r.terra_lst}, fixed clock ${r.viirs_lst}, Aqua ${r.aqua_lst}`, preview: null, thumb: rulerThumb(r.year) })),
+    [d],
+  )
   const region = REGIONS.find((r) => r.id === d.id)
   if (!dr || !years.length || !region) return null
 
   const orbits: GlobeOrbit[] = [
-    { id: 'terra', label: 'Terra', time: hm(dr.terra_lst), timeText: dr.terra_lst, dayPass: 'south', marker: 'hollow', color: 'var(--bone3)', phase: 0.62 },
-    { id: 'viirs', label: 'Fixed clock', time: hm(dr.viirs_lst), timeText: dr.viirs_lst, dayPass: 'north', marker: 'diamond', color: 'var(--sage)', phase: 0.31 },
-    { id: 'aqua', label: 'Aqua', time: hm(dr.aqua_lst), timeText: dr.aqua_lst, dayPass: 'north', marker: 'filled', color: 'var(--bone)', phase: 0 },
+    { id: 'terra', label: 'Terra', time: hm(dr.terra_lst), timeText: dr.terra_lst, dayPass: 'south', marker: 'hollow', color: 'var(--bone3)', labelColor: 'var(--bone3)', phase: 0.62 },
+    { id: 'viirs', label: 'Fixed clock', time: hm(dr.viirs_lst), timeText: dr.viirs_lst, dayPass: 'north', marker: 'diamond', color: 'var(--sage)', labelColor: 'var(--sage)', phase: 0.31 },
+    { id: 'aqua', label: 'Aqua', time: hm(dr.aqua_lst), timeText: dr.aqua_lst, dayPass: 'north', marker: 'filled', color: 'var(--bone)', flag: `${minutesBetween(dr.aqua_lst, dr.viirs_lst) >= 0 ? '+' : '−'}${Math.abs(minutesBetween(dr.aqua_lst, dr.viirs_lst))} min`, phase: 0 },
   ]
   const order = [...orbits].sort((a, b) => a.time - b.time).map((o) => (o.id === 'viirs' ? 'the fixed clock’s' : `${o.label}’s`))
   const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
-  const play = () => {
-    if (playing) { setPlaying(false); return }
-    if (years.indexOf(year) >= years.length - 1) onYear(years[0])
-    setPlaying(true)
-  }
   const description = `${statementName(d.id)} at noon in ${dr.year}, seen from the Sun’s side, with three orbits: its day carries it under Terra’s track at ${dr.terra_lst}, the fixed clock’s at ${dr.viirs_lst} and Aqua’s at ${dr.aqua_lst} local solar time.`
 
   return (
     <section id="orbits" aria-labelledby="orbits-h" className="scroll-mt-20">
-      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 pb-24 pt-4 lg:grid-cols-12 lg:gap-x-6 xl:pt-0')}>
         <div className="lg:col-span-4">
           <h2 id="orbits-h" className={title}>{orbitsHeading(d)}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
@@ -1124,30 +1061,26 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
             ink={GLOBE_INK}
             label={description}
           />
-          {/* the years, under the Earth: dragging them moves the orbits */}
-          <div className="mx-auto mt-6 max-w-[34rem]">
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={play}
-                aria-pressed={playing}
-                className={cn('inline-flex size-9 shrink-0 items-center justify-center rounded border border-[color:var(--bone-30)] text-[color:var(--bone)] hover:bg-[color:var(--hairline)]', ease, focusRing)}
-              >
-                {playing ? <Pause size={16} strokeWidth={1.5} aria-hidden /> : <Play size={16} strokeWidth={1.5} aria-hidden />}
-                <span className="sr-only">{playing ? 'Pause the years' : 'Play the years'}</span>
-              </button>
-              <YearSlider
-                value={dr.year}
-                onChange={(y) => { setPlaying(false); onYear(y) }}
-                min={years[0]}
-                max={years[years.length - 1]}
-                valueText={(y) => String(y)}
-                classes={sliderClasses}
-                label="Year shown on the globe"
-              />
-              <span className="w-10 shrink-0 text-right text-sm tabular-nums text-[color:var(--bone)]">{dr.year}</span>
+          {/* the years, under the Earth, on the reel's ruler: dragging it moves the orbits */}
+          <div className="mt-6" style={REEL_VARS}>
+            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+              <p className="text-sm text-[color:var(--bone2)]">When each satellite looked · drag along the years</p>
+              <p className="text-sm tabular-nums text-[color:var(--bone)]">
+                {dr.year} · Aqua {dr.aqua_lst}, {Math.abs(shift)} min {shift >= 0 ? 'after' : 'before'} the fixed clock
+              </p>
             </div>
-            <div aria-hidden className="mt-1 flex justify-between pl-13 pr-14 text-xs tabular-nums text-[color:var(--bone3)]">
+            <FilmstripScrub
+              frames={frames}
+              frameIndex={Math.max(0, years.indexOf(dr.year))}
+              onFrameIndexChange={(i) => onYear(years[i])}
+              scrubberLabel="Year shown on the globe"
+              variant="ruler"
+              still={!motion.on}
+              playheadClassName="sm:bottom-5"
+              previewClassName="hidden"
+              stripClassName="h-8 sm:h-12"
+            />
+            <div aria-hidden className="mt-2 flex justify-between text-xs tabular-nums text-[color:var(--bone3)] sm:hidden">
               <span>{years[0]}</span><span>{years[years.length - 1]}</span>
             </div>
           </div>
