@@ -76,3 +76,33 @@ Formal continuation requires a prospectively fixed spatial/seasonal sample of
 2018–2020 pairs, coverage and geometry controls, and sufficient timing variation
 before assessing unchanged 2023–2025 regional drift outcomes. The authentication
 blocker is resolved; full calibration acquisition/analysis is not yet complete.
+
+## Fixed calibration continuation
+
+The fixed eighteen-date, six-biome plan is in `CALIBRATION_PLAN.md`; public CMR
+manifests are committed under `calibration_manifests/`. `calibration.py` builds
+an IBGE-classified land grid and streams native geolocation in small chunks.
+Scan timestamps come from `scan_line_attributes/ev_mid_time`, not civil time
+or an assumed granule midpoint. For this2018–2020 window, conversion from
+TAI93 subtracts the ten leap seconds accrued since1993-01-01 UTC, checked
+against the swath's declared UTC start/end. NASA's
+[TAI93 definition](https://docserver.gesdisc.eosdis.nasa.gov/public/project/Sounder/ATMS_V3_L1B_Product_User_Guide.pdf)
+and the [NIST leap-second table](https://tf.nist.gov/pubs/bulletin/leapsecond.htm)
+provide the time-scale basis.
+
+`pair_day.py` preserves clear non-fire observations, requires BOTH local solar
+times after13:30 and15–90-minute separation, and selects the closest eligible
+pair without selecting on fire occurrence. Zero eligible pairs are not a pass.
+The actual downloaded C2 mask legend confirms5=clear land,6=unclassified,
+7=low-confidence fire,8=nominal,9=high. Low-confidence7 is excluded consistently
+with the previous FIRMS normal/high-confidence analysis. Do not infer an
+algorithm-QA bit meaning from a different collection's specification.
+
+**Partial acquisition results, not final calibration:** Jan15,2019 has5,012
+common time-eligible center pairs; March15 has3,421. Neither has pairs with
+both local solar times after13:30 under45-degree viewing-angle restriction.
+This motivated a separately documented85-degree sensitivity, not a silent
+change to the original result. The excluded August1,2020 engineering pair
+under that broad view has7,470 after13:30 common centers, including Amazon
+1 vs2 sampled fires. This single pair establishes processing support only,
+not a timing slope, regional verdict or causal validation.

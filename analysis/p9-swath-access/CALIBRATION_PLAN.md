@@ -51,3 +51,20 @@ replacement or tuning to the 2023–2025 drift outcomes.
 Only regions with identifiable positive timing slopes enter the original P9
 opposite-drift check. A negative or unidentified slope does not become a P9 pass.
 Publish eligibility, exclusions, uncertainty and all six biome statuses.
+
+## Explicit geometry sensitivity added after two dates
+
+The January and March2019 samples have5,012 and3,421 common time-eligible
+centers respectively, but zero with both local solar times after13:30 under
+the45-degree filter. This is a support problem, not a biological slope result.
+Before looking at broad-view fire outcomes, add a separately labeled <=85-degree
+view sensitivity (excluding invalid geometry and retaining every other rule).
+This admits essentially all valid satellite views instead of a favorable tuned
+cutoff; it is not a replacement for the committed45-degree primary result.
+Save to a separate `sensitivity85` directory. Report strong scan-angle-dependent
+pixel-footprint/detection differences and nearest-center sampling limits; do not
+claim causal timing identification from a broad-view positive slope alone.
+Evaluate the already-acquired August pilot separately as an engineering test,
+never fold it into the fixed-date calibration sample. If support remains absent,
+do not fit a slope. This change is transparently post-hoc and was authorized
+before the broader-angle outcome was calculated.

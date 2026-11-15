@@ -11,7 +11,7 @@ def grid(archive,out):
  lon,lat=np.meshgrid(np.arange(-73.975,-34,.05),np.arange(-33.975,6,.05));lon=lon.ravel();lat=lat.ravel()
  labels=Classifier(archive).classify(lon,lat);k=np.isin(labels,BIOMES)
  np.savez_compressed(out,lon=lon[k],lat=lat[k],biome=labels[k].astype('U16'))
-def extract(fire,geo,gridfile,out):
+def extract(fire,geo,gridfile,out,max_zenith=45):
  grid=np.load(gridfile);targets=xyz(grid['lat'],grid['lon'])
  with h5py.File(fire) as f,h5py.File(geo) as g:
   if fire.name.split('.')[1:3]!=geo.name.split('.')[1:3]:raise ValueError('time mismatch')
@@ -32,7 +32,7 @@ def extract(fire,geo,gridfile,out):
   native=np.concatenate(native_parts);tree=cKDTree(np.concatenate(points));dist,idx=tree.query(targets,distance_upper_bound=375)
   ids=np.flatnonzero(np.isfinite(dist));pix=native[idx[ids]];mask=fm.ravel()[pix]
   z=g['geolocation_data/sensor_zenith'];raw=z[:].ravel()[pix];zen=raw*float(np.asarray(z.attrs['scale_factor']).item())
-  usable=(raw>=0)&(zen<=45)&np.isin(mask,[5,8,9]);ids=ids[usable];pix=pix[usable];zen=zen[usable];mask=mask[usable]
+  usable=(raw>=0)&(zen<=max_zenith)&np.isin(mask,[5,8,9]);ids=ids[usable];pix=pix[usable];zen=zen[usable];mask=mask[usable]
   t=g['scan_line_attributes/ev_mid_time'];label=t.attrs['long_name'].decode()
   if 'TAI93' not in label:raise ValueError('unsupported time scale')
   year=int(fire.name.split('.')[1][1:5])
@@ -46,7 +46,7 @@ def extract(fire,geo,gridfile,out):
   secs0=(start-epoch).total_seconds();secs1=(end-epoch).total_seconds()
   if len(utc) and (utc.min()<secs0-2 or utc.max()>secs1+2):raise ValueError('scan time outside declared UTC swath')
   np.savez_compressed(out,grid_id=ids,fire=np.isin(mask,[8,9]),zenith=zen,utc_seconds_since_1993=utc,local_hour=(utc%86400)/3600+grid['lon'][ids]/15)
-  report={'fire':fire.name,'geo':geo.name,'grid':gridfile.name,'sample':out.name,'usable_centers':len(ids),'fire_centers':int(np.isin(mask,[8,9]).sum()),'hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [fire,geo,out]},'status':'extracted_not_calibrated'}
+  report={'fire':fire.name,'geo':geo.name,'grid':gridfile.name,'sample':out.name,'usable_centers':len(ids),'fire_centers':int(np.isin(mask,[8,9]).sum()),'hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [fire,geo,out]},'max_sensor_zenith_degrees':max_zenith,'status':'extracted_not_calibrated'}
   out.with_suffix('.json').write_text(json.dumps(report,indent=2)+'\n')
   return report
 if __name__=='__main__':
