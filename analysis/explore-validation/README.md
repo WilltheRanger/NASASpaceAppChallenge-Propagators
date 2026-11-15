@@ -19,3 +19,9 @@ Verified on Kevin’s MacBook Neo, 15 November 2026, source commit `460550738c9d
 ## Integration
 
 These two files are independently portable: no frontend or data changes. Original scientific tests, pass/fail labels, and team-owned Explore files are untouched. Local preview used for validation was stopped afterward.
+
+## Portable world packaging regression tests
+
+Run `python -m unittest discover -s analysis/explore-validation -p 'test_*.py'` (stdlib only). Three tests inspect all 4,472 cells, both annual readings, and 895 calendars (257,760 monthly rows). They check manifest counts, unique/geometrically valid IDs, readable-cell/calendar agreement, null masks, finite/nonnegative values, and exact historical month coverage. These are data-contract tests, not a rerun or validation of the estimator or the scientific hypotheses.
+
+Precision caveat found while writing tests: three 2024 cells (`g2_46_-18`, `g2_-68_8`, `g2_72_32`) have an `outside_noise=true` flag while the serialized L equals the serialized placebo maximum. The pipeline computes the flag **before** rounding values to three decimals (`global_grid.py` lines310,404,437–438). Therefore do not recompute or overwrite the flag from rounded JSON; equality is indeterminate at published precision. The contract compares flags only away from rounded boundaries. No scientific data were changed to satisfy tests.
