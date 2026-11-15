@@ -91,7 +91,7 @@ html, body { margin: 0; background: #000; }
 .mpill .t { font-family: var(--mono); font-weight: 500; margin-left: 8px; color: var(--text); }
 .mpill .s { display: block; font-size: 14px; font-weight: 500; color: var(--muted); margin-top: 2px; }
 #p-callout { left: 120px; top: 818px; width: 1680px; height: 104px; padding: 18px 28px; display: flex; align-items: center; gap: 22px;
-  border-left: 5px solid var(--aqua); }
+  border-color: rgba(255,181,71,.32); background: linear-gradient(90deg, rgba(255,181,71,.09), rgba(255,181,71,.02) 60%), linear-gradient(180deg, rgba(20,28,47,.94), rgba(13,19,34,.94)); }
 #p-callout .big { font-size: 28px; font-weight: 600; }
 #p-callout .small { font-size: 19px; color: var(--muted); margin-top: 4px; }
 .ann { position: absolute; font-size: 18px; color: var(--muted); white-space: nowrap; }
