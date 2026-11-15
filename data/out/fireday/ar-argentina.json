@@ -1,0 +1,147 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS Argentina country files).",
+ "region": "ar-argentina",
+ "fields": "log_aqua_over_terra = log(Aqua/Terra) daytime counts on the same days; gap_h = Aqua minus Terra look time (hours); beta = change in log fire count per hour of look time",
+ "beta_baseline": 0.209,
+ "beta_baseline_ci95": [
+  0.192,
+  0.224
+ ],
+ "beta_fit_2012_2025": {
+  "slope": 0.226,
+  "intercept": -0.073,
+  "slope_ci95": [
+   0.139,
+   0.309
+  ]
+ },
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:51",
+   "terra_lst": "10:13",
+   "gap_h": 3.644,
+   "log_aqua_over_terra": 0.79,
+   "lo": 0.549,
+   "hi": 0.975
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:53",
+   "terra_lst": "10:13",
+   "gap_h": 3.673,
+   "log_aqua_over_terra": 0.755,
+   "lo": 0.568,
+   "hi": 0.869
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:53",
+   "terra_lst": "10:13",
+   "gap_h": 3.669,
+   "log_aqua_over_terra": 0.597,
+   "lo": 0.392,
+   "hi": 0.757
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:54",
+   "terra_lst": "10:14",
+   "gap_h": 3.678,
+   "log_aqua_over_terra": 0.752,
+   "lo": 0.557,
+   "hi": 1.014
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:54",
+   "terra_lst": "10:12",
+   "gap_h": 3.696,
+   "log_aqua_over_terra": 0.812,
+   "lo": 0.616,
+   "hi": 0.998
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:54",
+   "terra_lst": "10:14",
+   "gap_h": 3.669,
+   "log_aqua_over_terra": 0.715,
+   "lo": 0.512,
+   "hi": 0.889
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:52",
+   "terra_lst": "10:13",
+   "gap_h": 3.653,
+   "log_aqua_over_terra": 0.812,
+   "lo": 0.549,
+   "hi": 0.967
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:54",
+   "terra_lst": "10:12",
+   "gap_h": 3.697,
+   "log_aqua_over_terra": 0.79,
+   "lo": 0.59,
+   "hi": 1.005
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:53",
+   "terra_lst": "10:12",
+   "gap_h": 3.679,
+   "log_aqua_over_terra": 0.87,
+   "lo": 0.724,
+   "hi": 0.977
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:55",
+   "terra_lst": "10:08",
+   "gap_h": 3.775,
+   "log_aqua_over_terra": 0.766,
+   "lo": 0.561,
+   "hi": 0.931
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:57",
+   "terra_lst": "09:59",
+   "gap_h": 3.956,
+   "log_aqua_over_terra": 0.854,
+   "lo": 0.742,
+   "hi": 0.968
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "14:10",
+   "terra_lst": "09:47",
+   "gap_h": 4.38,
+   "log_aqua_over_terra": 0.769,
+   "lo": 0.592,
+   "hi": 0.914
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "14:32",
+   "terra_lst": "09:27",
+   "gap_h": 5.079,
+   "log_aqua_over_terra": 1.07,
+   "lo": 0.821,
+   "hi": 1.244
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "15:05",
+   "terra_lst": "09:02",
+   "gap_h": 6.056,
+   "log_aqua_over_terra": 1.336,
+   "lo": 1.103,
+   "hi": 1.556
+  }
+ ]
+}

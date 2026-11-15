@@ -1,7 +1,7 @@
 {
  "mock": false,
  "preview": false,
- "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS S-NPP daily counts (brady/brazil-data).",
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (brady/brazil-data).",
  "region": "br-pantanal",
  "fields": "A, T = Aqua/VIIRS and Terra/VIIRS ratios vs 2012-2020 by calendar month (1 = no change; 2012-2020 years leave themselves out); clock_diff = log A - log T; sampling_est = (log A + log T) / 2 (log units); 95% 16-day block bootstrap",
  "years": [
