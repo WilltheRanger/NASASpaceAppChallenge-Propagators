@@ -1,6 +1,6 @@
 {
-  "status": "resumed_usb_acquisition_not_calibrated",
-  "recorded_utc": "2026-11-15T14:32:24.744055+00:00",
+  "status": "paused_for_user_requested_computer_transfer_not_calibrated",
+  "recorded_utc": "2026-11-15T14:56:54.303173+00:00",
   "storage": "dedicated NASA-P9 folder on user-authorized external exFAT volume",
   "raw_geometry_retained": true,
   "original_local_data_preserved": true,
@@ -245,6 +245,71 @@
         }
       },
       {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019258",
+        "common_time_eligible_candidate_pairs": 5798,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
         "expected_swaths": 17,
         "missing_swaths": [],
         "input_complete": true,
@@ -303,6 +368,71 @@
         "input_complete": true,
         "datecode": "A2020075",
         "common_time_eligible_candidate_pairs": 2833,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020136",
+        "common_time_eligible_candidate_pairs": 1854,
         "afternoon_candidate_pairs": 0,
         "unique_eligible_centers": 0,
         "biomes": {
@@ -495,6 +625,71 @@
         }
       },
       {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019258",
+        "common_time_eligible_candidate_pairs": 205447,
+        "afternoon_candidate_pairs": 39676,
+        "unique_eligible_centers": 39528,
+        "biomes": {
+          "amazon": {
+            "centers": 5214,
+            "snpp_fire": 6,
+            "noaa20_fire": 2,
+            "both_fire": 2,
+            "discordant_fire_centers": 4,
+            "positive_order": 3161,
+            "negative_order": 2053
+          },
+          "cerrado": {
+            "centers": 11521,
+            "snpp_fire": 4,
+            "noaa20_fire": 5,
+            "both_fire": 2,
+            "discordant_fire_centers": 5,
+            "positive_order": 6984,
+            "negative_order": 4537
+          },
+          "caatinga": {
+            "centers": 3297,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 3297
+          },
+          "mata_atlantica": {
+            "centers": 11934,
+            "snpp_fire": 0,
+            "noaa20_fire": 2,
+            "both_fire": 0,
+            "discordant_fire_centers": 2,
+            "positive_order": 7828,
+            "negative_order": 4106
+          },
+          "pantanal": {
+            "centers": 2650,
+            "snpp_fire": 1,
+            "noaa20_fire": 1,
+            "both_fire": 0,
+            "discordant_fire_centers": 2,
+            "positive_order": 2650,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 4912,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 4912,
+            "negative_order": 0
+          }
+        }
+      },
+      {
         "expected_swaths": 17,
         "missing_swaths": [],
         "input_complete": true,
@@ -623,7 +818,82 @@
             "negative_order": 0
           }
         }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020136",
+        "common_time_eligible_candidate_pairs": 107560,
+        "afternoon_candidate_pairs": 19032,
+        "unique_eligible_centers": 18955,
+        "biomes": {
+          "amazon": {
+            "centers": 2230,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 181,
+            "negative_order": 2049
+          },
+          "cerrado": {
+            "centers": 3134,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 1088,
+            "negative_order": 2046
+          },
+          "caatinga": {
+            "centers": 2967,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2967,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 8429,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 1660,
+            "negative_order": 6769
+          },
+          "pantanal": {
+            "centers": 209,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 209
+          },
+          "pampa": {
+            "centers": 1986,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 1986
+          }
+        }
       }
     ]
-  }
+  },
+  "resume_notes": [
+    "No active jobs or partial browser downloads at pause.",
+    "September2019 complete18/18 both specifications.",
+    "2020Jan/Mar/May complete; July2020 first3geometry acquired but unprocessed.",
+    "Next main acquisition November2019; no November download started.",
+    "Still need Jan/Mar2019 sensitivity backfill and fixed2018 acquisition; no date substitution.",
+    "Rebuild Python environment on destination Mac; use --input-root and --output-root on mounted USB.",
+    "Keep internal free disk>=5GiB and serialize heavy extraction.",
+    "Earthdata credentials/session not transferred. Reauthenticate through supported browser if necessary."
+  ]
 }
