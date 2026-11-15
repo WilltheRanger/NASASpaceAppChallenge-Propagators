@@ -17,6 +17,7 @@ import {
   type RegionData, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
+import { FilmstripScrub } from '@/components/ui/filmstrip-scrub'
 import { AnchorLogo } from '@/components/brand/anchor-logo'
 
 /* ---------- Tokens: black ground, bone text, one sage band; the photographs carry the colour ---------- */
@@ -257,7 +258,10 @@ export default function FieldFilm() {
       </main>
       <footer className="border-t border-[color:var(--hairline)]">
         <div className={cn(shell, 'flex flex-col gap-2 py-12 text-xs text-[color:var(--bone3)] sm:flex-row sm:justify-between sm:gap-8')}>
-          <p>Anchor · Team Propagators</p>
+          <div className="flex flex-col gap-2">
+            <p>Anchor · Team Propagators</p>
+            <p>Opening photograph: {HERO_LABEL}</p>
+          </div>
           <p className="sm:text-right">{AI_NOTE}</p>
         </div>
       </footer>
@@ -364,7 +368,6 @@ function Hero({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: nu
           {/* phones and tablets: clear photograph, its label at the lower left; the verdict follows on black */}
           <div className="flex h-74 flex-col items-start justify-end gap-2 pb-4 sm:h-104 xl:hidden">
             <MockTag className="sm:hidden" />
-            <p className="text-xs text-[color:var(--bone-80)]">{HERO_LABEL}</p>
           </div>
 
           <div className="pt-10 xl:mt-auto xl:pt-12">
@@ -403,13 +406,13 @@ function Hero({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: nu
                 </div>
               </div>
             </div>
-            <p className="mt-8 hidden pb-6 text-xs text-[color:var(--bone-80)] xl:block">{HERO_LABEL}</p>
+            <div className="hidden pb-6 xl:block" />
           </div>
         </div>
 
         {/* the pass line: along the bottom edge on a dark plate from 1280 px, on the black ground below that */}
         <div className="mt-12 xl:mt-0 xl:bg-[color:var(--plate)]">
-          <PassLine d={d} year={year} onYear={onYear} />
+          <PassReel d={d} year={year} onYear={onYear} />
         </div>
       </div>
     </section>
@@ -425,23 +428,56 @@ const LABELLED = HOURS.filter((h) => (h - AXIS_FROM) % 2 === 0)
 const at = (hours: number) => ((hours - AXIS_FROM) / (AXIS_TO - AXIS_FROM)) * 100
 const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
 
-function PassLine({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+/** When each satellite looked, as a reel of years: drag or arrow through the frames and the large frame
+ *  crossfades from year to year, so Aqua's mark walks later; each strip cell zooms on the fixed clock and Aqua. */
+function PassReel({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+  const years = d.drift.map((r) => r.year)
   const dr = d.driftAt(year)
+  const frames = useMemo(() => {
+    const lo = Math.min(...d.drift.map((r) => Math.min(hm(r.viirs_lst), hm(r.aqua_lst)))) - 0.25
+    const hi = Math.max(...d.drift.map((r) => Math.max(hm(r.viirs_lst), hm(r.aqua_lst)))) + 0.25
+    const x = (t: number) => `${(((t - lo) / (hi - lo)) * 100).toFixed(2)}%`
+    return d.drift.map((r) => {
+      const fx = hm(r.viirs_lst), ax = hm(r.aqua_lst)
+      return {
+        id: String(r.year),
+        valueText: `${r.year}: Terra ${r.terra_lst}, fixed clock ${r.viirs_lst}, Aqua ${r.aqua_lst}`,
+        preview: <PassFigure dr={r} year={r.year} />,
+        thumb: (
+          <div className="absolute inset-0">
+            <span className="absolute bottom-5 top-2 w-px bg-[color:var(--sage)]" style={{ left: x(fx) }} />
+            <span className="absolute bottom-5 top-2 w-0.5 -translate-x-1/2 bg-[color:var(--bone)]" style={{ left: x(ax) }} />
+            <span className="absolute bottom-5 h-0.5 bg-[color:var(--bone-80)]" style={{ left: x(Math.min(fx, ax)), width: `${(Math.abs(ax - fx) / (hi - lo)) * 100}%` }} />
+            <span className="absolute bottom-1 left-1.5 hidden text-xs leading-4 tabular-nums text-[color:var(--bone3)] sm:block">{r.year}</span>
+          </div>
+        ),
+      }
+    })
+  }, [d])
+  if (!dr || !frames.length) {
+    return <div className={cn(shell, 'py-6')}><p className="text-sm text-[color:var(--bone2)]">Look times for {d.phrase.the} are not in the data yet.</p></div>
+  }
+  const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
+  const reelVars = { '--fs-accent': 'var(--bone)', '--fs-cell': 'var(--surface)' } as CSSProperties
   return (
-    <div className={cn(shell, 'grid grid-cols-1 gap-y-6 xl:grid-cols-12 xl:gap-x-6 xl:gap-y-0 xl:py-6')}>
-      <p className="text-sm text-[color:var(--bone2)] xl:col-span-3 xl:row-start-1">When each satellite looked</p>
-      {dr ? (
-        <>
-          <div className="xl:col-span-9 xl:col-start-4 xl:row-span-2 xl:row-start-1 xl:self-end">
-            <PassFigure dr={dr} year={year} />
-          </div>
-          <div className="xl:col-span-3 xl:row-start-2 xl:self-end">
-            <YearControl d={d} year={year} onYear={onYear} />
-          </div>
-        </>
-      ) : (
-        <p className="text-sm text-[color:var(--bone2)]">Look times for {d.phrase.the} are not in the data yet.</p>
-      )}
+    <div className={cn(shell, 'py-6')} style={reelVars}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <p className="text-sm text-[color:var(--bone2)]">When each satellite looked · drag the reel through the years</p>
+        <p className="text-sm tabular-nums text-[color:var(--bone)]">
+          {year} · Aqua {dr.aqua_lst}, {Math.abs(shift)} min {shift >= 0 ? 'after' : 'before'} the fixed clock
+        </p>
+      </div>
+      <FilmstripScrub
+        frames={frames}
+        frameIndex={Math.max(0, years.indexOf(year))}
+        onFrameIndexChange={(i) => onYear(years[i])}
+        scrubberLabel="Year shown on the reel"
+        previewClassName="mt-4 h-26 sm:h-30"
+        stripClassName="mt-4 h-12 sm:h-16"
+      />
+      <div aria-hidden className="mt-2 flex justify-between text-xs tabular-nums text-[color:var(--bone3)] sm:hidden">
+        <span>{years[0]}</span><span>{years[years.length - 1]}</span>
+      </div>
     </div>
   )
 }
@@ -512,43 +548,6 @@ function PassFigure({ dr, year }: { dr: Drift; year: number }) {
           {hourLabel(h)}
         </span>
       ))}
-    </div>
-  )
-}
-
-function YearControl({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
-  const first = d.drift[0].year
-  const last = d.drift[d.drift.length - 1].year
-  const span = Math.max(1, last - first)
-  const years = Array.from({ length: last - first + 1 }, (_, i) => first + i)
-  // Radix keeps the 16 px thumb inside the track: its centre sits at p% plus 8 px × (1 − p / 50)
-  const pos = (y: number) => {
-    const p = ((y - first) / span) * 100
-    return `calc(${p.toFixed(3)}% + ${(8 * (1 - p / 50)).toFixed(3)}px)`
-  }
-  const valueText = (y: number) => {
-    const r = d.driftAt(y)
-    return r ? `${y}: fixed clock ${r.viirs_lst}, Aqua ${r.aqua_lst}, Terra ${r.terra_lst}` : String(y)
-  }
-  return (
-    <div>
-      <div aria-hidden className="relative h-5">
-        <span style={{ '--x': pos(year) } as CSSProperties} className="absolute left-[var(--x)] top-0 -translate-x-1/2 text-sm leading-5 text-[color:var(--bone)]">
-          {year}
-        </span>
-      </div>
-      <div className="relative">
-        <YearSlider value={year} onChange={onYear} min={first} max={last} valueText={valueText} classes={sliderClasses} label="Year" />
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-7 h-1">
-          {years.map((y) => (
-            <span key={y} style={{ '--x': pos(y) } as CSSProperties} className="absolute left-[var(--x)] top-0 h-1 w-px -translate-x-1/2 bg-[color:var(--bone-30)]" />
-          ))}
-        </div>
-      </div>
-      <div aria-hidden className="mt-1 flex justify-between text-xs text-[color:var(--bone3)]">
-        <span>{first}</span>
-        <span>{last}</span>
-      </div>
     </div>
   )
 }
