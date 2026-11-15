@@ -543,7 +543,7 @@ function StripAxis() {
   const W = useMeasuredWidth(ref)
   const x = (v: number) => STRIP_PAD + along(v) * Math.max(0, W - STRIP_PAD * 2)
   return (
-    <span ref={ref} aria-hidden className="relative mt-2 block h-4 w-full text-[11px] tabular-nums text-[color:var(--bone3)]">
+    <span ref={ref} aria-hidden className="relative mt-2 block h-4 w-full text-xs tabular-nums text-[color:var(--bone3)]">
       {W > 0
         ? SCALE.ticks.map((v) => (
             <span key={v} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: x(v) }}>
