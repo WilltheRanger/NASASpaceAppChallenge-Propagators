@@ -66,9 +66,10 @@ const TOKENS = {
   '--maxw': '1440px',
   '--measure': '36rem',
   '--select-max': '220px',
-  '--pull': '-40px',
+  '--card-drop': '-64px',
   '--terra-w': '92%',
-  '--aqua-w': '96%',
+  '--viirs-w': '94%',
+  '--aqua-w': '100%',
   '--aqua-w-sm': '60%',
   '--tilt-terra': '-2deg',
   '--tilt-viirs': '1deg',
@@ -166,19 +167,19 @@ const PRINTS = [
   {
     key: 'terra', src: `${IMG}amazon-terra-sq.jpg`, name: 'Terra', pass: 'morning pass', look: AMAZON_2026?.terra_lst, typical: true,
     tilt: 'rotate-[var(--tilt-terra)]',
-    place: 'col-start-1 w-full lg:col-span-3 lg:col-start-1 lg:mt-20 lg:w-[var(--terra-w)]',
+    place: 'col-start-1 w-full lg:col-span-3 lg:col-start-1 lg:mt-10 lg:w-[var(--terra-w)]',
     alt: 'Terra’s morning view of the Amazon scene on 4 Sep 2026: smoke haze, a few clouds, fire dots visible',
   },
   {
     key: 'viirs', src: `${IMG}amazon-viirs-sq.jpg`, name: 'VIIRS', pass: 'fixed clock', look: AMAZON_2026?.viirs_lst, typical: false,
     tilt: 'rotate-[var(--tilt-viirs)]',
-    place: 'col-start-2 mt-6 w-full lg:col-span-3 lg:col-start-4 lg:mt-0',
+    place: 'col-start-2 mt-6 w-full lg:col-span-3 lg:col-start-4 lg:mt-0 lg:w-[var(--viirs-w)] lg:justify-self-end',
     alt: 'VIIRS’s early-afternoon view of the same scene: small cumulus clouds spread across it',
   },
   {
     key: 'aqua', src: `${IMG}amazon-aqua-sq.jpg`, name: 'Aqua', pass: 'afternoon pass', look: AMAZON_2026?.aqua_lst, typical: true,
     tilt: 'rotate-[var(--tilt-aqua)]',
-    place: 'col-span-2 w-[var(--aqua-w-sm)] justify-self-end lg:col-span-3 lg:col-start-9 lg:mt-18 lg:w-[var(--aqua-w)] lg:justify-self-start',
+    place: 'col-span-2 w-[var(--aqua-w-sm)] justify-self-end lg:col-span-3 lg:col-start-9 lg:mt-20 lg:w-[var(--aqua-w)] lg:justify-self-start',
     alt: 'Aqua’s later afternoon view of the same scene: towering clouds cover most of it',
   },
 ]
@@ -273,15 +274,15 @@ export default function Record() {
               </div>
             </div>
 
-            {/* the prints lie on the table below the text; the record card's corner rests on one of them */}
-            <div className="lg:col-span-12 lg:row-start-2 lg:mt-[var(--pull)]">
+            {/* the prints lie on the table below the text; the record card drops onto one corner of the VIIRS print */}
+            <div className="lg:col-span-12 lg:row-start-2 lg:mt-6">
               <div className="grid grid-cols-2 items-start gap-x-4 gap-y-6 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-0">
                 {PRINTS.map((p) => <Print key={p.key} p={p} />)}
               </div>
               <p className="mt-6 text-xs text-[color:var(--ink3)]">{caption}</p>
             </div>
 
-            <RecordCard d={d} year={year} onYear={setYear} className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:self-end" />
+            <RecordCard d={d} year={year} onYear={setYear} className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:mb-[var(--card-drop)] lg:self-end" />
           </div>
         </section>
 
