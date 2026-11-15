@@ -363,14 +363,30 @@ export function daylight(d: RegionData) {
 }
 export type Daylight = NonNullable<ReturnType<typeof daylight>>
 
+/** The daylight analysis's headline for a region (data/out/daylight, written by analysis/daylight/daylight.py). Where
+ *  the one-day figure above differs from the real fires by more than 30 minutes in some years (Argentina and
+ *  California), its `quote` is "level2a" and the page quotes the median over every real Aqua detection instead. */
+export type DaylightHeadline = {
+  quote: 'level1' | 'level2a'
+  level2a_aqua_D15_2012_2020_mean?: number
+  level2a_aqua_D15_2025?: number
+  level2a_aqua_daylight_change_min?: number
+}
+const daylightFiles = import.meta.glob<DaylightHeadline>('../../../data/out/daylight/*.json', { eager: true, import: 'headline' })
+export const daylightHeadline = (id: string): DaylightHeadline | null =>
+  Object.entries(daylightFiles).find(([p]) => p.endsWith(`/${id}.json`))?.[1] ?? null
+
 /** One fire day for the Amazon: 2 September 2024 in Pará, from the team's one-day file. Only the real parts are read
- *  (the day, its box, sunset, pass times and the fires each pass saw), so nothing else in that file reaches the page. */
+ *  (the day, its box, pass times and the fires each pass saw), so nothing else in that file reaches the page. Sunset
+ *  comes from the same NOAA equations as the rest of the page, at the box centre; the file's own sunset leaves out the
+ *  equation of time. */
 export type DayFire = { id: number; lat: number; lon: number; frp: number; n: number; first_seen: number; seen_by: string[]; t_Terra: number | null; t_VIIRS: number | null; t_Aqua: number | null }
 const only = <T,>(g: Record<string, T>) => Object.values(g)[0] as T | undefined
 export const FIRE_DAY = (() => {
   const day = only(import.meta.glob<string>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'day' }))
   const box = only(import.meta.glob<[number, number, number, number]>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'box' }))
-  const sunset = only(import.meta.glob<number>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'sunset_lst' }))
+  const [dy, dm, dd] = day ? day.split('-').map(Number) : [0, 0, 0]
+  const sunset = day && box ? sunTimes(dy, dm, dd, (box[1] + box[3]) / 2).set : null
   const passes = only(import.meta.glob<Record<string, number>>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'passes_lst' }))
   const passEnd = only(import.meta.glob<Record<string, number>>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'pass_end_lst' }))
   const fires = only(import.meta.glob<DayFire[]>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'fires' }))

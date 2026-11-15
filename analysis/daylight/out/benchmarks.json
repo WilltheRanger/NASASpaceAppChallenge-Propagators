@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-15T07:07:16Z",
+ "generated": "2026-11-15T07:29:36Z",
  "script": "analysis/daylight/daylight.py",
  "benchmarks": [
   {
@@ -224,17 +224,17 @@
    "value": "12 of 12",
    "status": "PASS",
    "evidence": {
-    "ar-argentina.json": "bd50951d3f78bc67",
+    "ar-argentina.json": "800e98892fb15ee5",
     "ar-argentina.png": "d6bc036c811c8337",
-    "br-amazon.json": "b13f2fabc35a7a15",
+    "br-amazon.json": "1bff094da7dea98b",
     "br-amazon.png": "730a8ae0b3d748f6",
-    "br-cerrado.json": "8d0c932d3908bb14",
+    "br-cerrado.json": "211859d9681eb92e",
     "br-cerrado.png": "2e65389196b6b24c",
-    "br-pantanal.json": "7d1bef0077d67e6d",
+    "br-pantanal.json": "3399ebe2c3d9e70f",
     "br-pantanal.png": "c19c684a0e39bfb0",
-    "in-punjab-haryana.json": "cbff81d71c1bedca",
+    "in-punjab-haryana.json": "a619e74e8f974e18",
     "in-punjab-haryana.png": "82603d1ecdc0d196",
-    "us-california.json": "e0f9c297f7edcb87",
+    "us-california.json": "e7774f767d3442fb",
     "us-california.png": "2ffa6bd480059b80"
    }
   },

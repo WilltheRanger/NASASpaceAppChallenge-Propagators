@@ -17,7 +17,7 @@ import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui
 import { ModeToggle, RegionSelect } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 import {
-  CHECKS, DETECTION, FIRE_DAY, MONTHS, PROOF, REGIONS, SECTIONS, SEEN, calendarFinding, calendarGrid, calendarSpan, daylight, fmtHM, fmtInt, fmtRange, hasOfficialSeries, hm, isValidation, minutesBetween, novemberRatio, pct, phrase, regionData, verdictHeadline, verdictLines,
+  CHECKS, DETECTION, FIRE_DAY, MONTHS, PROOF, REGIONS, SECTIONS, SEEN, calendarFinding, calendarGrid, calendarSpan, daylight, daylightHeadline, fmtHM, fmtInt, fmtRange, hasOfficialSeries, hm, isValidation, minutesBetween, novemberRatio, pct, phrase, regionData, verdictHeadline, verdictLines,
   type Check, type DayFire, type DetectionRate, type MonthRange, type RegionData, type SatKey, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
@@ -1370,8 +1370,13 @@ function Daylight({ d, year, onYear, small }: { d: RegionData; year: number; onY
   const shownIndex = inspect ?? (selected >= 0 ? selected : ys.length - 1)
   const shown = ys[shownIndex]
   const last = ys[ys.length - 1]
-  const lost = dl.baseAqua != null ? Math.round((last.look.aqua - dl.baseAqua) * 60) : null
   const brazil = d.id.startsWith('br-')
+  // where the one-day figure misses the real fires by more than 30 minutes, quote the median over every Aqua detection
+  const real = daylightHeadline(d.id)
+  const useReal = real?.quote === 'level2a' && real.level2a_aqua_D15_2025 != null && real.level2a_aqua_daylight_change_min != null
+  const lookShift = dl.baseAqua != null ? Math.round((last.look.aqua - dl.baseAqua) * 60) : null
+  const lost = useReal ? Math.round(-real!.level2a_aqua_daylight_change_min!) : lookShift
+  const leftNow = useReal ? real!.level2a_aqua_D15_2025! : last.left.aqua[1]
   const heading = lost == null
     ? `How much daylight an alert from each pass leaves in ${d.phrase.the}`
     : `In ${last.year}, an alert from Aqua left ${Math.abs(lost)} ${lost >= 0 ? 'fewer' : 'more'} minutes of daylight in ${d.phrase.the} than in 2012–2020`
@@ -1391,6 +1396,9 @@ function Daylight({ d, year, onYear, small }: { d: RegionData; year: number; onY
     'Sunset isn’t the only limit on fighting a fire: night operations and ground crews exist.',
     'The delays are three cases, none, 1.5 and 3 hours, not a measured spread. NASA FIRMS puts its near-real-time data out within 3 hours of a pass.',
     `One date and one place stand for the whole region: the middle day of its fire season, at the centre of its box (sunrise and sunset from NOAA’s solar equations). Fires elsewhere see other sunsets.`,
+    ...(useReal
+      ? [`Here the fires burn on other dates and at other latitudes than that one day, by more than 30 minutes of daylight in some years, so the sentence above gives the median over every real Aqua detection instead. The chart keeps the one-day figure.`]
+      : []),
   ]
   return (
     <section id="daylight" aria-labelledby="daylight-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
@@ -1399,8 +1407,13 @@ function Daylight({ d, year, onYear, small }: { d: RegionData; year: number; onY
           <h2 id="daylight-h" className={title}>{heading}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
             When Aqua{brazil ? ', Brazil’s reference satellite,' : ''} sees a fire in {d.phrase.the} during its fire season
-            ({dl.season.label}), an alert that arrives 1.5 hours after the pass leaves {aboutText(last.left.aqua[1])} of
-            daylight in {last.year}.{dl.baseAqua != null && lost ? ` Aqua now looks at ${fmtHM(last.look.aqua)}, not ${fmtHM(dl.baseAqua)}; with sunset fixed, the daylight left shrinks by the same ${Math.abs(lost)} minutes.` : ''}
+            ({dl.season.label}), an alert that arrives 1.5 hours after the pass leaves {aboutText(leftNow)} of
+            daylight in {last.year}{useReal ? ' (the median over every real Aqua detection that year)' : ''}.
+            {dl.baseAqua != null && lookShift
+              ? useReal
+                ? ` Aqua now looks at ${fmtHM(last.look.aqua)}, not ${fmtHM(dl.baseAqua)}; across the real fires, the daylight left fell by ${Math.abs(lost!)} minutes.`
+                : ` Aqua now looks at ${fmtHM(last.look.aqua)}, not ${fmtHM(dl.baseAqua)}; with sunset fixed, the daylight left shrinks by the same ${Math.abs(lookShift)} minutes.`
+              : ''}
           </p>
           {shown ? (
             <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
@@ -1573,7 +1586,7 @@ function FireDayMap() {
       </table>
       <p className="mt-4 text-xs text-[color:var(--bone3)]">
         Alert = the end of the pass over this box plus the delay. Sources: amazon-2024-09-02.json (NASA FIRMS detections, pass
-        times, sunset) · image: NASA Worldview / GIBS, VIIRS S-NPP true colour
+        times) · sunset: NOAA’s solar equations at the box centre · image: NASA Worldview / GIBS, VIIRS S-NPP true colour
       </p>
     </figure>
   )

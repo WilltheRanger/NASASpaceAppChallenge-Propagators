@@ -60,7 +60,7 @@ Deterministic: two runs with the same `--generated` stamp give byte-identical fi
 - `analysis/daylight/out/<region>.png`: one chart per region, drawn only from the JSON. Line = 1.5 h latency, band = 0 to 3 h.
 - `analysis/daylight/out/benchmarks.json`: the table below with its evidence.
 
-## Results (generated 2026-11-15T07:07:16Z)
+## Results (generated 2026-11-15T07:29:36Z)
 
 **Level 1, fire season, alert 1.5 h after Aqua's pass**
 

@@ -377,7 +377,7 @@ def build_json(rid, l1, l2, generated):
             head["quote_reason"] = ("Level 1 (one season day at the box centre) differs from the real detections by more than "
                                     "30 minutes in some years here; quote the level2a values")
     return {
-        "mock": False, "region": rid, "name": R["name"], "generated": generated,
+        "mock": False, "ai_assisted": True, "region": rid, "name": R["name"], "generated": generated,
         "script": "analysis/daylight/daylight.py", "method": METHOD, "sources": SOURCES,
         "unit": "hours of daylight left after the alert (local mean solar time); shares are fractions of detections",
         "latency_h": [lh for _, lh, _ in LATENCY],

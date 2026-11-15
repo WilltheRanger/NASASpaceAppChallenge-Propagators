@@ -1,8 +1,9 @@
 {
  "mock": false,
+ "ai_assisted": true,
  "region": "us-california",
  "name": "California (USA)",
- "generated": "2026-11-15T07:07:16Z",
+ "generated": "2026-11-15T07:29:36Z",
  "script": "analysis/daylight/daylight.py",
  "method": "D = sunset (NOAA solar equations, local mean solar time) - (look time + latency); look times from data/out/drift; latency 0, 1.5, 3 h per NASA FIRMS. Level 1: sunset at the region box centre on the middle day of the fire season. Level 2a: every near-nadir daytime detection with its own time, date and latitude. Level 2b: the same Aqua detections moved back by the measured clock change.",
  "sources": [
