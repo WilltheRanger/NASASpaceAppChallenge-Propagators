@@ -1,6 +1,6 @@
 // Assembles the comment pages for the shareable comment artifact from the D-only build (vite.artifact.config.ts): the landing
-// as the main page (content only; the artifact adds the document skeleton) and the audit as app.html (a whole
-// document), both loading the one script; CSS inlined; images copied as files.
+// as the main page (content only; the artifact adds the document skeleton), the audit as app.html and the simulator as
+// sim.html (whole documents), all loading the one script; CSS inlined; images copied as files.
 // Usage: ARTIFACT_OUT=<dir> npm run artifact   (default dir: dist-artifact).
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -16,11 +16,16 @@ const images = [
   ...regions.filter((r) => r !== 'br-amazon').flatMap((r) => ['terra', 'viirs', 'aqua'].flatMap((k) => [`passes/${r}-${k}.jpg`, `prints/${r}-${k}-sq.jpg`])),
   // the one fire day's image, under the daylight map
   'daylight/br-amazon-2024-09-02.jpg',
+  // the simulator's map of each studied region, and its globe (NASA Blue Marble, web mercator)
+  ...regions.flatMap((r) => [`sim/${r}.jpg`, `sim/${r}-context.jpg`]),
+  'earth/bluemarble-4096.jpg',
 ]
 mkdirSync(join(out, 'img', 'prints'), { recursive: true })
 mkdirSync(join(out, 'img', 'passes'), { recursive: true })
 mkdirSync(join(out, 'img', 'regions'), { recursive: true })
 mkdirSync(join(out, 'img', 'daylight'), { recursive: true })
+mkdirSync(join(out, 'img', 'sim'), { recursive: true })
+mkdirSync(join(out, 'img', 'earth'), { recursive: true })
 for (const f of images) copyFileSync(join('public', 'img', f), join(out, 'img', f))
 // the drone loops and their posters
 const videos = ['br-amazon', 'br-cerrado', 'br-pantanal', 'ar-argentina', 'in-punjab-haryana', 'us-california'].flatMap((r) => [`${r}.mp4`, `${r}-poster.jpg`])
@@ -29,8 +34,9 @@ for (const f of videos) copyFileSync(join('public', 'video', 'regions', f), join
 
 const contract = `<!--
   Anchor: satellite fire counts on a fixed clock. Team Propagators, NASA Space Apps Challenge 2026.
-  Two pages: this landing and the audit (app.html). Every number comes from the team's JSON files (data/out).
-  Region photographs and drone footage are credited in the footer; pass imagery: NASA Worldview / GIBS.
+  Three pages: this landing, the audit (app.html) and the simulator (sim.html). Every number comes from the team's
+  JSON files (data/out). Region photographs and drone footage are credited in the footer; pass and map imagery:
+  NASA Worldview / GIBS.
 -->`
 const head = `<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,6 +69,20 @@ ${head}
 </body>
 </html>
 `
+// the simulator's direction, kept in its page so the build carries it
+const simContract = `<!--
+  Simulator. THESIS: a mission-control map, not a page; the Earth fills the screen, the instruments sit at its corners.
+  OWN-WORLD: Anchor dark panels over NASA Blue Marble, bone text, Albert Sans, one colour per satellite, red-orange fire
+  points, amber corner brackets on the studied regions. STORY: search a place; the globe turns, zooms and flattens into a
+  map; studied regions show Aqua as it drifted beside its fixed clock, from the team's files; elsewhere, not studied yet.
+  The map engine's worker is assets/maplibre-gl-worker.mjs, next to the app script.
+-->`
+const sim = app
+  .replace(contract, `${contract}\n${simContract}`)
+  .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="Anchor simulator: search a place on the globe to see what Aqua's drifting clock changes there. Team Propagators, NASA Space Apps Challenge 2026.">`)
+  .replace('<title>Anchor · Audit</title>', '<title>Anchor · Simulator</title>')
+  .replace('data-page="app"', 'data-page="sim"')
 writeFileSync(join(out, 'page.html'), landing)
 writeFileSync(join(out, 'app.html'), app)
-console.log(`wrote page.html (${landing.length} B), app.html (${app.length} B), ${images.length} images and ${videos.length} video files to ${out}`)
+writeFileSync(join(out, 'sim.html'), sim)
+console.log(`wrote page.html (${landing.length} B), app.html (${app.length} B), sim.html (${sim.length} B), ${images.length} images and ${videos.length} video files to ${out}`)

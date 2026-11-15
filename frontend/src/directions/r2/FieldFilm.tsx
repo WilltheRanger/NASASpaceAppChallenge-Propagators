@@ -9,7 +9,7 @@
 // behind a footer switch seeded from the reader's reduced-motion setting.
 // Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag. Region photographs and drone
 // footage are credited in the footer. Pass imagery: NASA Worldview / GIBS, public domain.
-import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
+import { Fragment, Suspense, createContext, lazy, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
@@ -26,6 +26,9 @@ import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/seri
 import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
 import { AnchorLogo } from '@/components/brand/anchor-logo'
 import { photoFor } from '@/r2/photos'
+
+/** The Simulator (globe, map engine and its imagery) loads only when its page opens. */
+const Simulator = lazy(() => import('./Simulator'))
 
 /* ---------- Tokens: black ground, bone text; the photographs carry the colour, and each satellite has one on the charts ---------- */
 
@@ -170,15 +173,16 @@ const placeboText = (d: RegionData) => `${pct(d.placebo[0])} to ${pct(d.placebo[
 const defaultYear = (d: RegionData) => d.latestOk?.year ?? d.years[d.years.length - 1]?.year ?? d.lastDrift?.year ?? 2025
 
 type Nav = 'dev' | 'artifact'
-type Page = 'landing' | 'app'
-type Links = { app: (r: string) => string; landing: (r: string) => string }
+type Page = 'landing' | 'app' | 'sim'
+type Links = { app: (r: string) => string; landing: (r: string) => string; sim: () => string }
 type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
 
-/** Where the two pages live: query strings on the site (one index.html); two files in the comment artifact, the region
- *  in the hash. */
+/** Where the pages live: query strings on the site (one index.html); separate files in the comment artifact, the
+ *  region in the hash. */
 const linksFor = (nav: Nav): Links => ({
   app: (r) => (nav === 'artifact' ? `app.html#region=${r}` : `?page=app&region=${r}`),
   landing: (r) => (nav === 'artifact' ? `index.html#region=${r}` : `?region=${r}`),
+  sim: () => (nav === 'artifact' ? 'sim.html' : '?page=sim'),
 })
 
 function initialRegion() {
@@ -453,7 +457,8 @@ function glideTo(target: Element | 'top', motion: boolean) {
 
 export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Nav }) {
   usePortalTokens()
-  const which: Page = page ?? (new URLSearchParams(window.location.search).get('page') === 'app' ? 'app' : 'landing')
+  const asked = new URLSearchParams(window.location.search).get('page')
+  const which: Page = page ?? (asked === 'app' ? 'app' : asked === 'sim' ? 'sim' : 'landing')
   const [motion, setMotionState] = useState(readMotion)
   const setMotion = (on: boolean) => {
     setMotionState(on)
@@ -509,12 +514,16 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Na
         data-motion={motion ? 'on' : 'off'}
         className="relative min-h-screen overflow-x-clip bg-[color:var(--ground)] font-[family-name:var(--f-ui)] text-sm text-[color:var(--bone)] antialiased"
       >
-        {which === 'app' ? (
+        {which === 'sim' ? (
+          <Suspense fallback={<div className="h-[100svh] bg-[#03060A]" />}>
+            <Simulator home={links.landing(region)} regionsHref={links.app} leave={leave} motion={motion} setMotion={setMotion} nav={nav} />
+          </Suspense>
+        ) : which === 'app' ? (
           <AppPage region={region} onRegion={(id) => { setRegion(id); writeRegion(nav, id) }} links={links} leave={leave} nav={nav} />
         ) : (
           <LandingPage region={region} setRegion={setRegion} onPick={(id) => writeRegion(nav, id)} links={links} leave={leave} />
         )}
-        <Footer />
+        {which === 'sim' ? null : <Footer />}
       </div>
     </MotionContext.Provider>
   )
@@ -523,7 +532,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Na
 function LandingPage({ region, setRegion, onPick, links, leave }: { region: string; setRegion: (id: string) => void; onPick: (id: string) => void; links: Links; leave: Leave }) {
   return (
     <>
-      <LandingTopBar app={links.app(region)} leave={leave} />
+      <LandingTopBar app={links.app(region)} sim={links.sim()} leave={leave} />
       <main>
         <LandingHero region={region} setRegion={setRegion} onPick={onPick} app={links.app(region)} leave={leave} />
         <HowItWorks />
@@ -550,7 +559,7 @@ function AppPage({ region, onRegion, links, leave, nav }: { region: string; onRe
   const pick = (id: string) => { onRegion(id); setYear(defaultYear(regionData(id))) }
   return (
     <>
-      <AppTopBar region={region} onRegion={pick} home={links.landing(region)} leave={leave} />
+      <AppTopBar region={region} onRegion={pick} home={links.landing(region)} sim={links.sim()} leave={leave} />
       <main>
         <AppStatement d={d} />
         <AppVerdict d={d} />
@@ -648,6 +657,7 @@ function Footer() {
             })}
             <li>Three passes of one day: NASA Worldview / GIBS, public domain</li>
             <li>One fire day in Pará, 2 Sep 2024: NASA Worldview / GIBS, VIIRS true colour</li>
+            <li>Simulator maps, Aug to Nov 2025: NASA Worldview / GIBS, VIIRS true colour and fire detections</li>
           </ul>
         </div>
       </div>
@@ -664,6 +674,9 @@ const CREDITS: { name: string; links: { text: string; href: string }[] }[] = [
   { name: 'USFS fire occurrence database (FPA-FOD), 7th ed., Short 2026', links: [{ text: 'doi:10.2737/RDS-2013-0009.7', href: 'https://doi.org/10.2737/RDS-2013-0009.7' }] },
   { name: 'Punjab burn timing: Jethva 2026, Remote Sensing', links: [{ text: 'doi:10.3390/rs18101506', href: JETHVA }] },
   { name: 'Satellite imagery: NASA Worldview / GIBS', links: [{ text: 'worldview.earthdata.nasa.gov', href: 'https://worldview.earthdata.nasa.gov' }] },
+  { name: 'Land outlines: Natural Earth, public domain', links: [{ text: 'naturalearthdata.com', href: 'https://www.naturalearthdata.com' }] },
+  { name: 'Simulator country list: mledoze/countries, ODbL', links: [{ text: 'github.com/mledoze/countries', href: 'https://github.com/mledoze/countries' }] },
+  { name: 'Simulator place search: Nominatim, © OpenStreetMap contributors, ODbL', links: [{ text: 'openstreetmap.org/copyright', href: 'https://www.openstreetmap.org/copyright' }] },
 ]
 /** The public repository, when the build is told it (the deploy sets it); no link otherwise. */
 const REPO_URL = (import.meta.env.VITE_REPO_URL as string | undefined) || ''
@@ -717,7 +730,7 @@ const secondaryButton = cn(
 )
 
 /** Landing: transparent on the photograph, as before; the way into the audit at the right. */
-function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
+function LandingTopBar({ app, sim, leave }: { app: string; sim: string; leave: Leave }) {
   return (
     <header className="absolute inset-x-0 top-0 z-20">
       <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
@@ -728,6 +741,7 @@ function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
           <ul className="flex items-center gap-6 text-sm">
             <li><a href="#how" className={cn(underline, 'text-[color:var(--bone)]', focusRing)}>How it works</a></li>
             <li><a href="#regions" className={cn(underline, 'text-[color:var(--bone)]', focusRing)}>Regions</a></li>
+            <li><a href={sim} onClick={leave} className={cn(underline, 'text-[color:var(--bone)]', focusRing)}>Simulator</a></li>
           </ul>
         </nav>
         <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:col-span-3">
@@ -746,7 +760,7 @@ function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
 }
 
 /** App: clear over the statement at first; solid once the page moves, so the audit scrolls under it. */
-function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion: (id: string) => void; home: string; leave: Leave }) {
+function AppTopBar({ region, onRegion, home, sim, leave }: { region: string; onRegion: (id: string) => void; home: string; sim: string; leave: Leave }) {
   const [solid, setSolid] = useState(false)
   useEffect(() => {
     const check = (e?: Event) => {
@@ -786,6 +800,7 @@ function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion
         </nav>
         <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:col-span-2 xl:min-w-max xl:justify-self-end">
           <MockTag show={regionData(region).mock} className="hidden bg-[color:var(--plate)] sm:inline-block" />
+          <a href={sim} onClick={leave} className={cn(underline, 'hidden whitespace-nowrap text-sm text-[color:var(--bone)] sm:inline', focusRing)}>Simulator</a>
           <RegionSelect value={region} onChange={onRegion} classes={selectClasses} />
           <div className="xl:hidden"><SectionsIndex /></div>
         </div>
