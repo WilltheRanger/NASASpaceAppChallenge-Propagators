@@ -15,6 +15,8 @@ const images = [
   // one Amazon day seen three times (Method), wide and square
   'amazon-terra-2026-09-04.jpg', 'amazon-viirs-2026-09-04.jpg', 'amazon-aqua-2026-09-04.jpg',
   'prints/amazon-terra-sq.jpg', 'prints/amazon-viirs-sq.jpg', 'prints/amazon-aqua-sq.jpg',
+  // the overview's opening photograph, three widths
+  'overview/smoke-960.jpg', 'overview/smoke-1600.jpg', 'overview/smoke-2400.jpg',
   // each place's photograph (the overview's rows)
   ...regions.map((r) => `regions/${r}-sm.jpg`),
   // the one fire day's image, under the daylight map
@@ -23,7 +25,7 @@ const images = [
   ...regions.flatMap((r) => [`sim/${r}.webp`, `sim/${r}-context.jpg`]),
   'earth/bluemarble-4096.jpg',
 ]
-for (const dir of ['prints', 'regions', 'daylight', 'sim', 'earth']) mkdirSync(join(out, 'img', dir), { recursive: true })
+for (const dir of ['overview', 'prints', 'regions', 'daylight', 'sim', 'earth']) mkdirSync(join(out, 'img', dir), { recursive: true })
 for (const f of images) copyFileSync(join('public', 'img', f), join(out, 'img', f))
 // the drone loops and their posters (the Regions page)
 const videos = regions.flatMap((r) => [`${r}.mp4`, `${r}-poster.jpg`])

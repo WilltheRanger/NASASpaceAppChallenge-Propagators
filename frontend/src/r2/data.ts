@@ -14,7 +14,7 @@ type AuditYear = {
   /** the pipeline's one verdict: outside the nine 2012-2020 placebo years' range (descriptive, not a significance test) */
   outside_noise?: boolean
 }
-type AuditFile = { mock?: boolean; region: string; baseline: { years: string; ratio: number; noise_floor: number; placebo_min?: number; placebo_max?: number }; years: AuditYear[] }
+type AuditFile = { mock?: boolean; region: string; baseline: { years: string; ratio: number; noise_floor: number; placebo_min?: number; placebo_max?: number; placebo_years?: { year: number; L: number }[] }; years: AuditYear[] }
 type CalMonth = { ym: string; fixed: number | null; lo: number | null; hi: number | null; source?: string | null; aqua: number | null; snpp: number | null; noaa20: number | null; flags: string[]; median_ref: number | null; anomaly_pct: number | null }
 type CalFile = { mock?: boolean; region: string; unit?: string; months: CalMonth[] }
 
@@ -158,6 +158,8 @@ export function regionData(id: RegionId) {
   const placebo: [number, number] = base?.placebo_min != null && base.placebo_max != null
     ? [(base.placebo_min - 1) * 100, (base.placebo_max - 1) * 100]
     : [-noise, noise]
+  /** each 2012-2020 year's own reading, as percent around 1 (the dots the usual range is drawn from) */
+  const placeboYears = (base?.placebo_years ?? []).map((p) => ({ year: p.year, gap: (p.L - 1) * 100 }))
   const years = (auditFile?.years ?? []).map((y) => {
     const ok = y.status === 'ok' && y.L != null && y.L_lo != null && y.L_hi != null
     const lo = ok ? (y.L_lo! - 1) * 100 : null
@@ -200,7 +202,7 @@ export function regionData(id: RegionId) {
   const driftAt = (year: number) => drift.find((d) => d.year === year) ?? lastDrift
   return {
     id, name: REGIONS.find((r) => r.id === id)?.name ?? id, phrase: phrase(id),
-    drift, lastDrift, driftAt, baselineYears: auditFile?.baseline.years ?? '2012-2020', noise, placebo, years, latestOk, cal,
+    drift, lastDrift, driftAt, baselineYears: auditFile?.baseline.years ?? '2012-2020', noise, placebo, placeboYears, years, latestOk, cal,
     calYears, calSpan, driftStart, baseLook: baseLook == null ? null : fmtHM(baseLook),
     /** the 2012-2020 exchange rate: Aqua's daytime detections per S-NPP detection on matched days */
     ratio: base?.ratio ?? null,

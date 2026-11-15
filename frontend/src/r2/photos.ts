@@ -84,3 +84,17 @@ export const PHOTOS: Record<string, RegionPhoto> = {
 }
 
 export const photoFor = (id: string): RegionPhoto => PHOTOS[id] ?? PHOTOS['br-amazon']
+
+/** The overview's opening photograph (Unsplash License): wildfire smoke at dusk, no people. Credited on the photo and in
+ *  the footer. Three widths in public/img/overview/ for srcset. */
+export const OVERVIEW_PHOTO = {
+  src: (w: 960 | 1600 | 2400) => `${import.meta.env.BASE_URL}img/overview/smoke-${w}.jpg`,
+  width: 2400,
+  height: 1350,
+  alt: 'Wildfire smoke lit orange at dusk, rising behind dark trees and hills',
+  by: 'Daniel Lincoln',
+  url: 'https://unsplash.com/photos/a-large-plume-of-smoke-rising-from-a-forest-LEuowir5DQE',
+  focus: '60% 50%',
+  /** tall phone crops: the lit right side of the plume and the tree against it */
+  focusPhone: '72% 50%',
+} as const
