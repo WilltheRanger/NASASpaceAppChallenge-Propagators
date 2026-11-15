@@ -1,9 +1,10 @@
 """Statistics lane: clock audit L, noise floor, block bootstrap, fire-size check, two clocks, fire-day curve.
 
 Usage: python3 analysis/statistics/audit.py analysis/brazil-data/out data/out analysis/statistics/out
-Inputs : CSV_DIR/firms_daily_by_biome.csv, CSV_DIR/firms_drift_by_biome.csv (brady/brazil-data)
-Outputs: JSON_DIR/audit/<id>.json, twoclocks/<id>.json, fireday/<id>.json; fills fixed/lo/hi/median_ref/
-         anomaly_pct in calendar/<id>.json; STATS_DIR/*.csv (every biome, every number behind the checks)
+Inputs : CSV_DIR/firms_daily_by_biome.csv, CSV_DIR/firms_drift_by_biome.csv (brady/brazil-data);
+         STATS_DIR/regions_daily.csv, regions_drift.csv (region_counts.py) when present
+Outputs: JSON_DIR/audit/<id>.json, twoclocks/<id>.json, fireday/<id>.json, calendar/<id>.json, drift/<id>.json
+         (non-Brazil, if missing); STATS_DIR/*.csv (every region, every number behind the checks)
 Method : research/execution-plan.md section 4.D-4.E; definitions in analysis/statistics/README.md.
 """
 import sys, os, json
@@ -16,18 +17,27 @@ NB, SEED, BLOCK = 1000, 20261114, 16
 BASE, AUDIT, YEARS = list(range(2012, 2021)), list(range(2021, 2026)), list(range(2012, 2026))
 BIOMES = ["amazon", "cerrado", "caatinga", "mata_atlantica", "pantanal", "pampa"]
 REG = {"br-amazon": "amazon", "br-cerrado": "cerrado", "br-pantanal": "pantanal"}
+OTHER = {"ar-argentina": "argentina", "in-punjab-haryana": "punjab_haryana", "us-california": "california"}
+SRC = {"argentina": "FIRMS Argentina country files", "punjab_haryana": "FIRMS India country files, preset bbox",
+       "california": "FIRMS United States country files, simplified state outline"}
 MIN_EXPECTED, MAX_REL_CI = 300, 0.25  # below / above these an audit year is insufficient_data
 
-daily = pd.read_csv(os.path.join(src, "firms_daily_by_biome.csv"))
-daily = daily[daily.date >= "2012-01-01"]
+daily_all = pd.read_csv(os.path.join(src, "firms_daily_by_biome.csv"))
 drift = pd.read_csv(os.path.join(src, "firms_drift_by_biome.csv"))
 dates = pd.date_range("2012-01-01", "2025-12-31").strftime("%Y-%m-%d")
 yr = dates.str[:4].astype(int).values
 mo = dates.str[5:7].astype(int).values - 1
 ny = len(YEARS)
 
-# a satellite is down on a day with no daytime detection anywhere in Brazil
-up = daily.groupby(["date", "satellite"]).count_all.sum().unstack().reindex(dates).notna()
+# a satellite is down on a day with no daytime detection anywhere in Brazil; applied to every region
+up = daily_all[daily_all.date >= "2012-01-01"].groupby(["date", "satellite"]).count_all.sum().unstack().reindex(dates).notna()
+if os.path.exists(os.path.join(sdir, "regions_daily.csv")):
+    daily_all = pd.concat([daily_all, pd.read_csv(os.path.join(sdir, "regions_daily.csv"))])
+    drift = pd.concat([drift, pd.read_csv(os.path.join(sdir, "regions_drift.csv"))])
+    have = set(daily_all.biome)
+    REG.update({k: v for k, v in OTHER.items() if v in have})
+    BIOMES += [v for v in OTHER.values() if v in have]
+daily = daily_all[daily_all.date >= "2012-01-01"]
 valid = {ref: (up["Aqua"] & up["Terra"] & up[ref]).values for ref in ["S-NPP", "NOAA-20"]}
 
 # Poisson bootstrap over 16-day blocks (the MODIS repeat cycle; counts are autocorrelated); row 0 is the point estimate.
@@ -163,9 +173,17 @@ pd.DataFrame([dict(biome=b, beta_base=res[b]["beta_base"][0], beta_base_lo=ci(re
                    baseline_ratio=res[b]["ratio"]) for b in BIOMES]).to_csv(
     os.path.join(sdir, "fireday_slopes.csv"), index=False, float_format="%.5g")
 
-note = "Real. NASA FIRMS MODIS C6.1 and VIIRS S-NPP daily counts (brady/brazil-data). AI-generated analysis (Claude); team review required before any slide."
+START = {"Aqua": "2002-07", "S-NPP": "2012-01", "NOAA-20": "2018-01"}  # first month with data
+raw_m = daily_all.assign(ym=daily_all.date.str[:7]).groupby(["biome", "ym", "satellite"])["count"].sum()
 for rid, b in REG.items():
+    note = (f"Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts ({SRC.get(b, 'brady/brazil-data')}). "
+            "AI-generated analysis (Claude); team review required before any slide.")
     a = audit[audit.biome == b]
+    if b in SRC and not os.path.exists(os.path.join(dst, f"drift/{rid}.json")):
+        write(f"drift/{rid}.json", {"mock": False, "region": rid,
+            "note": note + " Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
+            "years": [{"year": int(q.year), "aqua_lst": hhmm(q.aqua_lst), "terra_lst": hhmm(q.terra_lst),
+                       "viirs_lst": hhmm(q.viirs_lst)} for q in pd.concat([plac, audit])[lambda x: x.biome == b].sort_values("year").itertuples()]})
     write(f"audit/{rid}.json", {"mock": False, "note": note, "region": rid,
         "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month); 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
         "baseline": {"years": "2012-2020", "ratio": num(res[b]["ratio"]), "noise_floor": num(nf[b]),
@@ -194,7 +212,14 @@ for rid, b in REG.items():
 
     # fixed-clock calendar: Aqua before 2012 (its clock had not drifted), then S-NPP x R_m in Aqua units;
     # S-NPP outage days are filled with NOAA-20 x their 2018-2025 overlap ratio
-    p = os.path.join(dst, f"calendar/{rid}.json"); cal = json.load(open(p))
+    rm = raw_m.loc[b] if b in raw_m.index.get_level_values(0) else pd.Series(dtype=float)
+    def raw(ym, s):
+        if ym < START[s]: return None
+        return int(rm.get((ym, s), 0))
+    cal = {"mock": False, "region": rid, "unit": "fixed-clock Aqua-equivalent hotspots",
+           "months": [{"ym": ym, "fixed": None, "lo": None, "hi": None, "aqua": raw(ym, "Aqua"), "snpp": raw(ym, "S-NPP"),
+                       "noaa20": raw(ym, "NOAA-20"), "flags": [], "median_ref": None, "anomaly_pct": None}
+                      for ym in pd.period_range("2002-01", "2025-12", freq="M").astype(str)]}
     c = r["c"]; both = up["S-NPP"].values & up["NOAA-20"].values & (yr >= 2018)
     k = c["S-NPP"].values[both].sum() / c["NOAA-20"].values[both].sum()
     vf = np.where(up["S-NPP"].values, c["S-NPP"].values, np.where(up["NOAA-20"].values, k * c["NOAA-20"].values, np.nan))
@@ -209,15 +234,21 @@ for rid, b in REG.items():
             m["fixed"] = m["lo"] = m["hi"] = m["aqua"]
         elif ym in vm.index and np.isfinite(vm[ym]):
             m["fixed"], m["lo"], m["hi"] = (int(round(vm[ym] * x)) for x in (R[0, i], Rlo[i], Rhi[i]))
-        m["flags"] = [fl for fl in m["flags"] if fl != "outage"] + (["outage"] if filled.get(ym, 0) >= 3 else [])
+        m["flags"] = ["outage"] if filled.get(ym, 0) >= 3 else []
     med = pd.DataFrame(cal["months"]).dropna(subset=["fixed"]).assign(mm=lambda x: x.ym.str[5:]).groupby("mm").fixed.median()
     for m in cal["months"]:
         mr = med.get(m["ym"][5:])
         m["median_ref"] = None if mr is None else round(float(mr), 1)
         m["anomaly_pct"] = None if m["fixed"] is None or not mr else round((m["fixed"] / mr - 1) * 100, 1)
-    cal["note"] = (note + " fixed = Aqua count before 2012 (Aqua's clock had not drifted), then S-NPP count x the 2012-2020 "
+    cal["note"] = (note + " aqua, snpp, noaa20 = raw monthly counts with the plan's filters. fixed = Aqua count before 2012 (Aqua's clock had not drifted), then S-NPP count x the 2012-2020 "
                    "Aqua/S-NPP ratio for that calendar month, in Aqua units; lo/hi from the block bootstrap of that ratio; "
                    f"S-NPP outage days filled with NOAA-20 x {k:.3f}. outage flag = 3 or more S-NPP outage days in the month. "
                    "median_ref = median fixed count for that calendar month, 2002-2025.")
     write(f"calendar/{rid}.json", cal)
+
+# regions.json: the mock's names and boxes, restricted to regions with real outputs
+regs = json.load(open(os.path.join(os.path.dirname(os.path.abspath(dst)), "mock", "regions.json")))["regions"]
+write("regions.json", {"mock": False, "note": "Regions with real audit, calendar, two-clocks and fire-day files. bbox is for map framing; "
+                       "Brazil biomes use INPE's biome labels, Punjab + Haryana uses this bbox, California a simplified state outline.",
+                       "regions": [g for g in regs if g["id"] in REG]})
 print("done")

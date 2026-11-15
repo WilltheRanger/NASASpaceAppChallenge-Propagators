@@ -1,0 +1,75 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS United States country files, simplified state outline). AI-generated analysis (Claude); team review required before any slide.",
+ "region": "us-california",
+ "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month); 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
+ "baseline": {
+  "years": "2012-2020",
+  "ratio": 0.209,
+  "noise_floor": 0.151,
+  "placebo_min": 0.874,
+  "placebo_max": 1.151
+ },
+ "years": [
+  {
+   "year": 2021,
+   "status": "ok",
+   "L": 1.02,
+   "L_lo": 0.903,
+   "L_hi": 1.124,
+   "L_strat": 0.958,
+   "aqua_count": 12322,
+   "fixed_count": 12080,
+   "gap_pct": 2.0,
+   "outside_noise": false
+  },
+  {
+   "year": 2022,
+   "status": "ok",
+   "L": 0.924,
+   "L_lo": 0.832,
+   "L_hi": 1.013,
+   "L_strat": 0.89,
+   "aqua_count": 2161,
+   "fixed_count": 2338,
+   "gap_pct": -7.6,
+   "outside_noise": false
+  },
+  {
+   "year": 2023,
+   "status": "ok",
+   "L": 0.966,
+   "L_lo": 0.864,
+   "L_hi": 1.052,
+   "L_strat": 0.972,
+   "aqua_count": 2880,
+   "fixed_count": 2982,
+   "gap_pct": -3.4,
+   "outside_noise": false
+  },
+  {
+   "year": 2024,
+   "status": "ok",
+   "L": 0.876,
+   "L_lo": 0.781,
+   "L_hi": 0.979,
+   "L_strat": 0.875,
+   "aqua_count": 2629,
+   "fixed_count": 3000,
+   "gap_pct": -12.4,
+   "outside_noise": false
+  },
+  {
+   "year": 2025,
+   "status": "ok",
+   "L": 0.962,
+   "L_lo": 0.788,
+   "L_hi": 1.131,
+   "L_strat": 1.015,
+   "aqua_count": 2870,
+   "fixed_count": 2985,
+   "gap_pct": -3.8,
+   "outside_noise": false
+  }
+ ]
+}

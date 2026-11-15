@@ -1,6 +1,5 @@
 {
  "mock": false,
- "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS S-NPP daily counts (brady/brazil-data). AI-generated analysis (Claude); team review required before any slide. fixed = Aqua count before 2012 (Aqua's clock had not drifted), then S-NPP count x the 2012-2020 Aqua/S-NPP ratio for that calendar month, in Aqua units; lo/hi from the block bootstrap of that ratio; S-NPP outage days filled with NOAA-20 x 1.051. outage flag = 3 or more S-NPP outage days in the month. median_ref = median fixed count for that calendar month, 2002-2025.",
  "region": "br-pantanal",
  "unit": "fixed-clock Aqua-equivalent hotspots",
  "months": [
@@ -3472,5 +3471,6 @@
    "median_ref": 158.0,
    "anomaly_pct": -70.9
   }
- ]
+ ],
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (brady/brazil-data). AI-generated analysis (Claude); team review required before any slide. aqua, snpp, noaa20 = raw monthly counts with the plan's filters. fixed = Aqua count before 2012 (Aqua's clock had not drifted), then S-NPP count x the 2012-2020 Aqua/S-NPP ratio for that calendar month, in Aqua units; lo/hi from the block bootstrap of that ratio; S-NPP outage days filled with NOAA-20 x 1.051. outage flag = 3 or more S-NPP outage days in the month. median_ref = median fixed count for that calendar month, 2002-2025."
 }

@@ -14,6 +14,8 @@ tc = pd.read_csv(os.path.join(sdir, "twoclocks_by_biome.csv"))
 refs = pd.read_csv(os.path.join(sdir, "reference_satellite_by_biome.csv"))
 slopes = pd.read_csv(os.path.join(sdir, "fireday_slopes.csv")).set_index("biome")
 drift = pd.read_csv(os.path.join(src, "firms_drift_by_biome.csv"))
+# the predictions were written for Brazil's biomes; other regions are reported in the README, not scored
+audit, plac, tc, refs = (x[x.biome.isin(BIOMES)].copy() for x in (audit, plac, tc, refs))
 checks, table = [], []
 
 def add(pid, name, ok, detail):

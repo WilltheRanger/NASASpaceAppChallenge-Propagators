@@ -1,0 +1,75 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS Argentina country files). AI-generated analysis (Claude); team review required before any slide.",
+ "region": "ar-argentina",
+ "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month); 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
+ "baseline": {
+  "years": "2012-2020",
+  "ratio": 0.251,
+  "noise_floor": 0.082,
+  "placebo_min": 0.924,
+  "placebo_max": 1.082
+ },
+ "years": [
+  {
+   "year": 2021,
+   "status": "ok",
+   "L": 0.959,
+   "L_lo": 0.906,
+   "L_hi": 1.002,
+   "L_strat": 0.96,
+   "aqua_count": 31058,
+   "fixed_count": 32389,
+   "gap_pct": -4.1,
+   "outside_noise": false
+  },
+  {
+   "year": 2022,
+   "status": "ok",
+   "L": 0.931,
+   "L_lo": 0.87,
+   "L_hi": 0.984,
+   "L_strat": 0.923,
+   "aqua_count": 39375,
+   "fixed_count": 42280,
+   "gap_pct": -6.9,
+   "outside_noise": false
+  },
+  {
+   "year": 2023,
+   "status": "ok",
+   "L": 1.03,
+   "L_lo": 0.96,
+   "L_hi": 1.086,
+   "L_strat": 1.011,
+   "aqua_count": 25052,
+   "fixed_count": 24323,
+   "gap_pct": 3.0,
+   "outside_noise": false
+  },
+  {
+   "year": 2024,
+   "status": "ok",
+   "L": 1.147,
+   "L_lo": 1.065,
+   "L_hi": 1.204,
+   "L_strat": 1.146,
+   "aqua_count": 27329,
+   "fixed_count": 23834,
+   "gap_pct": 14.7,
+   "outside_noise": true
+  },
+  {
+   "year": 2025,
+   "status": "ok",
+   "L": 1.135,
+   "L_lo": 1.034,
+   "L_hi": 1.217,
+   "L_strat": 1.163,
+   "aqua_count": 29327,
+   "fixed_count": 25842,
+   "gap_pct": 13.5,
+   "outside_noise": true
+  }
+ ]
+}
