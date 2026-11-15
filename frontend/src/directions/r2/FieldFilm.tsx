@@ -7,7 +7,7 @@
 // code (designs/round-2/anduril-study.md), behind a footer switch seeded from the reader's reduced-motion setting.
 // Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag. Region photographs: Unsplash, credited in the
 // footer. Pass imagery: NASA Worldview / GIBS, public domain.
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
@@ -326,6 +326,50 @@ const modeClasses = {
   ),
 }
 
+/* ---------- The statement stage: a held section whose photograph closes in to a frame as you scroll ---------- */
+
+/** Where the photograph closes in to (under the bar, at the page gutters, above the verdict) and how each layer reads the
+ *  stage's scroll progress --p, 0 → 1. */
+const FRAME = '[--frame-t:80px] [--frame-b:calc(40svh_+_24px)] [--frame-x:max(16px,calc((100vw_-_var(--maxw))_/_2_+_16px))] sm:[--frame-x:max(32px,calc((100vw_-_var(--maxw))_/_2_+_32px))] xl:[--frame-t:88px]'
+const FRAME_CLIP = '[clip-path:inset(calc(var(--p)*var(--frame-t))_calc(var(--p)*var(--frame-x))_calc(var(--p)*var(--frame-b))_calc(var(--p)*var(--frame-x)))]'
+const SETTLE = '[transform:scale(calc(1.12_-_0.12*var(--p)))]'
+const RIDE = '[transform:translateY(calc(var(--p)*-1*var(--frame-b)))]'
+const FADE_NAME = '[opacity:calc(min(1,(1_-_var(--p))*2.2))]'
+const FADE_SOON = '[opacity:calc(1_-_var(--p)*4)]'
+const SHRINK = 'origin-bottom-left [transform:scale(calc(1_-_0.2*var(--p)))]'
+
+/** Scroll progress through a held section, written as --p on its stage once a frame. It listens in the capture phase,
+ *  so it hears the page scroll whichever element does the scrolling (an embedding frame may scroll a wrapper), and it
+ *  measures against the stage, not the window. */
+function useStage(sectionRef: RefObject<HTMLElement | null>, stageRef: RefObject<HTMLElement | null>, on: boolean, onProgress?: (p: number) => void) {
+  const report = useRef(onProgress)
+  report.current = onProgress
+  useEffect(() => {
+    const section = sectionRef.current
+    const stage = stageRef.current
+    if (!section || !stage) return
+    if (!on) { stage.style.setProperty('--p', '0'); report.current?.(0); return }
+    let raf = 0
+    const update = () => {
+      raf = 0
+      const r = section.getBoundingClientRect()
+      const run = r.height - stage.getBoundingClientRect().height
+      const v = run > 0 ? Math.min(1, Math.max(0, -r.top / run)) : 0
+      stage.style.setProperty('--p', v.toFixed(4))
+      report.current?.(v)
+    }
+    const queue = () => { if (!raf) raf = requestAnimationFrame(update) }
+    update()
+    window.addEventListener('scroll', queue, { passive: true, capture: true })
+    window.addEventListener('resize', queue)
+    return () => {
+      window.removeEventListener('scroll', queue, { capture: true })
+      window.removeEventListener('resize', queue)
+      cancelAnimationFrame(raf)
+    }
+  }, [on, sectionRef, stageRef])
+}
+
 /* ---------- Pages ---------- */
 
 export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Nav }) {
@@ -537,10 +581,14 @@ function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
 function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion: (id: string) => void; home: string; leave: Leave }) {
   const [solid, setSolid] = useState(false)
   useEffect(() => {
-    const check = () => setSolid(window.scrollY > 8)
+    const check = (e?: Event) => {
+      const t = e?.target
+      const y = Math.max(window.scrollY, document.scrollingElement?.scrollTop ?? 0, t instanceof Element ? t.scrollTop : 0)
+      setSolid(y > 8)
+    }
     check()
-    window.addEventListener('scroll', check, { passive: true })
-    return () => window.removeEventListener('scroll', check)
+    window.addEventListener('scroll', check, { passive: true, capture: true })
+    return () => window.removeEventListener('scroll', check, { capture: true })
   }, [])
   return (
     <header
@@ -594,33 +642,34 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
   const d = useMemo(() => regionData(region), [region])
   const { look, change } = verdictLines(d)
   const ids = REGIONS.map((r) => r.id)
-  // the tour: on until a region is picked; held while paused, while the statement is out of view, or while the tabs have focus
+  // the tour: on until a region is picked; held while paused, while the tabs have focus, or once the reader scrolls
   const [auto, setAuto] = useState(true)
   const [paused, setPaused] = useState(false)
   const [held, setHeld] = useState(false)
-  const [inView, setInView] = useState(true)
-  const heroRef = useRef<HTMLElement | null>(null)
-  useEffect(() => {
-    const el = heroRef.current
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(([e]) => setInView(e.intersectionRatio >= 0.5), { threshold: [0, 0.5, 1] })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
+  const [moved, setMoved] = useState(false)
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  useStage(sectionRef, stageRef, motion.on, (v) => setMoved(v > 0.04))
   // photographs load as their region is first shown, then stay for the crossfade
   const [loaded, setLoaded] = useState<string[]>([region])
   useEffect(() => { setLoaded((l) => (l.includes(region) ? l : [...l, region])) }, [region])
 
   const touring = motion.on && auto
-  const running = touring && !paused && !held && inView
+  const running = touring && !paused && !held && !moved
   const next = () => setRegion(ids[(ids.indexOf(region) + 1) % ids.length])
   const pick = (id: string) => { setAuto(false); setRegion(id); onPick(id) }
 
   return (
     <>
-      {/* the statement: the region's name on its ground, nothing else but the way to change it */}
-      <section id="top" ref={heroRef} aria-labelledby="region-h" className="relative isolate flex h-[78svh] max-h-[1040px] min-h-[560px] flex-col">
-        <div className="absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]">
+      {/* the statement: the region's name on its ground and the way to change it, held for a screen of scrolling while
+          the photograph closes in to a frame (still without motion) */}
+      <section id="top" ref={sectionRef} aria-labelledby="region-h" className={cn('relative', motion.on && 'h-[200svh]')}>
+        <div
+          ref={stageRef}
+          style={{ '--p': 0 } as CSSProperties}
+          className={cn('sticky top-0 isolate flex flex-col overflow-hidden bg-[color:var(--ground)]', FRAME, motion.on ? 'h-[100svh]' : 'h-[78svh] max-h-[1040px] min-h-[560px]')}
+        >
+        <div className={cn('absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]', FRAME_CLIP)}>
           {loaded.map((id) => {
             const p = photoFor(id)
             return (
@@ -634,21 +683,22 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
                 width={p.width}
                 height={p.height}
                 style={{ objectPosition: p.focus }}
-                className={cn('absolute inset-0 size-full object-cover transition-opacity duration-700 ease-[var(--ease)]', id === region ? 'opacity-100' : 'opacity-0')}
+                className={cn('absolute inset-0 size-full object-cover transition-opacity duration-700 ease-[var(--ease)]', SETTLE, id === region ? 'opacity-100' : 'opacity-0')}
               />
             )
           })}
           <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
         </div>
         <div aria-hidden className="h-16 shrink-0 xl:h-18" />
-        <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
+        <div className={cn('mt-auto', RIDE)}>
+        <div className={cn(shell, 'pb-8 sm:pb-10', FADE_NAME)}>
           <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
-          <h1 id="region-h" className={statement}>
+          <h1 id="region-h" className={cn(statement, SHRINK)}>
             <span key={region} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(region)}</span>
           </h1>
         </div>
-        {/* the region tabs along the bottom edge, on a dark plate */}
-        <div className="bg-[color:var(--plate)]">
+        {/* the region tabs along the bottom edge, on a dark plate; they step aside once the reader scrolls */}
+        <div className={cn('bg-[color:var(--plate)]', FADE_SOON, moved && 'pointer-events-none')} aria-hidden={moved || undefined} {...({ inert: moved ? '' : undefined } as Record<string, unknown>)}>
           <div
             className={cn(shell, 'flex items-start gap-4 py-5')}
             onFocus={() => setHeld(true)}
@@ -693,10 +743,12 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
             ) : null}
           </div>
         </div>
+        </div>
+        </div>
       </section>
 
-      {/* the verdict and the way in, under the statement */}
-      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-4">
+      {/* the verdict and the way in, rising under the framed photograph */}
+      <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-4', motion.on && '-mt-[40svh]')}>
         <div className={cn(shell, 'grid grid-cols-1 py-16 xl:grid-cols-12 xl:gap-x-6 xl:py-20')}>
           <div className="xl:col-span-8">
             <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
@@ -715,94 +767,43 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
   )
 }
 
-/* ---------- App opening: the statement, framed as you scroll (a zoom-out reveal), the verdict rising under it ---------- */
+/* ---------- App opening: a still statement, the region's name on its photograph; the verdict follows ---------- */
 
-/** The region's photograph at full bleed with its name, held in place for one screen of scrolling while the photograph
- *  closes in to a framed picture (below the bar, to the page gutters, above the verdict) and settles from 1.12 to 1; the
- *  name rides the frame's lower edge, shrinks a little and fades. Scroll progress is one CSS variable, --p, written once
- *  a frame. Without motion it is a still statement. */
+/** The audit opens on the region's photograph with its name, still (the zoom-out reveal lives on the landing). */
 function AppStatement({ d }: { d: RegionData }) {
-  const motion = useMotion()
-  const sectionRef = useRef<HTMLElement | null>(null)
-  const stageRef = useRef<HTMLDivElement | null>(null)
   const p = photoFor(d.id)
-  useEffect(() => {
-    const section = sectionRef.current
-    const stage = stageRef.current
-    if (!section || !stage) return
-    if (!motion.on) { stage.style.setProperty('--p', '0'); return }
-    let raf = 0
-    const update = () => {
-      raf = 0
-      const r = section.getBoundingClientRect()
-      const run = r.height - window.innerHeight
-      const v = run > 0 ? Math.min(1, Math.max(0, -r.top / run)) : 0
-      stage.style.setProperty('--p', v.toFixed(4))
-    }
-    const queue = () => { if (!raf) raf = requestAnimationFrame(update) }
-    update()
-    window.addEventListener('scroll', queue, { passive: true })
-    window.addEventListener('resize', queue)
-    return () => {
-      window.removeEventListener('scroll', queue)
-      window.removeEventListener('resize', queue)
-      cancelAnimationFrame(raf)
-    }
-  }, [motion.on])
-
   return (
-    <section ref={sectionRef} id="top" aria-labelledby="region-h" className={cn('relative', motion.on ? 'h-[200svh]' : 'h-[78svh] max-h-[1040px] min-h-[560px]')}>
-      <div
-        ref={stageRef}
-        style={{ '--p': 0 } as CSSProperties}
-        className={cn(
-          'sticky top-0 overflow-hidden bg-[color:var(--ground)]',
-          // where the frame closes in to: under the bar, at the page gutters, above the verdict
-          '[--frame-t:80px] [--frame-b:calc(40svh_+_24px)] [--frame-x:max(16px,calc((100vw_-_var(--maxw))_/_2_+_16px))]',
-          'sm:[--frame-x:max(32px,calc((100vw_-_var(--maxw))_/_2_+_32px))] xl:[--frame-t:88px]',
-          motion.on ? 'h-[100svh]' : 'h-full',
-        )}
-      >
-        <div className="absolute inset-0 [clip-path:inset(calc(var(--p)*var(--frame-t))_calc(var(--p)*var(--frame-x))_calc(var(--p)*var(--frame-b))_calc(var(--p)*var(--frame-x)))]">
-          <img
-            key={d.id}
-            src={p.src}
-            srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
-            sizes="100vw"
-            alt={p.alt}
-            width={p.width}
-            height={p.height}
-            style={{ objectPosition: p.focus }}
-            className="absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover [transform:scale(calc(1.12_-_0.12*var(--p)))]"
-          />
-          <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
-        </div>
-        <div className="absolute inset-x-0 bottom-0 [opacity:calc(min(1,(1_-_var(--p))*2.2))] [transform:translateY(calc(var(--p)*-1*var(--frame-b)))]">
-          <div className={cn(shell, 'pb-8 sm:pb-10')}>
-            <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
-            <h1 id="region-h" className={cn(statement, 'origin-bottom-left [transform:scale(calc(1_-_0.2*var(--p)))]')}>
-              <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
-            </h1>
-          </div>
-        </div>
-        {motion.on ? (
-          <div aria-hidden className="absolute bottom-6 right-4 flex items-center gap-2 text-xs text-[color:var(--bone2)] [opacity:calc(1_-_var(--p)*5)] sm:right-8">
-            Scroll
-            <ArrowDown size={14} strokeWidth={1.5} />
-          </div>
-        ) : null}
+    <section id="top" aria-labelledby="region-h" className="relative isolate flex h-[78svh] max-h-[1040px] min-h-[560px] flex-col">
+      <div className="absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]">
+        <img
+          key={d.id}
+          src={p.src}
+          srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
+          sizes="100vw"
+          alt={p.alt}
+          width={p.width}
+          height={p.height}
+          style={{ objectPosition: p.focus }}
+          className="absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover"
+        />
+        <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
+      </div>
+      <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
+        <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
+        <h1 id="region-h" className={statement}>
+          <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
+        </h1>
       </div>
     </section>
   )
 }
 
-/** The verdict, rising into the space under the framed photograph during the last part of the opening, then the reel. */
+/** The verdict under the statement, then the reel. */
 function AppVerdict({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
-  const motion = useMotion()
   const { look, change } = verdictLines(d)
   return (
-    <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-20', motion.on && '-mt-[40svh]')}>
-      <div className={cn(shell, 'grid grid-cols-1 pb-12 pt-6 xl:grid-cols-12 xl:gap-x-6 xl:pb-16')}>
+    <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-20">
+      <div className={cn(shell, 'grid grid-cols-1 py-16 xl:grid-cols-12 xl:gap-x-6 xl:py-20')}>
         <div className="xl:col-span-8">
           <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
           <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>

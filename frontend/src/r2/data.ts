@@ -1,4 +1,6 @@
-// Round 2 data layer: region-aware reads of the mock JSON contract (data/mock/*), plus the verdict wording.
+// Round 2 data layer: region-aware reads of the team's JSON contract, plus the verdict wording. Each file is read from
+// data/out/ when the real pipeline has written it, else from data/mock/ (same layout); every file carries its own
+// "mock" flag, and the MOCK labels on screen follow it.
 // Every value shown in the comps comes from these files.
 import regionsJson from '../../../data/mock/regions.json'
 
@@ -9,11 +11,41 @@ type CalMonth = { ym: string; fixed: number | null; lo: number | null; hi: numbe
 type CalFile = { mock?: boolean; region: string; unit?: string; months: CalMonth[] }
 
 const byRegion = <T extends { region: string }>(files: Record<string, T>) => Object.fromEntries(Object.values(files).map((f) => [f.region, f])) as Record<string, T>
-const driftFiles = byRegion(import.meta.glob<DriftFile>('../../../data/mock/drift/*.json', { eager: true, import: 'default' }))
-const auditFiles = byRegion(import.meta.glob<AuditFile>('../../../data/mock/audit/*.json', { eager: true, import: 'default' }))
-const calFiles = byRegion(import.meta.glob<CalFile>('../../../data/mock/calendar/*.json', { eager: true, import: 'default' }))
-type TwoFile = { mock?: boolean; region: string; years: { year: number; aqua_lst: string; terra_lst: string; A: number; A_lo: number; A_hi: number; T: number; T_lo: number; T_hi: number }[] }
-const twoFiles = byRegion(import.meta.glob<TwoFile>('../../../data/mock/twoclocks/*.json', { eager: true, import: 'default' }))
+/** data/out/ wins over data/mock/, region by region */
+const pick = <T extends { region: string }>(mock: Record<string, T>, out: Record<string, T>) => ({ ...byRegion(mock), ...byRegion(out) })
+const driftFiles = pick(
+  import.meta.glob<DriftFile>('../../../data/mock/drift/*.json', { eager: true, import: 'default' }),
+  import.meta.glob<DriftFile>('../../../data/out/drift/*.json', { eager: true, import: 'default' }),
+)
+const auditFiles = pick(
+  import.meta.glob<AuditFile>('../../../data/mock/audit/*.json', { eager: true, import: 'default' }),
+  import.meta.glob<AuditFile>('../../../data/out/audit/*.json', { eager: true, import: 'default' }),
+)
+const calFiles = pick(
+  import.meta.glob<CalFile>('../../../data/mock/calendar/*.json', { eager: true, import: 'default' }),
+  import.meta.glob<CalFile>('../../../data/out/calendar/*.json', { eager: true, import: 'default' }),
+)
+export type TwoYear = {
+  year: number; aqua_lst: string; terra_lst: string
+  /** Aqua/VIIRS and Terra/VIIRS against 2012-2020 (1 = no change), with ranges */
+  A: number; A_lo: number; A_hi: number; T: number; T_lo: number; T_hi: number
+  /** log A - log T: the clock with shared orbit sampling cancelled, with its range */
+  clock_diff: number; clock_lo: number; clock_hi: number
+  /** the shared orbit-sampling effect, in log units */
+  sampling_est: number
+}
+type TwoFile = { mock?: boolean; region: string; years: TwoYear[] }
+const twoFiles = pick(
+  import.meta.glob<TwoFile>('../../../data/mock/twoclocks/*.json', { eager: true, import: 'default' }),
+  import.meta.glob<TwoFile>('../../../data/out/twoclocks/*.json', { eager: true, import: 'default' }),
+)
+
+/** The pre-registered checks P1-P10 ("How do we know?"); statuses are pass, pending or fail. */
+export type Check = { id: string; name: string; status: 'pass' | 'pending' | 'fail'; detail: string }
+type ChecksFile = { mock?: boolean; checks: Check[] }
+const checksFile = (Object.values(import.meta.glob<ChecksFile>('../../../data/out/checks.json', { eager: true, import: 'default' }))[0] ??
+  Object.values(import.meta.glob<ChecksFile>('../../../data/mock/checks.json', { eager: true, import: 'default' }))[0]) as ChecksFile | undefined
+export const CHECKS = { mock: !!checksFile?.mock, checks: checksFile?.checks ?? [] }
 
 export const MOCK = true
 export const REGIONS = regionsJson.regions.map((r) => ({ id: r.id, name: r.name }))
@@ -62,7 +94,10 @@ export function regionData(id: RegionId) {
     drift, lastDrift, driftAt, baselineYears: auditFile?.baseline.years ?? '2012-2020', noise, years, latestOk, cal,
     /** two-clocks ratios (detections vs. the fixed clock, 1 = baseline) for a year, when the region has them */
     twoAt: (year: number) => twoFiles[id]?.years.find((t) => t.year === year) ?? null,
-    mock: !!(driftFiles[id]?.mock || auditFile?.mock || calFiles[id]?.mock),
+    /** the two-clocks test, year by year */
+    two: twoFiles[id]?.years ?? [],
+    twoMock: !!twoFiles[id]?.mock,
+    mock: !!(driftFiles[id]?.mock || auditFile?.mock || calFiles[id]?.mock || twoFiles[id]?.mock),
   }
 }
 export type RegionData = ReturnType<typeof regionData>
