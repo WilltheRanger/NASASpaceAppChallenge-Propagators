@@ -21,6 +21,7 @@ OTHER = {"ar-argentina": "argentina", "in-punjab-haryana": "punjab_haryana", "us
 SRC = {"argentina": "FIRMS Argentina country files", "punjab_haryana": "FIRMS India country files, preset bbox",
        "california": "FIRMS United States country files, simplified state outline"}
 MIN_EXPECTED, MAX_REL_CI = 300, 0.25  # below / above these an audit year is insufficient_data
+COL = "count_all"  # every daytime detection, as INPE counts them (P3: 96.6% of biome-months within 10%)
 
 daily_all = pd.read_csv(os.path.join(src, "firms_daily_by_biome.csv"))
 drift = pd.read_csv(os.path.join(src, "firms_drift_by_biome.csv"))
@@ -85,17 +86,23 @@ res = {}
 
 for biome in BIOMES:
     d = daily[daily.biome == biome]
-    c = d.groupby(["date", "satellite"])["count"].sum().unstack().reindex(dates).fillna(0)
+    c = d.groupby(["date", "satellite"])[COL].sum().unstack().reindex(dates).fillna(0)
+    # two clocks and the fire-day curve use near-nadir detections only, whose look time is the satellite's
+    cn = d[d.near_nadir == 1].groupby(["date", "satellite"])[COL].sum().unstack().reindex(dates).fillna(0)
     f = d.groupby(["date", "satellite"])["frp_sum"].sum().unstack().reindex(dates).fillna(0)
     for s in ["Aqua", "Terra", "S-NPP", "NOAA-20"]:
         if s not in c: c[s] = 0.0; f[s] = 0.0
+        if s not in cn: cn[s] = 0.0
     v = valid["S-NPP"]
     A, T, V = (ymsum(c[s].values, v) for s in ["Aqua", "Terra", "S-NPP"])
+    An, Tn, Vn = (ymsum(cn[s].values, v) for s in ["Aqua", "Terra", "S-NPP"])
     t = lambda y, s: lst.at[(biome, y), s] if (biome, y) in lst.index and pd.notna(lst.at[(biome, y), s]) else np.nan
     tA0 = np.nanmean([t(y, "Aqua") for y in BASE]); tT0 = np.nanmean([t(y, "Terra") for y in BASE])
 
-    # fire-size check: classify days by S-NPP mean FRP per detection, terciles of baseline detections
-    mfrp = np.where(c["S-NPP"] > 0, f["S-NPP"] / c["S-NPP"].where(c["S-NPP"] > 0, 1), 0.0)
+    # fire-size check: classify days by S-NPP mean FRP per filtered detection, terciles of baseline detections
+    cf = d.groupby(["date", "satellite"])["count"].sum().unstack().reindex(dates).fillna(0)
+    fs = cf["S-NPP"] if "S-NPP" in cf else c["S-NPP"] * 0
+    mfrp = np.where(fs > 0, f["S-NPP"] / fs.where(fs > 0, 1), 0.0)
     bm = np.isin(yr, BASE) & v & (c["S-NPP"].values > 0)
     order = np.argsort(mfrp[bm]); cw = np.cumsum(c["S-NPP"].values[bm][order]); cw /= cw[-1]
     cuts = [mfrp[bm][order][np.searchsorted(cw, q)] for q in (1 / 3, 2 / 3)]
@@ -109,11 +116,10 @@ for biome in BIOMES:
     A2, V2 = ymsum(c["Aqua"].values, v2), ymsum(c["NOAA-20"].values, v2)
     A1, V1 = ymsum(c["Aqua"].values, v2), ymsum(c["S-NPP"].values, v2)
 
-    out = {"A": {}, "T": {}}
     for y in YEARS:
         base = [b for b in BASE if b != y]  # baseline years are scored leave-one-out (placebo)
-        la, ea, _ = L(A, V, base, y); lt, _, _ = L(T, V, base, y)
-        out["A"][y], out["T"][y] = la, lt
+        la, ea, _ = L(A, V, base, y)
+        lan, ltn = L(An, Vn, base, y)[0], L(Tn, Vn, base, y)[0]
         lo, hi = ci(la); lo90, hi90 = ci(la, 5, 95)
         rec = dict(biome=biome, year=y, placebo=y in BASE, L=la[0], L_lo=lo, L_hi=hi, L_lo90=lo90, L_hi90=hi90,
                    aqua_count=A[0, y - 2012].sum(), expected=ea[0],
@@ -126,17 +132,17 @@ for biome in BIOMES:
                                  L_noaa20=l2[0], L_noaa20_lo=ci(l2)[0], L_noaa20_hi=ci(l2)[1]))
         (pl_rows if y in BASE else rows).append(rec)
         dA, dT = t(y, "Aqua") - tA0, t(y, "Terra") - tT0
-        cd = np.log(la) - np.log(lt)
-        tc_rows.append(dict(biome=biome, year=y, A=la[0], A_lo=lo, A_hi=hi, T=lt[0], T_lo=ci(lt)[0], T_hi=ci(lt)[1],
-                            clock_diff=cd[0], clock_lo=ci(cd)[0], clock_hi=ci(cd)[1],
-                            sampling_est=(np.log(la[0]) + np.log(lt[0])) / 2, dA_h=dA, dT_h=dT,
+        cd = np.log(lan) - np.log(ltn)
+        tc_rows.append(dict(biome=biome, year=y, A=lan[0], A_lo=ci(lan)[0], A_hi=ci(lan)[1], T=ltn[0], T_lo=ci(ltn)[0],
+                            T_hi=ci(ltn)[1], clock_diff=cd[0], clock_lo=ci(cd)[0], clock_hi=ci(cd)[1],
+                            sampling_est=(np.log(lan[0]) + np.log(ltn[0])) / 2, dA_h=dA, dT_h=dT,
                             clock_share_logA=cd[0] * dA / (dA - dT) if abs(dA - dT) > 1e-6 else np.nan,
                             logL=np.log(la[0]), logL_lo=np.log(lo), logL_hi=np.log(hi), aqua_lst=t(y, "Aqua"),
                             terra_lst=t(y, "Terra")))
 
     # fire-day curve: Aqua and Terra are the same MODIS sensor on the same days, so
     # log(Aqua/Terra) = beta x (Aqua time - Terra time) once fire weather cancels
-    Dr = np.log(A.sum(2) / T.sum(2))  # (NB+1, years)
+    Dr = np.log(An.sum(2) / Tn.sum(2))  # (NB+1, years), near-nadir
     gap = np.array([t(y, "Aqua") - t(y, "Terra") for y in YEARS])
     bi = iy(BASE)
     beta_base = Dr[:, bi].sum(1) / gap[bi].sum()
@@ -174,7 +180,7 @@ pd.DataFrame([dict(biome=b, beta_base=res[b]["beta_base"][0], beta_base_lo=ci(re
     os.path.join(sdir, "fireday_slopes.csv"), index=False, float_format="%.5g")
 
 START = {"Aqua": "2002-07", "S-NPP": "2012-01", "NOAA-20": "2018-01"}  # first month with data
-raw_m = daily_all.assign(ym=daily_all.date.str[:7]).groupby(["biome", "ym", "satellite"])["count"].sum()
+raw_m = daily_all.assign(ym=daily_all.date.str[:7]).groupby(["biome", "ym", "satellite"])[COL].sum()
 for rid, b in REG.items():
     note = f"Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts ({SRC.get(b, 'brady/brazil-data')})."
     a = audit[audit.biome == b]
@@ -184,7 +190,7 @@ for rid, b in REG.items():
             "years": [{"year": int(q.year), "aqua_lst": hhmm(q.aqua_lst), "terra_lst": hhmm(q.terra_lst),
                        "viirs_lst": hhmm(q.viirs_lst)} for q in pd.concat([plac, audit])[lambda x: x.biome == b].sort_values("year").itertuples()]})
     write(f"audit/{rid}.json", {"mock": False, "note": note, "region": rid,
-        "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month); 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
+        "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month), all daytime detections; 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
         "baseline": {"years": "2012-2020", "ratio": num(res[b]["ratio"]), "noise_floor": num(nf[b]),
                      "placebo_min": num(prange.at[b, "placebo_min"]), "placebo_max": num(prange.at[b, "placebo_max"])},
         "years": [{"year": int(r.year), "status": r.status,
@@ -194,14 +200,14 @@ for rid, b in REG.items():
                    "gap_pct": num(r.gap_pct, 1) if r.status == "ok" else None,
                    "outside_noise": bool(r.outside_placebo)} for r in a.itertuples()]})
     write(f"twoclocks/{rid}.json", {"mock": False, "preview": False, "note": note, "region": rid,
-        "fields": "A, T = Aqua/VIIRS and Terra/VIIRS ratios vs 2012-2020 by calendar month (1 = no change; 2012-2020 years leave themselves out); clock_diff = log A - log T; sampling_est = (log A + log T) / 2 (log units); 95% 16-day block bootstrap",
+        "fields": "A, T = Aqua/VIIRS and Terra/VIIRS ratios of near-nadir daytime detections vs 2012-2020 by calendar month (1 = no change; 2012-2020 years leave themselves out); clock_diff = log A - log T; sampling_est = (log A + log T) / 2 (log units); 95% 16-day block bootstrap",
         "years": [{"year": int(r.year), "aqua_lst": hhmm(r.aqua_lst), "terra_lst": hhmm(r.terra_lst),
                    **{k: num(getattr(r, k)) for k in ["A", "A_lo", "A_hi", "T", "T_lo", "T_hi", "clock_diff",
                                                      "clock_lo", "clock_hi", "sampling_est"]}}
                   for r in tc[tc.biome == b].itertuples()]})
     r = res[b]
     write(f"fireday/{rid}.json", {"mock": False, "note": note, "region": rid,
-        "fields": "log_aqua_over_terra = log(Aqua/Terra) daytime counts on the same days; gap_h = Aqua minus Terra look time (hours); beta = change in log fire count per hour of look time",
+        "fields": "log_aqua_over_terra = log(Aqua/Terra) near-nadir daytime counts on the same days; gap_h = Aqua minus Terra look time (hours); beta = change in log fire count per hour of look time",
         "beta_baseline": num(r["beta_base"][0]), "beta_baseline_ci95": [num(x) for x in ci(r["beta_base"])],
         "beta_fit_2012_2025": {"slope": num(r["slope"][0]), "intercept": num(r["intercept"][0]),
                                "slope_ci95": [num(x) for x in ci(r["slope"])]},
@@ -239,7 +245,7 @@ for rid, b in REG.items():
         mr = med.get(m["ym"][5:])
         m["median_ref"] = None if mr is None else round(float(mr), 1)
         m["anomaly_pct"] = None if m["fixed"] is None or not mr else round((m["fixed"] / mr - 1) * 100, 1)
-    cal["note"] = (note + " aqua, snpp, noaa20 = raw monthly counts with the plan's filters. fixed = Aqua count before 2012 (Aqua's clock had not drifted), then S-NPP count x the 2012-2020 "
+    cal["note"] = (note + " aqua, snpp, noaa20 = raw monthly counts of all daytime detections. fixed = Aqua count before 2012 (Aqua's clock had not drifted), then S-NPP count x the 2012-2020 "
                    "Aqua/S-NPP ratio for that calendar month, in Aqua units; lo/hi from the block bootstrap of that ratio; "
                    f"S-NPP outage days filled with NOAA-20 x {k:.3f}. outage flag = 3 or more S-NPP outage days in the month. "
                    "median_ref = median fixed count for that calendar month, 2002-2025.")
