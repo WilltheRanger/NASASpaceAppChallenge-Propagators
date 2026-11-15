@@ -95,7 +95,7 @@ function Idea() {
             </p>
           </Reveal>
           <Reveal delay={300}>
-            <p className="mt-6 text-sm text-[color:var(--bone3)]">Brazil’s official fire count follows Aqua.</p>
+            <p className="mt-6 text-sm text-[color:var(--bone3)]">INPE’s official fire count for Brazil follows Aqua.</p>
           </Reveal>
         </div>
         <div className="min-w-0 lg:col-span-7 lg:pt-2">

@@ -42,7 +42,7 @@ function orientation(): SiAnswer {
     sentences: [
       { text: `The map shows the daytime fires NASA’s satellites detected from ${dayText(WINDOW.start)} to ${dayText(WINDOW.end)}, ${fmtInt(TOTALS.reduce((a, b) => a + b, 0))} in all, coloured by satellite.`, cite: ['firms'] },
       { text: `Each satellite looks at its own time of day. Today: Terra about ${hours(s.terra.lst)}, VIIRS about ${hours(s.viirs.lst)}, Aqua about ${hours(s.aqua.lst)}, local solar time.`, cite: ['firms'] },
-      { text: 'Brazil’s official fire count follows Aqua alone. Aqua now looks later in the day, so we compare its count with what we’d expect at its old time, in six places framed in white.', cite: ['method'] },
+      { text: 'INPE’s official fire count for Brazil follows Aqua alone. Aqua now looks later in the day, so we compare its count with what we’d expect at its old time, in six places framed in white.', cite: ['method'] },
       { text: 'Click any fire to see which satellites saw it.' },
     ],
     sources: [SRC.firms, SRC.method],
@@ -145,7 +145,7 @@ function countAnswer(ctx: SiContext): SiAnswer {
   return {
     sentences: [
       { text: `Past day, ${where}: ${fmtInt(s.total)} daytime fires on the map. VIIRS ${fmtInt(s.viirs.n)}, Aqua ${fmtInt(s.aqua.n)}, Terra ${fmtInt(s.terra.n)}.`, cite: ['firms'] },
-      { text: 'The map keeps one detection per satellite per 2 km cell, so these aren’t official tallies.', cite: ['firms'] },
+      { text: 'The map keeps one detection per satellite per 2 km cell, so these aren’t full counts.', cite: ['firms'] },
     ],
     sources: [SRC.firms],
     followUps: ['When does Aqua pass here?', 'Show only Aqua'],

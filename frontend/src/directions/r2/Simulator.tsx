@@ -646,7 +646,7 @@ function Idle({ onPick, onPlayDay }: { onPick: (id: string) => void; onPlayDay: 
     <div className="flex flex-col gap-7 px-5 pb-6 pt-6">
       <div>
         <h1 className="text-[22px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
-          Brazil’s official fire count follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
+          INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </h1>
         <p className="mt-3 text-sm text-[color:var(--bone2)]">Click any fire to see which satellite saw it, and when.</p>
       </div>

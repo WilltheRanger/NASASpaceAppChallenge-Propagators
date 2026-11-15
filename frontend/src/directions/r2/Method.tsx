@@ -604,7 +604,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   const items: { t: string; b: ReactNode }[] = [
     {
       t: 'It can’t say how much of a difference the timing caused.',
-      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together; the data don’t separate the timing’s share. What we’d expect is an estimate, not a corrected official count.',
+      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together; the data don’t separate the timing’s share. What we’d expect is an estimate, not a corrected version of INPE’s official count.',
     },
     {
       t: '“Unusual” is a rough line, not a proof.',
