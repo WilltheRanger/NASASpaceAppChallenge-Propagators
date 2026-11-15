@@ -517,7 +517,7 @@ function AppPage({ region, onRegion, links, leave, nav }: { region: string; onRe
   )
 }
 
-/* ---------- Footer: credits, the AI note, the motion switch ---------- */
+/* ---------- Footer: credits, the motion switch ---------- */
 
 /** Their animation switch: two words with a pill that slides between them; role="switch". */
 function MotionSwitch() {
