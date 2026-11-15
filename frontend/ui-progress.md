@@ -52,6 +52,7 @@ per direction in `designs/round-2/plan.md`.
 | Phase 3 | D, media | Drone loops (Pexels) on the landing for the Amazon, Punjab + Haryana and California; the other regions keep their photographs with a slow push-in; the audit opens on a still photograph, the zoom-out reveal parked | "drone footage or just videos"; "image for the start and the drone for after?" (recommended: drone at the start); "I dont want the audit to have the animation scroll just yet" |
 | Phase 3 | Science copy | Nothing states the direction of the clock effect unless computed; "official count" only for INPE's Brazil series; MOCK labels follow each file's flag | Team plan, 15 Nov |
 | Phase 3 | Repo | No AI tool names in commits, PRs, branches, comments, headers or data notes; AI use disclosed in the slides and on the project page | Team git rule, 15 Nov |
+| Phase 3 | D, satellites | The Earth seen from the Sun (21st.dev Wireframe Dotted Globe, adapted): the region turns under Terra's, the fixed clock's and Aqua's ground tracks; orbits as hoops over the poles; no drawn sun; the same 06:00–18:00 line as the reel | "have a globe … show terra orbiting"; "do we need the sun?"; the team's two sketches (overhead, side view): side view chosen so Brazil stays in sight |
 
 ## History
 - Hand-built HTML drafts of Round 1 A–C (`designs/round-1/*.html`) were superseded by the component-based rebuild.

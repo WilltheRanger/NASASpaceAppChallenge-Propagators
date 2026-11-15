@@ -1,8 +1,9 @@
 // Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request), now two pages.
 // Landing (D's original layout, kept): each region's name as a statement over its photograph at full bleed, the page
 // stepping through the six regions until one is picked; how Anchor reads a count on a bone band; the six regions as
-// photograph tiles; the tagline. App: the verdict beside the region's photograph, the year reel on a ruler, the three
-// passes of one day, the clock effect by year against the noise floor on the one sage band, then the calendar.
+// photograph tiles; the tagline. App: the verdict beside the region's photograph, the year reel on a ruler, the Earth
+// seen from the Sun turning under the three orbits, the three passes of one day, the clock effect by year against the
+// noise floor on the one sage band, then the calendar.
 // Black, bone and sage; square media, 4 px on small controls. Motion follows Anduril's patterns as read from their
 // code (designs/round-2/anduril-study.md), behind a footer switch seeded from the reader's reduced-motion setting.
 // Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag. Region photographs: Unsplash, credited in the
@@ -22,6 +23,7 @@ import { cn } from '@/lib/utils'
 import { FilmstripScrub } from '@/components/ui/filmstrip-scrub'
 import { AnomalyChart, type AnomalyPoint } from '@/components/ui/anomaly-chart'
 import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/series-chart'
+import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
 import { AnchorLogo } from '@/components/brand/anchor-logo'
 import { photoFor } from '@/r2/photos'
 
@@ -443,6 +445,7 @@ function AppPage({ region, onRegion, links, leave }: { region: string; onRegion:
       <main>
         <AppStatement d={d} />
         <AppVerdict d={d} year={year} onYear={setYear} />
+        <Orbits d={d} year={year} onYear={setYear} />
         <Passes d={d} />
         <TwoClocks d={d} year={year} onYear={setYear} small={small} />
         <ClockEffect d={d} year={year} onYear={setYear} small={small} />
@@ -1038,6 +1041,119 @@ function PassFigure({ dr, year }: { dr: Drift; year: number }) {
         </span>
       </div>
     </div>
+  )
+}
+
+/* ---------- The orbits, seen from the Sun's side ---------- */
+
+const GLOBE_INK = { fg: 'var(--bone)', muted: 'var(--bone3)', grid: 'var(--bone-20)', ground: 'var(--ground)', surface: 'var(--surface)', land: 'var(--bone2)' }
+
+/** The section's heading: which way Aqua's orbit has turned over the years in the file, if it has. */
+function orbitsHeading(d: RegionData) {
+  const first = d.drift[0]
+  const last = d.lastDrift
+  if (!first || !last) return `The orbits over ${d.phrase.the} are not in the data yet`
+  const m = minutesBetween(last.aqua_lst, first.aqua_lst)
+  if (Math.abs(m) < 5) return `Seen from the Sun, Aqua’s orbit has held its place since ${first.year}`
+  return `Seen from the Sun, Aqua’s orbit has swung toward ${m > 0 ? 'evening' : 'morning'} since ${first.year}`
+}
+
+function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+  const motion = useMotion()
+  const dr = d.driftAt(year)
+  const years = d.drift.map((r) => r.year)
+  const [playing, setPlaying] = useState(false)
+  const yearRef = useRef(year)
+  yearRef.current = year
+  useEffect(() => {
+    if (!playing) return
+    const id = window.setInterval(() => {
+      const i = years.indexOf(yearRef.current)
+      if (i < 0 || i >= years.length - 1) { setPlaying(false); return }
+      onYear(years[i + 1])
+    }, 900)
+    return () => window.clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, d.id])
+  if (!dr || !years.length) return null
+
+  const orbits: GlobeOrbit[] = [
+    { id: 'terra', label: 'Terra', time: hm(dr.terra_lst), timeText: dr.terra_lst, dayPass: 'south', marker: 'hollow', color: 'var(--bone3)', phase: 0.62 },
+    { id: 'viirs', label: 'Fixed clock', time: hm(dr.viirs_lst), timeText: dr.viirs_lst, dayPass: 'north', marker: 'diamond', color: 'var(--sage)', phase: 0.31 },
+    { id: 'aqua', label: 'Aqua', time: hm(dr.aqua_lst), timeText: dr.aqua_lst, dayPass: 'north', marker: 'filled', color: 'var(--bone)', phase: 0 },
+  ]
+  const order = [...orbits].sort((a, b) => a.time - b.time).map((o) => (o.id === 'viirs' ? 'the fixed clock’s' : `${o.label}’s`))
+  const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
+  const region = REGIONS.find((r) => r.id === d.id)
+  const play = () => {
+    if (playing) { setPlaying(false); return }
+    if (years.indexOf(year) >= years.length - 1) onYear(years[0])
+    setPlaying(true)
+  }
+  const description = `The Earth seen from the Sun’s side in ${dr.year}, turning under three orbits: ${d.phrase.the} passes under Terra’s at ${dr.terra_lst}, the fixed clock’s at ${dr.viirs_lst} and Aqua’s at ${dr.aqua_lst} local solar time.`
+
+  return (
+    <section id="orbits" aria-labelledby="orbits-h" className="scroll-mt-20">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
+        <div className="lg:col-span-4">
+          <h2 id="orbits-h" className={title}>{orbitsHeading(d)}</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            You are looking at the Earth from the Sun’s side: morning on the left, noon in the middle, evening on the right.
+            Each satellite’s orbit keeps its angle to the sunlight while the Earth turns beneath it, so {d.phrase.the} passes
+            under {order[0]} first, then {order[1]}, then {order[2]}, at the same time every day.
+          </p>
+          <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
+            <dt className="text-[color:var(--bone3)]">Year</dt>
+            <dd className="tabular-nums">{dr.year}</dd>
+            <dt className="text-[color:var(--bone3)]">Terra</dt>
+            <dd className="tabular-nums">{dr.terra_lst}</dd>
+            <dt className="text-[color:var(--bone3)]">Fixed clock (VIIRS)</dt>
+            <dd className="tabular-nums">{dr.viirs_lst}</dd>
+            <dt className="text-[color:var(--bone3)]">Aqua</dt>
+            <dd className="tabular-nums">{dr.aqua_lst} <span className="text-[color:var(--bone3)]">{Math.abs(shift)} min {shift >= 0 ? 'after' : 'before'} the fixed clock</span></dd>
+          </dl>
+          <div className="mt-6 flex items-center gap-4">
+            <button
+              type="button"
+              onClick={play}
+              aria-pressed={playing}
+              className={cn('inline-flex size-9 shrink-0 items-center justify-center rounded border border-[color:var(--bone-30)] text-[color:var(--bone)] hover:bg-[color:var(--hairline)]', ease, focusRing)}
+            >
+              {playing ? <Pause size={16} strokeWidth={1.5} aria-hidden /> : <Play size={16} strokeWidth={1.5} aria-hidden />}
+              <span className="sr-only">{playing ? 'Pause the years' : 'Play the years'}</span>
+            </button>
+            <YearSlider
+              value={dr.year}
+              onChange={(y) => { setPlaying(false); onYear(y) }}
+              min={years[0]}
+              max={years[years.length - 1]}
+              valueText={(y) => String(y)}
+              classes={sliderClasses}
+              label="Year shown on the globe"
+            />
+          </div>
+          <div className="mt-2 flex justify-between pl-13 text-xs tabular-nums text-[color:var(--bone3)]">
+            <span>{years[0]}</span><span>{years[years.length - 1]}</span>
+          </div>
+        </div>
+
+        <figure className="m-0 min-w-0 lg:col-span-8">
+          <OrbitGlobe
+            orbits={orbits}
+            region={region ? { name: statementName(d.id), bbox: region.bbox } : undefined}
+            span={{ from: 'viirs', to: 'aqua' }}
+            running={motion.on}
+            ink={GLOBE_INK}
+            label={description}
+          />
+          <figcaption className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--bone3)]">
+            <span>Not to scale: the orbits sit about 700 km up and are drawn higher; the day runs about 900 times faster.</span>
+            <span>Source: drift/{d.id}.json</span>
+            <MockTag show={d.mock} />
+          </figcaption>
+        </figure>
+      </div>
+    </section>
   )
 }
 

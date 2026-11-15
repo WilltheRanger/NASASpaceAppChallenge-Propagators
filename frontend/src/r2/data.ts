@@ -48,7 +48,7 @@ const checksFile = (Object.values(import.meta.glob<ChecksFile>('../../../data/ou
 export const CHECKS = { mock: !!checksFile?.mock, checks: checksFile?.checks ?? [] }
 
 export const MOCK = true
-export const REGIONS = regionsJson.regions.map((r) => ({ id: r.id, name: r.name }))
+export const REGIONS = regionsJson.regions.map((r) => ({ id: r.id, name: r.name, bbox: r.bbox as unknown as readonly [number, number, number, number] }))
 export type RegionId = string
 
 /** How each preset reads inside a sentence. */
