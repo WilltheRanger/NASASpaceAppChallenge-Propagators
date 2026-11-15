@@ -8,8 +8,9 @@ import { arc, ticks as niceTicks, type DefaultArcObject } from 'd3'
 import { ArrowRight } from 'lucide-react'
 import { FireCalendar, CalendarLegend, type CalendarMode } from '@/components/ui/fire-calendar'
 import { LeaderboardBars, type LeaderboardBarRow } from '@/components/ui/leaderboard-bars'
-import { REGIONS, regionData, verdictHeadline, verdictLines, calendarGrid, calendarFinding, pct, hm, minutesBetween, type RegionData } from '@/r2/data'
+import { REGIONS, regionData, verdictHeadline, verdictLines, calendarGrid, calendarFinding, pct, fmtRange, hm, minutesBetween, type RegionData } from '@/r2/data'
 import { RegionSelect, YearSlider, ModeToggle } from '@/r2/controls'
+import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 
 // ---------- Tokens ----------
 
@@ -231,7 +232,7 @@ export default function Posters() {
                     Explore the calendar
                     <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
                   </a>
-                  <button type="button" className="btn btn-2 fr t14">Download summary</button>
+                  <button type="button" className="btn btn-2 fr t14" onClick={() => downloadSummary(d)}>Download summary</button>
                 </div>
               </div>
             </div>
@@ -262,8 +263,9 @@ export default function Posters() {
                 <ModeToggle value={mode} onChange={setMode} classes={{ root: 'seg', item: 'seg-i fr t14' }} />
                 <span className="t14">{firstYear} → {lastYear}</span>
                 <div className="flex items-center gap-4 sm:ml-auto">
+                  {/* CSV uses the shared download; PNG and SVG are inert in this comp */}
                   {['CSV', 'PNG', 'SVG'].map((f) => (
-                    <button key={f} type="button" className="lnk fr t14" aria-label={`Download the calendar as ${f}`}>{f}</button>
+                    <button key={f} type="button" className="lnk fr t14" aria-label={`Download the calendar as ${f}`} onClick={f === 'CSV' ? () => downloadCalendarCsv(d) : undefined}>{f}</button>
                   ))}
                 </div>
               </div>
@@ -355,7 +357,7 @@ function AuditBars({ d }: { d: RegionData }) {
               <tr key={y.year}>
                 <th scope="row">{y.year}</th>
                 <td>{y.gap == null ? 'Not enough fires to measure' : pct(y.gap, 1)}</td>
-                <td>{y.lo == null || y.hi == null ? '–' : `${pct(y.lo, 1)} to ${pct(y.hi, 1)}`}</td>
+                <td>{y.lo == null || y.hi == null ? '–' : fmtRange(y.lo, y.hi)}</td>
                 <td>{y.verdict === 'clock' ? 'Beyond the noise floor' : y.verdict === 'noise' ? `Within the ±${noise}% noise floor` : 'Not measured'}</td>
               </tr>
             ))}
