@@ -216,7 +216,7 @@ export default function FieldFilm() {
   return (
     <div
       style={TOKENS as unknown as CSSProperties}
-      className="relative min-h-screen overflow-x-clip bg-[color:var(--ground)] font-[family-name:var(--f-ui)] text-[color:var(--bone)] antialiased"
+      className="relative min-h-screen overflow-x-clip bg-[color:var(--ground)] font-[family-name:var(--f-ui)] text-sm text-[color:var(--bone)] antialiased"
     >
       <TopBar region={region} onRegion={onRegion} />
       <main>
