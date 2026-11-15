@@ -24,7 +24,7 @@ import { DaylightSection } from './daylight'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, hm, isValidation, novemberRatio, regionData } from '@/r2/data'
-import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, SAT, SAT_NAMES, SENSOR, WINDOW, groupOf, histogram, lstOf, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
+import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, SAT, SAT_NAMES, WINDOW, groupOf, histogram, lstOf, sightings, strongest, summary, type SatGroup } from '@/r2/fires'
 import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
 import { BASES as DAY_BASES, BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, FLEET, PASS_END, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
@@ -54,7 +54,6 @@ const dur = (h: number | null | undefined) => {
   const hh = Math.floor(m / 60)
   return hh ? `${hh} h ${String(m % 60).padStart(2, '0')}` : `${m} min`
 }
-const utcText = (i: number) => { const t = utcOf(i); return `${String(t.getUTCHours()).padStart(2, '0')}:${String(t.getUTCMinutes()).padStart(2, '0')}` }
 /** the fire file's window: "14–15 Nov 2026" */
 const WHEN = (() => {
   const [y1, m1, d1] = WINDOW.start.split(' ')[0].split('-').map(Number)
@@ -1011,15 +1010,15 @@ function FireCard({ i, onClose, motion }: { i: number; onClose: () => void; moti
     <div role="group" aria-label={`Fire seen by ${SAT_NAMES[SAT[i]]}`} className="relative w-[248px] rounded-md border border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.97)] p-3 text-left shadow-[0_10px_28px_rgba(0,0,0,0.55)]">
       <div className="flex items-center gap-2">
         <Mark g={g} />
-        <p className="text-sm font-medium text-[color:var(--bone)]">{SAT_NAMES[SAT[i]]}<span className="font-normal text-[color:var(--bone3)]"> · {SENSOR[SAT[i]]}</span></p>
+        <p className="text-sm font-medium text-[color:var(--bone)]">{SAT_NAMES[SAT[i]]}<span className="font-normal text-[color:var(--bone3)]"> saw this fire</span></p>
         <button type="button" aria-label="Close" onClick={onClose} className={cn('-mr-1 ml-auto grid size-8 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
           <X size={15} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
       <p className="mt-0.5 text-xs tabular-nums text-[color:var(--bone2)]">
-        <DecipherText key={i} text={`${fmtHM(lstOf(i))} local · ${utcText(i)} UTC · ${fmtInt(FRP[i])} MW`} motion={motion} duration={500} />
+        <DecipherText key={i} text={`at ${fmtHM(lstOf(i))} local sun time · ${fmtInt(FRP[i])} MW of heat`} motion={motion} duration={500} />
       </p>
-      <p className="mt-3 text-xs text-[color:var(--bone3)]">Same spot, within 3 km</p>
+      <p className="mt-3 text-xs text-[color:var(--bone3)]">The same spot (within 3 km) that day</p>
       <ul className="mt-1">
         {rows.map(({ sat, i: j }) => (
           <li key={sat} className="flex h-6 items-center gap-2 text-xs">

@@ -58,7 +58,7 @@ function fireAnswer(i: number): SiAnswer {
   const utc = `${String(t.getUTCHours()).padStart(2, '0')}:${String(t.getUTCMinutes()).padStart(2, '0')} UTC`
   return {
     sentences: [
-      { text: `${SAT_NAMES[SAT[i]]} (${SENSOR[SAT[i]]}) saw this fire at ${fmtHM(lstOf(i))} local solar time (${utc}), at ${fmtInt(FRP[i])} MW.`, cite: ['firms'] },
+      { text: `${SAT_NAMES[SAT[i]]} saw this fire at ${fmtHM(lstOf(i))}, local sun time (${utc}). Its heat: ${fmtInt(FRP[i])} megawatts.`, cite: ['firms'] },
       { text: `Within 3 km that day: ${seen.map((w) => `${SAT_NAMES[w.sat]} ${fmtHM(lstOf(w.i!))}`).join(', ')}.`, cite: ['firms'] },
       ...(missed.length ? [{ text: `No daytime detection here from ${missed.join(' or ')}: passed at another time, at a swath edge, or under cloud.`, cite: ['firms'] }] : []),
     ],
