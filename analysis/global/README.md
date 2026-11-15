@@ -186,6 +186,17 @@ python3 analysis/global/global_grid.py bench WORK --work2 WORK2 --audit analysis
 - L uses MODIS and S-NPP from 2012. MODIS 2002 to 2011 and NOAA-20 are read only for the calendars (Aqua before 2012, and S-NPP outage days).
 - 546,469,853 rows were read, of which 420,813,691 are daytime.
 
+## Prior work
+
+Global hotspot statistics already exist (GWIS, Global Forest Watch), and the drift itself is well documented. Closest to this layer, as far as we found:
+
+- **NASA GMAO, QFED** ("Bringing QFED into the VIIRS Era", CEOS AC-VC-22): global maps of VIIRS against Aqua MODIS fire radiative power, including 2025, made to re-anchor the emissions dataset from Aqua to NOAA-20 VIIRS. That work scales fire radiative power between sensors; it is not a per-cell count audit against a fixed clock. https://ceos.org/document_management/Virtual_Constellations/AC-VC/Meetings/AC-VC-22/Presentations/AC-VC_5.17_Collow_version1.pdf
+- **Giglio, "Terra/Aqua Orbit-Drift Update"** (LANCE User Working Group, May 2025): the MODIS fire team reports the drift's impact on the MODIS fire products as under active investigation. https://landweb.modaps.eosdis.nasa.gov/data/filePost/LANCE_UWG_Orbit_Drift_Giglio_202505.pdf
+- **Weber and Wunderle (2019)**, "Drifting Effects of NOAA Satellites on Long-Term Active Fire Records of Europe", *Remote Sensing* 11(4), 467: the same problem for the older AVHRR record, over Europe.
+- **CAMS GFAS** added VIIRS on 4 December 2025 as MODIS drifts. https://atmosphere.copernicus.eu/drifting-away-modis-cams-global-fire-assimilation-system
+
+**Our wording:** we did not find a public map of Aqua's fire count against a fixed-clock prediction, cell by cell, with a placebo range. We do not claim more than that. The science of drift and diurnal sampling is published and is not ours.
+
 ## Sources and licenses
 
 - **NASA FIRMS** yearly country archives, MODIS Collection 6.1 and VIIRS 375 m (S-NPP, NOAA-20): https://firms.modaps.eosdis.nasa.gov/download/ . NASA data, free and open; cite as NASA FIRMS.
