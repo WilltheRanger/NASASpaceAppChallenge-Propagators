@@ -82,12 +82,11 @@ function TopBar({ regionId, onRegion }: { regionId: string; onRegion: (id: strin
       <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4 md:gap-8 md:px-8">
         <a href="#verdict" className={`flex items-center gap-2 text-[18px] font-medium ${focusRing}`}><Mark />Anchor</a>
         <nav aria-label="Sections" className="hidden items-center gap-6 lg:flex">
-          {SECTIONS.map((s) => s.inComp ? (
+          {SECTIONS.filter((s) => s.inComp).map((s) => (
             <a key={s.id} href={`#${s.id}`} aria-current={s.id === 'verdict' ? 'location' : undefined}
-              className={`rounded-sm transition-colors duration-150 ease-[var(--ease)] hover:text-[var(--ink)] ${focusRing} ${s.id === 'verdict' ? 'text-[var(--ink)]' : 'text-[var(--ink2)]'}`}>{s.label}</a>
-          ) : (
-            <span key={s.id} title="In the full build" className="cursor-default text-[var(--ink3)] opacity-70">{s.label}</span>
+              className={`rounded-sm transition-colors duration-150 ease-[var(--ease)] hover:text-[var(--ink)] ${focusRing} ${s.id === 'verdict' ? 'font-medium text-[var(--ink)]' : 'text-[var(--ink3)]'}`}>{s.label}</a>
           ))}
+          <span className="text-[12px] text-[var(--ink3)]" title={SECTIONS.filter((s) => !s.inComp).map((s) => s.label).join(', ')}>More sections in the full build</span>
         </nav>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <span className="hidden h-6 items-center whitespace-nowrap rounded-[4px] bg-[var(--raised)] px-2 text-[12px] text-[var(--ink2)] sm:inline-flex">Mock data</span>
@@ -140,7 +139,7 @@ function Hero({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: nu
       </div>
 
       <figure className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:pl-8">
-        {dr ? <Dial d={d} year={year} /> : (
+        {dr ? <Dial d={d} year={year} onYear={onYear} /> : (
           <div className="grid aspect-[16/9] place-items-center rounded-[16px] bg-[var(--raised)] p-8 text-center text-[var(--ink2)]">Look times for {d.phrase.the} are not in the data yet.</div>
         )}
         {dr ? (
@@ -152,14 +151,14 @@ function Hero({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: nu
             </div>
             {d.twoAt(year) ? (
               <p className="mt-4 flex items-center gap-2 text-[var(--ink2)]">
-                <span aria-hidden className="inline-block h-1.5 w-5" style={{ background: T.ochre }} />
-                Fires counted vs. the fixed clock: Terra ×{d.twoAt(year)!.T.toFixed(2)}, Aqua ×{d.twoAt(year)!.A.toFixed(2)}
+                <span aria-hidden className="inline-block h-2.5 w-5" style={{ background: T.ochre }} />
+                Ochre band: fires counted at each look vs. the fixed clock, Terra ×{d.twoAt(year)!.T.toFixed(2)} → Aqua ×{d.twoAt(year)!.A.toFixed(2)}
               </p>
             ) : null}
             <YearControl d={d} year={year} onYear={onYear} />
             <figcaption className="mt-4 text-[12px] leading-4 text-[var(--ink3)]">
               Local solar time. The cut line is the fixed clock; the shadow falls where Aqua looked; cinnabar marks the minutes between them.
-              {d.twoAt(year) ? ' Ochre bars on the rim: fires counted at each look, relative to the fixed clock (two-clocks test).' : ''} Source: drift/{d.id}.json{d.twoAt(year) ? `, twoclocks/${d.id}.json` : ''} · MOCK
+              {d.twoAt(year) ? ' The band is measured at the three look times (two-clocks test) and joined between them; no fire-day curve is drawn beyond them.' : ''} Drag the shadow or use the slider. Source: drift/{d.id}.json{d.twoAt(year) ? `, twoclocks/${d.id}.json` : ''} · MOCK
             </figcaption>
           </div>
         ) : null}
@@ -264,12 +263,12 @@ function useWidth<E extends HTMLElement>() {
   return [ref, w] as const
 }
 
-function Dial({ d, year }: { d: RegionData; year: number }) {
+function Dial({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
   const [box, w] = useWidth<HTMLDivElement>()
-  return <div ref={box} className="w-full" style={{ minHeight: 200 }}>{w > 0 ? <DialSvg d={d} year={year} W={Math.min(w, 720)} /> : null}</div>
+  return <div ref={box} className="w-full" style={{ minHeight: 200 }}>{w > 0 ? <DialSvg d={d} year={year} onYear={onYear} W={Math.min(w, 720)} /> : null}</div>
 }
 
-function DialSvg({ d, year, W }: { d: RegionData; year: number; W: number }) {
+function DialSvg({ d, year, onYear, W }: { d: RegionData; year: number; onYear: (y: number) => void; W: number }) {
   const reduce = useReducedMotion()
   const dr = d.driftAt(year)!
   const two = d.twoAt(year)
@@ -287,33 +286,36 @@ function DialSvg({ d, year, W }: { d: RegionData; year: number; W: number }) {
   const startDeg = screenDeg(Math.min(fixed, aqua))
   const shadowLen = R * 0.78
   const shiftMin = Math.round((aqua - fixed) * 60)
-
-  // a label set along a radial line, on the chosen side of it
-  const along = (t: number, r: number, text: string, side: 'left' | 'right', color: string) => {
-    const deg = screenDeg(t), a = toRad(deg)
-    const flip = deg < -90 // morning lines: turn the text so it still reads left to right
-    const [x, y] = [cx + r * Math.cos(a), cy + r * Math.sin(a)]
-    const nx = Math.sin(a), ny = -Math.cos(a)
-    const off = (side === 'left') !== flip ? 5 : -15
-    const end = flip ? at(cx, cy, r + 120, t) : null
-    const [tx, ty] = end ? [end[0] + nx * off, end[1] + ny * off] : [x + nx * off, y + ny * off]
-    return (
-      <text x={tx} y={ty} transform={`rotate(${flip ? deg + 180 : deg} ${tx} ${ty})`} textAnchor="start" fontSize="12" fill={color} style={{ fontFamily: SANS, fontWeight: 500 }}>{text}</text>
-    )
+  const dragging = useRef(false)
+  const pickFromPointer = (e: React.PointerEvent<SVGSVGElement>) => {
+    const box = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - box.left - cx, y = e.clientY - box.top - cy
+    const deg = (Math.atan2(y, x) * 180) / Math.PI // −180..180, noon = −90
+    const t = 6 + (Math.max(-180, Math.min(0, deg)) + 180) / 15
+    let best = year, bestScore = Infinity
+    for (const r of d.drift) {
+      const score = Math.abs(hm(r.aqua_lst) - t) * 1000 + Math.abs(r.year - year)
+      if (score < bestScore) { bestScore = score; best = r.year }
+    }
+    if (best !== year) onYear(best)
   }
-  const fireBar = (t: number, ratio: number, label: string, anchor: 'start' | 'end' | 'middle') => {
-    const len = 40 * ratio
-    const [x0, y0] = at(cx, cy, R + 4, t), [x1, y1] = at(cx, cy, R + 4 + len, t), [lx, ly] = at(cx, cy, R + 4 + len + 12, t)
+
+  // a horizontal label just outside the rim with a short leader from the rim
+  const rimLabel = (t: number, text: string, anchor: 'start' | 'end', color: string) => {
+    const [x0, y0] = at(cx, cy, R + 3, t), [x1, y1] = at(cx, cy, R + 14, t)
     return (
-      <g key={label + t}>
-        <path d={`M${x0} ${y0} L${x1} ${y1}`} stroke={T.ochre} strokeWidth="5" strokeLinecap="butt" />
-        <text x={lx} y={ly + 4} textAnchor={anchor} fontSize="12" fill={T.ink2} style={{ fontFamily: SANS, fontVariantNumeric: 'tabular-nums' }}>{label}</text>
+      <g key={text}>
+        <path d={`M${x0} ${y0} L${x1} ${y1}`} stroke={color} strokeWidth="1" />
+        <text x={x1 + (anchor === 'start' ? 4 : -4)} y={y1 - 2} textAnchor={anchor} fontSize="12" fill={color} style={{ fontFamily: SANS, fontWeight: 500 }}>{text}</text>
       </g>
     )
   }
 
   return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="mx-auto block overflow-visible" role="img"
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="mx-auto block cursor-grab touch-none select-none overflow-visible active:cursor-grabbing" role="img"
+      onPointerDown={(e) => { dragging.current = true; e.currentTarget.setPointerCapture(e.pointerId); pickFromPointer(e) }}
+      onPointerMove={(e) => { if (dragging.current) pickFromPointer(e) }}
+      onPointerUp={() => { dragging.current = false }} onPointerCancel={() => { dragging.current = false }}
       aria-label={`Sundial for ${d.phrase.the}, ${year}: the fixed clock's line at ${dr.viirs_lst}; Aqua's shadow at ${dr.aqua_lst}, ${Math.abs(shiftMin)} minutes ${shiftMin >= 0 ? 'later' : 'earlier'}.${two ? ` Relative to the fixed clock, Terra counted ${two.T.toFixed(2)} times and Aqua ${two.A.toFixed(2)} times as many fires.` : ''}`}>
       <defs>
         {/* light comes from the lower left, so shadows fall to the upper right */}
@@ -369,6 +371,28 @@ function DialSvg({ d, year, W }: { d: RegionData; year: number; W: number }) {
         <circle cx={cx} cy={cy} r={ringR - ringW / 2 + 0.5} fill="none" stroke={T.cinnabarDeep} strokeWidth="1" pathLength={360} strokeDasharray={`${sweep} 360`} style={{ transition: move }} className="sd-move" />
       </g>
 
+      {/* the burning afternoon, measured: an ochre band inlaid inside the chapter ring whose thickness is the fires counted
+          at each look relative to the fixed clock (Terra, fixed clock, Aqua from the two-clocks file), joined for reading */}
+      {two ? (() => {
+        const pts = [[terra, two.T], [fixed, 1], [aqua, two.A]].sort((a, b) => a[0] - b[0])
+        const k = R * 0.075, rOut = R * 0.795
+        const steps = 48, tA = pts[0][0], tB = pts[pts.length - 1][0]
+        const ratioAt = (t: number) => { for (let i = 0; i < pts.length - 1; i++) { const [t0, r0] = pts[i], [t1, r1] = pts[i + 1]; if (t <= t1) return r0 + ((r1 - r0) * (t - t0)) / Math.max(1e-6, t1 - t0) } return pts[pts.length - 1][1] }
+        const outer = Array.from({ length: steps + 1 }, (_, i) => { const t = tA + ((tB - tA) * i) / steps; return at(cx, cy, rOut, t) })
+        const inner = Array.from({ length: steps + 1 }, (_, i) => { const t = tB - ((tB - tA) * i) / steps; return at(cx, cy, rOut - k * ratioAt(t), t) })
+        const dPath = `M${outer.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L')} L${inner.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L')} Z`
+        return (
+          <g>
+            <path d={dPath} fill={T.ochre} fillOpacity="0.85" />
+            <path d={dPath} fill="none" stroke="#7A4E12" strokeOpacity="0.45" strokeWidth="1" />
+            {!compact ? ([[terra, two.T, -0.4], [aqua, two.A, 0.4]] as const).map(([t, r, dt]) => {
+              const [x, y] = at(cx, cy, rOut - k * r - 14, t + dt)
+              return <text key={t} x={x} y={y + 4} textAnchor="middle" fontSize="12" fill={T.cut} style={{ fontFamily: SANS, fontVariantNumeric: 'tabular-nums' }}>×{r.toFixed(2)}</text>
+            }) : null}
+          </g>
+        )
+      })() : null}
+
       {/* hour lines cut into the stone: a dark wall and a lit wall */}
       {hours.map((h) => {
         const [x0, y0] = at(cx, cy, R * 0.16, h), [x1, y1] = at(cx, cy, R * 0.8, h)
@@ -392,7 +416,6 @@ function DialSvg({ d, year, W }: { d: RegionData; year: number; W: number }) {
 
       {/* Terra, the opposite clock: a faint cut in the morning */}
       {(() => { const [x0, y0] = at(cx, cy, R * 0.42, terra), [x1, y1] = at(cx, cy, R * 0.78, terra); return <path d={`M${x0} ${y0} L${x1} ${y1}`} stroke={T.ink3} strokeOpacity="0.8" strokeWidth="1.25" /> })()}
-      {!compact ? along(terra, R * 0.5, `Terra ${dr.terra_lst}`, 'left', T.ink2) : null}
 
       {/* the fixed clock: a deep cut that never moves */}
       {(() => {
@@ -416,18 +439,10 @@ function DialSvg({ d, year, W }: { d: RegionData; year: number; W: number }) {
       <path d={`M${cx - 7} ${cy} L${cx} ${cy - R * 0.2}`} stroke={T.bronzeLit} strokeWidth="1.5" />
       <rect x={cx - 12} y={cy - 2} width={24} height={4} fill={T.bronze} />
 
-      {/* names cut along the two lines */}
-      {!compact ? along(fixed, R * 0.4, `Fixed clock ${dr.viirs_lst}`, 'left', T.ink) : null}
-      {!compact ? along(aqua, R * 0.4, `Aqua ${dr.aqua_lst}`, 'right', T.cinnabarText) : null}
-
-      {/* why the afternoon matters: fires counted at each look, relative to the fixed clock (two-clocks test) */}
-      {two && !compact ? (
-        <g>
-          {fireBar(terra, two.T, `×${two.T.toFixed(2)}`, 'end')}
-          {fireBar(fixed, 1, '×1.00', 'end')}
-          {fireBar(aqua, two.A, `×${two.A.toFixed(2)}`, 'start')}
-        </g>
-      ) : null}
+      {/* names at the rim, horizontal, with short leaders */}
+      {rimLabel(terra, 'Terra', 'end', T.ink2)}
+      {rimLabel(Math.min(fixed, aqua), fixed <= aqua ? 'Fixed clock' : 'Aqua', 'end', fixed <= aqua ? T.ink : T.cinnabarText)}
+      {rimLabel(Math.max(fixed, aqua), fixed <= aqua ? 'Aqua' : 'Fixed clock', 'start', fixed <= aqua ? T.cinnabarText : T.ink)}
     </svg>
   )
 }
