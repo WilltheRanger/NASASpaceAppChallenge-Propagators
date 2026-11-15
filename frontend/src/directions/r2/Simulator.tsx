@@ -27,7 +27,7 @@ import { REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isVal
 import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, SAT, SAT_NAMES, WINDOW, groupOf, histogram, lstOf, sightings, strongest, summary, type SatGroup } from '@/r2/fires'
 import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
-import { BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, PASS_END, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
+import { BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, PASS_END, SOURCES as DAY_SOURCES, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
 import { DOWN, EXPLORATORY, L_STEPS, NEAR, UP, cellFeatures, cellIdAt, cellName, globalGrid, reading, type GlobalCell, type GlobalGrid } from '@/r2/global'
 import { CellPanel } from './GlobalLayer'
 import CONTEXT from '@/r2/earth/context.json'
@@ -953,7 +953,7 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
         <div className="min-w-0">
           <h2 id="fireday-h" className="text-sm font-medium text-[color:var(--bone)]">One fire day: {dayLabel(FIRE_DAY_DATE)}, Pará, Brazil</h2>
           <p className="mt-0.5 text-xs leading-5 text-[color:var(--bone3)]">
-            Real data: {DAY_FIRES.length} fires and when each satellite passed (NASA FIRMS). The delay is the range NASA publishes for its fire data.
+            Real data: {DAY_FIRES.length} fires, which satellites saw each, and when each passed (NASA FIRMS). S-NPP and NOAA-20 carry VIIRS. The delay is the range NASA publishes for its fire data.
           </p>
         </div>
         <button type="button" aria-label="Back to the past day's fires" title="Back to the past day's fires" onClick={onClose} className={cn('-mr-1 grid size-9 shrink-0 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
@@ -961,7 +961,7 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
         </button>
       </div>
       <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
-        <div className="min-w-[260px] flex-1">
+        <div className="min-w-[300px] flex-1">
           <p className="mb-1 text-xs text-[color:var(--bone2)]">Alert from</p>
           <SegmentedControl<DaySource>
             label="Alert from"
@@ -969,10 +969,10 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
             onChange={(src) => setDay({ ...day, src })}
             motion={motion}
             segmentClassName="px-2 py-1.5 text-center"
-            options={(['Terra', 'VIIRS', 'Aqua'] as DaySource[]).map((v) => ({ value: v, name: `${v}, pass ends ${fmtHM(PASS_END[v])}`, label: <span><span className="block text-sm">{v}</span><span className="block text-[11px] tabular-nums opacity-80">{fmtHM(PASS_END[v])}</span></span> }))}
+            options={DAY_SOURCES.map((v) => ({ value: v, name: `${v}, pass ends ${fmtHM(PASS_END[v])}`, label: <span><span className="block text-sm">{v}</span><span className="block text-[11px] tabular-nums opacity-80">{fmtHM(PASS_END[v])}</span></span> }))}
           />
         </div>
-        <div className="w-[220px]">
+        <div className="w-[190px]">
           <p className="mb-1 text-xs text-[color:var(--bone2)]">Delay before the alert</p>
           <SegmentedControl<DayDelay>
             label="Delay before the alert"
