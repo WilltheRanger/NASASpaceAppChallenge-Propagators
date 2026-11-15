@@ -1,0 +1,93 @@
+{
+ "mock": false,
+ "region": "us-california",
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS United States country files, simplified state outline). Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:56",
+   "viirs_lst": "12:53"
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:57",
+   "viirs_lst": "12:57"
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:08",
+   "terra_lst": "10:57",
+   "viirs_lst": "13:02"
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:10",
+   "terra_lst": "11:00",
+   "viirs_lst": "13:02"
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:11",
+   "terra_lst": "10:57",
+   "viirs_lst": "12:59"
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:57",
+   "viirs_lst": "12:57"
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:57",
+   "viirs_lst": "13:00"
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:56",
+   "viirs_lst": "12:57"
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:06",
+   "terra_lst": "10:57",
+   "viirs_lst": "12:58"
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:55",
+   "viirs_lst": "12:58"
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:09",
+   "terra_lst": "10:45",
+   "viirs_lst": "12:55"
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "13:26",
+   "terra_lst": "10:30",
+   "viirs_lst": "12:58"
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "13:47",
+   "terra_lst": "10:09",
+   "viirs_lst": "12:57"
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "14:18",
+   "terra_lst": "09:48",
+   "viirs_lst": "12:57"
+  }
+ ],
+ "validation_variant": "IBGE 2019 cell-center sensitivity rerun; not merged production data",
+ "biome_lookup_source": "IBGE 2019 1:250000, EPSG:4674 transformed to EPSG:4326"
+}

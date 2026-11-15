@@ -1,0 +1,80 @@
+{
+ "mock": false,
+ "note": "Regions with real audit, calendar, two-clocks and fire-day files. bbox is for map framing; Brazil biomes use IBGE 2019 0.1-degree cell-center assignments, Punjab + Haryana uses this bbox, California a simplified state outline.",
+ "regions": [
+  {
+   "id": "br-amazon",
+   "name": "Amazon (Brazil)",
+   "kind": "biome",
+   "bbox": [
+    -74.0,
+    -16.7,
+    -43.0,
+    5.3
+   ],
+   "featured": true
+  },
+  {
+   "id": "br-cerrado",
+   "name": "Cerrado (Brazil)",
+   "kind": "biome",
+   "bbox": [
+    -60.5,
+    -24.7,
+    -41.3,
+    -2.3
+   ],
+   "featured": false
+  },
+  {
+   "id": "br-pantanal",
+   "name": "Pantanal (Brazil)",
+   "kind": "biome",
+   "bbox": [
+    -59.2,
+    -22.2,
+    -54.9,
+    -15.1
+   ],
+   "featured": false
+  },
+  {
+   "id": "ar-argentina",
+   "name": "Argentina",
+   "kind": "country",
+   "bbox": [
+    -73.6,
+    -55.1,
+    -53.6,
+    -21.8
+   ],
+   "featured": false
+  },
+  {
+   "id": "in-punjab-haryana",
+   "name": "Punjab + Haryana (India)",
+   "kind": "preset",
+   "bbox": [
+    73.8,
+    27.6,
+    77.6,
+    32.6
+   ],
+   "featured": false
+  },
+  {
+   "id": "us-california",
+   "name": "California (USA)",
+   "kind": "state",
+   "bbox": [
+    -124.5,
+    32.5,
+    -114.1,
+    42.0
+   ],
+   "featured": false
+  }
+ ],
+ "validation_variant": "IBGE 2019 cell-center sensitivity rerun; not merged production data",
+ "biome_lookup_source": "IBGE 2019 1:250000, EPSG:4674 transformed to EPSG:4326"
+}
