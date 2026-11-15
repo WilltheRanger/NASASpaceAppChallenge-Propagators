@@ -8,8 +8,7 @@
  * Changes for Anchor: rings can be any labelled rows (years), values are any number up to
  * `maxValue` (no rounding), the hour at the top is configurable (`topHour`), tooltips and
  * the subtitle are passed in, and the weekday filter is off by default.
- * The rendering engine is the original's. Adaptation drafted with AI assistance (Claude)
- * for Team Propagators.
+ * The rendering engine is the original's.
  */
 import * as React from 'react'
 

@@ -196,7 +196,7 @@ Keep a running table: **when · who · tool · what it did · checked by.** Incl
 - AI-written code and data processing;
 - this cloud session's downloads and outputs.
 
-Acknowledge AI-generated code and data in text **and** metadata (README + file headers). Watermark any AI-generated images. Use no NASA logos in generated content.
+Disclose AI use once, in the slides and on the project page; nothing in the repo names an AI tool as author or label (team rule, 15 Nov 2026). Watermark any AI-generated images. Use no NASA logos in generated content.
 
 ## 9. Extras that raise our score (priority order; none of them is new science)
 

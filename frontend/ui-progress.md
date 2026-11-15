@@ -1,12 +1,15 @@
 # ui-progress.md: Phase 3 · UI (rule of three)
 
-- **Comment page (current):** https://claude.ai/artifact/JTaQg8yRyq77Teu8e5ytGH — direction D live, private; the team
-  comments on it and each round republishes to the same link (`ARTIFACT_OUT=<dir> npm run artifact`, then publish
-  `<dir>/page.html` with its `assets/` and `img/` files).
+- **Comment page (current):** https://claude.ai/artifact/JTaQg8yRyq77Teu8e5ytGH — direction D live, private, as two
+  pages: the landing (main page) and the audit (`app.html`, "Open the audit"). The team comments on it and each round
+  republishes to the same link (`ARTIFACT_OUT=<dir> npm run artifact`, then publish `<dir>/page.html` with `app.html`,
+  `assets/` and `img/`).
 - **Canvas:** https://claude.ai/artifact/55RnYtpPDq8JdZzLAtyVYv ("Anchor", Design type). Round 1 screenshots are uploaded
   as assets; artboards stay unpublished until the team says the canvas (shared by link) may be used.
 - **Live prototype:** `frontend/` (Vite + React + TypeScript + Tailwind v4). `npm run dev`, then `?d=a` … `?d=e`
-  (Round 2). Round 1 stays reachable at `?round=1&d=a` … `?round=1&d=e`.
+  (Round 2; D is `?d=d` for the landing and `?d=d&page=app` for the audit, `&region=<id>` for either). Round 1 stays
+  reachable at `?round=1&d=a` … `?round=1&d=e`.
+- **Anduril study:** `designs/round-2/anduril-study.md` (their code, motion and UX, and what D takes from it).
 - **Renders:** `designs/round-2/renders/` (Round 2), `designs/round-1/renders/` (Round 1, rejected).
 - **Plan for the current round:** `designs/round-2/plan.md` (why Round 1 failed, seed, hierarchy map, manifest,
   direction lines, colour plans, contracts). Product record: `../PRODUCT.md`.
@@ -40,6 +43,11 @@ per direction in `designs/round-2/plan.md`.
 | Phase 3 | Round 1 | Rejected all five | "You didnt follow any of the design rules" |
 | Phase 3 | Round 2 | **D · Field film** (Anduril-inspired) | "lets go with this one. I need to slowly edit this" |
 | Phase 3 | Logo | The clock-sweep mark from B (quarter-arc + bar) with the Host Grotesk wordmark | "can you make this our logo please" |
+| Phase 3 | D, comments | Range line removed; photo credit to the footer; year reel (21st.dev Filmstrip Scrub), then a ruler strip; clock-effect table → 21st.dev Anomaly Chart | Comment threads on the comment page |
+| Phase 3 | D, structure | Landing and audit as separate pages; one Unsplash photograph per region | "put like this aspect as a seperate landing page"; "different images accross different regions" |
+| Phase 3 | D, landing | Keep D's layout, add to it; the hero is a statement: the region's name only ("The Amazon"), the verdict below | "you dont have to completly repalce it"; "The top is supposed to be sort of a statement piece" |
+| Phase 3 | D, motion | Anduril's patterns from their code: decode, tour of regions, title rise, rule + slide, tile reveal, page fade, motion switch | "look at andurils code … animations and ux" |
+| Phase 3 | Repo | No AI tool names in commits, PRs, branches, comments, headers or data notes; AI use disclosed in the slides and on the project page | Team git rule, 15 Nov |
 
 ## History
 - Hand-built HTML drafts of Round 1 A–C (`designs/round-1/*.html`) were superseded by the component-based rebuild.

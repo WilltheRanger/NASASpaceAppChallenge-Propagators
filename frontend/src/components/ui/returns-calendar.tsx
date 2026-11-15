@@ -9,8 +9,7 @@
  * calendar month (not returns); the up/down hues are a colour-blind-safe warm/cool pair;
  * `null` months render as empty "no data" cells; provisional months are hatched and outage
  * months carry a dot; the year column shows the year's total and its popover draws that
- * year's season against the median. Adaptation drafted with AI assistance (Claude) for
- * Team Propagators.
+ * year's season against the median.
  */
 import { useMemo, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'

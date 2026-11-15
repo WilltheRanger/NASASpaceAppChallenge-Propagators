@@ -2,7 +2,7 @@
 // (https://21st.dev/@daiwiikharihar/components/flip-disk-matrix).
 // Changes for Anchor: shows a value passed in (e.g. a look time) instead of the live clock,
 // drops the demo mode switcher and text box, takes colours from CSS variables, and adds
-// an accessible label. Adaptation drafted with AI assistance (Claude) for Team Propagators.
+// an accessible label.
 import { memo, useMemo, type CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 

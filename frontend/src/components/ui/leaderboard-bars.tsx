@@ -8,7 +8,6 @@
  * noise floor, bars grow from a zero line in either direction, whiskers take an explicit
  * lo/hi range, an optional second marker shows the fire-size-adjusted value, and
  * colours come from --vz-* CSS variables so each theme can restyle it.
- * Adaptation drafted with AI assistance (Claude) for Team Propagators.
  */
 
 const MONO = 'var(--vz-mono, ui-monospace, SFMono-Regular, monospace)'

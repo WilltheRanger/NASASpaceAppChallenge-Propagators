@@ -102,7 +102,7 @@ Laptop at a desk or projected at judging; phones for quick checks (390 px and up
 - **Time:** build freeze Sun Nov 15, 8:00 AM PT (ui-forge budget); internal submit 9:00 PM PT; official deadline 11:59 PM PT.
 - **Budget:** $0.
 - **Stack:** Vite + React + TypeScript (team plan), Tailwind + shadcn primitives (ui-forge kit), custom SVG charts, Leaflet, WebGL for shaders.
-- **Rules:** judges open links without signing in; AI-generated code acknowledged in text and metadata; no NASA logos, flags or mission identifiers; team members are minors, so no names, photos, faces or voices; wording says "we did not find anyone doing X", never "first".
+- **Rules:** judges open links without signing in; AI use disclosed in the slides and on the project page, not in the repo; no NASA logos, flags or mission identifiers; team members are minors, so no names, photos, faces or voices; wording says "we did not find anyone doing X", never "first".
 
 ## Brand and tone
 - **Personality:** precise, candid, calm, curious (details in `productID.md`).

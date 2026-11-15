@@ -1,5 +1,5 @@
 /*
- * Round 2 · A · Sundial (assigned direction). Drafted with AI assistance (Claude) for Team Propagators. MOCK data.
+ * Round 2 · A · Sundial (assigned direction). MOCK data.
  * THESIS: the clock that matters is the sun's; the drift is a shadow walking into the burning afternoon.
  * OWN-WORLD: daylight page tinted toward slate; one limestone dial with cut hour lines, a bronze gnomon, a soft shadow
  *   and a cinnabar inlay; serif headline and dial numerals, sans everything else; the calendar printed as an almanac.
@@ -544,7 +544,7 @@ function Footer() {
     <footer className="border-t border-[var(--hair)]">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-4 py-12 text-[12px] leading-4 text-[var(--ink3)] md:flex-row md:justify-between md:px-8">
         <span>Anchor · Team Propagators</span>
-        <span>Designed and coded with AI assistance (Claude). Every number comes from the team's JSON files; this comp uses mock data.</span>
+        <span>Every number comes from the team's JSON files; this comp uses mock data.</span>
       </div>
     </footer>
   )

@@ -3,7 +3,7 @@
 The team's product design form, filled in for **Anchor** (Team Propagators, NASA Space Apps 2026, Challenge #9).
 Sections 1–3 and 6–7 come from the signed-off requirements (`frontend/requirements.md`). Sections 4–5 are
 filled in Phase 3 of the design run, when the team picks a visual direction.
-Drafted with AI assistance (Claude) and decided by the team; see the AI disclosure in the README.
+Decided by the team.
 
 ---
 

@@ -1,6 +1,5 @@
 // WebGL shader layers for Anchor. Each falls back to a still image when WebGL is missing or
 // the viewer prefers reduced motion; no number on the page depends on them.
-// Drafted with AI assistance (Claude) for Team Propagators.
 import { useEffect, useRef, useState } from 'react'
 
 const VS = 'attribute vec2 p; varying vec2 uv; void main(){ uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }'

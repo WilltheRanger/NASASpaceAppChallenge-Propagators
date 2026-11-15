@@ -1,5 +1,5 @@
 // Round 1 · Direction C · Spec sheet (swiss-system; grounded in Apex + Linear).
-// Drafted with AI assistance (Claude) for Team Propagators. MOCK data only.
+// MOCK data only.
 import { useMemo, type CSSProperties } from 'react'
 import { Globe } from '@/components/ui/cobe-globe'
 import { FlipDiskMatrix } from '@/components/ui/flip-disk-matrix'

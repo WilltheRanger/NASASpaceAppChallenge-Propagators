@@ -1,6 +1,6 @@
 // Round 1 · Direction E · Operations (Palantir-inspired: product UI as hero, giant figure,
 // metadata strips, bracketed wayfinding, comparison card, indexed contents).
-// Drafted with AI assistance (Claude) for Team Propagators. MOCK data only.
+// MOCK data only.
 import { useMemo, type CSSProperties } from 'react'
 import { Globe } from '@/components/ui/cobe-globe'
 import { KnowledgeGraph, type GraphLink, type GraphNode } from '@/components/ui/knowledge-graph'
@@ -220,7 +220,7 @@ export default function DirectionE() {
           <a href="#" className="flex h-36 items-start justify-between rounded-sm p-5 text-[32px] font-light" style={{ background: T.grey2, color: T.black }}>Get the data <Arrow /></a>
           <a href="#" className="flex h-36 items-start justify-between rounded-sm p-5 text-[32px] font-light" style={{ background: T.graphite, color: T.text }}>Read the method <Arrow /></a>
         </div>
-        <p className="mx-auto mt-6 max-w-[1480px] px-6 text-[11px]" style={{ fontFamily: 'var(--mono)', color: '#6B6F76' }}>Source: NASA FIRMS via the Anchor pipeline · MOCK numbers · Team Propagators · built with AI-assisted code (Claude)</p>
+        <p className="mx-auto mt-6 max-w-[1480px] px-6 text-[11px]" style={{ fontFamily: 'var(--mono)', color: '#6B6F76' }}>Source: NASA FIRMS via the Anchor pipeline · MOCK numbers · Team Propagators</p>
       </section>
     </div>
   )

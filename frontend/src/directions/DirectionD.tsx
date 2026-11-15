@@ -1,6 +1,6 @@
 // Round 1 · Direction D · Systems (Anduril-inspired: cinematic full-bleed, mosaic of system tiles
 // with quiet labels, muted grey/olive/cream bands, product rows).
-// Drafted with AI assistance (Claude) for Team Propagators. MOCK data only.
+// MOCK data only.
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { Globe } from '@/components/ui/cobe-globe'
 import { FlipDiskMatrix } from '@/components/ui/flip-disk-matrix'
@@ -143,7 +143,7 @@ export default function DirectionD() {
       </section>
       <footer className="flex flex-wrap items-end justify-between gap-6 px-5 py-10 text-[12px] md:px-8" style={{ color: T.text2 }}>
         <span className="text-[15px] font-bold tracking-[0.12em]" style={{ color: T.text }}>ANCHOR</span>
-        <span style={{ fontFamily: 'var(--mono)' }}>Team Propagators · NASA Space Apps 2026 · MOCK data · built with AI-assisted code (Claude)</span>
+        <span style={{ fontFamily: 'var(--mono)' }}>Team Propagators · NASA Space Apps 2026 · MOCK data</span>
       </footer>
     </div>
   )

@@ -5,7 +5,7 @@
  * SVG/PNG export. Changes for Anchor: colours come from props/CSS variables (no hashed
  * rainbow), labels can be longer and sit beside the node, link labels use the theme's
  * muted colour, and node size can carry meaning. The simulation, zoom, drag and export
- * code are the original's. Adaptation drafted with AI assistance (Claude) for Team Propagators.
+ * code are the original's.
  */
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import * as d3 from 'd3'

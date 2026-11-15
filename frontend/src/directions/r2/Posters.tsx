@@ -2,7 +2,6 @@
 // Six regions are one Swiss poster series cut from one 12-column grid; the clock appears as geometry, never as a
 // picture. The loaded region's signal colour is the only accent on the page; the region index shows each region's
 // own poster in its own colour. Every number comes from the mock JSON through src/r2/data.ts.
-// Drafted with AI assistance (Claude) for Team Propagators.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { arc, ticks as niceTicks, type DefaultArcObject } from 'd3'
@@ -323,7 +322,7 @@ export default function Posters() {
         <div className="shell py-12 lg:grid lg:grid-cols-12 lg:items-baseline lg:gap-x-6">
           <p className="t14 text-[var(--ink2)] lg:col-span-7">Anchor · Team Propagators</p>
           <p className="t12 mt-2 max-w-md text-[var(--ink3)] lg:col-span-5 lg:col-start-8 lg:mt-0">
-            Designed and coded with AI assistance (Claude). Every number comes from the team’s JSON files; this comp uses mock data.
+            Every number comes from the team’s JSON files; this comp uses mock data.
           </p>
         </div>
       </footer>

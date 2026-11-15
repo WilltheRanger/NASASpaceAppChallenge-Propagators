@@ -1,7 +1,6 @@
 // Round 2 · Direction C, "Exposure record". An audit read as a darkroom exposure record: a ruled, slightly translucent
 // record card on a backlit light table, three real prints of one Amazon scene, and one magenta pencil that marks only
 // where the clock changed the count. Every number comes from src/r2/data.ts (data/mock, labelled MOCK).
-// Drafted with AI assistance (Claude) for Team Propagators.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
@@ -300,7 +299,7 @@ export default function Record() {
         <div className="mx-auto flex max-w-[var(--maxw)] flex-col gap-2 px-4 py-12 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:px-8">
           <p className="text-sm text-[color:var(--ink2)]">Anchor · Team Propagators</p>
           <p className="text-xs text-[color:var(--ink3)]">
-            Designed and coded with AI assistance (Claude). Every number comes from the team’s JSON files; this comp uses mock data.
+            Every number comes from the team’s JSON files; this comp uses mock data.
           </p>
         </div>
       </footer>

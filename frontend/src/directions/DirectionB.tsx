@@ -1,5 +1,5 @@
 // Round 1 · Direction B · Colour of the hour (editorial-premium; grounded in Ciechanowski).
-// Drafted with AI assistance (Claude) for Team Propagators. MOCK data only.
+// MOCK data only.
 import { useMemo, useState, type CSSProperties } from 'react'
 import { CirculariumRing } from '@/components/ui/circularium-ring'
 import { LeaderboardBars } from '@/components/ui/leaderboard-bars'

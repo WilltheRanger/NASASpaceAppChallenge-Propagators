@@ -1,6 +1,6 @@
 /*
  * Round 2 · E · Operating picture (Palantir-inspired, at the team's request).
- * Drafted with AI assistance (Claude) for Team Propagators. MOCK data: every number comes from src/r2/data.ts.
+ * MOCK data: every number comes from src/r2/data.ts.
  * THESIS: plain, very large sentences, then the working product in its own dark window, the way an analyst sees it.
  * OWN-WORLD: light grey page, black and grey two-tone sentences, one dark product window with amber for Aqua and
  *   blue for Terra. Amber and blue live only inside the dark windows. Near-square chrome: controls 2–4 px, windows 8.
@@ -302,7 +302,7 @@ export default function Operating() {
       <footer className="mt-32 border-t border-[var(--hair)]">
         <div className={cn(container, 'flex flex-col gap-2 py-12 text-xs text-[color:var(--ink3)] md:flex-row md:justify-between md:gap-6')}>
           <p>Anchor · Team Propagators</p>
-          <p>{typeset("Designed and coded with AI assistance (Claude). Every number comes from the team's JSON files; this comp uses mock data.")}</p>
+          <p>{typeset("Every number comes from the team's JSON files; this comp uses mock data.")}</p>
         </div>
       </footer>
     </div>

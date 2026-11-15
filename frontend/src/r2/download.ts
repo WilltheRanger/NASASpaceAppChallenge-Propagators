@@ -1,5 +1,4 @@
 // Downloads for the Round 2 comps: the calendar as CSV and a plain-text summary. Both are marked MOCK.
-// Drafted with AI assistance (Claude) for Team Propagators.
 import { fmtInt, fmtRange, headlineCheck, pct, verdictHeadline, verdictLines, type RegionData } from './data'
 
 function save(name: string, body: string, type: string) {
@@ -29,7 +28,7 @@ export function downloadSummary(d: RegionData) {
     '',
     hc.ok ? `${hc.from} → ${hc.to}: official ${pct(hc.official)}, fixed clock ${pct(hc.fixed)}` : '',
     'Sources: audit, drift and calendar JSON for this region (NASA FIRMS: MODIS C6.1, VIIRS 375 m).',
-    'Made by Team Propagators with AI-assisted code (Claude).',
+    'Made by Team Propagators.',
   ]
   save(`anchor-summary-${d.id}${d.mock ? '-MOCK' : ''}.txt`, lines.join('\n') + '\n', 'text/plain')
 }

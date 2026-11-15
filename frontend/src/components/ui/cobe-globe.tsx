@@ -3,7 +3,6 @@
  * built on cobe (MIT). Kept as published: WebGL dotted globe, drag with momentum, markers and arcs,
  * labels placed with CSS anchor positioning. Changes for Anchor: label colours and an optional
  * `focus` longitude to start facing a region; style objects typed for strict TypeScript.
- * Adaptation drafted with AI assistance (Claude) for Team Propagators.
  */
 import { useEffect, useRef, useCallback, type CSSProperties } from 'react'
 import createGlobe from 'cobe'

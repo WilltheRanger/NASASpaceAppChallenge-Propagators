@@ -6,7 +6,7 @@
  * going back up); autoplay pauses while the pointer is inside.
  * Changes for Anchor: rows carry an index label (e.g. "/0.0") instead of 01, 02…, title and
  * label fonts come from CSS variables, and the painted-landscape fallback is dropped (every
- * row has a real image). Adaptation drafted with AI assistance (Claude) for Team Propagators.
+ * row has a real image).
  */
 import * as React from 'react'
 

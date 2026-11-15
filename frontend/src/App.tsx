@@ -1,6 +1,5 @@
-// Anchor direction comps. Round 2 (current): ?d=a|b|c|d|e. Round 1 (rejected, kept for the record): ?round=1&d=a..e.
-// Drafted with AI assistance (Claude) for Team Propagators.
-import { lazy, Suspense } from 'react'
+// Anchor direction comps. Round 2 (current): ?d=a|b|c|d|e (D has two pages: ?d=d is the landing, ?d=d&page=app the audit). Round 1 (rejected, kept for the record): ?round=1&d=a..e.
+import { lazy, Suspense, type ComponentType } from 'react'
 
 const R2 = {
   a: lazy(() => import('./directions/r2/Sundial')), b: lazy(() => import('./directions/r2/Posters')), c: lazy(() => import('./directions/r2/Record')),
@@ -15,6 +14,6 @@ export default function App() {
   const p = new URLSearchParams(window.location.search)
   const d = p.get('d') ?? 'a'
   const set = p.get('round') === '1' ? R1 : R2
-  const View = (set as Record<string, (typeof R2)['a']>)[d] ?? set.a
+  const View = (set as unknown as Record<string, ComponentType>)[d] ?? set.a
   return <Suspense fallback={null}><View /></Suspense>
 }

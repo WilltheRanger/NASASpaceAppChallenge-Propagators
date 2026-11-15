@@ -1,5 +1,5 @@
 // Round 2 data layer: region-aware reads of the mock JSON contract (data/mock/*), plus the verdict wording.
-// Every value shown in the comps comes from these files. Drafted with AI assistance (Claude) for Team Propagators.
+// Every value shown in the comps comes from these files.
 import regionsJson from '../../../data/mock/regions.json'
 
 type DriftFile = { mock?: boolean; region: string; years: { year: number; aqua_lst: string; terra_lst: string; viirs_lst: string }[] }

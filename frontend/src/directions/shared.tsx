@@ -1,4 +1,4 @@
-// Shared bits for the Round 1 direction comps. Drafted with AI assistance (Claude) for Team Propagators.
+// Shared bits for the Round 1 direction comps.
 import type { CSSProperties, ReactNode } from 'react'
 
 export const Arrow = () => (

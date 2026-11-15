@@ -2,7 +2,7 @@
   "name": "anchor",
   "private": true,
   "version": "0.1.0",
-  "description": "Anchor: the fire record on a fixed clock. Team Propagators, NASA Space Apps 2026. Code drafted with AI assistance (Claude).",
+  "description": "Anchor: the fire record on a fixed clock. Team Propagators, NASA Space Apps 2026.",
   "type": "module",
   "scripts": {
     "dev": "vite",

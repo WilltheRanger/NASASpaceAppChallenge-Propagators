@@ -1,5 +1,5 @@
 // Round 2 controls: Radix primitives (Select, Slider, Toggle Group) with no styling of their own.
-// Each direction passes classes that read its CSS tokens. Drafted with AI assistance (Claude) for Team Propagators.
+// Each direction passes classes that read its CSS tokens.
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Select from '@radix-ui/react-select'
 import * as Slider from '@radix-ui/react-slider'

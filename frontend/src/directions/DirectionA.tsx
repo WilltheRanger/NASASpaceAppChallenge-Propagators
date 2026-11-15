@@ -1,5 +1,5 @@
 // Round 1 · Direction A · Thermal (cinematic-product; grounded in Oxide + Flip-Disk Matrix).
-// Drafted with AI assistance (Claude) for Team Propagators. MOCK data only.
+// MOCK data only.
 import { useMemo, type CSSProperties } from 'react'
 import { FlipDiskMatrix } from '@/components/ui/flip-disk-matrix'
 import { CirculariumRing } from '@/components/ui/circularium-ring'

@@ -1,6 +1,5 @@
 // Mock data for the Round 1 design comps (synthetic; every panel shows a MOCK badge).
 // The production app fetches data/out/ (real) or data/mock/ at runtime instead.
-// Drafted with AI assistance (Claude) for Team Propagators.
 import regionsJson from '../../../data/mock/regions.json'
 import driftJson from '../../../data/mock/drift/br-amazon.json'
 import auditJson from '../../../data/mock/audit/br-amazon.json'
