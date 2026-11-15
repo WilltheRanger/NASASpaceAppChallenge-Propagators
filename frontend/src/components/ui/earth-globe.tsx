@@ -230,9 +230,10 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         {
           id: 'week', type: 'circle', source: 'week',
           paint: {
-            'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': '#FF6B3D', 'circle-stroke-opacity': 0.9,
-            'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 3, 0.8, 7, 1.4],
-            'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 3, 1.2, 6, 2.6, 9, 5],
+            'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': '#FF6B3D',
+            'circle-stroke-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.3, 5, 0.55, 7, 0.85],
+            'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 3, 0.6, 7, 1.2],
+            'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 3, 0.9, 6, 2.2, 9, 4.5],
             'circle-pitch-alignment': 'map',
           },
         },
