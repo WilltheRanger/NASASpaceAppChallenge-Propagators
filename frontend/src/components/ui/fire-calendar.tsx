@@ -132,7 +132,10 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
                   style={{
                     height: cellHeight,
                     borderRadius: 'var(--cal-radius, 2px)',
-                    background: empty ? 'var(--cal-empty)' : render === 'fill' ? fill(cell!, mode, maxCount) : 'var(--cal-cell)',
+                    // provisional months can be muted toward the cell colour (--cal-prov-mix, default 100% = unmuted)
+                    background: empty ? 'var(--cal-empty)' : render === 'fill'
+                      ? (prov ? `color-mix(in srgb, ${fill(cell!, mode, maxCount)} var(--cal-prov-mix, 100%), var(--cal-cell))` : fill(cell!, mode, maxCount))
+                      : 'var(--cal-cell)',
                     boxShadow: highlight && highlight.year === year && highlight.month === m
                       ? 'inset 0 0 0 2px var(--cal-highlight, var(--cal-fg))'
                       : isShown ? 'inset 0 0 0 1.5px var(--cal-focus)' : undefined,
