@@ -42,7 +42,7 @@ add("P1", "Aqua's look time over each Brazilian biome rises every year 2021-2025
     + (f" ({'; '.join(fails)})" if fails else "") + f". S-NPP within 10 min of 2012-2020 every year: {sum(flat)}/6. "
     + ("Both readings agree." if ok_a == ok_b else "Readings disagree: the team must pick one in research/predictions.md before this is scored."))
 
-# P2: Punjab, scored on branch will/predictions-and-punjab
+# P2: Punjab, scored in analysis/drift-regions
 pj = json.load(open(os.path.join(dst, "drift/in-punjab-haryana.json")))
 t = {y["year"]: int(y["aqua_lst"][:2]) * 60 + int(y["aqua_lst"][3:]) for y in pj["years"]}
 mono = all(t[y] > t[y - 1] for y in range(2022, 2026)); rise = t[2025] - t[2021]
