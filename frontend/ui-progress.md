@@ -43,10 +43,13 @@ per direction in `designs/round-2/plan.md`.
 | Phase 3 | Round 1 | Rejected all five | "You didnt follow any of the design rules" |
 | Phase 3 | Round 2 | **D · Field film** (Anduril-inspired) | "lets go with this one. I need to slowly edit this" |
 | Phase 3 | Logo | The clock-sweep mark from B (quarter-arc + bar) with the Host Grotesk wordmark | "can you make this our logo please" |
+| Phase 3 | Logo, revised | The frame mark from C (a square, one corner held back), same wordmark | "it kind of looks like flock safety" |
 | Phase 3 | D, comments | Range line removed; photo credit to the footer; year reel (21st.dev Filmstrip Scrub), then a ruler strip; clock-effect table → 21st.dev Anomaly Chart | Comment threads on the comment page |
 | Phase 3 | D, structure | Landing and audit as separate pages; one Unsplash photograph per region | "put like this aspect as a seperate landing page"; "different images accross different regions" |
 | Phase 3 | D, landing | Keep D's layout, add to it; the hero is a statement: the region's name only ("The Amazon"), the verdict below | "you dont have to completly repalce it"; "The top is supposed to be sort of a statement piece" |
 | Phase 3 | D, motion | Anduril's patterns from their code: tour of regions, title rise, rule + slide, tile reveal, page fade, motion switch (no text scramble, at the team's request) | "look at andurils code … animations and ux" |
+| Phase 3 | D, audit opening | The statement top on the audit page too, with a zoom-out reveal as you scroll | "do the same statement top on the audit page"; picked "Zoom-out reveal" |
+| Phase 3 | Science copy | Nothing states the direction of the clock effect unless computed; "official count" only for INPE's Brazil series; MOCK labels follow each file's flag | Team plan, 15 Nov |
 | Phase 3 | Repo | No AI tool names in commits, PRs, branches, comments, headers or data notes; AI use disclosed in the slides and on the project page | Team git rule, 15 Nov |
 
 ## History

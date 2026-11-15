@@ -29,6 +29,8 @@ const PHRASE: Record<string, { the: string; poss: string; short: string }> = {
   'us-california': { the: 'California', poss: "California's", short: 'California' },
 }
 export const phrase = (id: RegionId) => PHRASE[id] ?? { the: id, poss: `${id}'s`, short: id }
+/** "Official count" means INPE's reference-satellite (Aqua) series, so only the Brazil presets use the word. */
+export const countName = (id: RegionId) => (id.startsWith('br-') ? 'official count' : 'Aqua-based count')
 
 export const hm = (s: string) => { const [h, m] = s.split(':').map(Number); return h + m / 60 }
 export const fmtHM = (h: number) => { let hh = Math.floor(h); let mm = Math.round((h - hh) * 60); if (mm === 60) { hh += 1; mm = 0 } return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}` }
@@ -76,7 +78,7 @@ export function headlineCheck(d: RegionData, from = 2024, to = 2025) {
 export function verdictHeadline(d: RegionData) {
   const y = d.latestOk
   if (!y || y.verdict === 'na') return `Not enough fires in ${d.phrase.the} to measure the clock effect`
-  if (y.verdict === 'noise') return `${cap(d.phrase.poss)} official ${y.year} count holds on a fixed clock`
+  if (y.verdict === 'noise') return `${cap(d.phrase.poss)} ${countName(d.id).replace(' count', '')} ${y.year} count holds on a fixed clock`
   const n = Math.round(Math.abs(y.gap!))
   return y.gap! >= 0
     ? `Aqua's later clock added ${n}% to ${d.phrase.poss} ${y.year} fire count`
@@ -137,7 +139,7 @@ export function verdictLines(d: RegionData) {
     ? ` Because the later clock had already raised ${hc.from} by ${Math.abs(prev.gap).toFixed(1)}%, it moved the ${hc.from} → ${hc.to} change by only ${pts.toFixed(1)} points.`
     : hc.ok ? ` The later clock moved the ${hc.from} → ${hc.to} change by ${pts.toFixed(1)} points.` : ''
   const change = hc.ok
-    ? `From ${hc.from} to ${hc.to} the official count ${verb(hc.official)} ${Math.abs(hc.official).toFixed(1)}%; on the fixed clock it ${verb(hc.fixed)} ${Math.abs(hc.fixed).toFixed(1)}%.`
+    ? `From ${hc.from} to ${hc.to} the ${countName(d.id)} ${verb(hc.official)} ${Math.abs(hc.official).toFixed(1)}%; on the fixed clock it ${verb(hc.fixed)} ${Math.abs(hc.fixed).toFixed(1)}%.`
     : `${hc.from} and ${hc.to} can't be compared: not enough fires in ${hc.reason} to measure.`
   /** Optional third sentence: why the year-on-year gap is smaller than the clock effect. Place it near the figures. */
   return { look, change, why: why.trim(), hc, drift: dr, shift }

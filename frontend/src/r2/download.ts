@@ -1,5 +1,5 @@
 // Downloads for the Round 2 comps: the calendar as CSV and a plain-text summary. Both are marked MOCK.
-import { fmtInt, fmtRange, headlineCheck, pct, verdictHeadline, verdictLines, type RegionData } from './data'
+import { countName, fmtInt, fmtRange, headlineCheck, pct, verdictHeadline, verdictLines, type RegionData } from './data'
 
 function save(name: string, body: string, type: string) {
   const url = URL.createObjectURL(new Blob([body], { type }))
@@ -26,7 +26,7 @@ export function downloadSummary(d: RegionData) {
     `Clock effect by year (noise floor ±${d.noise.toFixed(0)}%):`,
     ...d.years.map((y) => `  ${y.year}  ${y.verdict === 'na' ? 'not enough fires to measure' : `${pct(y.gap!)} (${fmtRange(y.lo!, y.hi!)}) ${y.verdict === 'clock' ? 'clock effect' : 'within noise'}`}  official ${fmtInt(y.aqua)}${y.fixed != null ? `, fixed clock ${fmtInt(y.fixed)}` : ''}`),
     '',
-    hc.ok ? `${hc.from} → ${hc.to}: official ${pct(hc.official)}, fixed clock ${pct(hc.fixed)}` : '',
+    hc.ok ? `${hc.from} → ${hc.to}: ${countName(d.id)} ${pct(hc.official)}, fixed clock ${pct(hc.fixed)}` : '',
     'Sources: audit, drift and calendar JSON for this region (NASA FIRMS: MODIS C6.1, VIIRS 375 m).',
     'Made by Team Propagators.',
   ]

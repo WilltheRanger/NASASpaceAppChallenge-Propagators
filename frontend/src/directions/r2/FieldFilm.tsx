@@ -5,17 +5,17 @@
 // passes of one day, the clock effect by year against the noise floor on the one sage band, then the calendar.
 // Black, bone and sage; square media, 4 px on small controls. Motion follows Anduril's patterns as read from their
 // code (designs/round-2/anduril-study.md), behind a footer switch seeded from the reader's reduced-motion setting.
-// Every number comes from src/r2/data.ts (data/mock, labelled MOCK). Region photographs: Unsplash, credited in the
+// Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag. Region photographs: Unsplash, credited in the
 // footer. Pass imagery: NASA Worldview / GIBS, public domain.
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import { ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle, RegionSelect, YearSlider } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 import {
-  MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, fmtRange, hm, minutesBetween, pct, phrase, regionData, verdictHeadline, verdictLines,
+  MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, countName, fmtRange, hm, minutesBetween, pct, phrase, regionData, verdictHeadline, verdictLines,
   type RegionData, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
@@ -147,12 +147,14 @@ function useMedia(query: string) {
 const IMG = `${import.meta.env.BASE_URL}img/`
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const FEATURED = 'br-amazon'
+/** True while any preset region still reads mock files. */
+const ANY_MOCK = REGIONS.some((r) => regionData(r.id).mock)
 
 /** Sections that exist in this comp; the rest of the index belongs to the full build. */
 const IN_COMP = new Set<string>(['verdict', 'clock', 'audit', 'calendar'])
 
 const READING: Record<Verdict, string> = { clock: 'Clock effect', noise: 'Within noise', na: 'Not enough fires' }
-const DATA_NOTE = "Every number comes from the team's JSON files; this comp uses mock data."
+const DATA_NOTE = "Every number comes from the team's JSON files."
 
 type AuditRow = RegionData['years'][number]
 type Drift = RegionData['drift'][number]
@@ -256,7 +258,7 @@ function effectHeading(d: RegionData) {
   let i = d.years.length - 1
   while (i >= 0 && d.years[i].verdict === 'na') i--
   if (i < 0) return `Not enough fires in ${d.phrase.the} to measure the clock effect`
-  if (d.years[i].verdict === 'noise') return `In ${d.years[i].year} the official count holds: the clock effect sits within the ${n} noise floor`
+  if (d.years[i].verdict === 'noise') return `In ${d.years[i].year} the ${countName(d.id)} holds: the clock effect sits within the ${n} noise floor`
   let s = i
   while (s > 0 && d.years[s - 1].verdict === 'clock') s--
   return s < i
@@ -269,7 +271,7 @@ function effectHeading(d: RegionData) {
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
 const ease = 'transition-colors duration-150 ease-[var(--ease)]'
 const slideEase = 'transition-transform duration-240 ease-[var(--ease)] motion-reduce:transition-none'
-const title = 'text-balance text-[length:var(--fs-32)] font-medium leading-9 tracking-[var(--track-title)]'
+const title = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
 const shell = 'mx-auto w-full max-w-[var(--maxw)] px-4 sm:px-8'
 /** Their link underline: draws in from the left on hover, leaves to the right. */
 const underline = cn(
@@ -394,7 +396,8 @@ function AppPage({ region, onRegion, links, leave }: { region: string; onRegion:
     <>
       <AppTopBar region={region} onRegion={pick} home={links.landing(region)} leave={leave} />
       <main>
-        <VerdictHeader d={d} year={year} onYear={setYear} />
+        <AppStatement d={d} />
+        <AppVerdict d={d} year={year} onYear={setYear} />
         <Passes d={d} />
         <ClockEffect d={d} year={year} onYear={setYear} small={small} />
         <Calendar d={d} mode={mode} onMode={setMode} small={small} />
@@ -432,7 +435,7 @@ function Footer() {
       <div className={cn(shell, 'grid grid-cols-1 gap-8 py-12 text-xs text-[color:var(--bone3)] lg:grid-cols-12 lg:gap-x-6')}>
         <div className="flex flex-col items-start gap-2 lg:col-span-4">
           <p className="text-[color:var(--bone2)]">Anchor · Team Propagators</p>
-          <p>{DATA_NOTE}</p>
+          <p>{DATA_NOTE}{ANY_MOCK ? ' This comp uses mock data.' : ''}</p>
           <div className="mt-2"><MotionSwitch /></div>
         </div>
         <div className="lg:col-span-8">
@@ -484,7 +487,9 @@ function SectionsIndex() {
   )
 }
 
-function MockTag({ className }: { className?: string }) {
+/** Shown only while the files on screen say "mock": true; real files in data/out drop it. */
+function MockTag({ show = true, className }: { show?: boolean; className?: string }) {
+  if (!show) return null
   return <span className={cn('shrink-0 rounded border border-[color:var(--hairline)] px-2 py-1 text-xs text-[color:var(--bone)]', className)}>Mock data</span>
 }
 
@@ -514,7 +519,7 @@ function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
           </ul>
         </nav>
         <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:col-span-3">
-          <MockTag className="hidden bg-[color:var(--plate)] sm:inline-block" />
+          <MockTag show={ANY_MOCK} className="hidden bg-[color:var(--plate)] sm:inline-block" />
           <a
             href={app}
             onClick={leave}
@@ -528,10 +533,22 @@ function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
   )
 }
 
-/** App: a solid bar that stays at the top while the audit scrolls under it. */
+/** App: clear over the statement at first; solid once the page moves, so the audit scrolls under it. */
 function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion: (id: string) => void; home: string; leave: Leave }) {
+  const [solid, setSolid] = useState(false)
+  useEffect(() => {
+    const check = () => setSolid(window.scrollY > 8)
+    check()
+    window.addEventListener('scroll', check, { passive: true })
+    return () => window.removeEventListener('scroll', check)
+  }, [])
   return (
-    <header className="sticky top-0 z-30 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
+    <header
+      className={cn(
+        'fixed inset-x-0 top-0 z-30 border-b transition-colors duration-300 ease-[var(--ease)]',
+        solid ? 'border-[color:var(--hairline)] bg-[color:var(--ground)]' : 'border-transparent bg-transparent',
+      )}
+    >
       <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
         <a href={home} onClick={leave} aria-label="Anchor home" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
           <AnchorLogo height={20} />
@@ -541,7 +558,7 @@ function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion
             {SECTIONS.map((s) => (
               <li key={s.id}>
                 {IN_COMP.has(s.id) ? (
-                  <a href={`#${s.id}`} className={cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
+                  <a href={`#${s.id}`} className={cn(underline, 'text-[color:var(--bone)]', focusRing)}>
                     {s.label}
                   </a>
                 ) : (
@@ -552,7 +569,7 @@ function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion
           </ul>
         </nav>
         <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:col-span-3">
-          <MockTag className="hidden sm:inline-block" />
+          <MockTag show={regionData(region).mock} className="hidden bg-[color:var(--plate)] sm:inline-block" />
           <RegionSelect value={region} onChange={onRegion} classes={selectClasses} />
           <div className="xl:hidden"><SectionsIndex /></div>
         </div>
@@ -625,7 +642,7 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
         </div>
         <div aria-hidden className="h-16 shrink-0 xl:h-18" />
         <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
-          <MockTag className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
+          <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
           <h1 id="region-h" className={statement}>
             <span key={region} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(region)}</span>
           </h1>
@@ -698,32 +715,96 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
   )
 }
 
-/* ---------- App header: the verdict beside the region's photograph, then the year reel ---------- */
+/* ---------- App opening: the statement, framed as you scroll (a zoom-out reveal), the verdict rising under it ---------- */
 
-function VerdictHeader({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
-  const { look, change } = verdictLines(d)
+/** The region's photograph at full bleed with its name, held in place for one screen of scrolling while the photograph
+ *  closes in to a framed picture (below the bar, to the page gutters, above the verdict) and settles from 1.12 to 1; the
+ *  name rides the frame's lower edge, shrinks a little and fades. Scroll progress is one CSS variable, --p, written once
+ *  a frame. Without motion it is a still statement. */
+function AppStatement({ d }: { d: RegionData }) {
+  const motion = useMotion()
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
   const p = photoFor(d.id)
+  useEffect(() => {
+    const section = sectionRef.current
+    const stage = stageRef.current
+    if (!section || !stage) return
+    if (!motion.on) { stage.style.setProperty('--p', '0'); return }
+    let raf = 0
+    const update = () => {
+      raf = 0
+      const r = section.getBoundingClientRect()
+      const run = r.height - window.innerHeight
+      const v = run > 0 ? Math.min(1, Math.max(0, -r.top / run)) : 0
+      stage.style.setProperty('--p', v.toFixed(4))
+    }
+    const queue = () => { if (!raf) raf = requestAnimationFrame(update) }
+    update()
+    window.addEventListener('scroll', queue, { passive: true })
+    window.addEventListener('resize', queue)
+    return () => {
+      window.removeEventListener('scroll', queue)
+      window.removeEventListener('resize', queue)
+      cancelAnimationFrame(raf)
+    }
+  }, [motion.on])
+
   return (
-    <section id="verdict" aria-labelledby="verdict-h">
-      <div className={cn(shell, 'grid grid-cols-1 gap-8 pb-12 pt-6 xl:grid-cols-12 xl:gap-x-6 xl:pb-16 xl:pt-14')}>
-        <figure className="m-0 xl:order-2 xl:col-span-5">
+    <section ref={sectionRef} id="top" aria-labelledby="region-h" className={cn('relative', motion.on ? 'h-[200svh]' : 'h-[78svh] max-h-[1040px] min-h-[560px]')}>
+      <div
+        ref={stageRef}
+        style={{ '--p': 0 } as CSSProperties}
+        className={cn(
+          'sticky top-0 overflow-hidden bg-[color:var(--ground)]',
+          // where the frame closes in to: under the bar, at the page gutters, above the verdict
+          '[--frame-t:80px] [--frame-b:calc(40svh_+_24px)] [--frame-x:max(16px,calc((100vw_-_var(--maxw))_/_2_+_16px))]',
+          'sm:[--frame-x:max(32px,calc((100vw_-_var(--maxw))_/_2_+_32px))] xl:[--frame-t:88px]',
+          motion.on ? 'h-[100svh]' : 'h-full',
+        )}
+      >
+        <div className="absolute inset-0 [clip-path:inset(calc(var(--p)*var(--frame-t))_calc(var(--p)*var(--frame-x))_calc(var(--p)*var(--frame-b))_calc(var(--p)*var(--frame-x)))]">
           <img
             key={d.id}
             src={p.src}
             srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
-            sizes="(min-width: 1280px) 38vw, 100vw"
+            sizes="100vw"
             alt={p.alt}
             width={p.width}
             height={p.height}
             style={{ objectPosition: p.focus }}
-            className="aspect-video w-full bg-[color:var(--surface)] object-cover animate-[anchor-fade_500ms_cubic-bezier(0.22,1,0.36,1)] xl:aspect-[4/3]"
+            className="absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover [transform:scale(calc(1.12_-_0.12*var(--p)))]"
           />
-        </figure>
-        <div className="xl:order-1 xl:col-span-7 xl:self-end">
-          <MockTag className="mb-4 inline-block sm:hidden" />
-          <h1 id="verdict-h" className="text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]">
-            {verdictHeadline(d)}
-          </h1>
+          <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
+        </div>
+        <div className="absolute inset-x-0 bottom-0 [opacity:calc(min(1,(1_-_var(--p))*2.2))] [transform:translateY(calc(var(--p)*-1*var(--frame-b)))]">
+          <div className={cn(shell, 'pb-8 sm:pb-10')}>
+            <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
+            <h1 id="region-h" className={cn(statement, 'origin-bottom-left [transform:scale(calc(1_-_0.2*var(--p)))]')}>
+              <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
+            </h1>
+          </div>
+        </div>
+        {motion.on ? (
+          <div aria-hidden className="absolute bottom-6 right-4 flex items-center gap-2 text-xs text-[color:var(--bone2)] [opacity:calc(1_-_var(--p)*5)] sm:right-8">
+            Scroll
+            <ArrowDown size={14} strokeWidth={1.5} />
+          </div>
+        ) : null}
+      </div>
+    </section>
+  )
+}
+
+/** The verdict, rising into the space under the framed photograph during the last part of the opening, then the reel. */
+function AppVerdict({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+  const motion = useMotion()
+  const { look, change } = verdictLines(d)
+  return (
+    <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-20', motion.on && '-mt-[40svh]')}>
+      <div className={cn(shell, 'grid grid-cols-1 pb-12 pt-6 xl:grid-cols-12 xl:gap-x-6 xl:pb-16')}>
+        <div className="xl:col-span-8">
+          <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
           <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a href="#calendar" className={primaryButton}>
@@ -935,10 +1016,10 @@ function Passes({ d }: { d: RegionData }) {
     <section id="clock" aria-labelledby="passes-h" className={cn(shell, 'py-24')}>
       <div className="grid grid-cols-1 gap-y-8 lg:grid-cols-12 lg:gap-x-6">
         <div className="lg:col-span-4">
-          <h2 id="passes-h" className={title}>By the later afternoon pass, clouds have built and more fires are burning</h2>
+          <h2 id="passes-h" className={title}>By the later afternoon pass, clouds have built over the same forest</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Same place on 4 Sep 2026, seen in the morning, early afternoon and later afternoon. Clouds build and more fires
-            burn as the day goes on, so a later look counts more.
+            Same place on 4 Sep 2026, seen in the morning, early afternoon and later afternoon. Fires and clouds change
+            through the day, so a later look can count more fires or fewer; the audit measures which, and by how much.
           </p>
           <ToggleGroup.Root
             type="single"
@@ -1011,7 +1092,7 @@ function HowItWorks() {
   const [ref, seen] = useInView<HTMLOListElement>(motion.on, 0.3)
   const steps = [
     { t: 'The reference satellite drifted', b: `Official counts follow Aqua, chosen because it always looked at about the same time of day. ${look}` },
-    { t: 'Fires burn more in the afternoon', b: 'So a later look counts more of them, and the official count moves with the satellite’s clock as well as with the fires.' },
+    { t: 'Fires and clouds change through the day', b: 'So a later look can count more fires or fewer, and the official count moves with the satellite’s clock as well as with the fires. Which way, and by how much, is measured, never assumed.' },
     { t: 'Anchor holds the clock still', b: 'We recount every month on one fixed clock and report, per region and year, how much of the official change comes from the drift, with a range and a noise floor.' },
   ]
   // the pass figure, re-inked for the bone ground
@@ -1029,7 +1110,7 @@ function HowItWorks() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
           <Rise><h2 id="how-h" className={titleLarge}>How Anchor reads a fire count</h2></Rise>
-          <p className="mt-4 max-w-[var(--measure)] text-sm">The Amazon in {y}, from the team’s data files (mock for now).</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm">The Amazon in {y}, from the team’s data files{d.mock ? ' (mock for now)' : ''}.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           {dr ? <div style={inked}><PassFigure dr={dr} year={y} /></div> : null}
@@ -1176,7 +1257,7 @@ function ClockEffect({ d, year, onYear, small }: { d: RegionData; year: number; 
         <div className="lg:col-span-4">
           <h2 id="audit-h" className={title}>{effectHeading(d)}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm">
-            How much Aqua's later look changed each year's official count, with its range. A year whose whole range sits
+            How much Aqua's later look changed each year's {countName(d.id)}, with its range. A year whose whole range sits
             outside {n} shows a clock effect.
           </p>
         </div>
@@ -1203,7 +1284,7 @@ function ClockEffect({ d, year, onYear, small }: { d: RegionData; year: number; 
             legend={{ outside: 'Range clear of the noise floor', inside: 'Range overlaps it', range: 'Range' }}
           />
           {why ? <p className="mt-6 max-w-[var(--measure)] text-sm">{why}</p> : null}
-          <p className="mt-4 text-xs">Source: audit/{d.id}.json · MOCK</p>
+          <p className="mt-4 text-xs">Source: audit/{d.id}.json{d.mock ? ' · MOCK' : ''}</p>
         </div>
       </div>
     </section>
@@ -1262,7 +1343,7 @@ function Calendar({ d, mode, onMode, small }: { d: RegionData; mode: CalendarMod
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
-          <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: calendar/{d.id}.json · VIIRS 375 m in Aqua-equivalent units · MOCK</p>
+          <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: calendar/{d.id}.json · VIIRS 375 m in Aqua-equivalent units{d.mock ? ' · MOCK' : ''}</p>
         </div>
       </div>
     </section>
