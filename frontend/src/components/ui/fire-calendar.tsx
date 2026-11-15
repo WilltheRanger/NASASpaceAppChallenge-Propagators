@@ -31,6 +31,8 @@ export interface FireCalendarProps {
   monthLabels?: 'short' | 'initial'
   /** called with the month under the pointer or keyboard focus (null when the pointer leaves) */
   onShow?: (cell: { year: number; month: number } | null) => void
+  /** ring one month (e.g. the month a heading names); month is 0-based */
+  highlight?: { year: number; month: number } | null
   className?: string
 }
 
@@ -61,7 +63,7 @@ export function describeCell(cell: CalendarCell | null, month: number, year: num
   return parts.join(', ')
 }
 
-export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, cellHeight = 24, label, monthLabels = 'short', onShow, className }: FireCalendarProps) {
+export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, cellHeight = 24, label, monthLabels = 'short', onShow, highlight, className }: FireCalendarProps) {
   const [active, setActive] = useState<{ y: number; m: number }>({ y: 0, m: 0 })
   const [shown, setShownState] = useState<{ y: number; m: number } | null>(null)
   const setShown = (v: { y: number; m: number } | null) => { setShownState(v); onShow?.(v ? { year: years[v.y], month: v.m } : null) }
@@ -132,7 +134,9 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
                     height: cellHeight,
                     borderRadius: 'var(--cal-radius, 2px)',
                     background: empty ? 'var(--cal-empty)' : render === 'fill' ? fill(cell!, mode, maxCount) : 'var(--cal-cell)',
-                    boxShadow: isShown ? 'inset 0 0 0 1.5px var(--cal-focus)' : undefined,
+                    boxShadow: highlight && highlight.year === year && highlight.month === m
+                      ? 'inset 0 0 0 2px var(--cal-highlight, var(--cal-fg))'
+                      : isShown ? 'inset 0 0 0 1.5px var(--cal-focus)' : undefined,
                   }}
                 >
                   {!empty && render === 'squares' ? <Square cell={cell!} mode={mode} maxCount={maxCount} size={cellHeight} /> : null}

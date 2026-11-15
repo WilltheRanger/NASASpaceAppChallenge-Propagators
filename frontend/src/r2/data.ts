@@ -136,9 +136,10 @@ export function verdictLines(d: RegionData) {
     ? ` The later clock had already raised ${hc.from} by ${Math.abs(prev.gap).toFixed(1)}%, so the two changes differ by less than ${Math.round(Math.abs(y.gap))}%.`
     : ''
   const change = hc.ok
-    ? `From ${hc.from} to ${hc.to} the official count ${verb(hc.official)} ${Math.abs(hc.official).toFixed(1)}%; on the fixed clock it ${verb(hc.fixed)} ${Math.abs(hc.fixed).toFixed(1)}%.${why}`
+    ? `From ${hc.from} to ${hc.to} the official count ${verb(hc.official)} ${Math.abs(hc.official).toFixed(1)}%; on the fixed clock it ${verb(hc.fixed)} ${Math.abs(hc.fixed).toFixed(1)}%.`
     : `${hc.from} and ${hc.to} can't be compared: not enough fires in ${hc.reason} to measure.`
-  return { look, change, hc, drift: dr, shift }
+  /** Optional third sentence: why the year-on-year gap is smaller than the clock effect. Place it near the figures. */
+  return { look, change, why: why.trim(), hc, drift: dr, shift }
 }
 
 /** A range in percentage points with signs and unit: "+16.4 to +28.4%". */
