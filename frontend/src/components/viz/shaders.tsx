@@ -1,4 +1,4 @@
-// WebGL shader layers for the Propagators site. Each falls back to a still image when WebGL is missing or
+// WebGL shader layers for Anchor. Each falls back to a still image when WebGL is missing or
 // the viewer prefers reduced motion; no number on the page depends on them.
 import { useEffect, useRef, useState } from 'react'
 

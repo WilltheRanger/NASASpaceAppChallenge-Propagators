@@ -5,7 +5,7 @@
  * Original: a years × months heat grid with diverging fills, a hover readout that dims
  * unrelated cells, a diagonal settle-in, and a year-total column whose popover draws the
  * year's growth curve.
- * Changes for Propagators: cells hold the fixed-clock count or its anomaly vs. the median of that
+ * Changes for Anchor: cells hold the fixed-clock count or its anomaly vs. the median of that
  * calendar month (not returns); the up/down hues are a colour-blind-safe warm/cool pair;
  * `null` months render as empty "no data" cells; provisional months are hatched and outage
  * months carry a dot; the year column shows the year's total and its popover draws that

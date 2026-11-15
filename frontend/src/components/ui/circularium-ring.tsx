@@ -5,7 +5,7 @@
  * Original: a 24-hour radial heatmap (7 weekday rings × 24 hourly sectors) that morphs
  * between a flat 2D ring and a 3D isometric histogram, with orbit, hover, keyboard
  * navigation and an interactive legend.
- * Changes for Propagators: rings can be any labelled rows (years), values are any number up to
+ * Changes for Anchor: rings can be any labelled rows (years), values are any number up to
  * `maxValue` (no rounding), the hour at the top is configurable (`topHour`), tooltips and
  * the subtitle are passed in, and the weekday filter is off by default.
  * The rendering engine is the original's.

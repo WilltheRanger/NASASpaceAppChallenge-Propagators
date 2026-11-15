@@ -25,7 +25,7 @@ mkdirSync(join(out, 'video', 'regions'), { recursive: true })
 for (const f of videos) copyFileSync(join('public', 'video', 'regions', f), join(out, 'video', 'regions', f))
 
 const contract = `<!--
-  Propagators: satellite fire counts on a fixed clock. Team Propagators, NASA Space Apps Challenge 2026.
+  Anchor: satellite fire counts on a fixed clock. Team Propagators, NASA Space Apps Challenge 2026.
   Two pages: this landing and the audit (app.html). Every number comes from the team's JSON files (data/out).
   Region photographs and drone footage are credited in the footer; pass imagery: NASA Worldview / GIBS.
 -->`
@@ -38,7 +38,7 @@ ${css}
 html, body { background: #0B0D0B; color: #ECE9E1; }
 </style>`
 
-const landing = `<title>Propagators Fire Audit</title>
+const landing = `<title>Anchor Fire Audit</title>
 ${contract}
 ${head}
 <div id="root" lang="en" data-page="landing"></div>
@@ -49,8 +49,8 @@ const app = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Propagators audit: Aqua's daytime fire counts beside a fixed-clock VIIRS benchmark, for six fire regions. Team Propagators, NASA Space Apps Challenge 2026.">
-<title>Propagators · Audit</title>
+<meta name="description" content="Anchor audit: Aqua's daytime fire counts beside a fixed-clock VIIRS benchmark, for six fire regions. Team Propagators, NASA Space Apps Challenge 2026.">
+<title>Anchor · Audit</title>
 ${contract}
 ${head}
 </head>

@@ -6,9 +6,9 @@ html, body { margin: 0; }
 
 /* Direction D (Field film): the region tour's progress line, the app photograph's arrival, and the footer motion
    switch, which stops every transition and animation inside the page when it is off. */
-@keyframes film-dwell { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes film-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes film-push { from { transform: scale(1); } to { transform: scale(1.06); } }
+@keyframes anchor-dwell { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes anchor-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes anchor-push { from { transform: scale(1); } to { transform: scale(1.06); } }
 [data-motion='off'] *, [data-motion='off'] *::before, [data-motion='off'] *::after {
   transition-duration: 0s !important;
   transition-delay: 0s !important;

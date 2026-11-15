@@ -4,7 +4,7 @@
  * Original: big numbered titles on one side, one picture on the other; hover, tap or arrow
  * keys open a row and wipe its picture in (from the right going down the list, from the left
  * going back up); autoplay pauses while the pointer is inside.
- * Changes for Propagators: rows carry an index label (e.g. "/0.0") instead of 01, 02…, title and
+ * Changes for Anchor: rows carry an index label (e.g. "/0.0") instead of 01, 02…, title and
  * label fonts come from CSS variables, and the painted-landscape fallback is dropped (every
  * row has a real image).
  */

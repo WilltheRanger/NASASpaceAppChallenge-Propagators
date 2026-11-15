@@ -4,7 +4,7 @@
  *
  * Kept from the original: a years × months grid with a year-total column and a readout line that names the
  * month under the pointer or keyboard focus.
- * Changed for Propagators: cells hold the fixed-clock count or its anomaly vs. the median of that calendar month;
+ * Changed for Anchor: cells hold the fixed-clock count or its anomaly vs. the median of that calendar month;
  * three render modes (stepped colour fill, squares sized by magnitude, toned zones) driven only by CSS variables
  * from each direction's tokens; `null` months read as "no data", never zero; provisional months are hatched and
  * outage months carry a mark; one tab stop with arrow-key navigation; no load animation; 12 px minimum text.

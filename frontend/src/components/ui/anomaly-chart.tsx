@@ -5,7 +5,7 @@
  * Kept from the original: a measured value drawn as a line against the expected band the caller passes in, with the
  * points that fall outside the band marked. Detection stays outside the component: it marks what the caller flags and
  * never invents a threshold of its own. A small legend names the marks.
- * Changed for Propagators: everything is drawn at real pixel size from a measured width (the original stretched one SVG
+ * Changed for Anchor: everything is drawn at real pixel size from a measured width (the original stretched one SVG
  * and laid an unstretched one over it, which drifts the marks off the line whenever the box isn't 5:3); each point
  * carries its uncertainty range as a whisker; points outside the band are filled and the rest hollow, so the reading
  * never rests on colour alone; a zero line and labelled ticks; the band is labelled where it is drawn; gaps where a

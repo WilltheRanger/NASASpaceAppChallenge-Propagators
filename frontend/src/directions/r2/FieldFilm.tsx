@@ -1,6 +1,6 @@
 // Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request), now two pages.
 // Landing (D's original layout, kept): each region's name as a statement over its photograph at full bleed, the page
-// stepping through the six regions until one is picked; how the audit reads a count on a bone band; the six regions as
+// stepping through the six regions until one is picked; how Anchor reads a count on a bone band; the six regions as
 // photograph tiles; the tagline. App: the verdict beside the region's photograph, the year reel on a ruler, the Earth
 // seen from the Sun turning under the three orbits, the three passes of one day, the clock effect by year against the
 // placebo range, then the calendar, the checks, detection, limits and who it's for.
@@ -25,7 +25,7 @@ import { FilmstripScrub } from '@/components/ui/filmstrip-scrub'
 import { AnomalyChart, type AnomalyPoint } from '@/components/ui/anomaly-chart'
 import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/series-chart'
 import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
-import { PropagatorsLogo } from '@/components/brand/propagators-logo'
+import { AnchorLogo } from '@/components/brand/anchor-logo'
 import { photoFor } from '@/r2/photos'
 
 /* ---------- Tokens: black ground, bone text; the photographs carry the colour, and each satellite has one on the charts ---------- */
@@ -202,7 +202,7 @@ function writeRegion(nav: Nav, id: string) {
 
 /* ---------- Motion: Anduril's patterns, read from their code (designs/round-2/anduril-study.md) ---------- */
 
-const MOTION_KEY = 'propagators-motion'
+const MOTION_KEY = 'anchor-motion'
 /** On unless the reader asks for reduced motion; the footer switch overrides it and is remembered when storage allows. */
 function readMotion() {
   try {
@@ -250,7 +250,7 @@ function useLeave(motion: boolean): Leave {
   return (e) => {
     if (!motion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
     const href = e.currentTarget.getAttribute('href')
-    const root = document.getElementById('propagators-root')
+    const root = document.getElementById('anchor-root')
     if (!href || href.startsWith('#') || !root?.animate) return
     e.preventDefault()
     root.style.transformOrigin = `50% ${window.scrollY + window.innerHeight / 2}px`
@@ -432,7 +432,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Na
   return (
     <MotionContext.Provider value={{ on: motion, set: setMotion }}>
       <div
-        id="propagators-root"
+        id="anchor-root"
         ref={rootRef}
         style={TOKENS as unknown as CSSProperties}
         data-motion={motion ? 'on' : 'off'}
@@ -639,8 +639,8 @@ function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
   return (
     <header className="absolute inset-x-0 top-0 z-20">
       <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
-        <a href="#top" aria-label="Propagators, back to the top" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
-          <PropagatorsLogo height={20} />
+        <a href="#top" aria-label="Anchor, back to the top" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
+          <AnchorLogo height={20} />
         </a>
         <nav aria-label="On this page" className="hidden md:block xl:col-span-6 xl:justify-self-center">
           <ul className="flex items-center gap-6 text-sm">
@@ -684,8 +684,8 @@ function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion
       )}
     >
       <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
-        <a href={home} onClick={leave} aria-label="Propagators home" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-2 xl:justify-self-start', focusRing)}>
-          <PropagatorsLogo height={20} />
+        <a href={home} onClick={leave} aria-label="Anchor home" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-2 xl:justify-self-start', focusRing)}>
+          <AnchorLogo height={20} />
         </a>
         <nav aria-label="Sections" className="hidden xl:col-span-8 xl:flex xl:justify-center">
           <ul className="flex items-center gap-6 text-sm">
@@ -714,7 +714,7 @@ function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion
 
 /* ---------- Landing hero: a statement piece, the region's name on its ground; the verdict follows below ---------- */
 
-const DWELL = 'animate-[film-dwell_7s_linear_forwards]'
+const DWELL = 'animate-[anchor-dwell_7s_linear_forwards]'
 
 /** A region's media on the landing: its drone loop where one exists (muted, looping, playing only while shown), else its
  *  photograph with a slow push-in so the stills don't sit frozen between the loops. Without motion, the still photograph
@@ -762,7 +762,7 @@ function RegionMedia({ id, active, className }: { id: string; active: boolean; c
       width={p.width}
       height={p.height}
       style={{ objectPosition: p.focus }}
-      className={cn(className, active && motion.on && 'animate-[film-push_14s_ease-out_both]')}
+      className={cn(className, active && motion.on && 'animate-[anchor-push_14s_ease-out_both]')}
     />
   )
 }
@@ -823,7 +823,7 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
         <div className={cn(shell, 'pb-8 sm:pb-10', FADE_NAME)}>
           <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
           <h1 id="region-h" className={cn(statement, SHRINK)}>
-            <span key={region} className="block animate-[film-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(region)}</span>
+            <span key={region} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(region)}</span>
           </h1>
         </div>
         {/* the region tabs along the bottom edge, on a dark plate; they step aside once the reader scrolls */}
@@ -914,14 +914,14 @@ function AppStatement({ d }: { d: RegionData }) {
           width={p.width}
           height={p.height}
           style={{ objectPosition: p.focus }}
-          className="absolute inset-0 size-full animate-[film-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover"
+          className="absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover"
         />
         <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
       </div>
       <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
         <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
         <h1 id="region-h" className={statement}>
-          <span key={d.id} className="block animate-[film-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
+          <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
         </h1>
       </div>
     </section>
@@ -1984,7 +1984,7 @@ function About() {
   )
 }
 
-/* ---------- Landing: how the audit reads a count, on a bone band ---------- */
+/* ---------- Landing: how Anchor reads a count, on a bone band ---------- */
 
 function HowItWorks() {
   const motion = useMotion()
@@ -2106,7 +2106,7 @@ function RegionTile({ id, name, i, seen, href, leave }: { id: string; name: stri
   )
 }
 
-/** Their closing slogan, as the site's tagline, with one last way in. */
+/** Their closing slogan, as Anchor's tagline, with one last way in. */
 function Closing({ href, leave }: { href: string; leave: Leave }) {
   return (
     <section aria-labelledby="close-h" className="border-t border-[color:var(--hairline)]">

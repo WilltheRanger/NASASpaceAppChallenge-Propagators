@@ -12,7 +12,7 @@ function save(name: string, body: string, type: string) {
 export function downloadCalendarCsv(d: RegionData) {
   const rows = [['month', 'fixed_clock_hotspots', 'range_lo', 'range_hi', 'median_ref', 'anomaly_pct', 'aqua', 'snpp', 'noaa20', 'flags', 'mock']]
   for (const c of d.cal) rows.push([c.ym, c.fixed ?? '', c.lo ?? '', c.hi ?? '', c.median_ref ?? '', c.anomaly_pct ?? '', c.aqua ?? '', c.snpp ?? '', c.noaa20 ?? '', c.flags.join(' '), String(d.mock)].map(String))
-  save(`propagators-calendar-${d.id}${d.mock ? '-MOCK' : ''}.csv`, rows.map((r) => r.join(',')).join('\n') + '\n', 'text/csv')
+  save(`anchor-calendar-${d.id}${d.mock ? '-MOCK' : ''}.csv`, rows.map((r) => r.join(',')).join('\n') + '\n', 'text/csv')
 }
 
 const SOURCES = [
@@ -32,7 +32,7 @@ export function downloadSummary(d: RegionData) {
       ]
     : [v.counts, v.timing, v.caveat, v.declines ? `${v.declines} Whole calendar months, not the audit’s days.` : ''].filter(Boolean)
   const lines = [
-    `Propagators · ${d.name}${d.mock ? ' · MOCK DATA, not for publication' : ''}`,
+    `Anchor · ${d.name}${d.mock ? ' · MOCK DATA, not for publication' : ''}`,
     '',
     verdictHeadline(d),
     ...body,
@@ -50,5 +50,5 @@ export function downloadSummary(d: RegionData) {
     d.id.startsWith('br-') ? 'INPE Programa Queimadas, Brazil’s official fire series (reference satellite Aqua).' : '',
     'Made by Team Propagators for the NASA Space Apps Challenge 2026.',
   ].filter((l, i, a) => l !== '' || a[i - 1] !== '')
-  save(`propagators-summary-${d.id}${d.mock ? '-MOCK' : ''}.txt`, lines.join('\n') + '\n', 'text/plain')
+  save(`anchor-summary-${d.id}${d.mock ? '-MOCK' : ''}.txt`, lines.join('\n') + '\n', 'text/plain')
 }

@@ -1,7 +1,7 @@
 /**
  * COBE Globe — from 21st.dev "COBE Globe" by shuding (https://21st.dev/@shuding/components/cobe-globe),
  * built on cobe (MIT). Kept as published: WebGL dotted globe, drag with momentum, markers and arcs,
- * labels placed with CSS anchor positioning. Changes for Propagators: label colours and an optional
+ * labels placed with CSS anchor positioning. Changes for Anchor: label colours and an optional
  * `focus` longitude to start facing a region; style objects typed for strict TypeScript.
  */
 import { useEffect, useRef, useCallback, type CSSProperties } from 'react'
