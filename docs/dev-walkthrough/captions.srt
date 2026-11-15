@@ -1,0 +1,168 @@
+1
+00:00:00,700 --> 00:00:03,370
+Here's our web app in two minutes: what it shows,
+
+2
+00:00:03,370 --> 00:00:06,970
+how the data flows, and the rules your code has to follow.
+
+3
+00:00:06,970 --> 00:00:10,910
+Fire satellites take a snapshot at about the same time every day.
+
+4
+00:00:10,910 --> 00:00:13,720
+But NASA's Aqua satellite has drifted:
+
+5
+00:00:13,720 --> 00:00:18,680
+its 1:30 PM snapshot now happens near 3:50 PM over the Amazon,
+
+6
+00:00:18,680 --> 00:00:20,750
+and Terra is sliding earlier.
+
+7
+00:00:20,750 --> 00:00:22,650
+Fire activity changes through the day,
+
+8
+00:00:22,650 --> 00:00:25,580
+so the counts shift even when the fires don't.
+
+9
+00:00:25,580 --> 00:00:29,970
+And Brazil's official fire record still uses Aqua as its reference.
+
+10
+00:00:29,970 --> 00:00:33,350
+So VIIRS, which still looks at a fixed time, becomes our clock.
+
+11
+00:00:33,350 --> 00:00:35,360
+We learn the Aqua-to-VIIRS ratio
+
+12
+00:00:35,360 --> 00:00:38,290
+for each region and month from 2012 to 2020,
+
+13
+00:00:38,290 --> 00:00:39,470
+before the drift.
+
+14
+00:00:39,470 --> 00:00:43,440
+VIIRS times that ratio is a fixed-clock count, in Aqua units.
+
+15
+00:00:43,440 --> 00:00:46,120
+The gap between the real Aqua count and that number
+
+16
+00:00:46,120 --> 00:00:49,600
+shows how far an Aqua-based record has drifted.
+
+17
+00:00:49,600 --> 00:00:53,000
+That's the app: a fixed-clock fire calendar for anywhere.
+
+18
+00:00:53,000 --> 00:00:54,870
+Pick one of six preset regions.
+
+19
+00:00:54,870 --> 00:00:57,710
+The calendar covers every month since 2002,
+
+20
+00:00:57,710 --> 00:01:02,080
+colored by count or by anomaly against the historical median,
+
+21
+00:01:02,080 --> 00:01:03,810
+with a CSV download.
+
+22
+00:01:03,810 --> 00:01:07,500
+The audit panel shows that gap for every year since 2021,
+
+23
+00:01:07,500 --> 00:01:08,610
+with error bars.
+
+24
+00:01:08,610 --> 00:01:12,520
+Next, the drift chart, and our centerpiece, the two-clocks test:
+
+25
+00:01:12,520 --> 00:01:15,080
+Terra and Aqua drift in opposite directions,
+
+26
+00:01:15,080 --> 00:01:17,960
+so comparing them isolates the clock effect.
+
+27
+00:01:17,960 --> 00:01:20,300
+Then California's detection limits,
+
+28
+00:01:20,300 --> 00:01:22,210
+checked against real recorded fires,
+
+29
+00:01:22,210 --> 00:01:24,850
+and a “How do we know?” checklist.
+
+30
+00:01:24,850 --> 00:01:25,800
+Under the hood,
+
+31
+00:01:25,800 --> 00:01:30,040
+a Python pipeline turns NASA FIRMS hotspots into small JSON files,
+
+32
+00:01:30,040 --> 00:01:32,200
+one per panel, per region.
+
+33
+00:01:32,200 --> 00:01:34,980
+The app is static and reads only those files.
+
+34
+00:01:34,980 --> 00:01:37,560
+Until the real ones land in data/out,
+
+35
+00:01:37,560 --> 00:01:41,720
+build against data/mock: same layout, same fields.
+
+36
+00:01:41,720 --> 00:01:42,740
+Five rules.
+
+37
+00:01:42,740 --> 00:01:45,130
+Mock data always shows a MOCK badge.
+
+38
+00:01:45,130 --> 00:01:47,440
+Null means no data, not zero.
+
+39
+00:01:47,440 --> 00:01:49,970
+Hatch provisional months and mark outages.
+
+40
+00:01:49,970 --> 00:01:53,460
+Show “not enough fires to measure” instead of a noisy number.
+
+41
+00:01:53,460 --> 00:01:56,600
+And every number on screen comes from the JSON.
+
+42
+00:01:56,600 --> 00:01:59,760
+Start with the mock-data README. Let's build it.
+
