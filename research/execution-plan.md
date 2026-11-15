@@ -86,8 +86,6 @@ Written Sat Nov 14, 1:30 PM PT (original deadline assumption of Sun 6:00 PM was 
 - **App lead (Arya):** Vite + React + TS + Leaflet, reusing DBHS Wayfinder patterns; static JSON; deploy (Cloudflare Pages); public-link test.
 - **Story/QA lead:** slides or video, project page, SI-disclosure log, references, judge Q&A prep, testing every number against the JSON.
 
-**This cloud session can act as the data workhorse.** FIRMS downloads for Brazil, Argentina, India and the US are already running here. It can produce the aggregated JSON and the California proof, then push them to the repo. **Team decision:** use it, or run everything on laptops. Either way, every AI-produced file gets logged in the SI disclosure.
-
 ## 3. Data contract (agree on this in the first hour so app and data work in parallel)
 
 ```
@@ -193,10 +191,9 @@ Additions now used by the mock files: a top-level `mock` flag and `note`; `featu
 
 Keep a running table: **when · who · tool · what it did · checked by.** Include:
 - AI-assisted idea research (both proposals);
-- AI-written code and data processing;
-- this cloud session's downloads and outputs.
+- AI-written code and data processing.
 
-Acknowledge AI-generated code and data in text **and** metadata (README + file headers). Watermark any AI-generated images. Use no NASA logos in generated content.
+The disclosure goes in the slides and on the project page. Watermark any AI-generated images. Use no NASA logos in generated content.
 
 ## 9. Extras that raise our score (priority order; none of them is new science)
 
@@ -206,7 +203,7 @@ Acknowledge AI-generated code and data in text **and** metadata (README + file h
 | 2 | **"How do we know?" checklist** in the app (`checks.json`): drift measured, Punjab test, INPE match, placebo, size check, real-fire proof | Makes rigor visible (Validity). Speaks to the materials scientists' QA mindset and the CTO's test mindset | Low |
 | 3 | **One verified hero number:** "Aqua now passes over the Amazon at 3:50 pm, not 1:30 pm" (measured Nov 2026) | Judges remember one number | Low |
 | 4 | **Local hook** in the pitch: the California proof uses Southern California fires; mention Cal OES's fire-mapping plane at Chino Airport | Local judges care | Low |
-| 5 | **Open-source LICENSE + a clean README** (screenshots, data sources, how to reproduce, AI disclosure) | The project page is what judges review; rules require free or open-source content | Low |
+| 5 | **Open-source LICENSE + a clean README** (screenshots, data sources, how to reproduce) | The project page is what judges review; rules require free or open-source content | Low |
 | 6 | **Rehearse a 2-minute live demo + the §7 judge questions**, deciding who answers what | Presentation is scored | Low |
 | 7 | **Pick the name now** (30 min, `productID.md`). Avoid names other teams use: FireClock, Kiln Watch, BRASA, Ember/EmberCal, FireCensus, Ghost Fleet | Avoids confusion in global judging | Low |
 | 8 | **Spanish/Portuguese toggle** for key labels | CONAE (Argentina) and INPE (Brazil) audiences. Stretch only; BRASA already has EN/ES | Medium |

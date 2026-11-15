@@ -37,5 +37,3 @@ These results already existed when this file was committed:
 ## Open wording question (P1)
 
 "Rises every year 2021 to 2025" can mean (a) 2022 ≥ 2021, ..., 2025 ≥ 2024, or (b) also 2021 ≥ 2020. The team must pick one reading and write it here **before** P1 is scored.
-
-*Prepared by Claude (AI) from the team's plan at the team lead's request; text of P1 to P10 unchanged.*

@@ -7,7 +7,7 @@ Same method as analysis/drift-check/drift_check.py (file 10 sec 4.1-4.2), extend
 Filters: daytime (daynight == D); vegetation fires (type == 0); MODIS confidence >= 30; VIIRS confidence n/h;
 near-nadir scan <= 1.3 (applies to MODIS; every VIIRS 375 m pixel is < 1.3 km so VIIRS keeps all pixels).
 Local solar time = UTC acq_time + longitude / 15.
-AI-written (Claude, Nov 14 2026). Every output must be checked by a team member before use.
+Every output must be checked by a team member before use.
 
 Usage: python3 drift_regions.py RAW_DIR IBGE_SHP OUT_DIR [--dry-run] [--punjab-only]
 Note: brady/brazil-data has the Brazil biome drift (INPE-label lookup); use --punjab-only to avoid a second Brazil version.

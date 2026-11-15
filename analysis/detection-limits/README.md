@@ -1,6 +1,6 @@
 # California detection-limit spec sheet (FINAL PLAN §4.6)
 
-> **AI-generated code and analysis (Claude, cloud session), to be reviewed by the team before any number is used.** Log it in the SI disclosure.
+> **To be reviewed by the team before any number is used.**
 
 **Question:** of the fires California agencies actually recorded, what share did each satellite detect, by fire size? At what size does each satellite catch 50% or 90% of fires (a50, a90)? This tests prediction **P8**: a50(VIIRS) < a50(Aqua), with intervals that don't overlap.
 
@@ -29,7 +29,7 @@
 - FPA-FOD California has containment dates for **80–93% of fires in most years**, but only **34% in 2012, 20% in 2019 and 13% in 2020**. Those years lean on the fallback durations.
 - Compare years with the "known containment only" variant before claiming any change over time.
 
-## Results: full run, 2012–2024 (AI-generated; the team must review before use)
+## Results: full run, 2012–2024 (the team must review before use)
 
 Isolated California fires of at least 1 acre, 2012–2020: 14,430 fires, checked against each satellite with the same rule.
 

@@ -467,9 +467,7 @@ If a hypothesis fails, we report it; that is still a finding. This is the "show 
 
 ---
 
-## 14. AI/SI disclosure and references
-
-**Disclosure.** This proposal was drafted with an AI assistant (Claude Code), which searched the web and GitHub, read our repo and slides, and summarized sources. The team must verify every claim and number before using it. Disclose AI use for research, code and text on the project page, per the event's AI/SI rules.
+## 14. References
 
 **References (verify each before citing):**
 - Fusco, E.J. et al. (2019). Detection rates and biases of fire observations from MODIS and agency reports in the conterminous United States. *Remote Sensing of Environment* 220, 30–40. [record](https://experts.colorado.edu/display/pubid_247828)

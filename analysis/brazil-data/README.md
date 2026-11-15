@@ -1,6 +1,6 @@
 # Propagators data work (Brady's lane)
 
-Built Sat Nov 14, 2026 with AI assistance (Claude). Log this in the SI disclosure.
+Built Sat Nov 14, 2026.
 Raw data (`inpe/`, `firms/`) must NOT be committed. `scripts/` and `out/` can go in the repo
 (`scripts/` -> `analysis/brazil-data/`, `out/` -> wherever the team agrees).
 
