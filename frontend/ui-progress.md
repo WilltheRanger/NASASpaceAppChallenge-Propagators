@@ -2,7 +2,7 @@
 
 - **Canvas:** (private link) ("Anchor", Design type). Round 1 screenshots are uploaded
   as assets; artboards stay unpublished until the team says the canvas (shared by link) may be used.
-- **Live prototype:** `frontend/` (Vite + React + TypeScript + Tailwind v4). `npm run dev`, then `?d=a` … `?d=c`
+- **Live prototype:** `frontend/` (Vite + React + TypeScript + Tailwind v4). `npm run dev`, then `?d=a` … `?d=e`
   (Round 2). Round 1 stays reachable at `?round=1&d=a` … `?round=1&d=e`.
 - **Renders:** `designs/round-2/renders/` (Round 2), `designs/round-1/renders/` (Round 1, rejected).
 - **Plan for the current round:** `designs/round-2/plan.md` (why Round 1 failed, seed, hierarchy map, manifest,
