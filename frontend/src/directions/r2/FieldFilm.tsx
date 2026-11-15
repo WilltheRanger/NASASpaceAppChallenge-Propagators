@@ -16,6 +16,7 @@ import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-r
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle, RegionSelect } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
+import { GlobalLayer } from './GlobalLayer'
 import {
   CHECKS, DETECTION, FIRE_DAY, MONTHS, PROOF, REGIONS, SECTIONS, SEEN, calendarFinding, calendarGrid, calendarSpan, daylight, daylightHeadline, fmtHM, fmtInt, fmtRange, hasOfficialSeries, hm, isValidation, minutesBetween, novemberRatio, pct, phrase, regionData, verdictHeadline, verdictLines,
   type Check, type DayFire, type DetectionRate, type MonthRange, type RegionData, type SatKey, type Verdict,
@@ -155,7 +156,7 @@ const FEATURED = 'br-amazon'
 const ANY_MOCK = REGIONS.some((r) => regionData(r.id).mock)
 
 /** Sections that exist in this comp; the rest of the index belongs to the full build. */
-const IN_COMP = new Set<string>(['verdict', 'clock', 'daylight', 'two-clocks', 'audit', 'calendar', 'checks', 'detection', 'limits', 'about'])
+const IN_COMP = new Set<string>(['verdict', 'clock', 'daylight', 'two-clocks', 'audit', 'calendar', 'global', 'checks', 'detection', 'limits', 'about'])
 
 const READING: Record<Verdict, string> = { outside: 'Outside the 2012–2020 placebo range', within: 'Within the 2012–2020 placebo range', na: 'Too few hotspots to read' }
 const DATA_NOTE = "Every number comes from the team's JSON files."
@@ -560,6 +561,7 @@ function AppPage({ region, onRegion, links, leave, nav }: { region: string; onRe
         <TwoClocks d={d} year={year} onYear={setYear} small={small} />
         <ClockEffect d={d} year={year} onYear={setYear} small={small} />
         <Calendar d={d} mode={mode} onMode={setMode} range={range} onRange={setRange} small={small} />
+        <GlobalLayer region={d.id} small={small} />
         <Checks />
         <Detection />
         <Limits d={d} />

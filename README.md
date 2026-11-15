@@ -28,6 +28,7 @@ Every number in the app comes from the JSON files in `data/out/`, which are prod
 - **Detection limits:** what share of California's agency-recorded fires each satellite detected, by fire size.
 - **Daylight left after the alert:** how much daylight remains when each satellite's alert arrives, before and after the drift.
 - **Ten written predictions:** each checked against the data, with failures reported as written.
+- **A world map (exploratory):** the same clock audit on every 2° cell of the map with enough fires, with a calendar per cell. It is not checked against a national reference series.
 - **A limits section:** in the app and below.
 
 ## Method in brief
@@ -105,6 +106,13 @@ Of 358 agency-recorded fires within 25 km of Chino Hills, CA (2012 to 2024), **3
 
 The change is the drift itself: with sunset fixed, a later look leaves less daylight, minute for minute. Method, 16 benchmarks and limits: [`analysis/daylight/README.md`](analysis/daylight/README.md).
 
+**The same audit on a 2° grid (exploratory).** The six presets are the checked part of this project. The world map repeats their audit on every 2° cell, with the same code and the same rule for "too few fires". It is not checked against a national reference series, and it shows where Aqua's count and the fixed clock part ways, not why.
+- **Cells:** 4,472 cells have a detection; 721 have enough fires to read in 2025 (776 in 2024). The rest are shown as "too few fires", with no value.
+- **2025:** 354 of the 721 cells sit outside their own 2012 to 2020 placebo range, 260 above the fixed clock and 94 below. A 2012 to 2020 year scored the same way falls outside 22% of the time.
+- **Look time:** Aqua's median look moved +71 min per cell in 2025 (+58 to +79 for the middle 80% of cells); S-NPP's moved about 2 min.
+- **The whole Earth as one area:** L is 1.012 (0.975 to 1.049) in 2025, within its placebo range, and 1.059 (1.020 to 1.100) in 2024. The cells move both ways, so this is a map of where, not a global percentage.
+- **Checks:** grid cells over each preset land inside that preset's published interval for 2024 and 2025 (10 of 10), and an independent recompute of 5 seeded cells matches. Method, mask rule, nine benchmarks and limits: [`analysis/global/README.md`](analysis/global/README.md).
+
 **Predictions.** Ten predictions are written in `research/predictions.md`, each with its pass rule, and the pipeline scores the data against those rules (`data/out/checks.json`).
 - **Pass:** P2, P3, P4, P5, P6, P8.
 - **Fail:** P7, P9, P10. We report them as written.
@@ -116,7 +124,7 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
 
 | Source | What we use | Terms |
 |---|---|---|
-| **NASA FIRMS**, MODIS Collection 6.1 (Terra, Aqua) and VIIRS 375 m (S-NPP, NOAA-20), yearly country files: https://firms.modaps.eosdis.nasa.gov/data/country/ | Every hotspot count and look time | NASA open data |
+| **NASA FIRMS**, MODIS Collection 6.1 (Terra, Aqua) and VIIRS 375 m (S-NPP, NOAA-20), yearly country files: https://firms.modaps.eosdis.nasa.gov/data/country/ (the world map reads the all-countries archives under `zips/`) | Every hotspot count and look time | NASA open data |
 | **NASA Worldview / GIBS** true-colour imagery | Pass images and the one-day fire map | NASA open data |
 | **INPE Programa Queimadas**, reference-satellite files (`Brasil_sat_ref`): https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/anual/Brasil_sat_ref/ | Biome labels; check against INPE's counts | Public data from INPE |
 | **USDA Forest Service FPA FOD**, 7th edition (Research Data Archive RDS-2013-0009.7) | California recorded fires for the detection limits | Public data from the USDA Forest Service |
@@ -148,6 +156,7 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
 - **Small regions are noisy:** Punjab + Haryana has too few fires after 2022 for an audit.
 - **No 2026 calendar yet:** there are no 2026 yearly FIRMS files; the calendar ends in December 2025.
 - **The daylight analysis describes one satellite's alert timing, not any country's response capacity.** INPE monitors with many satellites, including geostationary ones.
+- **The world map is exploratory.** Outside Brazil and the USA there is no reference series to check it against; single cells are noisy (about half sit within their own placebo range, and about one in five would fall outside by chance); and its rule for dropping outage days is weaker than the presets'. See `analysis/global/README.md`.
 
 ## How to run
 
@@ -169,6 +178,7 @@ npm run build      # static site in frontend/dist
 3. [`analysis/drift-regions/`](analysis/drift-regions/README.md): Punjab + Haryana look times.
 4. [`analysis/detection-limits/`](analysis/detection-limits/README.md) with [`analysis/data-acquisition/`](analysis/data-acquisition/README.md): the California detection limits.
 5. [`analysis/daylight/`](analysis/daylight/README.md): daylight left after the alert, with its benchmarks.
+6. [`analysis/global/`](analysis/global/README.md): the exploratory world map (about 9.7 GB of FIRMS archives, read in place), with its benchmarks. `npm run dev` and `npm run build` copy `data/out/global` into `frontend/public/global`, where the app fetches it when the map is opened.
 
 ## Repository layout
 
@@ -188,7 +198,7 @@ The 2026 Space Apps rules ask teams to disclose AI use. AI assistants (large lan
 - **research:** finding and reading sources, checking facts, and reviewing and stress-testing the plan;
 - **the data pipelines** in `analysis/` (downloads, region assignment, counts, look times, the INPE comparison), and therefore the data they write to `data/out/`;
 - **the statistics:** clock audit, bootstrap intervals, noise floor, two clocks and prediction checks;
-- **the California detection limits and the daylight analysis,** including their independent checks;
+- **the California detection limits, the daylight analysis and the exploratory world map,** including their independent checks;
 - **the web app** in `frontend/`: code, layout and on-page text;
 - **documentation,** including this README.
 

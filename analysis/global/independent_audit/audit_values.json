@@ -1,0 +1,100 @@
+{
+  "cells": {
+    "g2_30_6": {
+      "2024": {
+        "L": 1.078,
+        "L_lo": 0.98,
+        "L_hi": 1.176,
+        "aqua_count": 7252,
+        "snpp_count": 41219,
+        "fixed_count": 6729.8
+      },
+      "2025": {
+        "L": 1.075,
+        "L_lo": 0.933,
+        "L_hi": 1.206,
+        "aqua_count": 6029,
+        "snpp_count": 33338,
+        "fixed_count": 5606.8
+      }
+    },
+    "g2_-56_-12": {
+      "2024": {
+        "L": 1.184,
+        "L_lo": 0.886,
+        "L_hi": 1.403,
+        "aqua_count": 2956,
+        "snpp_count": 10906,
+        "fixed_count": 2496.8
+      },
+      "2025": {
+        "L": 1.292,
+        "L_lo": 1.055,
+        "L_hi": 1.557,
+        "aqua_count": 795,
+        "snpp_count": 2621,
+        "fixed_count": 615.2
+      }
+    },
+    "g2_78_12": {
+      "2024": {
+        "L": 1.014,
+        "L_lo": 0.849,
+        "L_hi": 1.205,
+        "aqua_count": 617,
+        "snpp_count": 7039,
+        "fixed_count": 608.7
+      },
+      "2025": {
+        "L": 1.594,
+        "L_lo": 1.35,
+        "L_hi": 1.822,
+        "aqua_count": 753,
+        "snpp_count": 5187,
+        "fixed_count": 472.5
+      }
+    },
+    "g2_-104_18": {
+      "2024": {
+        "L": 1.06,
+        "L_lo": 0.929,
+        "L_hi": 1.231,
+        "aqua_count": 1712,
+        "snpp_count": 10797,
+        "fixed_count": 1615.2
+      },
+      "2025": {
+        "L": 0.949,
+        "L_lo": 0.811,
+        "L_hi": 1.193,
+        "aqua_count": 1071,
+        "snpp_count": 7518,
+        "fixed_count": 1128.5
+      }
+    },
+    "g2_80_22": {
+      "2024": {
+        "L": 0.974,
+        "L_lo": 0.673,
+        "L_hi": 1.389,
+        "aqua_count": 410,
+        "snpp_count": 4476,
+        "fixed_count": 420.8
+      },
+      "2025": {
+        "L": 1.148,
+        "L_lo": 0.91,
+        "L_hi": 1.448,
+        "aqua_count": 1005,
+        "snpp_count": 8547,
+        "fixed_count": 875.5
+      }
+    }
+  },
+  "retained_days": 5044,
+  "rows_read": {
+    "modis": 61813534,
+    "viirs-snpp": 281144514
+  },
+  "notes": "ASSUMPTIONS: (1) Aqua = rows with satellite=='Aqua' exactly in the modis zips; S-NPP = rows with satellite=='N' exactly in the viirs-snpp zips; daytime = daynight=='D' exactly; no other filter. (2) rows_read = every data row (header excluded) of every CSV member of the 14 modis zips and the 14 viirs-snpp zips, before any satellite/daynight filter (so modis includes Terra and night rows). (3) Every row is counted as it appears; rows are NOT de-duplicated across country files. (4) Days are assigned by the acq_date string; day 0 = 2012-01-01; month/year are the calendar month/year of acq_date; block = day // 16. (5) Cell edges: lon0 <= longitude < lon0+2 and lat0 <= latitude < lat0+2 on the float values as parsed. (6) Retained-day test uses whole-archive daytime counts of the same row sets as in (1). (7) Counts on non-retained days are set to zero everywhere (baseline, target, bootstrap). (8) aqua_count and snpp_count are over retained days of the target year. (9) Bootstrap: w = default_rng(20261114).poisson(1.0,(1000,320)) as the first draw; replicate L recomputed from weighted counts incl. the Vb[m]>0 fallback; non-finite L dropped; numpy.percentile linear. (10) Rounding with Python round() on the float64 result; JSON numbers drop trailing zeros, so e.g. 0.98 means 0.980 and 1.06 means 1.060. (11) Files for other years and viirs-jpss1 were not opened; the non-CSV readme member in each zip was skipped. (12) In cell g2_80_22 the baseline S-NPP sum for August is 0 on the point estimate, so R[Aug] uses the pooled fallback. DATA CHECKS: retained days = 5044 of 5114. Days with zero Aqua daytime rows anywhere: 16 (2022-04-01..2022-04-16). Days with zero S-NPP daytime rows anywhere: 54 (2012-01-01..2012-01-19, 2012-03-25, 2022-07-27..2022-08-10, 2024-05-30..2024-06-03, 2024-07-10..2024-07-15, 2024-07-25..2024-07-28, 2024-09-26, 2024-11-03..2024-11-05). Non-retained days: 2012-01-01..2012-01-19, 2012-03-25, 2022-04-01..2022-04-16, 2022-07-27..2022-08-10, 2024-05-30..2024-06-03, 2024-07-10..2024-07-15, 2024-07-25..2024-07-28, 2024-09-26, 2024-11-03..2024-11-05. Details: {\"modis_bad_date_strings\": [], \"modis_cell_exact_duplicate_rows\": {\"g2_-104_18\": 0, \"g2_-56_-12\": 0, \"g2_30_6\": 0, \"g2_78_12\": 0, \"g2_80_22\": 0}, \"modis_cell_rows_by_country_file\": {\"g2_-104_18\": {\"modis_Mexico.csv\": 23906}, \"g2_-56_-12\": {\"modis_Brazil.csv\": 27271}, \"g2_30_6\": {\"modis_South_Sudan.csv\": 86195}, \"g2_78_12\": {\"modis_India.csv\": 5858}, \"g2_80_22\": {\"modis_India.csv\": 7921}}, \"modis_csv_members\": 2878, \"modis_daynight_values\": {\"D\": 53371122, \"N\": 8442412}, \"modis_empty_csv\": [], \"modis_rows_with_blank_lat_or_lon\": 0, \"modis_satellite_values\": {\"Aqua\": 40810979, \"Terra\": 21002555}, \"modis_target_daytime_rows\": 38164672, \"modis_target_daytime_rows_date_year_ne_zip_year\": 0, \"modis_target_daytime_rows_outside_calendar\": 0, \"viirs-snpp_bad_date_strings\": [], \"viirs-snpp_cell_exact_duplicate_rows\": {\"g2_-104_18\": 0, \"g2_-56_-12\": 2, \"g2_30_6\": 0, \"g2_78_12\": 0, \"g2_80_22\": 0}, \"viirs-snpp_cell_rows_by_country_file\": {\"g2_-104_18\": {\"viirs-snpp_Mexico.csv\": 155749}, \"g2_-56_-12\": {\"viirs-snpp_Brazil.csv\": 114298}, \"g2_30_6\": {\"viirs-snpp_South_Sudan.csv\": 490535}, \"g2_78_12\": {\"viirs-snpp_India.csv\": 60137}, \"g2_80_22\": {\"viirs-snpp_India.csv\": 83505}}, \"viirs-snpp_csv_members\": 3062, \"viirs-snpp_empty_csv\": [], \"viirs-snpp_rows_with_blank_lat_or_lon\": 0, \"viirs-snpp_target_daytime_rows\": 210397310, \"viirs-snpp_target_daytime_rows_date_year_ne_zip_year\": 0, \"viirs-snpp_target_daytime_rows_outside_calendar\": 0, \"viirs_daynight_values\": {\"D\": 210397310, \"N\": 70747204}, \"viirs_satellite_values\": {\"N\": 281144514}}. PER CELL/YEAR: g2_30_6 2024: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): none; unrounded L=1.077603 lo=0.980405 hi=1.175900 fixed=6729.7503; cell rows on non-retained days in target year: aqua 16, snpp 0 | g2_30_6 2025: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): none; unrounded L=1.075305 lo=0.933098 hi=1.206341 fixed=5606.7808; cell rows on non-retained days in target year: aqua 0, snpp 0 | g2_-56_-12 2024: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): none; unrounded L=1.183911 lo=0.885603 hi=1.402655 fixed=2496.8089; cell rows on non-retained days in target year: aqua 121, snpp 0 | g2_-56_-12 2025: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): none; unrounded L=1.292221 lo=1.054724 hi=1.556879 fixed=615.2200; cell rows on non-retained days in target year: aqua 0, snpp 0 | g2_78_12 2024: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): none; unrounded L=1.013659 lo=0.848949 hi=1.205118 fixed=608.6860; cell rows on non-retained days in target year: aqua 19, snpp 0 | g2_78_12 2025: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): none; unrounded L=1.593763 lo=1.349929 hi=1.822360 fixed=472.4667; cell rows on non-retained days in target year: aqua 0, snpp 0 | g2_-104_18 2024: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): none; unrounded L=1.059936 lo=0.928955 hi=1.230917 fixed=1615.1922; cell rows on non-retained days in target year: aqua 67, snpp 0 | g2_-104_18 2025: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): none; unrounded L=0.949044 lo=0.811450 hi=1.192952 fixed=1128.5036; cell rows on non-retained days in target year: aqua 0, snpp 0 | g2_80_22 2024: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): [8]; unrounded L=0.974288 lo=0.673293 hi=1.389348 fixed=420.8201; cell rows on non-retained days in target year: aqua 8, snpp 0 | g2_80_22 2025: replicates kept 1000/1000; baseline months with Vb=0 (point estimate): [8]; unrounded L=1.147859 lo=0.909611 hi=1.447891 fixed=875.5428; cell rows on non-retained days in target year: aqua 0, snpp 0"
+}
