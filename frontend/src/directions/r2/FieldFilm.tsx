@@ -1103,39 +1103,82 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
 
 /* ---------- Three passes, one day: one frame, switched between the passes ---------- */
 
-// the passes were photographed on 4 Sep 2026; their typical look times come from the latest year in the drift file
-const AMAZON_LOOK = (() => { const d = regionData('br-amazon'); return d.drift.find((r) => r.year === 2026) ?? d.lastDrift })()
 type PassKey = 'terra' | 'viirs' | 'aqua'
-const PASSES: { key: PassKey; name: string; when: string; control: string; look?: string; wide: string; square: string; fit: string; alt: string }[] = [
-  {
-    key: 'terra', name: 'Terra', when: 'morning', control: 'Terra', look: AMAZON_LOOK?.terra_lst,
-    wide: `${IMG}amazon-terra-2026-09-04.jpg`, square: `${IMG}prints/amazon-terra-sq.jpg`, fit: 'object-left',
-    alt: 'Terra, morning pass, 4 Sep 2026: hazy smoke and a few clouds over the forest',
-  },
-  {
-    key: 'viirs', name: 'VIIRS', when: 'fixed clock', control: 'VIIRS (fixed clock)', look: AMAZON_LOOK?.viirs_lst,
-    wide: `${IMG}amazon-viirs-2026-09-04.jpg`, square: `${IMG}prints/amazon-viirs-sq.jpg`, fit: 'object-center',
-    alt: 'VIIRS, early afternoon pass on the fixed clock, 4 Sep 2026: small cumulus clouds spread across the same forest',
-  },
-  {
-    key: 'aqua', name: 'Aqua', when: 'later afternoon', control: 'Aqua', look: AMAZON_LOOK?.aqua_lst,
-    wide: `${IMG}amazon-aqua-2026-09-04.jpg`, square: `${IMG}prints/amazon-aqua-sq.jpg`, fit: 'object-center',
-    alt: 'Aqua, later afternoon pass, 4 Sep 2026: towering clouds over the same forest',
-  },
+const PASS_META: { key: PassKey; name: string; when: string; control: string; look: (r: Drift) => string }[] = [
+  { key: 'terra', name: 'Terra', when: 'morning', control: 'Terra', look: (r) => r.terra_lst },
+  { key: 'viirs', name: 'VIIRS', when: 'fixed clock', control: 'VIIRS (fixed clock)', look: (r) => r.viirs_lst },
+  { key: 'aqua', name: 'Aqua', when: 'later afternoon', control: 'Aqua', look: (r) => r.aqua_lst },
 ]
+type Scene = { day: string; place: string; heading: string; wide: (k: PassKey) => string; square: (k: PassKey) => string; fit?: Partial<Record<PassKey, string>>; alt: Record<PassKey, string> }
+const sceneFiles = (id: string) => ({ wide: (k: PassKey) => `${IMG}passes/${id}-${k}.jpg`, square: (k: PassKey) => `${IMG}prints/${id}-${k}-sq.jpg` })
+/** One day's three passes over each region: NASA Worldview true colour with that satellite's own fire detections. The
+ *  headings say only what the three pictures show; the audit, not one day, measures the clock. */
+const SCENES: Record<string, Scene> = {
+  'br-amazon': {
+    day: '4 Sep 2026', place: 'the central Amazon', heading: 'By the later afternoon pass, clouds have built over the same forest',
+    wide: (k) => `${IMG}amazon-${k}-2026-09-04.jpg`, square: (k) => `${IMG}prints/amazon-${k}-sq.jpg`, fit: { terra: 'object-left' },
+    alt: {
+      terra: 'Terra, morning pass, 4 Sep 2026: hazy smoke and a few clouds over the forest',
+      viirs: 'VIIRS, early afternoon pass on the fixed clock, 4 Sep 2026: small cumulus clouds spread across the same forest',
+      aqua: 'Aqua, later afternoon pass, 4 Sep 2026: towering clouds over the same forest',
+    },
+  },
+  'br-cerrado': {
+    day: '9 Sep 2024', place: 'Tocantins', heading: 'By the afternoon passes, smoke trails across the same savanna', ...sceneFiles('br-cerrado'),
+    alt: {
+      terra: 'Terra, morning pass, 9 Sep 2024: haze over the Tocantins savanna and a few fire detections',
+      viirs: 'VIIRS, early afternoon pass on the fixed clock, 9 Sep 2024: fire detections across the same savanna and thin smoke trails',
+      aqua: 'Aqua, later afternoon pass, 9 Sep 2024: smoke plumes drifting from fires along the river',
+    },
+  },
+  'br-pantanal': {
+    day: '9 Sep 2024', place: 'the central Pantanal', heading: 'Smoke from the fire fronts hangs over the same wetland all day', ...sceneFiles('br-pantanal'),
+    alt: {
+      terra: 'Terra, morning pass, 9 Sep 2024: smoke over the Pantanal and a few fire detections at its western edge',
+      viirs: 'VIIRS, early afternoon pass on the fixed clock, 9 Sep 2024: fire fronts traced in detections at the western edge, smoke across the wetland',
+      aqua: 'Aqua, later afternoon pass, 9 Sep 2024: the same fire fronts and a white plume spreading south',
+    },
+  },
+  'ar-argentina': {
+    day: '10 Feb 2022', place: 'the Iberá wetlands, Corrientes', heading: 'By the afternoon passes, the smoke over the same wetland has spread', ...sceneFiles('ar-argentina'),
+    alt: {
+      terra: 'Terra, morning pass, 10 Feb 2022: smoke rising from fires in the Iberá wetlands, Corrientes',
+      viirs: 'VIIRS, early afternoon pass on the fixed clock, 10 Feb 2022: many fire detections and smoke drifting north',
+      aqua: 'Aqua, later afternoon pass, 10 Feb 2022: the smoke has spread over the same wetland',
+    },
+  },
+  'in-punjab-haryana': {
+    day: '3 Nov 2023', place: 'Punjab', heading: 'The morning pass sees almost no fires; the afternoon passes see hundreds', ...sceneFiles('in-punjab-haryana'),
+    alt: {
+      terra: 'Terra, morning pass, 3 Nov 2023: haze over Punjab’s fields and almost no fire detections',
+      viirs: 'VIIRS, early afternoon pass on the fixed clock, 3 Nov 2023: hundreds of small fire detections across the same fields',
+      aqua: 'Aqua, later afternoon pass, 3 Nov 2023: hundreds of fire detections across the same fields',
+    },
+  },
+  'us-california': {
+    day: '8 Jan 2025', place: 'Los Angeles', heading: 'By the afternoon passes, the morning cloud has cleared and the smoke streams out to sea', ...sceneFiles('us-california'),
+    alt: {
+      terra: 'Terra, morning pass, 8 Jan 2025: cloud over the Los Angeles coast and fire detections in the hills',
+      viirs: 'VIIRS, early afternoon pass on the fixed clock, 8 Jan 2025: the Palisades and Eaton fires, their smoke streaming over the ocean',
+      aqua: 'Aqua, later afternoon pass, 8 Jan 2025: the same two fires and their smoke out to sea',
+    },
+  },
+}
 
 function Passes({ d }: { d: RegionData }) {
   const [shown, setShown] = useState<PassKey>('aqua')
-  const active = PASSES.find((p) => p.key === shown) ?? PASSES[2]
-  const example = d.id !== 'br-amazon'
+  const scene = SCENES[d.id] ?? SCENES['br-amazon']
+  const active = PASS_META.find((p) => p.key === shown) ?? PASS_META[2]
+  const last = d.lastDrift
   return (
     <section id="clock" aria-labelledby="passes-h" className={cn(shell, 'py-24')}>
       <div className="grid grid-cols-1 gap-y-8 lg:grid-cols-12 lg:gap-x-6">
         <div className="lg:col-span-4">
-          <h2 id="passes-h" className={title}>By the later afternoon pass, clouds have built over the same forest</h2>
+          <h2 id="passes-h" className={title}>{scene.heading}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Same place on 4 Sep 2026, seen in the morning, early afternoon and later afternoon. Fires and clouds change
-            through the day, so a later look can count more fires or fewer; the audit measures which, and by how much.
+            The same place, {scene.place}, on {scene.day}, seen in the morning, early afternoon and later afternoon. Fires,
+            smoke and clouds change through the day, so a later look can count more fires or fewer; the audit measures
+            which, and by how much.
           </p>
           <ToggleGroup.Root
             type="single"
@@ -1144,11 +1187,11 @@ function Passes({ d }: { d: RegionData }) {
             aria-label="Pass shown in the frame"
             className="mt-8 grid grid-cols-3 gap-2"
           >
-            {PASSES.map((p) => (
+            {PASS_META.map((p) => (
               <ToggleGroup.Item key={p.key} value={p.key} className={cn('group block min-w-0 text-left', focusRing)}>
                 <span className="relative block aspect-square overflow-hidden bg-[color:var(--surface)]">
                   <img
-                    src={p.square}
+                    src={scene.square(p.key)}
                     alt=""
                     width={720}
                     height={720}
@@ -1166,18 +1209,18 @@ function Passes({ d }: { d: RegionData }) {
         </div>
 
         <figure className="m-0 lg:col-span-8">
-          <div role="img" aria-label={active.alt} className="relative aspect-5/4 overflow-hidden bg-[color:var(--surface)]">
-            {PASSES.map((p) => (
+          <div role="img" aria-label={scene.alt[active.key]} className="relative aspect-5/4 overflow-hidden bg-[color:var(--surface)]">
+            {PASS_META.map((p) => (
               <img
-                key={p.key}
-                src={p.wide}
+                key={`${d.id}-${p.key}`}
+                src={scene.wide(p.key)}
                 alt=""
                 width={936}
                 height={720}
                 loading="lazy"
                 className={cn(
                   'absolute inset-0 size-full object-cover transition-opacity duration-240 ease-[var(--ease)] motion-reduce:transition-none',
-                  p.fit,
+                  scene.fit?.[p.key] ?? 'object-center',
                   p.key === shown ? 'opacity-100' : 'opacity-0',
                 )}
               />
@@ -1185,11 +1228,11 @@ function Passes({ d }: { d: RegionData }) {
             <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-tile)]" />
             <div aria-hidden className="absolute bottom-4 left-4 right-4">
               <p className="text-sm font-medium text-[color:var(--bone)]">{active.name} · {active.when}</p>
-              {active.look ? <p className="mt-1 text-xs text-[color:var(--bone-80)]">Typical look {active.look} in {AMAZON_LOOK?.year}</p> : null}
+              {last ? <p className="mt-1 text-xs text-[color:var(--bone-80)]">Typical look over {d.phrase.the} {active.look(last)} in {last.year}</p> : null}
             </div>
           </div>
           <figcaption className="mt-4 text-xs text-[color:var(--bone3)]">
-            {example ? 'Example scene: Amazon, 4 Sep 2026 · ' : ''}Imagery: NASA Worldview / GIBS, true colour
+            {scene.day}, {scene.place} · Imagery: NASA Worldview / GIBS, true colour with each satellite’s fire detections
           </figcaption>
         </figure>
       </div>

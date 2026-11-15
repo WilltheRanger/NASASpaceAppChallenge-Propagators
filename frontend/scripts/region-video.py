@@ -7,10 +7,11 @@ Usage:
 
 measure  prints the shot's camera speed (median motion of the picture, in pixels per second at 1280 px wide) and its
          level, contrast and colour, so every clip can be brought to the same pace and look.
-make     slows the shot so its camera speed matches --pace (it never speeds a shot up), interpolating frames when the
-         source frame rate would fall below 30 fps; grades it to the shared look (one mean level, one contrast, one
-         saturation, colour casts pulled halfway to neutral); writes a silent 1280-wide H.264 at 30 fps and a poster
-         (OUT minus .mp4, plus -poster.jpg) from its first frame.
+make     slows the shot toward --pace, but only as far as its own frames allow: a 60 fps shot can slow to half speed
+         on real frames, a 30 or 24 fps shot plays at its own speed, and no frame is ever invented (interpolation warps
+         foliage and water). A still camera slows as far as its frames allow. Grades it to the shared look (one mean
+         level, one contrast, one saturation, colour casts pulled a little toward neutral) and writes a silent
+         1920-wide H.264 and a poster (OUT minus .mp4, plus -poster.jpg) from its first frame.
 
 Needs ffmpeg with vidstab. Run it on one continuous shot only: check the span for cuts first.
 """
@@ -24,7 +25,9 @@ import subprocess
 import sys
 import tempfile
 
-WIDTH = 1280
+WIDTH = 1920
+# camera speed is measured, and --pace given, at this width whatever the output size
+MEASURE_WIDTH = 1280
 # the shared look, on 0-255 luma and chroma: mean level, the spread between the 10th and 90th percentiles, mean
 # saturation; casts are pulled only a little toward neutral, since forest and wetland are green by nature
 TARGET_LEVEL = 96.0
@@ -51,8 +54,8 @@ def measure(src, start, dur):
         stats = os.path.join(tmp, 'stats.txt')
         cut = ['ffmpeg', '-v', 'error', '-ss', str(start), '-t', str(dur), '-i', src]
         # slow drone shots move under a pixel a frame, below vidstab's whole-pixel steps: measure every few frames
-        run(cut + ['-vf', f"select='not(mod(n\\,{step}))',scale={WIDTH}:-2,vidstabdetect=shakiness=5:accuracy=15:result={trf}", '-f', 'null', '-'])
-        run(cut + ['-vf', f'scale={WIDTH}:-2,signalstats,metadata=print:file={stats}', '-f', 'null', '-'])
+        run(cut + ['-vf', f"select='not(mod(n\\,{step}))',scale={MEASURE_WIDTH}:-2,vidstabdetect=shakiness=5:accuracy=15:result={trf}", '-f', 'null', '-'])
+        run(cut + ['-vf', f'scale={MEASURE_WIDTH}:-2,signalstats,metadata=print:file={stats}', '-f', 'null', '-'])
         per_frame = []
         for line in open(trf):
             vecs = re.findall(r'\(LM (-?\d+) (-?\d+) ', line)
@@ -85,20 +88,24 @@ def grade(m):
 
 def make(src, out, start, dur, pace, max_out, force=None):
     m = measure(src, start, dur)
-    factor = 1.0 if m['speed_px_s'] <= pace or m['speed_px_s'] == 0 else pace / m['speed_px_s']
-    # a time-lapse moves its clouds, not its camera, so its pace is set by hand
-    factor = max(0.25, force if force else factor)
+    # the slowest the shot can play on its own frames, at no less than 30 fps (24 fps footage plays as shot)
+    floor = min(1.0, 30.0 / m['fps']) if m['fps'] >= 30 else 1.0
+    if force:
+        factor = force
+    elif m['speed_px_s'] == 0:
+        factor = floor  # a still camera: as slow as its frames allow
+    else:
+        factor = min(1.0, pace / m['speed_px_s'])
+    factor = max(floor, factor)
     length = min(dur / factor, max_out)
     used = length * factor
-    chain = [f'scale={WIDTH}:-2:flags=lanczos', f'setpts=PTS/{factor:.4f}']
-    if m['fps'] * factor < 29.5:
-        chain.append('minterpolate=fps=30:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1')
-    chain += ['fps=30', grade(m), 'format=yuv420p']
+    out_fps = 30 if m['fps'] * factor >= 29.5 else round(m['fps'] * factor, 3)
+    chain = [f'scale={WIDTH}:-2:flags=lanczos', f'setpts=PTS/{factor:.4f}', f'fps={out_fps}', grade(m), 'format=yuv420p']
     run(['ffmpeg', '-v', 'error', '-y', '-ss', str(start), '-t', f'{used:.3f}', '-i', src, '-an', '-vf', ','.join(chain),
-         '-c:v', 'libx264', '-preset', 'slow', '-crf', '26', '-maxrate', '2M', '-bufsize', '4M', '-movflags', '+faststart', out])
+         '-c:v', 'libx264', '-preset', 'slow', '-crf', '22', '-maxrate', '5M', '-bufsize', '10M', '-movflags', '+faststart', out])
     poster = re.sub(r'\.mp4$', '', out) + '-poster.jpg'
     run(['ffmpeg', '-v', 'error', '-y', '-i', out, '-frames:v', '1', '-q:v', '3', poster])
-    return {**m, 'factor': round(factor, 3), 'out_seconds': round(length, 2), 'source_seconds_used': round(used, 2)}
+    return {**m, 'factor': round(factor, 3), 'out_fps': out_fps, 'out_seconds': round(length, 2), 'source_seconds_used': round(used, 2)}
 
 
 def main():

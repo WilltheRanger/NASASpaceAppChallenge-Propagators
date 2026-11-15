@@ -12,8 +12,11 @@ const images = [
   'amazon-terra-2026-09-04.jpg', 'amazon-viirs-2026-09-04.jpg', 'amazon-aqua-2026-09-04.jpg',
   'prints/amazon-terra-sq.jpg', 'prints/amazon-viirs-sq.jpg', 'prints/amazon-aqua-sq.jpg',
   ...regions.flatMap((r) => [`regions/${r}.jpg`, `regions/${r}-sm.jpg`]),
+  // each other region's three passes on its own fire day, wide and square
+  ...regions.filter((r) => r !== 'br-amazon').flatMap((r) => ['terra', 'viirs', 'aqua'].flatMap((k) => [`passes/${r}-${k}.jpg`, `prints/${r}-${k}-sq.jpg`])),
 ]
 mkdirSync(join(out, 'img', 'prints'), { recursive: true })
+mkdirSync(join(out, 'img', 'passes'), { recursive: true })
 mkdirSync(join(out, 'img', 'regions'), { recursive: true })
 for (const f of images) copyFileSync(join('public', 'img', f), join(out, 'img', f))
 // the drone loops and their posters

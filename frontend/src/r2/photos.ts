@@ -1,7 +1,7 @@
 // One Unsplash photograph per preset region (free to use under the Unsplash License), and a 12-second clip per region
 // chosen by the team (Pexels and Pixabay clips under their own free licences; the Pantanal clip is from The Nature
 // Project's YouTube film): one continuous shot, slowed to the same camera pace and graded to the same look by
-// scripts/region-video.py, 1280x720, silent, in public/video/regions/, with its first frame as the poster. The landing
+// scripts/region-video.py, 1920x1080, silent, in public/video/regions/, with its first frame as the poster. The landing
 // plays each once per showing, from the top, never looped. Every photographer and videographer is credited in the page
 // footer, with where the clip was filmed when that isn't the region itself. No people appear in any of them.
 
@@ -44,7 +44,7 @@ export const PHOTOS: Record<string, RegionPhoto> = {
     alt: 'The Amazon from above near Tefé: floating houses moored at the edge of a flooded forest',
     place: 'Tefé, Amazonas, Brazil', by: 'Rodrigo Kugnharski',
     url: 'https://unsplash.com/photos/aerial-view-of-houses-on-body-of-water-PAgMQ2088RE', focus: '50% 50%',
-    video: clip('br-amazon', 'Pixabay', 'ارمان', 'https://pixabay.com/videos/id-267371/', 'A drone over rainforest, a waterfall falling into a forested gorge', 'filmed in the Colombian Amazon (Putumayo)'),
+    video: clip('br-amazon', 'Pexels', 'Nando Freitas', 'https://www.pexels.com/video/aerial-view-of-lush-amazon-rainforest-and-river-32339980/', 'A drone over the Amazon rainforest, a river winding through it past a few roofs'),
   }),
   'br-cerrado': photo('br-cerrado', {
     width: 1920, height: 1280,
@@ -64,7 +64,7 @@ export const PHOTOS: Record<string, RegionPhoto> = {
     width: 1920, height: 1200,
     alt: 'Pampas grass in the Andes foothills at Potrerillos, Mendoza',
     place: 'Potrerillos, Mendoza, Argentina', by: 'Daniela Paola Alchapar',
-    video: clip('ar-argentina', 'Pixabay', 'JoshuaWoroniecki', 'https://pixabay.com/videos/id-369259/', 'A river at dusk under mountains and low cloud', 'filmed in Chilean Patagonia'),
+    video: clip('ar-argentina', 'Pexels', 'Sergey Guk', 'https://www.pexels.com/video/majestic-aerial-view-of-mount-fitz-roy-patagonia-33197879/', 'A drone easing toward Mount Fitz Roy and its glacial lakes, Patagonia'),
     url: 'https://unsplash.com/photos/tall-grass-blowing-in-the-wind-on-a-sunny-day-OL8hMCJn1SI', focus: '50% 50%',
   }),
   'in-punjab-haryana': photo('in-punjab-haryana', {
