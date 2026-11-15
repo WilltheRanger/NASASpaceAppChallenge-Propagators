@@ -1,5 +1,5 @@
 """Pair common clear-land samples without selecting on fire occurrence."""
-import argparse,json
+import argparse,json,datetime
 from pathlib import Path
 import numpy as np
 from calibration import BIOMES
@@ -19,10 +19,18 @@ def pair(root,datecode,out):
      k &= np.abs(dt)<best[ids];j=ids[k];best[j]=np.abs(dt[k]);dtbest[j]=dt[k]
      xa[j]=x['fire'][ix[k]];yb[j]=y['fire'][iy[k]];zd[j]=y['zenith'][iy[k]]-x['zenith'][ix[k]]
  eligible=np.isfinite(best)
- summary={'datecode':datecode,'common_time_eligible_candidate_pairs':common,'afternoon_candidate_pairs':afternoon,'unique_eligible_centers':int(eligible.sum()),'biomes':{}}
+ manifest=Path(__file__).parent/'calibration_manifests'/(datetime.datetime.strptime(datecode,'A%Y%j').strftime('%Y-%m-%d')+'.json')
+ expected=[]
+ if manifest.exists():
+  for e in json.loads(manifest.read_text())['granules']:
+   if e['product'] in ['VNP14IMG','VJ114IMG']:
+    time=e['start'][11:16].replace(':','');sat='VNP' if e['product']=='VNP14IMG' else 'VJ1';expected.append(f'{sat}.{datecode}.{time}.npz')
+ missing=[name for name in expected if not (root/name).exists()]
+ input_complete=bool(expected) and not missing and any(n.startswith('VNP.') for n in expected) and any(n.startswith('VJ1.') for n in expected)
+ summary={'expected_swaths':len(expected),'missing_swaths':missing,'input_complete':input_complete,'datecode':datecode,'common_time_eligible_candidate_pairs':common,'afternoon_candidate_pairs':afternoon,'unique_eligible_centers':int(eligible.sum()),'biomes':{}}
  for biome in BIOMES:
   k=eligible&(grid['biome']==biome)
-  summary['biomes'][biome]={'centers':int(k.sum()),'snpp_fire':int(xa[k].sum()),'noaa20_fire':int(yb[k].sum()),'positive_order':int((dtbest[k]>0).sum()),'negative_order':int((dtbest[k]<0).sum())}
+  summary['biomes'][biome]={'centers':int(k.sum()),'snpp_fire':int(xa[k].sum()),'noaa20_fire':int(yb[k].sum()),'both_fire':int((xa[k]&yb[k]).sum()),'discordant_fire_centers':int((xa[k]^yb[k]).sum()),'positive_order':int((dtbest[k]>0).sum()),'negative_order':int((dtbest[k]<0).sum())}
  ids=np.flatnonzero(eligible)
  np.savez_compressed(out,grid_id=ids,snpp_fire=xa[ids],noaa20_fire=yb[ids],dt_hours=dtbest[ids],zenith_diff=zd[ids])
  out.with_suffix('.json').write_text(json.dumps(summary,indent=2)+'\n');return summary

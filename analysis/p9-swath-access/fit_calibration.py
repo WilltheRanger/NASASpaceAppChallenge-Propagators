@@ -18,11 +18,16 @@ def fit_arrays(X,y,n):
  if not r.success or not np.isfinite(r.x).all() or np.max(np.abs(r.x))>50:return None
  return r.x
 
+def information_diagnostics(X,n,b):
+ w=n*expit(X@b)*(1-expit(X@b));H=X.T@(w[:,None]*X);root=np.sqrt(w);Z=np.delete(X,1,axis=1)*root[:,None];target=X[:,1]*root
+ residual=target-Z@np.linalg.lstsq(Z,target,rcond=None)[0]
+ return {'fisher_rank':int(np.linalg.matrix_rank(H)),'fisher_condition':float(np.linalg.cond(H)),'residual_timing_information':float(residual@residual)}
+
 def run(root):
  grid=np.load(root/'grid.npz');rows=[]
  # Only fixed calibration days, never the excluded August engineering pilot.
  dates={datetime.date(y,m,15).strftime('A%Y%j') for y in [2018,2019,2020] for m in [1,3,5,7,9,11]}
- files=[p for p in sorted(root.glob('paired.A*.npz')) if p.name.split('.')[1] in dates]
+ files=[p for p in sorted(root.glob('paired.A*.npz')) if p.name.split('.')[1] in dates and p.with_suffix('.json').exists() and json.loads(p.with_suffix('.json').read_text()).get('input_complete',False)]
  for p in files:
   datecode=p.name.split('.')[1];date=datetime.datetime.strptime(datecode,'A%Y%j');d=np.load(p);ids=d['grid_id']
   ix=np.floor(grid['lon'][ids]*2).astype(int);iy=np.floor(grid['lat'][ids]*2).astype(int)
@@ -34,7 +39,7 @@ def run(root):
  reports=[]
  for biome in BIOMES:
   allrows=[r for r in rows if r[0]==biome];r=[r for r in allrows if r[7]+r[8]>0]
-  report={'biome':biome,'eligible_cells':len(allrows),'informative_cells':len(r),'informative_dates':len({v[1] for v in r}),'status':'insufficient_identification','beta':None,'ci95':None}
+  report={'biome':biome,'eligible_cells':len(allrows),'informative_cells':len(r),'informative_dates':len({v[1] for v in r}),'sampled_snpp_fire_weight':float(sum(v[7] for v in r)),'sampled_noaa20_fire_weight':float(sum(v[8] for v in r)),'events_by_date':{d:float(sum(v[7]+v[8] for v in r if v[1]==d)) for d in sorted({v[1] for v in r})},'informative_cells_by_order':{'negative':sum(v[5]<0 for v in r),'positive':sum(v[5]>0 for v in r)},'status':'insufficient_identification','beta':None,'ci95':None}
   reports.append(report)
   if len({v[1] for v in r})<6:report['reason']='fewer_than_six_fire_informative_dates';continue
   dt=np.array([v[5] for v in r])
@@ -43,6 +48,8 @@ def run(root):
   # and fixed seasonal indicators. Common exposure cancels in conditional ratio.
   months=sorted({v[2] for v in r});X=np.array([[1,v[5],v[6]/45,(v[3]+54)/20,(v[4]+14)/20]+[float(v[2]==m) for m in months[1:]] for v in r]);y=np.array([v[8] for v in r]);n=y+np.array([v[7] for v in r]);b=fit_arrays(X,y,n)
   if b is None:report['reason']='rank_conditioning_or_fit_failure';continue
+  info=information_diagnostics(X,n,b);report.update(info)
+  if info['fisher_rank']<X.shape[1] or info['fisher_condition']>1e8 or info['residual_timing_information']<1e-8:report['reason']='event_weighted_information_failure';continue
   days=np.array([v[1] for v in r]);unique=np.unique(days);rng=np.random.default_rng(20261115);betas=[]
   for _ in range(1000):
    counts=rng.multinomial(len(unique),np.full(len(unique),1/len(unique)));w=np.array([counts[np.where(unique==d)[0][0]] for d in days]);k=w>0;bb=fit_arrays(X[k],y[k]*w[k],n[k]*w[k])

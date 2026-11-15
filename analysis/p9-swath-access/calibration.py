@@ -41,11 +41,13 @@ def extract(fire,geo,gridfile,out,max_zenith=45):
   if lines!=scans*32:raise ValueError('unexpected image scan layout')
   # Ten leap seconds accrued since 1993-01-01 UTC through 2018--2020.
   # NASA TAI93 definition plus NIST leap table, recorded in documentation.
-  tai=t[:][(pix//fm.shape[1])//32];utc=tai-10
+  leap=int(np.asarray(g.attrs.get('TAI93_leapseconds',10)).reshape(-1)[0])
+  if leap!=10:raise ValueError('unexpected TAI93 leap seconds for calibration epoch')
+  tai=t[:][(pix//fm.shape[1])//32];utc=tai-leap
   epoch=datetime.datetime(1993,1,1);start=datetime.datetime.fromisoformat(f.attrs['StartTime'].decode());end=datetime.datetime.fromisoformat(f.attrs['EndTime'].decode())
   secs0=(start-epoch).total_seconds();secs1=(end-epoch).total_seconds()
   if len(utc) and (utc.min()<secs0-2 or utc.max()>secs1+2):raise ValueError('scan time outside declared UTC swath')
-  np.savez_compressed(out,grid_id=ids,fire=np.isin(mask,[8,9]),zenith=zen,utc_seconds_since_1993=utc,local_hour=(utc%86400)/3600+grid['lon'][ids]/15)
+  np.savez_compressed(out,grid_id=ids,fire=np.isin(mask,[8,9]),zenith=zen,distance_m=dist[ids],utc_seconds_since_1993=utc,local_hour=(utc%86400)/3600+grid['lon'][ids]/15)
   report={'fire':fire.name,'geo':geo.name,'grid':gridfile.name,'sample':out.name,'usable_centers':len(ids),'fire_centers':int(np.isin(mask,[8,9]).sum()),'hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [fire,geo,out]},'max_sensor_zenith_degrees':max_zenith,'status':'extracted_not_calibrated'}
   out.with_suffix('.json').write_text(json.dumps(report,indent=2)+'\n')
   return report
