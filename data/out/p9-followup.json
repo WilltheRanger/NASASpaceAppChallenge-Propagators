@@ -1,0 +1,10 @@
+{
+  "source_commit": "3d06ffbee19f156577c088347857cff69b931c46",
+  "complete_dates": 18,
+  "expected_swaths": 330,
+  "primary_eligible": 0,
+  "sensitivity_eligible": 342300,
+  "discordant_fires": 46,
+  "all_biomes_status": "insufficient_identification",
+  "report_url": "https://github.com/WilltheRanger/NASASpaceAppChallenge-Propagators/blob/3d06ffbee19f156577c088347857cff69b931c46/analysis/p9-swath-access/final-cloud-results/README.md"
+}

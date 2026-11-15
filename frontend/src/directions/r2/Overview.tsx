@@ -24,7 +24,7 @@ import { LOOK_RANGE, REGIONS, fmtRange, hm, lookChange, phrase, pct, regionData 
 import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, IMG, JETHVA, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
+  CAVEAT, FEATURED, IMG, JETHVA, More, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
   useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -230,14 +230,14 @@ function OneDay() {
       description: <>{DAY.driftStart ? <>Here the move started in {DAY.driftStart}. </> : null}Across our six places, Aqua now looks {RANGE} later.</>,
     },
     { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change during the day, so a later look can count more fires or fewer.' },
-    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. Its counts let us estimate what Aqua would have counted at its old time: what we’d expect.</> },
+    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That old match and VIIRS’s count now give what we’d expect from Aqua.</> },
   ]
   return (
     <section id="day" aria-labelledby="day-h">
       <div className={cn(shell, 'pb-6 pt-10 lg:pb-12 lg:pt-12')}>
         <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
           <h2 id="day-h" className="text-balance text-[clamp(30px,3.6vw,52px)] font-medium leading-[1.05] tracking-[-0.025em] lg:col-span-7">
-            Aqua, a NASA satellite that counts fires, faces the same question.
+            Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
           <p className="max-w-[30ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">INPE’s official fire count for Brazil follows Aqua.</p>
         </div>
@@ -432,10 +432,16 @@ function Places() {
       </ol>
       <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
         Look times are local sun time, 2012–2020 against {YEAR}. Short lines: each year from 2012 to 2020; the shaded band spans them. Unusual: further from what
-        we’d expect than any of those years. How sure we are: the real difference is very likely inside the amber line. Our test case: another study already timed
+        we’d expect than any of those years. How sure we are: the amber line shows how much the number moves when we re-pick the days we compare; it doesn’t say how much the timing caused. Our test case: another study already timed
         the crop burning in Punjab + Haryana (<a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>), so we check our results
         against it. Sources: our data files, one per place (see How we know).
       </p>
+      <More label="About the range" className="mt-2">
+        <p className="max-w-[64rem] text-xs text-[color:var(--bone3)]">
+          The amber line is a 95% bootstrap interval: the days compared are resampled many times and the middle 95% of results kept. It depends on that
+          resampling. It is not the probability that an effect of the timing lies inside it.
+        </p>
+      </More>
     </div>
   )
 }
