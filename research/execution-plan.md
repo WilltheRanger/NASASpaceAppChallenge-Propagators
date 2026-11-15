@@ -85,7 +85,6 @@ Written Sat Nov 14, 1:30 PM PT (original deadline assumption of Sun 6:00 PM was 
 - **App lead (Arya):** Vite + React + TS + Leaflet, reusing DBHS Wayfinder patterns; static JSON; deploy (Cloudflare Pages); public-link test.
 - **Story/QA lead:** slides or video, project page, SI-disclosure log, references, judge Q&A prep, testing every number against the JSON.
 
-
 ## 3. Data contract (agree on this in the first hour so app and data work in parallel)
 
 ```
