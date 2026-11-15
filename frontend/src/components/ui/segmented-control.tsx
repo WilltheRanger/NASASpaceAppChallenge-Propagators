@@ -52,7 +52,7 @@ export function SegmentedControl<T extends string | number>({ options, value, on
   }
 
   return (
-    <div role="radiogroup" aria-label={label} className={cn('relative select-none rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] p-[3px]', className)}>
+    <div role="radiogroup" aria-label={label} className={cn('relative select-none rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] p-[3px] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[color:var(--bone)]', className)}>
       <div className="relative grid" style={{ gridTemplateColumns: template, touchAction: 'manipulation' }}>
         {options.map((o) => (
           <span key={String(o.value)} aria-hidden className={cn(seg, 'pointer-events-none', o.disabled ? 'text-[color:var(--bone3)] opacity-50' : 'text-[color:var(--bone2)]')}>
@@ -82,7 +82,7 @@ export function SegmentedControl<T extends string | number>({ options, value, on
               tabIndex={i === index ? 0 : -1}
               onClick={() => { if (!o.disabled && o.value !== value) onChange(o.value) }}
               onKeyDown={(e) => onKeyDown(e, i)}
-              className="rounded-[3px] outline-none transition-colors duration-150 hover:bg-[color:var(--bone)]/[0.04] focus-visible:shadow-[inset_0_0_0_2px_var(--bone)] aria-checked:hover:bg-transparent"
+              className="rounded-[3px] outline-none transition-colors duration-150 hover:bg-[color:var(--bone)]/[0.04] focus-visible:shadow-[inset_0_0_0_2px_var(--ink),inset_0_0_0_4px_var(--bone)] aria-checked:hover:bg-transparent"
             />
           ))}
         </div>

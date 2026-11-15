@@ -1,17 +1,18 @@
 /**
- * Earth globe: NASA Blue Marble on a 3D globe (MapLibre GL), with the past day's NASA FIRMS fire detections as points
- * and the six studied regions framed by corner brackets. Fly it to a place and it turns, zooms in and flattens into a
- * 2D map on the way down (the projection eases from globe to web mercator across a band of zoom levels set for each
- * flight), where a region's own NASA map can sit on its box.
+ * Earth globe: NASA Blue Marble on a 3D globe (MapLibre GL) that flattens into a 2D map on the way down to a place
+ * (the projection eases from globe to web mercator across a band of zoom levels set for each flight). On it: the past
+ * day's NASA FIRMS daytime fire detections in the site's satellite marks (Aqua an amber dot, VIIRS a green diamond,
+ * Terra a blue ring), which can be clicked; the six studied regions, framed by white corner brackets; a faint grid.
  *
- * Imagery: the comment page carries one 4096 px Blue Marble image, cut into tiles here (no network); the live site
- * also streams NASA GIBS Blue Marble tiles to zoom 8 over it. Nothing here computes a number the page quotes.
+ * Imagery: the comment page carries one 4096 px Blue Marble image, cut into tiles here (no network), and sharper Blue
+ * Marble around each studied region; the live site also streams NASA GIBS Blue Marble and Sentinel-2 cloudless close up.
  */
 import * as React from 'react'
 import { createPortal } from 'react-dom'
-import { Map as MLMap, Marker, addProtocol, setWorkerUrl, type GeoJSONSource, type ImageSource, type StyleSpecification } from 'maplibre-gl'
+import { Map as MLMap, Marker, addProtocol, setWorkerUrl, type GeoJSONSource, type ImageSource, type MapGeoJSONFeature, type StyleSpecification } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { LAT, LON, N, SAT } from '@/r2/fires'
 
 setWorkerUrl(workerUrl)
 
@@ -20,35 +21,40 @@ export type EarthRegion = { id: string; name: string; bbox: Box }
 /** where to fly: a box to fit, optionally no closer than `maxZoom` (the comment page's own imagery is soft up close) */
 export type EarthTarget = { key: string; bbox: Box; maxZoom?: number } | null
 export type EarthOverlay = { src: string; bbox: Box } | null
-export type EarthView = { zoom: number; lat: number; flat: number }
 export type EarthPadding = { top: number; right: number; bottom: number; left: number }
-export type EarthHandle = { zoomBy: (d: number) => void; home: () => void }
+export type EarthHandle = {
+  zoomBy: (d: number) => void
+  home: () => void
+  /** pan just enough that a point has `top` px of room above it and `side` px either side (for a card drawn over it) */
+  reveal: (lon: number, lat: number, room: { top: number; side: number }) => void
+}
+export type Show = { terra: boolean; aqua: boolean; viirs: boolean }
+/** React content drawn at a point on the map (the selected fire's card, a searched place's reticle) */
+export type Callout = { key: string; lon: number; lat: number; anchor: 'center' | 'bottom'; content: React.ReactNode } | null
 
 export interface EarthGlobeProps {
   regions: EarthRegion[]
   selected: string | null
   target: EarthTarget
-  overlay: EarthOverlay
-  /** sharper imagery around the selected region, under its own map (shown from the moment it is picked) */
+  /** sharper imagery around the selected region (shown from the moment it is picked) */
   context?: EarthOverlay
-  /** a marker at a searched place that has no region frame: where it is, and what to draw there */
-  pin?: { key: string; lon: number; lat: number } | null
-  pinContent?: React.ReactNode
-  /** fire points as [lon*100, lat*100, day(1)/night(0), ...] */
-  fires: number[] | null
-  /** the selected region's own week of fire detections, as [lon*100, lat*100, ...], drawn as rings */
-  weekFires?: number[] | null
+  show: Show
+  /** the clicked detection (an index into src/r2/fires), and the other satellites' sightings of the same spot */
+  fire: number | null
+  near: number[]
+  callouts: Callout[]
   /** where the panels sit, so a place lands in the clear middle */
   padding: EarthPadding
   /** the Blue Marble image the comment page cuts into tiles */
   baseSrc: string
-  /** stream NASA GIBS tiles too (the live site; the comment page cannot reach them) */
+  /** stream NASA GIBS and Sentinel-2 tiles too (the live site; the comment page cannot reach them) */
   live: boolean
   motion: boolean
   onArrive?: (key: string) => void
   onPick?: (id: string) => void
-  onCursor?: (p: { lon: number; lat: number } | null) => void
-  onView?: (v: EarthView) => void
+  onFire?: (i: number | null) => void
+  /** the map's view, when it comes to rest: [west, south, east, north], and its zoom */
+  onRest?: (b: Box, zoom: number) => void
   onFail?: () => void
   className?: string
 }
@@ -56,10 +62,20 @@ export interface EarthGlobeProps {
 const GIBS_BM = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg'
 /** close-up imagery on the live site: Sentinel-2 cloudless 2016 by EOX (s2maps.eu), CC BY 4.0 */
 const S2 = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg'
-const ACCENT = '#C8801F'
-const BONE = '#ECE9E1'
-const FIRE = '#FF5A36'
+/** the satellite colours, as the site's tokens set them (MapLibre paint needs literal colours) */
+const AQUA = '#C8801F', TERRA = '#448BCB', VIIRS = '#49A46E', BONE = '#ECE9E1', GROUND = '#0B0D0B'
 const NONE = { type: 'FeatureCollection', features: [] } as GeoJSON.FeatureCollection
+const FIRE_LAYERS = ['fire-viirs', 'fire-terra', 'fire-aqua'] as const
+
+/** the fire points as GeoJSON, once: g = 0 Terra, 1 Aqua, 2 VIIRS */
+let firesGeo: GeoJSON.FeatureCollection | null = null
+function fireFeatures() {
+  if (firesGeo) return firesGeo
+  const features: GeoJSON.Feature[] = new Array(N)
+  for (let i = 0; i < N; i++) features[i] = { type: 'Feature', properties: { i, g: SAT[i] >= 2 ? 2 : SAT[i] }, geometry: { type: 'Point', coordinates: [LON[i], LAT[i]] } }
+  firesGeo = { type: 'FeatureCollection', features }
+  return firesGeo
+}
 
 /** a faint graticule every 15 degrees */
 const GRID: GeoJSON.FeatureCollection = {
@@ -70,33 +86,29 @@ const GRID: GeoJSON.FeatureCollection = {
   ],
 }
 
-/** the half of the Earth in night now, as a polygon (sun position to within about a degree) */
-function nightSide(now: Date): GeoJSON.FeatureCollection {
-  const rad = Math.PI / 180
-  const start = Date.UTC(now.getUTCFullYear(), 0, 0)
-  const n = (now.getTime() - start) / 86400000
-  const g = (2 * Math.PI / 365) * (n - 1)
-  const dec = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g)
-  const eot = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g))
-  const utcMin = now.getUTCHours() * 60 + now.getUTCMinutes() + now.getUTCSeconds() / 60
-  const sunLon = -(utcMin + eot - 720) / 4
-  const line: [number, number][] = []
-  for (let lon = -180; lon <= 180; lon += 2) {
-    const lat = Math.atan(-Math.cos((lon - sunLon) * rad) / Math.tan(dec || 1e-6)) / rad
-    line.push([lon, Math.max(-85, Math.min(85, lat))])
-  }
-  const pole = dec > 0 ? -85 : 85
-  const ring = [...line, [180, pole], [-180, pole], line[0]]
-  return { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } }] }
+/** VIIRS's mark: a diamond, as on the Region page (MapLibre circles can't draw one, so it's an icon) */
+function diamond(px: number, fill: string, stroke: string) {
+  const c = document.createElement('canvas')
+  c.width = c.height = px
+  const g = c.getContext('2d')
+  if (!g) return null
+  const h = px / 2, r = h - 2
+  g.beginPath()
+  g.moveTo(h, h - r); g.lineTo(h + r, h); g.lineTo(h, h + r); g.lineTo(h - r, h)
+  g.closePath()
+  g.fillStyle = fill
+  g.fill()
+  g.lineWidth = 2
+  g.strokeStyle = stroke
+  g.stroke()
+  return g.getImageData(0, 0, px, px)
 }
 
 /** the zoom at which the whole Earth fits the stage */
 const homeZoom = (w: number, h: number) => Math.log2((Math.min(w, h) * 0.92 * Math.PI) / 512)
 /** the band over which the globe flattens: globe below z0, a flat map above z1 */
-const band = (z0: number, z1: number) =>
-  ['interpolate', ['linear'], ['zoom'], z0, 'vertical-perspective', z1, 'mercator'] as unknown as string
+const band = (z0: number, z1: number) => ['interpolate', ['linear'], ['zoom'], z0, 'vertical-perspective', z1, 'mercator'] as unknown as string
 const flatAt = (z: number, b: [number, number]) => Math.max(0, Math.min(1, (z - b[0]) / (b[1] - b[0])))
-
 const mercY = (lat: number) => (1 - Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) / Math.PI) / 2
 /** the zoom and centre that fit a box inside the padded stage, as a flat map */
 function fit(b: Box, w: number, h: number, p: EarthPadding) {
@@ -128,7 +140,7 @@ function useBaseProtocol(src: string) {
     const z = Number(m[1]), x = Number(m[2]), y = Number(m[3])
     const img = await load()
     const full = 'naturalWidth' in img ? img.naturalWidth : img.width
-    const n = 2 ** z, size = full / n
+    const size = full / 2 ** z
     const c: OffscreenCanvas | HTMLCanvasElement = typeof OffscreenCanvas !== 'undefined'
       ? new OffscreenCanvas(256, 256)
       : Object.assign(document.createElement('canvas'), { width: 256, height: 256 })
@@ -150,7 +162,7 @@ function brackets(b: Box) {
 const ring = (b: Box) => [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]], [b[0], b[1]]]
 
 /** an image laid on its box as a raster layer, swapped when its source changes; decoded here, so no fetch is needed */
-function useImageLayer(mapRef: React.MutableRefObject<MLMap | null>, ready: boolean, id: string, layer: EarthOverlay, before: string, fade: number, motionRef: React.MutableRefObject<boolean>) {
+function useImageLayer(mapRef: React.MutableRefObject<MLMap | null>, ready: boolean, id: string, layer: EarthOverlay, before: string, motion: boolean) {
   React.useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -166,7 +178,7 @@ function useImageLayer(mapRef: React.MutableRefObject<MLMap | null>, ready: bool
       const coordinates: [[number, number], [number, number], [number, number], [number, number]] = [[w, n], [e, n], [e, s], [w, s]]
       map.addSource(id, { type: 'image', url: layer.src, coordinates })
       ;(map.getSource(id) as ImageSource).updateImage({ image: im, coordinates })
-      map.addLayer({ id, type: 'raster', source: id, paint: { 'raster-opacity': 0, 'raster-opacity-transition': { duration: motionRef.current ? fade : 0, delay: 0 }, 'raster-fade-duration': 0 } }, before)
+      map.addLayer({ id, type: 'raster', source: id, paint: { 'raster-opacity': 0, 'raster-opacity-transition': { duration: motion ? 500 : 0, delay: 0 }, 'raster-fade-duration': 0 } }, before)
       requestAnimationFrame(() => { if (!gone && map.getLayer(id)) map.setPaintProperty(id, 'raster-opacity', 1) })
     }
     im.src = layer.src
@@ -175,7 +187,7 @@ function useImageLayer(mapRef: React.MutableRefObject<MLMap | null>, ready: bool
 }
 
 export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(function EarthGlobe(props, handle) {
-  const { regions, selected, target, overlay, context, pin, pinContent, fires, weekFires, padding, baseSrc, live, motion, className } = props
+  const { regions, selected, target, context, show, fire, near, callouts, baseSrc, live, motion, className } = props
   const boxRef = React.useRef<HTMLDivElement | null>(null)
   const mapRef = React.useRef<MLMap | null>(null)
   const [ready, setReady] = React.useState(false)
@@ -192,6 +204,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     if (!el) return
     useBaseProtocol(baseSrc)
     const w = el.clientWidth || 1200, h = el.clientHeight || 800
+    const dot = (color: string, r: number[]) => ({ 'circle-color': color, 'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], ...r], 'circle-pitch-alignment': 'map', 'circle-stroke-color': GROUND, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 2, 0, 5, 0.6] })
     const style: StyleSpecification = {
       version: 8,
       projection: { type: band(4, 5.5) },
@@ -203,8 +216,6 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
           s2: { type: 'raster' as const, tiles: [S2], tileSize: 256, maxzoom: 14 },
         } : {}),
         grid: { type: 'geojson', data: GRID },
-        night: { type: 'geojson', data: nightSide(new Date()) },
-        week: { type: 'geojson', data: NONE },
         regions: { type: 'geojson', data: NONE },
         frames: { type: 'geojson', data: NONE },
         fires: { type: 'geojson', data: NONE },
@@ -213,68 +224,38 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'ocean', type: 'background', paint: { 'background-color': '#0A1A2C' } },
         { id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } },
         ...(live ? [{ id: 'gibs', type: 'raster' as const, source: 'gibs', minzoom: 3, paint: { 'raster-fade-duration': 250 } }] : []),
-        { id: 'region-img-slot', type: 'background', layout: { visibility: 'none' } },
+        { id: 'ctx-slot', type: 'background', layout: { visibility: 'none' } },
         ...(live ? [{ id: 's2', type: 'raster' as const, source: 's2', minzoom: 4.5, paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 4.5, 0, 6, 1], 'raster-fade-duration': 250 } }] : []) as never[],
-        { id: 'night', type: 'fill', source: 'night', paint: { 'fill-color': '#000', 'fill-opacity': ['interpolate', ['linear'], ['zoom'], 0, 0.42, 3.5, 0.3, 5, 0] } },
         { id: 'grid', type: 'line', source: 'grid', paint: { 'line-color': BONE, 'line-width': 0.6, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 0, 0.09, 6, 0.05] } },
         { id: 'region-hit', type: 'fill', source: 'regions', paint: { 'fill-color': '#000', 'fill-opacity': 0 } },
+        { id: 'region-edge', type: 'line', source: 'regions', paint: { 'line-color': BONE, 'line-opacity': ['case', ['get', 'on'], 0.6, 0.22], 'line-width': 1, 'line-dasharray': [2, 3] } },
+        { id: 'frames', type: 'line', source: 'frames', layout: { 'line-cap': 'square', 'line-join': 'miter' }, paint: { 'line-color': BONE, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, 0.7] } },
+        // VIIRS beneath (the most numerous), then Terra's rings, then Aqua on top: Aqua is the satellite the audit is about
         {
-          id: 'region-edge', type: 'line', source: 'regions',
-          paint: { 'line-color': ACCENT, 'line-opacity': ['case', ['get', 'on'], 0.7, 0.25], 'line-width': 1, 'line-dasharray': [2, 3] },
+          id: 'fire-viirs', type: 'symbol', source: 'fires', filter: ['==', ['get', 'g'], 2],
+          layout: { 'icon-image': 'viirs-mark', 'icon-size': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 0.3, 4, 0.45, 8, 0.8, 11, 1.05], 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-padding': 0 },
         },
         {
-          id: 'frames', type: 'line', source: 'frames',
-          layout: { 'line-cap': 'square', 'line-join': 'miter' },
-          paint: { 'line-color': ACCENT, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, ['get', 'dim']] },
+          id: 'fire-terra', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 0],
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 1.4, 4, 2.4, 8, 4.4, 11, 6], 'circle-pitch-alignment': 'map' },
+        },
+        { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, [1, 1.3, 4, 2.2, 8, 4, 11, 6]) as never },
+        {
+          id: 'fire-near', type: 'circle', source: 'fires', filter: ['in', ['get', 'i'], ['literal', []]],
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 5, 8, 8], 'circle-pitch-alignment': 'map' },
         },
         {
-          id: 'week', type: 'circle', source: 'week',
-          paint: {
-            'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': '#FF6B3D',
-            'circle-stroke-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.3, 5, 0.55, 7, 0.85],
-            'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 3, 0.6, 7, 1.2],
-            'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 3, 0.9, 6, 2.2, 9, 4.5],
-            'circle-pitch-alignment': 'map',
-          },
-        },
-        {
-          id: 'fires-glow', type: 'circle', source: 'fires',
-          paint: {
-            'circle-color': FIRE, 'circle-blur': 1,
-            'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 2.2, 4, 5, 8, 11],
-            'circle-opacity': ['interpolate', ['linear'], ['zoom'], 1, 0.1, 6, 0.16],
-            'circle-pitch-alignment': 'map',
-          },
-        },
-        {
-          id: 'fires', type: 'circle', source: 'fires',
-          paint: {
-            'circle-color': ['case', ['==', ['get', 'd'], 1], '#FF6B3D', '#FF9A6B'],
-            'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 0.7, 4, 1.4, 8, 3.2, 11, 5],
-            'circle-opacity': ['case', ['==', ['get', 'd'], 1], 0.95, 0.6],
-            'circle-pitch-alignment': 'map',
-          },
+          id: 'fire-sel', type: 'circle', source: 'fires', filter: ['==', ['get', 'i'], -1],
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 8, 8, 12], 'circle-pitch-alignment': 'map' },
         },
       ],
     }
     let map: MLMap
     try {
       map = new MLMap({
-        container: el,
-        style,
-        center: [-40, 8],
-        zoom: homeZoom(w, h),
-        minZoom: 0.4,
-        maxZoom: live ? 11 : 8.5,
-        attributionControl: false,
-        maplibreLogo: false,
-        dragRotate: false,
-        pitchWithRotate: false,
-        touchPitch: false,
-        maxPitch: 0,
-        renderWorldCopies: true,
-        fadeDuration: 150,
-        canvasContextAttributes: { antialias: true },
+        container: el, style, center: [-40, 8], zoom: homeZoom(w, h), minZoom: 0.4, maxZoom: live ? 11 : 8.5,
+        attributionControl: false, maplibreLogo: false, dragRotate: false, pitchWithRotate: false, touchPitch: false, maxPitch: 0,
+        renderWorldCopies: true, fadeDuration: 150, canvasContextAttributes: { antialias: true },
       })
     } catch {
       cb.current.onFail?.()
@@ -283,28 +264,50 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     map.touchZoomRotate.disableRotation()
     mapRef.current = map
     map.on('error', () => { /* a tile that fails stays blank; the base below shows through */ })
-    map.on('load', () => setReady(true))
-    map.on('webglcontextlost', () => cb.current.onFail?.())
-    const view = () => {
-      const z = map.getZoom()
-      cb.current.onView?.({ zoom: z, lat: map.getCenter().lat, flat: flatAt(z, bandRef.current) })
-    }
-    map.on('move', view)
-    map.on('mousemove', (e) => cb.current.onCursor?.({ lon: e.lngLat.wrap().lng, lat: e.lngLat.lat }))
-    map.on('mouseout', () => cb.current.onCursor?.(null))
-    map.on('click', 'region-hit', (e) => {
-      const id = e.features?.[0]?.properties?.id as string | undefined
-      if (id) cb.current.onPick?.(id)
+    map.on('load', () => {
+      const mark = diamond(32, VIIRS, GROUND)
+      if (mark && !map.hasImage('viirs-mark')) map.addImage('viirs-mark', mark, { pixelRatio: 2 })
+      ;(map.getSource('fires') as GeoJSONSource | undefined)?.setData(fireFeatures())
+      setReady(true)
     })
-    map.on('mouseenter', 'region-hit', () => { map.getCanvas().style.cursor = 'pointer' })
-    map.on('mouseleave', 'region-hit', () => { map.getCanvas().style.cursor = '' })
+    map.on('webglcontextlost', () => cb.current.onFail?.())
+    map.on('moveend', () => {
+      const b = map.getBounds()
+      cb.current.onRest?.([Math.max(-180, b.getWest()), Math.max(-85, b.getSouth()), Math.min(180, b.getEast()), Math.min(85, b.getNorth())], map.getZoom())
+    })
+    // a click picks the nearest fire within a few pixels, else a studied region, else clears the fire
+    map.on('click', (e) => {
+      // a click inside a card drawn on the map is the card's, not the map's
+      if ((e.originalEvent?.target as HTMLElement | null)?.closest?.('.maplibregl-marker')) return
+      const p = e.point
+      const hits = map.queryRenderedFeatures([[p.x - 6, p.y - 6], [p.x + 6, p.y + 6]], { layers: FIRE_LAYERS.filter((l) => map.getLayoutProperty(l, 'visibility') !== 'none') as string[] }) as MapGeoJSONFeature[]
+      if (hits.length) {
+        let best = hits[0], d = Infinity
+        for (const f of hits) {
+          const c = (f.geometry as GeoJSON.Point).coordinates
+          const q = map.project([c[0], c[1]])
+          const dd = Math.hypot(q.x - p.x, q.y - p.y)
+          if (dd < d) { d = dd; best = f }
+        }
+        cb.current.onFire?.(Number(best.properties?.i))
+        return
+      }
+      const r = map.queryRenderedFeatures(p, { layers: ['region-hit'] })[0]
+      if (r?.properties?.id) { cb.current.onPick?.(String(r.properties.id)); return }
+      cb.current.onFire?.(null)
+    })
+    for (const l of [...FIRE_LAYERS, 'region-hit']) {
+      map.on('mouseenter', l, () => { map.getCanvas().style.cursor = 'pointer' })
+      map.on('mouseleave', l, () => { map.getCanvas().style.cursor = '' })
+    }
     const ro = new ResizeObserver(() => map.resize())
     ro.observe(el)
     return () => { ro.disconnect(); map.remove(); mapRef.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // regions: the dashed box (click target) and the corner brackets; the selected one in bone
+  // regions: a dashed box (click target) and white corner brackets, the selected one at full strength
+  const regionKey = `${selected}`
   React.useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -314,36 +317,47 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     })
     ;(map.getSource('frames') as GeoJSONSource | undefined)?.setData({
       type: 'FeatureCollection',
-      features: regions.map((r) => ({ type: 'Feature', properties: { id: r.id, on: r.id === selected, dim: overlay ? 0.3 : 0.8 }, geometry: { type: 'MultiLineString', coordinates: brackets(r.bbox) } })),
+      features: regions.map((r) => ({ type: 'Feature', properties: { id: r.id, on: r.id === selected }, geometry: { type: 'MultiLineString', coordinates: brackets(r.bbox) } })),
     })
-    // fires inside the selected region give way to its own map
-    const sel = regions.find((r) => r.id === selected)
-    const filter = sel && overlay
-      ? ['!', ['within', { type: 'Polygon', coordinates: [ring(sel.bbox)] }]]
-      : null
-    map.setFilter('fires', filter as never)
-    map.setFilter('fires-glow', filter as never)
-  }, [ready, regions, selected, overlay])
+  }, [ready, regionKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // region tags: an HTML label at each box's top-left corner, hidden on the far side of the globe, where they would
-  // overlap one another (the selected one wins), and, while a region's map shows, for every other region
-  const tagState = React.useRef({ selected, overlay: !!overlay })
-  tagState.current = { selected, overlay: !!overlay }
+  // which satellites show
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map.setLayoutProperty('fire-terra', 'visibility', show.terra ? 'visible' : 'none')
+    map.setLayoutProperty('fire-aqua', 'visibility', show.aqua ? 'visible' : 'none')
+    map.setLayoutProperty('fire-viirs', 'visibility', show.viirs ? 'visible' : 'none')
+  }, [ready, show.terra, show.aqua, show.viirs])
+
+  // the clicked fire and its other sightings
+  const nearKey = near.join(',')
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map.setFilter('fire-sel', ['==', ['get', 'i'], fire ?? -1])
+    map.setFilter('fire-near', ['in', ['get', 'i'], ['literal', near.filter((i) => i !== fire)]])
+  }, [ready, fire, nearKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // region tags: an HTML label at each box's top-left corner, hidden on the far side of the globe and where they would
+  // overlap (the selected one wins)
+  const tagState = React.useRef(selected)
+  tagState.current = selected
   const tagsRef = React.useRef<{ id: string; el: HTMLButtonElement; m: Marker }[]>([])
   const declutter = React.useCallback(() => {
-    const { selected: sel, overlay: ov } = tagState.current
-    const placed: DOMRect[] = []
+    const sel = tagState.current
     const list = [...tagsRef.current].sort((a, b) => Number(b.id === sel) - Number(a.id === sel))
-    for (const t of list) {
-      t.el.style.visibility = 'visible'
+    const rects = list.map((t) => { t.el.style.visibility = 'visible'; return t.el.getBoundingClientRect() })
+    const placed: DOMRect[] = []
+    list.forEach((t, k) => {
+      const r = rects[k]
       const covered = t.m.getElement().style.opacity === '0'
-      const r = t.el.getBoundingClientRect()
       const clash = placed.some((p) => !(r.right + 4 < p.left || r.left > p.right + 4 || r.bottom + 2 < p.top || r.top > p.bottom + 2))
-      const hide = covered || clash || (ov && t.id !== sel)
+      const hide = covered || clash
       t.el.style.visibility = hide ? 'hidden' : 'visible'
       t.el.tabIndex = hide ? -1 : 0
       if (!hide) placed.push(r)
-    }
+    })
   }, [])
   React.useEffect(() => {
     const map = mapRef.current
@@ -355,7 +369,6 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     later()
     return () => { map.off('move', later); map.off('idle', later); cancelAnimationFrame(frame) }
   }, [ready, declutter])
-  React.useEffect(() => { requestAnimationFrame(declutter) }, [selected, overlay, declutter])
   React.useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -373,40 +386,10 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     tagsRef.current = tags
     requestAnimationFrame(declutter)
     return () => { tags.forEach((t) => t.m.remove()); tagsRef.current = [] }
-  }, [ready, regions, selected, declutter])
+  }, [ready, regionKey, declutter]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // the night side moves with the clock
-  React.useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready) return
-    const t = window.setInterval(() => (map.getSource('night') as GeoJSONSource | undefined)?.setData(nightSide(new Date())), 300000)
-    return () => window.clearInterval(t)
-  }, [ready])
-
-  // the selected region's week of fires, as rings
-  React.useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready) return
-    const features: GeoJSON.Feature[] = []
-    if (weekFires) for (let i = 0; i + 1 < weekFires.length; i += 2) features.push({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [weekFires[i] / 100, weekFires[i + 1] / 100] } })
-    ;(map.getSource('week') as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features })
-  }, [ready, weekFires])
-
-  // fire points
-  React.useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready || !fires) return
-    const features: GeoJSON.Feature[] = []
-    for (let i = 0; i + 2 < fires.length; i += 3) {
-      features.push({ type: 'Feature', properties: { d: fires[i + 2] }, geometry: { type: 'Point', coordinates: [fires[i] / 100, fires[i + 1] / 100] } })
-    }
-    ;(map.getSource('fires') as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features })
-  }, [ready, fires])
-
-  // the sharper context around a region (from the moment it is picked), then the region's own map on its box (once
-  // the flight lands), each fading in; images are decoded here, so no fetch is needed
-  useImageLayer(mapRef, ready, 'region-ctx', context ?? null, 'region-img-slot', 500, motionRef)
-  useImageLayer(mapRef, ready, 'region-img', overlay, 'region-hit', 700, motionRef)
+  // sharper Blue Marble around the selected region, from the moment it is picked
+  useImageLayer(mapRef, ready, 'region-ctx', context ?? null, 'ctx-slot', motion)
 
   /** set the flatten band without a jump: if the globe's shape at this zoom would change, zoom out to the globe first */
   const withBand = (next: [number, number], then: () => void) => {
@@ -415,9 +398,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     const apply = () => { bandRef.current = next; map.setProjection({ type: band(next[0], next[1]) }); then() }
     if (Math.abs(flatAt(z, bandRef.current) - flatAt(z, next)) < 0.01) { apply(); return }
     const id = flight.current
-    const out = Math.min(next[0], bandRef.current[0]) - 0.15
     map.once('moveend', () => { if (id === flight.current) apply() })
-    map.easeTo({ zoom: out, duration: motionRef.current ? 900 : 0, padding: cb.current.padding, essential: true })
+    map.easeTo({ zoom: Math.min(next[0], bandRef.current[0]) - 0.15, duration: motionRef.current ? 900 : 0, padding: cb.current.padding, essential: true })
   }
 
   // a new target: fly there and flatten on the way down; no target: back out to the whole globe
@@ -452,17 +434,24 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     })
   }, [ready, target?.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // a searched place without a region frame gets a marker; its content is React, rendered into the marker's element
-  const [pinEl, setPinEl] = React.useState<HTMLDivElement | null>(null)
+  // callouts: React content rendered into map markers (the fire card, a searched place's reticle)
+  const [hosts, setHosts] = React.useState<Record<string, HTMLDivElement>>({})
+  const calloutKey = callouts.map((c) => c?.key ?? '').join('|')
   React.useEffect(() => {
     const map = mapRef.current
-    if (!map || !ready || !pin) { setPinEl(null); return }
-    const el = document.createElement('div')
-    el.style.pointerEvents = 'none'
-    const m = new Marker({ element: el, anchor: 'center', opacityWhenCovered: '0' }).setLngLat([pin.lon, pin.lat]).addTo(map)
-    setPinEl(el)
-    return () => { m.remove(); setPinEl(null) }
-  }, [ready, pin?.key]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!map || !ready) return
+    const made: Record<string, HTMLDivElement> = {}
+    const markers: Marker[] = []
+    for (const c of callouts) {
+      if (!c) continue
+      const el = document.createElement('div')
+      el.style.pointerEvents = c.anchor === 'bottom' ? 'auto' : 'none'
+      markers.push(new Marker({ element: el, anchor: c.anchor, offset: c.anchor === 'bottom' ? [0, -14] : [0, 0], opacityWhenCovered: '0' }).setLngLat([c.lon, c.lat]).addTo(map))
+      made[c.key] = el
+    }
+    setHosts(made)
+    return () => { markers.forEach((m) => m.remove()); setHosts({}) }
+  }, [ready, calloutKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useImperativeHandle(handle, () => ({
     zoomBy: (d) => { const map = mapRef.current; if (map) map.easeTo({ zoom: map.getZoom() + d, duration: motionRef.current ? 250 : 0 }) },
@@ -471,13 +460,24 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
       if (!map || !el) return
       map.flyTo({ center: [-40, 8], zoom: homeZoom(el.clientWidth, el.clientHeight), padding: { top: 0, right: 0, bottom: 0, left: 0 }, duration: motionRef.current ? 1400 : 0, essential: true })
     },
+    reveal: (lon, lat, room) => {
+      const map = mapRef.current, el = boxRef.current
+      if (!map || !el) return
+      const p = map.project([lon, lat])
+      const pad = cb.current.padding
+      const minX = pad.left + room.side, maxX = el.clientWidth - pad.right - room.side
+      const minY = pad.top + room.top, maxY = el.clientHeight - pad.bottom - 16
+      const dx = p.x < minX ? p.x - minX : p.x > maxX ? p.x - maxX : 0
+      const dy = p.y < minY ? p.y - minY : p.y > maxY ? p.y - maxY : 0
+      if (dx || dy) map.panBy([dx, dy], { duration: motionRef.current ? 450 : 0 })
+    },
   }), [])
 
   // MapLibre's stylesheet makes its container position: relative, so the map sits inside a positioned wrapper
   return (
     <div className={className}>
       <div ref={boxRef} style={{ width: '100%', height: '100%' }} />
-      {pinEl && pinContent ? createPortal(pinContent, pinEl) : null}
+      {callouts.map((c) => (c && hosts[c.key] ? createPortal(c.content, hosts[c.key], c.key) : null))}
     </div>
   )
 })

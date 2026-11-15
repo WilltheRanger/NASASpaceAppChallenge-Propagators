@@ -43,7 +43,7 @@ export function SiChat({ turns, onAsk, onAction, starters, motion, onClose, clas
       <header className="flex items-start justify-between gap-3 border-b border-[color:var(--hairline)] px-4 py-3">
         <div>
           <h2 className="text-base font-medium text-[color:var(--bone)]">SI</h2>
-          <p className="mt-0.5 text-xs text-[color:var(--bone3)]">Answers from this page’s data, each with its source</p>
+          <p className="mt-0.5 text-xs text-[color:var(--bone3)]">Answers from this page’s data, with sources</p>
         </div>
         {onClose ? (
           <button type="button" aria-label="Close SI" onClick={onClose} className={cn('grid size-8 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
@@ -54,7 +54,7 @@ export function SiChat({ turns, onAsk, onAction, starters, motion, onClose, clas
 
       <div ref={thread} role="log" aria-label="Conversation with SI" aria-live="off" tabIndex={0} className={cn('min-h-0 flex-1 overflow-y-auto px-4 py-3 outline-none', focusRing)}>
         {turns.length === 0 ? (
-          <p className="text-sm text-[color:var(--bone2)]">Ask about the fires on the map, a satellite’s clock, or a studied region.</p>
+          <p className="text-sm text-[color:var(--bone2)]">Ask about any fire, satellite or region.</p>
         ) : null}
         <ol className="flex list-none flex-col gap-5">
           {turns.map((t) => (

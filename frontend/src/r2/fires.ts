@@ -108,3 +108,13 @@ export function dayText(s: string) {
   const [y, m, dd] = d.split('-').map(Number)
   return `${dd} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1]} ${y}`
 }
+
+/** the strongest detection (highest FRP) inside a box, or worldwide; only the satellite groups given */
+export function strongest(b: Box | null, groups: Record<SatGroup, boolean> = { terra: true, aqua: true, viirs: true }) {
+  let best = -1
+  for (let i = 0; i < N; i++) {
+    if ((b && !inBox(i, b)) || !groups[groupOf(SAT[i])]) continue
+    if (best < 0 || FRP[i] > FRP[best]) best = i
+  }
+  return best < 0 ? null : best
+}

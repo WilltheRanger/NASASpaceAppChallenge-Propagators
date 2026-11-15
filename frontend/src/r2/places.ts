@@ -39,7 +39,6 @@ const FIRE_AREAS: [string, number, number, number][] = [
 ]
 
 /** every letter of `q` appears in `text`, in order ("brzl" finds Brazil) */
-const subsequence = (text: string, q: string) => { let j = 0; for (let i = 0; i < text.length && j < q.length; i++) if (text[i] === q[j]) j++; return j === q.length }
 
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 
@@ -84,7 +83,6 @@ export function searchPlaces(q: string, limit = 9): Place[] {
     else if (key.startsWith(f)) s = 1
     else if (key.split(/[\s-]+/).some((w) => w.startsWith(f))) s = 2
     else if (f.length > 2 && key.includes(f)) s = 3
-    else if (f.length > 3 && subsequence(key, f)) s = 4
     if (s < 0 || seen.has(place.id)) continue
     seen.add(place.id)
     scored.push({ p: place, s: s * 10 + rank })
