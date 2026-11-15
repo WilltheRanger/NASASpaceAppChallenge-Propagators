@@ -23,9 +23,11 @@ const IL_CSS = [
   '.il-list{display:flex;flex-direction:column;justify-content:center;min-height:0;overflow:auto;scrollbar-width:none}',
   '.il-list::-webkit-scrollbar{display:none}',
   '.il-label{display:flex;justify-content:space-between;margin-bottom:18px;font:500 12px/1 var(--il-mono,ui-monospace,monospace);letter-spacing:.06em;text-transform:uppercase;color:var(--il-muted)}',
-  '.il-row{appearance:none;display:grid;grid-template-columns:52px 1fr;column-gap:14px;align-items:baseline;width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--il-line);background:transparent;color:var(--il-faint);text-align:left;cursor:pointer;transition:color .35s ease,padding .45s cubic-bezier(.2,.7,.2,1)}',
+  '.il-row{appearance:none;display:grid;grid-template-columns:52px 1fr;column-gap:14px;align-items:baseline;width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--il-line);background:transparent;color:var(--il-faint);text-align:left;cursor:pointer;transition:color .35s ease}',
   '.il-row:first-of-type{border-top:1px solid var(--il-line)}',
-  ".il-row[data-on='1']{color:var(--il-ink);padding-left:12px}",
+  ".il-row[data-on='1']{color:var(--il-ink)}",
+  ".il-row>*{transition:transform .45s cubic-bezier(.2,.7,.2,1)}",
+  ".il-row[data-on='1']>*{transform:translateX(12px)}",
   '.il-row:focus-visible{outline:2px solid var(--il-ink);outline-offset:2px}',
   '.il-num{font:500 12px/1 var(--il-mono,ui-monospace,monospace);color:var(--il-muted)}',
   '.il-title{font:var(--il-title-weight,300) clamp(26px,3.4vw,52px)/1.05 var(--il-title-font,ui-sans-serif,system-ui);letter-spacing:-.02em}',
@@ -40,7 +42,7 @@ const IL_CSS = [
   ".il-pane img[data-l='before']{clip-path:inset(0 100% 0 0)}",
   '.il-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}',
   '@media (max-width:720px){.il-root{grid-template-columns:1fr;grid-template-rows:minmax(0,40%) 1fr}.il-root .il-list{order:2;justify-content:flex-start}.il-pane{order:1}}',
-  '@media (prefers-reduced-motion:reduce){.il-pane img{transition:none!important;transform:none}.il-row,.il-more{transition:none}}',
+  '@media (prefers-reduced-motion:reduce){.il-pane img{transition:none!important;transform:none}.il-row,.il-row>*,.il-more{transition:none}}',
 ].join('\n')
 
 export default function IndexListCarousel({

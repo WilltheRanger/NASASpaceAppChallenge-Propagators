@@ -44,7 +44,7 @@ const Disk = memo(function Disk({ on }: { on: boolean }) {
   return (
     <div className="relative aspect-square w-full" style={{ perspective: '400px' }}>
       <div
-        className="absolute inset-0 h-full w-full transition-transform duration-[600ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:rotate-x-[90deg] hover:duration-100 motion-reduce:transition-none"
+        className="absolute inset-0 h-full w-full transition-transform duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:rotate-x-[90deg] hover:duration-100 motion-reduce:transition-none"
         style={{ transformStyle: 'preserve-3d', transform: on ? 'rotateX(180deg)' : 'rotateX(0deg)' }}
       >
         <div
