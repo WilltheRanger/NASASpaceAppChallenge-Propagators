@@ -106,7 +106,6 @@ const container = 'mx-auto w-full max-w-[var(--maxw)] px-4 md:px-8'
 const ease = 'transition-colors duration-150 ease-[var(--ease)]'
 // No outline-none here: in Tailwind v4 it sets --tw-outline-style to none and would hide these rings.
 const ringLight = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]'
-const ringLightInset = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--ink)]'
 const ringDark = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--wtext)]'
 const ringDarkInset = 'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--wtext)]'
 const heading32 = 'text-balance text-[length:var(--fs-32)] font-normal leading-9 tracking-[var(--track-32)]'
@@ -617,7 +616,7 @@ function RegionsIndex({ all, regionId, onRegion }: { all: RegionData[]; regionId
                   type="button"
                   aria-pressed={loaded}
                   onClick={() => onRegion(r.id)}
-                  className={cn('group grid w-full cursor-pointer grid-cols-1 rounded-lg py-6 text-left md:grid-cols-12 md:gap-x-6 md:py-8', ringLightInset)}
+                  className={cn('group grid w-full cursor-pointer grid-cols-1 rounded-lg py-6 text-left md:grid-cols-12 md:gap-x-6 md:py-8', ringLight)}
                 >
                   <span
                     className={cn(

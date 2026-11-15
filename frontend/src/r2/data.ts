@@ -131,8 +131,12 @@ export function verdictLines(d: RegionData) {
     ? `In ${y.year} Aqua looked at ${d.phrase.the} at ${dr.aqua_lst} local solar time, ${Math.abs(shift)} minutes ${shift >= 0 ? 'after' : 'before'} the fixed ${dr.viirs_lst} clock.`
     : `Look times for ${d.phrase.the} are not in the data yet.`
   const hc = headlineCheck(d, 2024, 2025)
+  const prev = d.years.find((v) => v.year === (hc.ok ? hc.from : -1))
+  const why = hc.ok && prev && prev.verdict === 'clock' && prev.gap != null && y?.gap != null
+    ? ` The later clock had already raised ${hc.from} by ${Math.abs(prev.gap).toFixed(1)}%, so the two changes differ by less than ${Math.round(Math.abs(y.gap))}%.`
+    : ''
   const change = hc.ok
-    ? `From ${hc.from} to ${hc.to} the official count ${verb(hc.official)} ${Math.abs(hc.official).toFixed(1)}%; on the fixed clock it ${verb(hc.fixed)} ${Math.abs(hc.fixed).toFixed(1)}%.`
+    ? `From ${hc.from} to ${hc.to} the official count ${verb(hc.official)} ${Math.abs(hc.official).toFixed(1)}%; on the fixed clock it ${verb(hc.fixed)} ${Math.abs(hc.fixed).toFixed(1)}%.${why}`
     : `${hc.from} and ${hc.to} can't be compared: not enough fires in ${hc.reason} to measure.`
   return { look, change, hc, drift: dr, shift }
 }

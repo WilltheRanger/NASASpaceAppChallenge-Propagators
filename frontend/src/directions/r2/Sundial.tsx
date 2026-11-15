@@ -35,7 +35,7 @@ const vars = {
 
 const SERIF = '"Source Serif 4", Georgia, serif'
 const SANS = '"Source Sans 3", system-ui, sans-serif'
-const focusRing = 'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]'
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-[var(--ink)]'
 const AUDIT_FROM = 2021, AUDIT_TO = 2025
 
 // Dial geometry: a half-disc from 06:00 (left) through solar noon (top) to 18:00 (right), 15° per hour.
