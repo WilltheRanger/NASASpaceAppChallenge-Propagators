@@ -14,7 +14,7 @@ export interface Series {
   values: (number | null)[]
   lo?: (number | null)[]
   hi?: (number | null)[]
-  marker: 'filled' | 'hollow'
+  marker: 'filled' | 'hollow' | 'diamond'
   /** stroke and fill colour, e.g. "var(--bone)" */
   color: string
 }
@@ -146,7 +146,9 @@ export function SeriesChart({
                 {s.values.map((v, i) => v == null ? null : (
                   <g key={i}>
                     {i === activeIndex ? <circle cx={cx(i)} cy={y(v)} r={R + 4} fill="none" stroke={s.color} strokeWidth={1.5} /> : null}
-                    <circle cx={cx(i)} cy={y(v)} r={R} fill={s.marker === 'filled' ? s.color : ink.surface} stroke={s.marker === 'filled' ? ink.surface : s.color} strokeWidth={2} />
+                    {s.marker === 'diamond'
+                      ? <rect x={cx(i) - R * 0.9} y={y(v) - R * 0.9} width={R * 1.8} height={R * 1.8} transform={`rotate(45 ${cx(i)} ${y(v)})`} fill={s.color} stroke={ink.surface} strokeWidth={1.5} />
+                      : <circle cx={cx(i)} cy={y(v)} r={R} fill={s.marker === 'filled' ? s.color : ink.surface} stroke={s.marker === 'filled' ? ink.surface : s.color} strokeWidth={2} />}
                   </g>
                 ))}
               </g>
@@ -196,7 +198,9 @@ export function SeriesChart({
           <span key={s.id} className="inline-flex items-center gap-2">
             <svg width={22} height={10}>
               <line x1={1} x2={21} y1={5} y2={5} stroke={s.color} strokeWidth={2} />
-              <circle cx={11} cy={5} r={3.5} fill={s.marker === 'filled' ? s.color : ink.surface} stroke={s.color} strokeWidth={2} />
+              {s.marker === 'diamond'
+                ? <rect x={8} y={2} width={6} height={6} transform="rotate(45 11 5)" fill={s.color} />
+                : <circle cx={11} cy={5} r={3.5} fill={s.marker === 'filled' ? s.color : ink.surface} stroke={s.color} strokeWidth={2} />}
             </svg>
             {s.label}
           </span>

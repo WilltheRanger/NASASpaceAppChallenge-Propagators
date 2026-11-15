@@ -1,6 +1,6 @@
 // Downloads: the calendar as CSV and a plain-text summary, in the statistics lead's slide language. "Official" names
 // only INPE's published series; the audit's counts are Aqua's own, on the days both satellites returned data.
-import { fmtInt, fmtRange, isValidation, novemberRatio, pct, verdictHeadline, verdictLines, type RegionData } from './data'
+import { calendarSpan, fmtInt, fmtRange, isValidation, novemberRatio, pct, verdictHeadline, verdictLines, type MonthRange, type RegionData } from './data'
 
 function save(name: string, body: string, type: string) {
   const url = URL.createObjectURL(new Blob([body], { type }))
@@ -9,10 +9,13 @@ function save(name: string, body: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-export function downloadCalendarCsv(d: RegionData) {
+/** The calendar as CSV, for the chosen month range (every month in the file by default). */
+export function downloadCalendarCsv(d: RegionData, range: MonthRange = calendarSpan(d)) {
   const rows = [['month', 'fixed_clock_hotspots', 'range_lo', 'range_hi', 'median_ref', 'anomaly_pct', 'aqua', 'snpp', 'noaa20', 'flags', 'mock']]
-  for (const c of d.cal) rows.push([c.ym, c.fixed ?? '', c.lo ?? '', c.hi ?? '', c.median_ref ?? '', c.anomaly_pct ?? '', c.aqua ?? '', c.snpp ?? '', c.noaa20 ?? '', c.flags.join(' '), String(d.mock)].map(String))
-  save(`anchor-calendar-${d.id}${d.mock ? '-MOCK' : ''}.csv`, rows.map((r) => r.join(',')).join('\n') + '\n', 'text/csv')
+  for (const c of d.cal.filter((m) => m.ym >= range.from && m.ym <= range.to)) rows.push([c.ym, c.fixed ?? '', c.lo ?? '', c.hi ?? '', c.median_ref ?? '', c.anomaly_pct ?? '', c.aqua ?? '', c.snpp ?? '', c.noaa20 ?? '', c.flags.join(' '), String(d.mock)].map(String))
+  const full = calendarSpan(d)
+  const part = range.from === full.from && range.to === full.to ? '' : `-${range.from}-to-${range.to}`
+  save(`anchor-calendar-${d.id}${part}${d.mock ? '-MOCK' : ''}.csv`, rows.map((r) => r.join(',')).join('\n') + '\n', 'text/csv')
 }
 
 const SOURCES = [

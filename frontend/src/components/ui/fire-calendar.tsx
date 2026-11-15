@@ -53,6 +53,7 @@ const signed0 = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(0)}
 
 export function describeCell(cell: CalendarCell | null, month: number, year: number) {
   const when = `${MONTHS[month]} ${year}`
+  if (cell?.outside) return `${when}: outside the chosen range`
   if (!cell || cell.fixed == null) return `${when}: no data`
   const parts = [`${when}: ${fmtInt(cell.fixed)} hotspots on the fixed clock`]
   if (cell.lo != null && cell.hi != null) parts.push(`range ${fmtInt(cell.lo)}–${fmtInt(cell.hi)}`)
@@ -112,6 +113,7 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
           <div role="row" key={year} className="contents">
             <span role="rowheader" data-cal="year" className="flex items-center text-[12px] tabular-nums" style={{ color: 'var(--cal-muted)', height: cellHeight }}>{year}</span>
             {cells[y].map((cell, m) => {
+              const outside = !!cell?.outside
               const empty = !cell || cell.fixed == null
               const prov = !!cell?.flags.includes('provisional')
               const outage = !!cell?.flags.includes('outage')
@@ -133,7 +135,7 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
                     height: cellHeight,
                     borderRadius: 'var(--cal-radius, 2px)',
                     // provisional months can be muted toward the cell colour (--cal-prov-mix, default 100% = unmuted)
-                    background: empty ? 'var(--cal-empty)' : render === 'fill'
+                    background: outside ? 'transparent' : empty ? 'var(--cal-empty)' : render === 'fill'
                       ? (prov ? `color-mix(in srgb, ${fill(cell!, mode, maxCount)} var(--cal-prov-mix, 100%), var(--cal-cell))` : fill(cell!, mode, maxCount))
                       : 'var(--cal-cell)',
                     boxShadow: highlight && highlight.year === year && highlight.month === m
@@ -142,7 +144,7 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
                   }}
                 >
                   {!empty && render === 'squares' ? <Square cell={cell!} mode={mode} maxCount={maxCount} size={cellHeight} /> : null}
-                  {empty ? <span aria-hidden className="block h-px w-2" style={{ background: 'var(--cal-muted)', opacity: 0.6 }} /> : null}
+                  {empty && !outside ? <span aria-hidden className="block h-px w-2" style={{ background: 'var(--cal-muted)', opacity: 0.6 }} /> : null}
                   {prov ? <span aria-hidden className="pointer-events-none absolute inset-0" style={{ borderRadius: 'inherit', backgroundImage: 'repeating-linear-gradient(135deg, var(--cal-hatch) 0 1px, transparent 1px 4px)' }} /> : null}
                   {outage ? <span aria-hidden className="absolute right-[1px] top-[1px] h-[5px] w-[5px] rounded-full" style={{ background: 'var(--cal-cell)', boxShadow: 'inset 0 0 0 1.25px var(--cal-fg)' }} /> : null}
                 </button>

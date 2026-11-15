@@ -64,9 +64,14 @@ export interface OrbitGlobeProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   ink: GlobeInk
   /** what a screen reader hears for the whole figure */
   label: string
+  /** the region's daylight on the day shown (local mean solar time, hours): the day path runs from sunrise to sunset;
+   *  06:00 to 18:00 when not given */
+  day?: { rise: number; set: number }
 }
 
 const RAD = Math.PI / 180
+/** hours as hh:mm */
+const clockText = (h: number) => { const m = Math.round(h * 60); return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}` }
 const TAU = Math.PI * 2
 const INCLINATION = 98.2 * RAD
 const ORBIT_SECONDS = 9
@@ -183,7 +188,7 @@ function placeLabels(items: { id: string; x: number; w: number }[], W: number) {
   return out
 }
 
-export function OrbitGlobe({ orbits, region, span, running, ink, label, className, style, ...props }: OrbitGlobeProps) {
+export function OrbitGlobe({ orbits, region, span, running, ink, label, day, className, style, ...props }: OrbitGlobeProps) {
   const boxRef = React.useRef<HTMLDivElement>(null)
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const W = useMeasuredWidth(boxRef)
@@ -193,6 +198,9 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
   const inkKey = JSON.stringify(ink)
   const orbitsKey = orbits.map((o) => `${o.id}:${o.time}:${o.color}`).join('|')
   const regionKey = `${region.name}:${region.bbox.join(',')}`
+  const rise = day?.rise ?? 6
+  const set = day?.set ?? 18
+  const dayKey = `${rise.toFixed(3)}:${set.toFixed(3)}`
   const [w0, s0, e0, n0] = region.bbox
   const rLat = ((s0 + n0) / 2) * RAD
 
@@ -308,13 +316,14 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
     // the region's day path: its latitude from sunrise to sunset, an hour tick each hour
     const dayPt = (h: number) => tilt([Math.cos(rLat) * Math.sin(angleOf(h)), Math.sin(rLat), Math.cos(rLat) * Math.cos(angleOf(h))])
     const path: V3[] = []
-    for (let h = 6; h <= 18.001; h += 0.1) path.push(dayPt(h))
+    for (let h = rise; h < set; h += 0.1) path.push(dayPt(h))
+    path.push(dayPt(set))
     g.setLineDash([2, 4])
     g.strokeStyle = withAlpha(col.fg, 0.55)
     g.lineWidth = 1.25
     g.beginPath(); line(g, path, Ro, () => true); g.stroke()
     g.setLineDash([])
-    for (const h of HOURS) {
+    for (const h of HOURS.filter((t) => t >= rise && t <= set)) {
       const [x, y] = S(dayPt(h), Ro)
       g.strokeStyle = withAlpha(col.fg, h % 6 === 0 ? 0.6 : 0.35)
       g.beginPath(); g.moveTo(x, y - (h % 6 === 0 ? 5 : 3)); g.lineTo(x, y + (h % 6 === 0 ? 5 : 3)); g.stroke()
@@ -421,7 +430,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
     draw(0, false)
     return () => { scene.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [W, L, inkKey, regionKey])
+  }, [W, L, inkKey, regionKey, dayKey])
 
   // a change of year: redraw (the running loop eases it in on its own)
   React.useEffect(() => {
@@ -488,6 +497,12 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, classNam
               {hourText(h)}
             </text>
           ))}
+          {day ? (
+            <g>
+              <line x1={xAt(set)} x2={xAt(set)} y1={axisY - 7} y2={axisY + 3} stroke={ink.fg} strokeWidth={1.5} />
+              <text x={xAt(set) - 5} y={axisY - 10} textAnchor="end" fill={ink.muted}>Sunset {clockText(set)}</text>
+            </g>
+          ) : null}
           {spanBar ? <rect x={spanBar.x} y={axisY - 2} width={spanBar.w} height={4} fill={ink.fg} /> : null}
           {orbits.map((o) => {
             const x = xAt(o.time)

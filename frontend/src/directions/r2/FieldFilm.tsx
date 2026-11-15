@@ -9,7 +9,7 @@
 // behind a footer switch seeded from the reader's reduced-motion setting.
 // Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag. Region photographs and drone
 // footage are credited in the footer. Pass imagery: NASA Worldview / GIBS, public domain.
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
+import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
@@ -17,8 +17,8 @@ import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui
 import { ModeToggle, RegionSelect } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 import {
-  CHECKS, DETECTION, MONTHS, PROOF, REGIONS, SECTIONS, SEEN, calendarFinding, calendarGrid, fmtInt, fmtRange, hasOfficialSeries, hm, isValidation, minutesBetween, novemberRatio, pct, phrase, regionData, verdictHeadline, verdictLines,
-  type Check, type DetectionRate, type RegionData, type Verdict,
+  CHECKS, DETECTION, FIRE_DAY, MONTHS, PROOF, REGIONS, SECTIONS, SEEN, calendarFinding, calendarGrid, calendarSpan, daylight, fmtHM, fmtInt, fmtRange, hasOfficialSeries, hm, isValidation, minutesBetween, novemberRatio, pct, phrase, regionData, verdictHeadline, verdictLines,
+  type Check, type DayFire, type DetectionRate, type MonthRange, type RegionData, type SatKey, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
 import { FilmstripScrub } from '@/components/ui/filmstrip-scrub'
@@ -156,7 +156,7 @@ const FEATURED = 'br-amazon'
 const ANY_MOCK = REGIONS.some((r) => regionData(r.id).mock)
 
 /** Sections that exist in this comp; the rest of the index belongs to the full build. */
-const IN_COMP = new Set<string>(['verdict', 'clock', 'two-clocks', 'audit', 'calendar', 'checks', 'detection', 'limits', 'about'])
+const IN_COMP = new Set<string>(['verdict', 'clock', 'daylight', 'two-clocks', 'audit', 'calendar', 'checks', 'detection', 'limits', 'about'])
 
 const READING: Record<Verdict, string> = { outside: 'Outside the 2012–2020 placebo range', within: 'Within the 2012–2020 placebo range', na: 'Too few hotspots to read' }
 const DATA_NOTE = "Every number comes from the team's JSON files."
@@ -189,15 +189,34 @@ function initialRegion() {
   return r && REGIONS.some((x) => x.id === r) ? r : FEATURED
 }
 
-function writeRegion(nav: Nav, id: string) {
+/** A value the page keeps in the URL: the query string on the site, the hash in the comment artifact. */
+function readParam(key: string) {
+  const q = new URLSearchParams(window.location.search).get(key)
+  const h = new RegExp(`(?:^#|&)${key}=([\\w-]+)`).exec(window.location.hash)?.[1]
+  return q ?? h ?? null
+}
+
+/** Write values into the URL (null removes one), keeping the others. */
+function writeParams(nav: Nav, values: Record<string, string | null>) {
   try {
-    if (nav === 'artifact') window.history.replaceState(null, '', `#region=${id}`)
-    else {
-      const p = new URLSearchParams(window.location.search)
-      p.set('region', id)
-      window.history.replaceState(null, '', `?${p.toString()}${window.location.hash}`)
-    }
+    const p = new URLSearchParams(nav === 'artifact' ? window.location.hash.replace(/^#/, '') : window.location.search)
+    for (const [k, v] of Object.entries(values)) { if (v == null) p.delete(k); else p.set(k, v) }
+    if (nav === 'artifact') window.history.replaceState(null, '', `#${p.toString()}`)
+    else window.history.replaceState(null, '', `?${p.toString()}${window.location.hash}`)
   } catch { /* sandboxed frames may refuse history writes */ }
+}
+
+function writeRegion(nav: Nav, id: string) {
+  writeParams(nav, { region: id })
+}
+
+/** The calendar's month range from the URL, when it is a valid range inside the file's months; every month otherwise. */
+function readRange(d: RegionData): MonthRange {
+  const full = calendarSpan(d)
+  const ok = (v: string | null): v is string => !!v && /^\d{4}-(0[1-9]|1[0-2])$/.test(v) && v >= full.from && v <= full.to
+  const a = readParam('from'), b = readParam('to')
+  const from = ok(a) ? a : full.from, to = ok(b) ? b : full.to
+  return from <= to ? { from, to } : { from: to, to: from }
 }
 
 /* ---------- Motion: Anduril's patterns, read from their code (designs/round-2/anduril-study.md) ---------- */
@@ -439,7 +458,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Na
         className="relative min-h-screen overflow-x-clip bg-[color:var(--ground)] font-[family-name:var(--f-ui)] text-sm text-[color:var(--bone)] antialiased"
       >
         {which === 'app' ? (
-          <AppPage region={region} onRegion={(id) => { setRegion(id); writeRegion(nav, id) }} links={links} leave={leave} />
+          <AppPage region={region} onRegion={(id) => { setRegion(id); writeRegion(nav, id) }} links={links} leave={leave} nav={nav} />
         ) : (
           <LandingPage region={region} setRegion={setRegion} onPick={(id) => writeRegion(nav, id)} links={links} leave={leave} />
         )}
@@ -463,10 +482,18 @@ function LandingPage({ region, setRegion, onPick, links, leave }: { region: stri
   )
 }
 
-function AppPage({ region, onRegion, links, leave }: { region: string; onRegion: (id: string) => void; links: Links; leave: Leave }) {
+function AppPage({ region, onRegion, links, leave, nav }: { region: string; onRegion: (id: string) => void; links: Links; leave: Leave; nav: Nav }) {
   const d = useMemo(() => regionData(region), [region])
   const [year, setYear] = useState(() => defaultYear(d))
-  const [mode, setMode] = useState<CalendarMode>('anomaly')
+  const [mode, setModeState] = useState<CalendarMode>(() => (readParam('cal') === 'count' ? 'count' : 'anomaly'))
+  const [range, setRangeState] = useState<MonthRange>(() => readRange(d))
+  const setMode = (m: CalendarMode) => { setModeState(m); writeParams(nav, { cal: m === 'count' ? 'count' : null }) }
+  const setRange = (r: MonthRange) => {
+    const full = calendarSpan(d)
+    const all = r.from === full.from && r.to === full.to
+    setRangeState(r)
+    writeParams(nav, { from: all ? null : r.from, to: all ? null : r.to })
+  }
   const small = useMedia('(max-width: 639px)')
   const pick = (id: string) => { onRegion(id); setYear(defaultYear(regionData(id))) }
   return (
@@ -477,9 +504,10 @@ function AppPage({ region, onRegion, links, leave }: { region: string; onRegion:
         <AppVerdict d={d} />
         <Orbits d={d} year={year} onYear={setYear} />
         <Passes d={d} />
+        <Daylight d={d} year={year} onYear={setYear} small={small} />
         <TwoClocks d={d} year={year} onYear={setYear} small={small} />
         <ClockEffect d={d} year={year} onYear={setYear} small={small} />
-        <Calendar d={d} mode={mode} onMode={setMode} small={small} />
+        <Calendar d={d} mode={mode} onMode={setMode} range={range} onRange={setRange} small={small} />
         <Checks />
         <Detection />
         <Limits d={d} />
@@ -567,6 +595,7 @@ function Footer() {
               )
             })}
             <li>Three passes of one day: NASA Worldview / GIBS, public domain</li>
+            <li>One fire day in Pará, 2 Sep 2024: NASA Worldview / GIBS, VIIRS true colour</li>
           </ul>
         </div>
       </div>
@@ -1093,7 +1122,9 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
     [d],
   )
   const region = REGIONS.find((r) => r.id === d.id)
+  const dl = useMemo(() => daylight(d), [d])
   if (!dr || !years.length || !region) return null
+  const sun = dl?.at(dr.year)
 
   const orbits: GlobeOrbit[] = [
     { id: 'terra', label: 'Terra', time: hm(dr.terra_lst), timeText: dr.terra_lst, dayPass: 'south', marker: 'hollow', color: 'var(--sat-terra)', altitudeKm: 705, phase: 0.62 },
@@ -1135,6 +1166,7 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
             running={motion.on}
             ink={GLOBE_INK}
             label={description}
+            day={sun ? { rise: sun.rise, set: sun.set } : undefined}
           />
           {/* the years, under the Earth, on the reel's ruler: dragging it moves the orbits */}
           <div className="mt-6" style={REEL_VARS}>
@@ -1161,6 +1193,7 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
           </div>
           <figcaption className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--bone3)]">
             <span>Heights to scale: Aqua and Terra fly about 705 km up, the VIIRS satellites about 830 km. The satellites are shown moving faster than they really do.</span>
+            {sun ? <span>The dashed path is daylight on {dateText(sun.mid)}, the middle of the fire season: sunrise {fmtHM(sun.rise)}, sunset {fmtHM(sun.set)}, local solar time.</span> : null}
             <span>Source: drift/{d.id}.json</span>
             <MockTag show={d.mock} />
           </figcaption>
@@ -1306,6 +1339,243 @@ function Passes({ d }: { d: RegionData }) {
         </figure>
       </div>
     </section>
+  )
+}
+
+/* ---------- Daylight left after the alert: how much day an alert from each pass leaves ---------- */
+
+const DAY_SATS: { key: SatKey; label: string; marker: Series['marker']; color: string }[] = [
+  { key: 'terra', label: 'Terra', marker: 'hollow', color: 'var(--sat-terra)' },
+  { key: 'viirs', label: 'VIIRS (S-NPP)', marker: 'diamond', color: 'var(--sat-viirs)' },
+  { key: 'aqua', label: 'Aqua', marker: 'filled', color: 'var(--sat-aqua)' },
+]
+/** Hours as "4 h 58 min", "13 min", or the minutes after sunset. */
+const hoursText = (h: number) => {
+  const m = Math.round(h * 60)
+  if (m < 0) return `${-m} min after sunset`
+  const hh = Math.floor(m / 60)
+  return hh ? `${hh} h ${String(m % 60).padStart(2, '0')} min` : `${m} min`
+}
+/** "about 1.5 hours", or minutes under an hour */
+const aboutText = (h: number) => (h >= 1 ? `about ${h.toFixed(1)} hours` : h > 0 ? `about ${Math.round(h * 60)} minutes` : 'no daylight')
+const dayTick = (v: number) => `${v} h`
+const dateText = (m: { m: number; day: number }) => `${m.day} ${MONTHS[m.m - 1]}`
+
+function Daylight({ d, year, onYear, small }: { d: RegionData; year: number; onYear: (y: number) => void; small: boolean }) {
+  const dl = useMemo(() => daylight(d), [d])
+  const [inspect, setInspect] = useState<number | null>(null)
+  if (!dl || !dl.years.length) return null
+  const ys = dl.years
+  const selected = ys.findIndex((y) => y.year === year)
+  const shownIndex = inspect ?? (selected >= 0 ? selected : ys.length - 1)
+  const shown = ys[shownIndex]
+  const last = ys[ys.length - 1]
+  const lost = dl.baseAqua != null ? Math.round((last.look.aqua - dl.baseAqua) * 60) : null
+  const brazil = d.id.startsWith('br-')
+  const heading = lost == null
+    ? `How much daylight an alert from each pass leaves in ${d.phrase.the}`
+    : `In ${last.year}, an alert from Aqua left ${Math.abs(lost)} ${lost >= 0 ? 'fewer' : 'more'} minutes of daylight in ${d.phrase.the} than in 2012–2020`
+  const series: Series[] = DAY_SATS.map((s) => ({
+    id: s.key, label: s.label, marker: s.marker, color: s.color,
+    values: ys.map((y) => y.left[s.key][1]), lo: ys.map((y) => y.left[s.key][2]), hi: ys.map((y) => y.left[s.key][0]),
+  }))
+  const columnText = (i: number) => {
+    const y = ys[i]
+    return `${y.year}, sunset ${fmtHM(y.set)}: an alert 1.5 hours after each pass leaves ${DAY_SATS.map((s) => `${s.label} ${hoursText(y.left[s.key][1])}`).join(', ')}`
+  }
+  const caveats = [
+    'The change is Aqua’s later look, minute for minute: on a fixed date, a later look leaves less daylight. What the figure adds is how little is left.',
+    brazil
+      ? 'This is one satellite’s alert timing, not a country’s response. INPE watches with many satellites, including geostationary ones that image several times an hour; Aqua is its reference for statistics, not its only alert source.'
+      : 'This is one satellite’s alert timing, not a response capacity: fire agencies also watch with geostationary satellites that image several times an hour.',
+    'Sunset isn’t the only limit on fighting a fire: night operations and ground crews exist.',
+    'The delays are three cases, none, 1.5 and 3 hours, not a measured spread. NASA FIRMS puts its near-real-time data out within 3 hours of a pass.',
+    `One date and one place stand for the whole region: the middle day of its fire season, at the centre of its box (sunrise and sunset from NOAA’s solar equations). Fires elsewhere see other sunsets.`,
+  ]
+  return (
+    <section id="daylight" aria-labelledby="daylight-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
+        <div className="lg:col-span-4">
+          <h2 id="daylight-h" className={title}>{heading}</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            When Aqua{brazil ? ', Brazil’s reference satellite,' : ''} sees a fire in {d.phrase.the} during its fire season
+            ({dl.season.label}), an alert that arrives 1.5 hours after the pass leaves {aboutText(last.left.aqua[1])} of
+            daylight in {last.year}.{dl.baseAqua != null && lost ? ` Aqua now looks at ${fmtHM(last.look.aqua)}, not ${fmtHM(dl.baseAqua)}; with sunset fixed, the daylight left shrinks by the same ${Math.abs(lost)} minutes.` : ''}
+          </p>
+          {shown ? (
+            <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
+              <dt className="text-[color:var(--bone3)]">Year</dt>
+              <dd className="tabular-nums">{shown.year}</dd>
+              <dt className="text-[color:var(--bone3)]">Sunset</dt>
+              <dd className="tabular-nums">{fmtHM(shown.set)} <span className="text-[color:var(--bone3)]">on {dateText(shown.mid)}</span></dd>
+              {DAY_SATS.map((s) => (
+                <Fragment key={s.key}>
+                  <dt className="text-[color:var(--bone3)]">{s.label}</dt>
+                  <dd className="tabular-nums">
+                    {hoursText(shown.left[s.key][1])} <span className="text-[color:var(--bone3)]">after a {fmtHM(shown.look[s.key])} pass</span>
+                  </dd>
+                </Fragment>
+              ))}
+            </dl>
+          ) : null}
+          <ul className="mt-8 flex max-w-[var(--measure)] list-none flex-col gap-2 border-t border-[color:var(--hairline)] pt-4 text-xs text-[color:var(--bone2)]">
+            {caveats.map((c) => <li key={c}>{c}</li>)}
+          </ul>
+        </div>
+        <div className="flex min-w-0 flex-col gap-16 lg:col-span-8">
+          <figure className="m-0">
+            <figcaption className="mb-4">
+              <span className="block text-lg font-medium">Daylight left after each pass’s alert</span>
+              <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+                Hours from the alert to sunset on {dateText(last.mid)}, the middle of the fire season. Each mark is an alert 1.5
+                hours after the pass; its bar runs from no delay (top) to 3 hours (bottom). Below the line, the alert comes
+                after dark.
+              </span>
+            </figcaption>
+            <SeriesChart
+              labels={ys.map((y) => String(y.year))}
+              series={series}
+              reference={{ value: 0, label: 'Sunset', color: 'var(--bone3)' }}
+              height={small ? 240 : 280}
+              activeIndex={shownIndex}
+              selectedIndex={selected >= 0 ? selected : null}
+              onInspect={setInspect}
+              onSelect={(i) => onYear(ys[i].year)}
+              groupLabel={`Daylight left after each satellite’s alert, by year, for ${d.name}`}
+              columnText={columnText}
+              formatTick={dayTick}
+              ink={{ fg: 'var(--bone2)', grid: 'var(--hairline)', surface: 'var(--ground)', guide: 'var(--bone)' }}
+            />
+            <p className="mt-4 text-xs text-[color:var(--bone3)]">
+              Computed from drift/{d.id}.json, calendar/{d.id}.json and regions.json{d.mock ? ' · MOCK' : ''}
+            </p>
+          </figure>
+          {FIRE_DAY && FIRE_DAY.region === d.id ? (
+            <FireDayMap />
+          ) : FIRE_DAY ? (
+            <p className="text-sm text-[color:var(--bone3)]">A one-day map of real fires and passes is in the Amazon’s view.</p>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** The passes over the one fire day, in pass order; VIIRS alerts at the end of S-NPP's pass, the earlier of its two. */
+const DAY_PASSES: { key: 'Terra' | 'VIIRS' | 'Aqua'; look: string; shape: DetShape; color: string; t: (f: DayFire) => number | null }[] = [
+  { key: 'Terra', look: 'Terra', shape: 'hollow', color: 'var(--sat-terra)', t: (f) => f.t_Terra },
+  { key: 'VIIRS', look: 'S-NPP', shape: 'diamond', color: 'var(--sat-viirs)', t: (f) => f.t_VIIRS },
+  { key: 'Aqua', look: 'Aqua', shape: 'filled', color: 'var(--sat-aqua)', t: (f) => f.t_Aqua },
+]
+
+/** One fire day, mapped: every fire the day's passes saw, on NASA's true-colour image of that afternoon, with what each
+ *  pass's alert left of the day. Real detections and pass times only. */
+function FireDayMap() {
+  const day = FIRE_DAY!
+  const boxRef = useRef<HTMLDivElement | null>(null)
+  const W = useMeasuredWidth(boxRef)
+  const [delay, setDelay] = useState<0 | 3>(0)
+  const [hover, setHover] = useState<DayFire | null>(null)
+  const [w, s, e, n] = day.box
+  const H = W * ((n - s) / (e - w))
+  const X = (lon: number) => ((lon - w) / (e - w)) * W
+  const Y = (lat: number) => ((n - lat) / (n - s)) * H
+  const maxN = Math.max(...day.fires.map((f) => f.n))
+  const firstPass = (f: DayFire) => DAY_PASSES.find((p) => p.t(f) != null) ?? DAY_PASSES[2]
+  const rows = DAY_PASSES.map((p) => {
+    const seen = day.fires.filter((f) => p.t(f) != null)
+    const alert = (seen.length ? Math.min(...seen.map((f) => p.t(f)!)) : day.passEnd[p.look]) + delay
+    return { ...p, pass: day.passes[p.look], alert, left: day.sunset - alert, seen: seen.length }
+  })
+  const [dy, dm, dd] = day.day.split('-').map(Number)
+  const dateLabel = `${dd} ${MONTHS[dm - 1]} ${dy}`
+  const readout = hover
+    ? `A fire of ${fmtInt(hover.n)} detections, first seen at ${fmtHM(hover.first_seen)}; seen by ${andList(hover.seen_by)}`
+    : 'Point at a fire to see which passes saw it'
+  const toggle = cn('h-9 rounded px-3 text-sm', ease, focusRing)
+  return (
+    <figure className="m-0">
+      <figcaption className="mb-4">
+        <span className="block text-lg font-medium">One fire day: {dateLabel} in Pará</span>
+        <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+          The {fmtInt(day.fires.length)} fires that at least one daytime pass saw (detections in touching 0.05° cells), on
+          NASA’s true-colour image from VIIRS that afternoon. Sunset {fmtHM(day.sunset)}, local solar time.
+        </span>
+      </figcaption>
+      <div className="mb-3 flex flex-wrap items-center gap-2" role="group" aria-label="Delay before the alert">
+        {([0, 3] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            aria-pressed={delay === v}
+            onClick={() => setDelay(v)}
+            className={cn(toggle, delay === v ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'bg-[color:var(--surface)] text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}
+          >
+            {v === 0 ? 'Alert at the end of the pass' : 'Alert 3 hours later'}
+          </button>
+        ))}
+      </div>
+      <p aria-live="polite" className="mb-3 min-h-5 text-xs text-[color:var(--bone2)]">{readout}</p>
+      <div ref={boxRef} className="relative w-full overflow-hidden rounded-[2px] bg-[color:var(--surface)]" style={{ aspectRatio: `${e - w} / ${n - s}` }}>
+        <img src={`${IMG}daylight/${day.region}-${day.day}.jpg`} alt="" className="absolute inset-0 size-full object-cover" loading="lazy" />
+        {W > 0 ? (
+          <svg width={W} height={H} className="absolute inset-0 block" role="img" aria-label={`Map of the ${day.fires.length} fires seen on ${dateLabel}, marked by the first pass that saw each: ${DAY_PASSES.map((p) => `${p.key} ${day.fires.filter((f) => firstPass(f) === p).length}`).join(', ')}`}>
+            {day.fires.map((f) => {
+              const p = firstPass(f)
+              const r = 3.5 + 4 * Math.sqrt(f.n / maxN)
+              return (
+                <g key={f.id} onMouseEnter={() => setHover(f)} onMouseLeave={() => setHover(null)} style={{ cursor: 'default' }}>
+                  <circle cx={X(f.lon)} cy={Y(f.lat)} r={r + 6} fill="transparent" />
+                  <DetMark shape={p.shape} color={p.color} x={X(f.lon)} y={Y(f.lat)} r={r} />
+                  {hover?.id === f.id ? <circle cx={X(f.lon)} cy={Y(f.lat)} r={r + 4} fill="none" stroke="var(--bone)" strokeWidth={1.5} /> : null}
+                </g>
+              )
+            })}
+          </svg>
+        ) : null}
+      </div>
+      <div aria-hidden className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[color:var(--bone2)]">
+        {DAY_PASSES.map((p) => (
+          <span key={p.key} className="inline-flex items-center gap-2">
+            <svg width={14} height={14}><DetMark shape={p.shape} color={p.color} x={7} y={7} r={4.5} /></svg>
+            First seen by {p.key}
+          </span>
+        ))}
+        <span>Larger mark, more detections</span>
+      </div>
+      <table className="mt-6 w-full border-collapse text-sm tabular-nums">
+        <caption className="sr-only">What each pass’s alert left of the day, {delay === 0 ? 'with no delay' : 'with a 3-hour delay'}</caption>
+        <thead>
+          <tr className="border-b border-[color:var(--hairline)] text-left text-xs text-[color:var(--bone3)]">
+            <th scope="col" className="py-2 pr-3 font-normal">Pass</th>
+            <th scope="col" className="py-2 pr-3 font-normal">Looks at</th>
+            <th scope="col" className="py-2 pr-3 font-normal">Alert at</th>
+            <th scope="col" className="py-2 pr-3 font-normal">Daylight left</th>
+            <th scope="col" className="py-2 font-normal text-right">Fires seen</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.key} className="border-b border-[color:var(--hairline)]">
+              <th scope="row" className="py-2 pr-3 text-left font-normal">
+                <span className="inline-flex items-center gap-2">
+                  <svg width={14} height={14} aria-hidden><DetMark shape={r.shape} color={r.color} x={7} y={7} r={4.5} /></svg>
+                  {r.key}
+                </span>
+              </th>
+              <td className="py-2 pr-3">{fmtHM(r.pass)}</td>
+              <td className="py-2 pr-3">{fmtHM(r.alert)}</td>
+              <td className="py-2 pr-3">{hoursText(r.left)}</td>
+              <td className="py-2 text-right">{fmtInt(r.seen)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-4 text-xs text-[color:var(--bone3)]">
+        Alert = the end of the pass over this box plus the delay. Sources: amazon-2024-09-02.json (NASA FIRMS detections, pass
+        times, sunset) · image: NASA Worldview / GIBS, VIIRS S-NPP true colour
+      </p>
+    </figure>
   )
 }
 
@@ -2201,14 +2471,35 @@ function ClockEffect({ d, year, onYear, small }: { d: RegionData; year: number; 
 
 /* ---------- Calendar ---------- */
 
-function Calendar({ d, mode, onMode, small }: { d: RegionData; mode: CalendarMode; onMode: (m: CalendarMode) => void; small: boolean }) {
-  const grid = useMemo(() => calendarGrid(d), [d])
-  const f = calendarFinding(d)
+/** A month and a year, as two native selects, so phones open their own pickers. */
+function MonthField({ label, value, years, onChange }: { label: string; value: string; years: number[]; onChange: (ym: string) => void }) {
+  const y = Number(value.slice(0, 4)), m = Number(value.slice(5, 7))
+  const sel = cn('h-9 rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] pl-2 pr-1 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', ease, focusRing)
+  return (
+    <span role="group" aria-label={label} className="inline-flex items-center gap-1">
+      <select aria-label={`${label}: month`} value={m} onChange={(e) => onChange(`${y}-${e.target.value.padStart(2, '0')}`)} className={sel}>
+        {MONTHS.map((mo, i) => <option key={mo} value={i + 1}>{mo}</option>)}
+      </select>
+      <select aria-label={`${label}: year`} value={y} onChange={(e) => onChange(`${e.target.value}-${String(m).padStart(2, '0')}`)} className={sel}>
+        {years.map((v) => <option key={v} value={v}>{v}</option>)}
+      </select>
+    </span>
+  )
+}
+
+function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; mode: CalendarMode; onMode: (m: CalendarMode) => void; range: MonthRange; onRange: (r: MonthRange) => void; small: boolean }) {
+  const full = calendarSpan(d)
+  const grid = useMemo(() => calendarGrid(d, range), [d, range])
+  const f = calendarFinding(d, range)
+  const y0 = Number(full.from.slice(0, 4)), y1 = Number(full.to.slice(0, 4))
+  const allYears = Array.from({ length: y1 - y0 + 1 }, (_, i) => y0 + i)
+  const partial = range.from !== full.from || range.to !== full.to
+  // keep the range the right way round: moving one end past the other carries the other with it
+  const setFrom = (ym: string) => onRange({ from: ym, to: ym > range.to ? ym : range.to })
+  const setTo = (ym: string) => onRange({ from: ym < range.from ? ym : range.from, to: ym })
   const finding = f ? `${f.label} sat furthest above its median, ${pct(f.anomaly, 0)}` : 'Every month in this range sits near its median'
   const [mon, yr] = f ? f.label.split(' ') : []
   const highlight = f ? { year: Number(yr), month: MONTHS.indexOf(mon) } : null
-  const first = grid.years[grid.years.length - 1]
-  const last = grid.years[0]
   const sentence =
     mode === 'anomaly'
       ? 'Each cell is a month on the fixed clock against the 2002–2025 median for that month: sand above, slate below.'
@@ -2224,13 +2515,19 @@ function Calendar({ d, mode, onMode, small }: { d: RegionData; mode: CalendarMod
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <ModeToggle value={mode} onChange={onMode} classes={modeClasses} />
-            <span className="text-sm text-[color:var(--bone2)]">
-              <span aria-hidden>{first} → {last}</span>
-              <span className="sr-only">Years {first} to {last}</span>
+            <span role="group" aria-label="Months shown" className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--bone2)]">
+              <MonthField label="From" value={range.from} years={allYears} onChange={setFrom} />
+              <span aria-hidden>to</span>
+              <MonthField label="To" value={range.to} years={allYears} onChange={setTo} />
+              {partial ? (
+                <button type="button" onClick={() => onRange(full)} className={cn('h-9 rounded px-1 text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
+                  All months
+                </button>
+              ) : null}
             </span>
             <button
               type="button"
-              onClick={() => downloadCalendarCsv(d)}
+              onClick={() => downloadCalendarCsv(d, range)}
               className={cn('h-9 rounded text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)] sm:ml-auto', ease, focusRing)}
             >
               Download CSV

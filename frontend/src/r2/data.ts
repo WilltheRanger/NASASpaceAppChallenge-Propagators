@@ -251,18 +251,26 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export interface CalendarCell { ym: string; fixed: number | null; lo: number | null; hi: number | null; median: number | null; anomaly: number | null; flags: string[] }
+export interface CalendarCell { ym: string; fixed: number | null; lo: number | null; hi: number | null; median: number | null; anomaly: number | null; flags: string[]; outside?: boolean }
 
-/** Month × year grid (years descending) for a region and an inclusive year range. */
-export function calendarGrid(d: RegionData, from = d.calSpan?.[0] ?? 2002, to = d.calSpan?.[1] ?? 2025) {
+/** A month range, inclusive, as YYYY-MM. */
+export type MonthRange = { from: string; to: string }
+/** Every month the calendar file covers: January of its first year to December of its last. */
+export const calendarSpan = (d: RegionData): MonthRange => ({ from: `${d.calSpan?.[0] ?? 2002}-01`, to: `${d.calSpan?.[1] ?? 2025}-12` })
+const inRange = (ym: string, r: MonthRange) => ym >= r.from && ym <= r.to
+
+/** Month × year grid (years descending) for a region and an inclusive month range. Months outside the range keep
+ *  their place in the grid, marked `outside`. */
+export function calendarGrid(d: RegionData, range: MonthRange = calendarSpan(d)) {
   const years: number[] = []
   const cells: (CalendarCell | null)[][] = []
   let maxCount = 1
-  for (let y = to; y >= from; y--) {
+  for (let y = Number(range.to.slice(0, 4)); y >= Number(range.from.slice(0, 4)); y--) {
     years.push(y)
     const row: (CalendarCell | null)[] = []
     for (let m = 1; m <= 12; m++) {
       const ym = `${y}-${String(m).padStart(2, '0')}`
+      if (!inRange(ym, range)) { row.push({ ym, fixed: null, lo: null, hi: null, median: null, anomaly: null, flags: [], outside: true }); continue }
       const rec = d.cal.find((c) => c.ym === ym)
       if (!rec) { row.push(null); continue }
       if (rec.fixed != null) maxCount = Math.max(maxCount, rec.fixed)
@@ -274,17 +282,100 @@ export function calendarGrid(d: RegionData, from = d.calSpan?.[0] ?? 2002, to = 
 }
 
 /** The calendar section's finding: the month furthest above its median in the range (computed, not written). */
-export function calendarFinding(d: RegionData, from = d.calSpan?.[0] ?? 2002, to = d.calSpan?.[1] ?? 2025) {
+export function calendarFinding(d: RegionData, range: MonthRange = calendarSpan(d)) {
   let best: CalMonth | null = null
   for (const c of d.cal) {
-    const y = Number(c.ym.slice(0, 4))
-    if (y < from || y > to || c.anomaly_pct == null || c.flags.includes('provisional')) continue
+    if (!inRange(c.ym, range) || c.anomaly_pct == null || c.flags.includes('provisional')) continue
     if (!best || c.anomaly_pct > best.anomaly_pct!) best = c
   }
   if (!best) return null
   const [y, m] = best.ym.split('-').map(Number)
   return { label: `${MONTHS[m - 1]} ${y}`, anomaly: best.anomaly_pct!, fixed: best.fixed!, median: best.median_ref! }
 }
+
+/* ---------- Daylight left after the alert ----------
+   D = sunset − (look time + delay), all in local mean solar time (UTC + longitude/15), as in the drift files. Sunset
+   comes from NOAA's Solar Calculator equations (after Meeus), zenith 90.833°, at the centre of the region's box on
+   the middle day of its fire season: the three consecutive months with the most fixed-clock hotspots, 2012-2020. This
+   is the team's "Level 1" daylight figure, and it reproduces their table to within a minute. */
+
+const rad = (v: number) => (v * Math.PI) / 180
+const deg = (v: number) => (v * 180) / Math.PI
+
+/** The Sun's declination (degrees) and the equation of time (minutes) at noon UTC on a date. */
+function solarPosition(y: number, m: number, day: number) {
+  const jc = (Date.UTC(y, m - 1, day, 12) / 86400000 + 2440587.5 - 2451545) / 36525
+  const L0 = (280.46646 + jc * (36000.76983 + jc * 0.0003032)) % 360
+  const M = 357.52911 + jc * (35999.05029 - 0.0001537 * jc)
+  const e = 0.016708634 - jc * (0.000042037 + 0.0000001267 * jc)
+  const C = Math.sin(rad(M)) * (1.914602 - jc * (0.004817 + 0.000014 * jc)) + Math.sin(rad(2 * M)) * (0.019993 - 0.000101 * jc) + Math.sin(rad(3 * M)) * 0.000289
+  const om = 125.04 - 1934.136 * jc
+  const lam = L0 + C - 0.00569 - 0.00478 * Math.sin(rad(om))
+  const eps = 23 + (26 + (21.448 - jc * (46.815 + jc * (0.00059 - jc * 0.001813))) / 60) / 60 + 0.00256 * Math.cos(rad(om))
+  const dec = deg(Math.asin(Math.sin(rad(eps)) * Math.sin(rad(lam))))
+  const t = Math.tan(rad(eps / 2)) ** 2
+  const eot = 4 * deg(t * Math.sin(2 * rad(L0)) - 2 * e * Math.sin(rad(M)) + 4 * e * t * Math.sin(rad(M)) * Math.cos(2 * rad(L0)) - 0.5 * t * t * Math.sin(4 * rad(L0)) - 1.25 * e * e * Math.sin(2 * rad(M)))
+  return { dec, eot }
+}
+
+/** Sunrise and sunset in local mean solar time (hours) at a latitude on a date. */
+export function sunTimes(y: number, m: number, day: number, lat: number) {
+  const { dec, eot } = solarPosition(y, m, day)
+  const x = Math.cos(rad(90.833)) / (Math.cos(rad(lat)) * Math.cos(rad(dec))) - Math.tan(rad(lat)) * Math.tan(rad(dec))
+  const ha = deg(Math.acos(Math.max(-1, Math.min(1, x))))
+  const noon = 12 - eot / 60
+  return { rise: noon - ha / 15, set: noon + ha / 15 }
+}
+
+/** The region's fire season: the three consecutive months with the most fixed-clock hotspots, 2012-2020. */
+export function fireSeason(d: RegionData) {
+  const tot = Array<number>(12).fill(0)
+  for (const c of d.cal) {
+    const y = Number(c.ym.slice(0, 4))
+    if (y >= 2012 && y <= 2020 && c.fixed != null) tot[Number(c.ym.slice(5, 7)) - 1] += c.fixed
+  }
+  let start = 0, best = -1
+  for (let i = 0; i + 2 < 12; i++) { const s = tot[i] + tot[i + 1] + tot[i + 2]; if (s > best) { best = s; start = i } }
+  /** the season's middle day in a year: the 46th day from its first */
+  const middle = (year: number) => { const t = new Date(Date.UTC(year, start, 1) + 45 * 86400000); return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, day: t.getUTCDate() } }
+  return { start, label: `${MONTHS[start]} to ${MONTHS[start + 2]}`, middle }
+}
+
+/** The alert delays shown: none, the middle case, and the bound NASA FIRMS states for near-real-time data. */
+export const DELAYS = [0, 1.5, 3] as const
+export type SatKey = 'terra' | 'viirs' | 'aqua'
+
+/** Daylight left after each satellite's alert, year by year, for a region (hours; negative = after sunset). */
+export function daylight(d: RegionData) {
+  const r = REGIONS.find((x) => x.id === d.id)
+  if (!r || !d.drift.length || !d.cal.length) return null
+  const lat = (r.bbox[1] + r.bbox[3]) / 2
+  const season = fireSeason(d)
+  const years = d.drift.map((row) => {
+    const mid = season.middle(row.year)
+    const sun = sunTimes(mid.y, mid.m, mid.day, lat)
+    const look: Record<SatKey, number> = { terra: hm(row.terra_lst), viirs: hm(row.viirs_lst), aqua: hm(row.aqua_lst) }
+    const left = (k: SatKey) => DELAYS.map((l) => sun.set - look[k] - l) as [number, number, number]
+    return { year: row.year, ...sun, mid, look, left: { terra: left('terra'), viirs: left('viirs'), aqua: left('aqua') } }
+  })
+  const base = d.baseLook ? hm(d.baseLook) : null
+  return { lat, season, years, baseAqua: base, at: (year: number) => years.find((y) => y.year === year) ?? years[years.length - 1] }
+}
+export type Daylight = NonNullable<ReturnType<typeof daylight>>
+
+/** One fire day for the Amazon: 2 September 2024 in Pará, from the team's one-day file. Only the real parts are read
+ *  (the day, its box, sunset, pass times and the fires each pass saw), so nothing else in that file reaches the page. */
+export type DayFire = { id: number; lat: number; lon: number; frp: number; n: number; first_seen: number; seen_by: string[]; t_Terra: number | null; t_VIIRS: number | null; t_Aqua: number | null }
+const only = <T,>(g: Record<string, T>) => Object.values(g)[0] as T | undefined
+export const FIRE_DAY = (() => {
+  const day = only(import.meta.glob<string>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'day' }))
+  const box = only(import.meta.glob<[number, number, number, number]>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'box' }))
+  const sunset = only(import.meta.glob<number>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'sunset_lst' }))
+  const passes = only(import.meta.glob<Record<string, number>>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'passes_lst' }))
+  const passEnd = only(import.meta.glob<Record<string, number>>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'pass_end_lst' }))
+  const fires = only(import.meta.glob<DayFire[]>('../../../data/out/sim/amazon-2024-09-02.json', { eager: true, import: 'fires' }))
+  return day && box && sunset != null && passes && passEnd && fires ? { region: 'br-amazon', day, box, sunset, passes, passEnd, fires } : null
+})()
 
 /** A range in percentage points with signs and unit: "+16.4 to +28.4%". */
 export const fmtRange = (lo: number, hi: number, d = 1) => `${pct(lo, d).replace('%', '')} to ${pct(hi, d)}`
@@ -293,6 +384,7 @@ export const fmtRange = (lo: number, hi: number, d = 1) => `${pct(lo, d).replace
 export const SECTIONS = [
   { id: 'verdict', label: 'Verdict', inComp: true },
   { id: 'clock', label: 'The clock', inComp: false },
+  { id: 'daylight', label: 'Daylight', inComp: false },
   { id: 'two-clocks', label: 'Two clocks', inComp: false },
   { id: 'audit', label: 'Audit', inComp: false },
   { id: 'calendar', label: 'Calendar', inComp: true },
