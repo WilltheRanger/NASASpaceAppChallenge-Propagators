@@ -1,0 +1,94 @@
+{
+  "analysis": "posthoc_fine_grid_area_sensitivity",
+  "complete": false,
+  "paired_dates": [
+    "2018-07-15"
+  ],
+  "planned_dates": 18,
+  "weight": "cos(latitude)*(0.005/0.05)^2; area quadrature, NOT independent fire counts",
+  "uncertainty": "whole-date bootstrap preserves native-pixel dependence within day; repeated fires across days may remain dependent",
+  "original_P9": "unchanged",
+  "native_dependence": [
+    {
+      "date": "2018-07-15",
+      "grid_pairs": 2904825,
+      "native_components": 2617000,
+      "distinct_snpp_pixels": 2761080,
+      "distinct_noaa_pixels": 2760740
+    }
+  ],
+  "biomes": [
+    {
+      "biome": "amazon",
+      "eligible_cells": 187,
+      "informative_cells": 11,
+      "informative_dates": 1,
+      "snpp_fire_area_weight": 0.17627590617703762,
+      "noaa20_fire_area_weight": 0.2551801103190864,
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "cerrado",
+      "eligible_cells": 294,
+      "informative_cells": 30,
+      "informative_dates": 1,
+      "snpp_fire_area_weight": 0.3471014253737503,
+      "noaa20_fire_area_weight": 0.388021977032414,
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "caatinga",
+      "eligible_cells": 44,
+      "informative_cells": 0,
+      "informative_dates": 0,
+      "snpp_fire_area_weight": 0,
+      "noaa20_fire_area_weight": 0,
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "mata_atlantica",
+      "eligible_cells": 213,
+      "informative_cells": 33,
+      "informative_dates": 1,
+      "snpp_fire_area_weight": 0.3441838371963587,
+      "noaa20_fire_area_weight": 0.24886975556837077,
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "pantanal",
+      "eligible_cells": 63,
+      "informative_cells": 3,
+      "informative_dates": 1,
+      "snpp_fire_area_weight": 0.047295645983705725,
+      "noaa20_fire_area_weight": 0.018917960181026212,
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "pampa",
+      "eligible_cells": 101,
+      "informative_cells": 5,
+      "informative_dates": 1,
+      "snpp_fire_area_weight": 0.017548364137916543,
+      "noaa20_fire_area_weight": 0.0606848485821633,
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    }
+  ]
+}

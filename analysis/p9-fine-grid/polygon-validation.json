@@ -1,0 +1,6 @@
+{
+  "source": "https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_ambientais/biomas/vetores/Biomas_250mil.zip",
+  "sha256": "1d8a4d860d9c203b10ef41dd0701ced2e389ad86442e23a815a7cccdc98ca0c5",
+  "coarse_centers": 284234,
+  "biome_label_mismatches": 0
+}
