@@ -76,11 +76,11 @@ rather than replace it. Taken, inside Anchor's rules:
 
 | Anduril | Anchor |
 |---|---|
-| Decode (`animateText`): left to right, easeInOutSine, 20 fps, case kept, digits for numbers | The landing headline decodes when the region changes (500 ms); region tile verdicts decode as the tiles arrive (750 ms) |
+| Decode (`animateText`): left to right, easeInOutSine, 20 fps, case kept, digits for numbers | Not taken: the team asked for no text scramble. The region's name fades in with its photograph instead |
 | Hero scenes cycling | The landing steps through the six regions (photograph + verdict) until one is picked; progress line on the region tabs; pause button; stops when the hero is out of view, on hover or focus |
 | Line rise in a mask, 1000 ms, 100 ms stagger | Section titles rise into place on the landing |
 | Rule + slide (`scaleX`, then `x: −10%`, 200 / 300 / 400 ms) | "How it works" steps: each top rule draws, then its words arrive |
-| Card reveal at 50% visible, ↗ | Region tiles: photograph, region, verdict, ↗; open-the-audit line rises on hover |
+| Card reveal at 50% visible, ↗ | Region tiles: photograph, region, verdict, ↗; they fade up as they arrive |
 | Page change: fade + 1.02 / 0.98 scale, 350 ms | Landing ↔ audit: the page fades and scales out, the next fades and scales in |
 | Underline that draws in and replays out | Text links on both pages |
 | Animation switch with a sliding pill | Footer "Motion Off / On" switch, seeded from reduced motion, saved when storage allows |

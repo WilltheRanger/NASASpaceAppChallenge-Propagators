@@ -46,7 +46,7 @@ per direction in `designs/round-2/plan.md`.
 | Phase 3 | D, comments | Range line removed; photo credit to the footer; year reel (21st.dev Filmstrip Scrub), then a ruler strip; clock-effect table → 21st.dev Anomaly Chart | Comment threads on the comment page |
 | Phase 3 | D, structure | Landing and audit as separate pages; one Unsplash photograph per region | "put like this aspect as a seperate landing page"; "different images accross different regions" |
 | Phase 3 | D, landing | Keep D's layout, add to it; the hero is a statement: the region's name only ("The Amazon"), the verdict below | "you dont have to completly repalce it"; "The top is supposed to be sort of a statement piece" |
-| Phase 3 | D, motion | Anduril's patterns from their code: decode, tour of regions, title rise, rule + slide, tile reveal, page fade, motion switch | "look at andurils code … animations and ux" |
+| Phase 3 | D, motion | Anduril's patterns from their code: tour of regions, title rise, rule + slide, tile reveal, page fade, motion switch (no text scramble, at the team's request) | "look at andurils code … animations and ux" |
 | Phase 3 | Repo | No AI tool names in commits, PRs, branches, comments, headers or data notes; AI use disclosed in the slides and on the project page | Team git rule, 15 Nov |
 
 ## History

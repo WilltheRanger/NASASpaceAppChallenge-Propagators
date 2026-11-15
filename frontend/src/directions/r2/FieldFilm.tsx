@@ -1,5 +1,5 @@
 // Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request), now two pages.
-// Landing (D's original hero, kept): each region's photograph at full bleed with its verdict decoding over it, the page
+// Landing (D's original layout, kept): each region's name as a statement over its photograph at full bleed, the page
 // stepping through the six regions until one is picked; how Anchor reads a count on a bone band; the six regions as
 // photograph tiles; the tagline. App: the verdict beside the region's photograph, the year reel on a ruler, the three
 // passes of one day, the clock effect by year against the noise floor on the one sage band, then the calendar.
@@ -7,7 +7,7 @@
 // code (designs/round-2/anduril-study.md), behind a footer switch seeded from the reader's reduced-motion setting.
 // Every number comes from src/r2/data.ts (data/mock, labelled MOCK). Region photographs: Unsplash, credited in the
 // footer. Pass imagery: NASA Worldview / GIBS, public domain.
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
@@ -219,46 +219,6 @@ function useInView<T extends Element>(motion: boolean, threshold = 0.05) {
     return () => io.disconnect()
   }, [motion, threshold])
   return [ref, seen] as const
-}
-
-/** Their decode (TextAnimationHelper.animateText): characters settle left to right on an easeInOutSine clock while the
- *  rest are redrawn 20 times a second as random letters (digits within numbers), case kept, spaces and punctuation kept. */
-function useDecode(text: string, run: boolean, ms = 500) {
-  const [out, setOut] = useState(text)
-  useLayoutEffect(() => {
-    if (!run) { setOut(text); return }
-    const AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    const pick = (set: string) => set[Math.floor(Math.random() * set.length)]
-    const scramble = (c: string) => (/[0-9]/.test(c) ? pick('0123456789') : /[a-z]/.test(c) ? pick(AZ).toLowerCase() : /[A-Z]/.test(c) ? pick(AZ) : c)
-    const start = performance.now()
-    let raf = 0
-    let last = -1
-    const frame = (now: number) => {
-      const t = Math.min(1, (now - start) / ms)
-      if (t === 1) { setOut(text); return }
-      if (now - last >= 50 || last < 0) {
-        last = now
-        const settled = Math.max(1, Math.round((0.5 - Math.cos(Math.PI * t) / 2) * text.length))
-        setOut(text.slice(0, settled) + [...text.slice(settled)].map(scramble).join(''))
-      }
-      raf = requestAnimationFrame(frame)
-    }
-    frame(start)
-    return () => cancelAnimationFrame(raf)
-  }, [text, run, ms])
-  return out
-}
-
-/** Text that decodes into place. An invisible copy holds the layout; screen readers get the clean text once. */
-function Decode({ text, run, ms }: { text: string; run: boolean; ms?: number }) {
-  const shown = useDecode(text, run, ms)
-  return (
-    <span className="relative block">
-      <span aria-hidden className="invisible">{text}</span>
-      <span aria-hidden className="absolute inset-0">{shown}</span>
-      <span className="sr-only">{text}</span>
-    </span>
-  )
 }
 
 /** Their line rise (SplitText + y 100% → 0, 1000 ms easeOutExpo), for a whole title: it rises from behind a mask the
@@ -667,7 +627,7 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
         <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
           <MockTag className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
           <h1 id="region-h" className={statement}>
-            <Decode text={statementName(region)} run={motion.on} ms={600} />
+            <span key={region} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(region)}</span>
           </h1>
         </div>
         {/* the region tabs along the bottom edge, on a dark plate */}
@@ -1120,9 +1080,8 @@ function RegionIndex({ links, leave }: { links: Links; leave: Leave }) {
   )
 }
 
-/** Their product tile: media, title, one line, ↗; the line decodes as the tile arrives (750 ms). */
+/** Their product tile: media, title, one line, ↗. */
 function RegionTile({ id, name, i, seen, href, leave }: { id: string; name: string; i: number; seen: boolean; href: string; leave: Leave }) {
-  const motion = useMotion()
   const p = photoFor(id)
   const verdict = useMemo(() => verdictHeadline(regionData(id)), [id])
   return (
@@ -1144,7 +1103,7 @@ function RegionTile({ id, name, i, seen, href, leave }: { id: string; name: stri
         <span className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4">
           <span className="min-w-0">
             <span className="block text-lg font-medium text-[color:var(--bone)]">{name}</span>
-            <span className="mt-1 block text-sm text-[color:var(--bone-80)]"><Decode text={verdict} run={motion.on && seen} ms={750} /></span>
+            <span className="mt-1 block text-sm text-[color:var(--bone-80)]">{verdict}</span>
           </span>
           <ArrowUpRight
             size={18}
