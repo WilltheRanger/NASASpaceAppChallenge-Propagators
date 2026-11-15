@@ -538,8 +538,8 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
 }
 
 /** The region page: the region's name over its footage and the verdict, every section of the audit in order, then how
- *  Anchor reads a count, the six region tiles and the tagline. The region tabs, the top bar's select and the tiles all
- *  pick the region; the year picked in one figure is shared by the others. */
+ *  Anchor reads a count (for the region picked), the six region tiles and the tagline. The region tabs, the top bar's
+ *  select and the tiles all pick the region; the year picked in one figure is shared by the others. */
 function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; onRegion: (id: string) => void; nav: Nav; links: Links; leave: Leave }) {
   const d = useMemo(() => regionData(region), [region])
   const [year, setYear] = useState(() => defaultYear(d))
@@ -569,7 +569,7 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         <Detection />
         <Limits d={d} />
         <About />
-        <HowItWorks />
+        <HowItWorks d={d} />
         <RegionIndex links={links} onPick={pick} />
         <Closing />
       </main>
@@ -2173,20 +2173,25 @@ function About() {
   )
 }
 
-/* ---------- At the end: how Anchor reads a count, on a bone band ---------- */
+/* ---------- At the end: how Anchor reads a count, on a bone band, for the region picked ---------- */
 
-function HowItWorks() {
+function HowItWorks({ d }: { d: RegionData }) {
   const motion = useMotion()
-  const d = useMemo(() => regionData(FEATURED), [])
-  const y = d.latestOk?.year ?? 2025
+  // the pass line shows look times, so it takes the latest year in the drift file, whether or not the audit can read it
+  const y = d.lastDrift?.year ?? d.latestOk?.year ?? 2025
   const dr = d.driftAt(y)
   const [ref, seen] = useInView<HTMLOListElement>(motion.on, 0.3)
   const first = d.drift[0], last = d.lastDrift
+  // INPE's official series is Brazil's; outside Brazil, Aqua is named by that role, not as the region's official count
+  const reference = hasOfficialSeries(d.id)
+    ? 'INPE’s official fire counts for Brazil follow one reference satellite, Aqua, which for years looked at about the same time of day.'
+    : 'Aqua is the reference satellite behind INPE’s official fire counts for Brazil, and for years it looked at about the same time of day.'
+  const moved = first && last ? minutesBetween(last.aqua_lst, first.aqua_lst) : 0
+  const drift = d.driftStart && first && last && Math.abs(moved) >= 5
+    ? ` Since ${d.driftStart} its look over ${d.phrase.the} has moved ${moved > 0 ? 'later' : 'earlier'}: ${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}.`
+    : ''
   const steps = [
-    {
-      t: 'The reference satellite drifted',
-      b: `INPE’s official fire counts for Brazil follow one reference satellite, Aqua, which for years looked at about the same time of day.${d.driftStart && first && last ? ` Since ${d.driftStart} its look over the Amazon has moved later: ${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}.` : ''}`,
-    },
+    { t: 'The reference satellite drifted', b: reference + drift },
     { t: 'Fires and clouds change through the day', b: 'So a count that follows a drifting clock can change with the time it looks as well as with the fires. Which way, and by how much, has to be measured, not assumed.' },
     { t: 'We hold the clock still', b: 'VIIRS still looks at the same time. We turn its counts into an Aqua-equivalent estimate, month by month, and set Aqua’s own count beside it, with a 95% range and the 2012–2020 placebo range. The gap shows where the two part; on its own it doesn’t say how much the timing caused.' },
   ]
@@ -2207,7 +2212,7 @@ function HowItWorks() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
           <Rise><h2 id="how-h" className={titleLarge}>How we read a fire count</h2></Rise>
-          <p className="mt-4 max-w-[var(--measure)] text-sm">The Amazon in {y}, from the team’s data files{d.mock ? ' (mock for now)' : ''}.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm">{statementName(d.id)} in {y}, from the team’s data files{d.mock ? ' (mock for now)' : ''}.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           {dr ? <div style={inked}><PassFigure dr={dr} year={y} /></div> : null}
