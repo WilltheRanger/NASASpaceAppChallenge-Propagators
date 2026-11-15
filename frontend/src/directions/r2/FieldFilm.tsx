@@ -21,7 +21,6 @@ import {
   type Check, type DayFire, type DetectionRate, type MonthRange, type RegionData, type SatKey, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
-import { FilmstripScrub } from '@/components/ui/filmstrip-scrub'
 import { AnomalyChart, type AnomalyPoint } from '@/components/ui/anomaly-chart'
 import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/series-chart'
 import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
@@ -1041,27 +1040,6 @@ const LABELLED = HOURS.filter((h) => (h - AXIS_FROM) % 2 === 0)
 const at = (hours: number) => ((hours - AXIS_FROM) / (AXIS_TO - AXIS_FROM)) * 100
 const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
 
-/** When each satellite looked, as a reel of years: drag or arrow through the frames and the large frame
- *  crossfades from year to year, so Aqua's mark walks later; each strip cell zooms on the fixed clock and Aqua. */
-const MONTH_NOTCHES = Array.from({ length: 12 }, (_, k) => k)
-/** A ruler cell for a year: a notch per month, a taller one where the year starts, the tallest mid-year under the playhead. */
-const rulerThumb = (year: number) => (
-  <div className="absolute inset-0">
-    {MONTH_NOTCHES.map((k) => (
-      <span
-        key={k}
-        style={{ left: `${(k / 12) * 100}%` }}
-        className={cn(
-          'absolute top-0 w-px bg-[color:var(--bone-30)] group-data-[active=true]:bg-[color:var(--bone-80)]',
-          k === 6 ? 'h-5' : k === 0 ? 'h-3' : 'hidden h-1.5 sm:block',
-        )}
-      />
-    ))}
-    <span className="absolute bottom-0 left-1/2 hidden -translate-x-1/2 text-xs leading-4 tabular-nums text-[color:var(--bone3)] group-data-[active=true]:text-[color:var(--bone)] sm:block">{year}</span>
-  </div>
-)
-const REEL_VARS = { '--fs-accent': 'var(--bone)', '--fs-cell': 'var(--surface)' } as CSSProperties
-
 /** When each satellite looked in one year, as an instrument line on a 06:00 to 18:00 axis. Each satellite has its own
  *  marker and pin: Aqua, the one that drifts, a filled dot under a solid flag carrying its time and the minutes it added;
  *  the fixed clock (VIIRS) a green diamond; Terra a hollow ring. The drift itself is a bar on the axis from the fixed clock to Aqua.
@@ -1171,10 +1149,6 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
   const motion = useMotion()
   const dr = d.driftAt(year)
   const years = d.drift.map((r) => r.year)
-  const frames = useMemo(
-    () => d.drift.map((r) => ({ id: String(r.year), valueText: `${r.year}: Terra ${r.terra_lst}, fixed clock ${r.viirs_lst}, Aqua ${r.aqua_lst}`, preview: null, thumb: rulerThumb(r.year) })),
-    [d],
-  )
   const region = REGIONS.find((r) => r.id === d.id)
   const dl = useMemo(() => daylight(d), [d])
   if (!dr || !years.length || !region) return null
@@ -1197,8 +1171,8 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
             {statementName(d.id)} at noon, seen from the Sun’s side: morning to the left, evening to the right. Each orbit
             keeps its angle to the sunlight, so each orbit runs along a line of one time of day. The Earth’s turn carries{' '}
-            {d.phrase.the} along the dashed path, under {order[0]} orbit first, then {order[1]}, then {order[2]}. Drag the
-            years under the globe to see the orbits move.
+            {d.phrase.the} along the dashed path, under {order[0]} orbit first, then {order[1]}, then {order[2]}. Pick a year
+            in the chart under the globe, by pointer or arrow keys, to see the orbits move.
           </p>
           <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
             <dt className="text-[color:var(--bone3)]">Year</dt>
@@ -1221,30 +1195,10 @@ function Orbits({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: 
             ink={GLOBE_INK}
             label={description}
             day={sun ? { rise: sun.rise, set: sun.set } : undefined}
+            years={d.drift.map((r) => ({ year: r.year, times: { terra: hm(r.terra_lst), viirs: hm(r.viirs_lst), aqua: hm(r.aqua_lst) } }))}
+            year={dr.year}
+            onYear={onYear}
           />
-          {/* the years, under the Earth, on the reel's ruler: dragging it moves the orbits */}
-          <div className="mt-6" style={REEL_VARS}>
-            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-              <p className="text-sm text-[color:var(--bone2)]">When each satellite looked · drag along the years</p>
-              <p className="text-sm tabular-nums text-[color:var(--bone)]">
-                {dr.year} · Aqua {dr.aqua_lst}, {Math.abs(shift)} min {shift >= 0 ? 'after' : 'before'} the fixed clock
-              </p>
-            </div>
-            <FilmstripScrub
-              frames={frames}
-              frameIndex={Math.max(0, years.indexOf(dr.year))}
-              onFrameIndexChange={(i) => onYear(years[i])}
-              scrubberLabel="Year shown on the globe"
-              variant="ruler"
-              still={!motion.on}
-              playheadClassName="sm:bottom-5"
-              previewClassName="hidden"
-              stripClassName="h-8 sm:h-12"
-            />
-            <div aria-hidden className="mt-2 flex justify-between text-xs tabular-nums text-[color:var(--bone3)] sm:hidden">
-              <span>{years[0]}</span><span>{years[years.length - 1]}</span>
-            </div>
-          </div>
           <figcaption className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--bone3)]">
             <span>Drag the globe to turn it. Heights to scale: Aqua and Terra fly about 705 km up, the VIIRS satellites about 830 km.</span>
             {sun ? <span>The dashed path is daylight on {dateText(sun.mid)}, the middle of the fire season: sunrise {fmtHM(sun.rise)}, sunset {fmtHM(sun.set)}, local solar time.</span> : null}
