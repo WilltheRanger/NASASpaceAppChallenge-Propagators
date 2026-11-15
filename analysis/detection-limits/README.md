@@ -1,6 +1,6 @@
 # California detection-limit spec sheet (FINAL PLAN §4.6)
 
-> **To be reviewed by the team before any number is used.**
+> **Code and analysis to be reviewed by the team before any number is used.**
 
 **Question:** of the fires California agencies actually recorded, what share did each satellite detect, by fire size? At what size does each satellite catch 50% or 90% of fires (a50, a90)? This tests prediction **P8**: a50(VIIRS) < a50(Aqua), with intervals that don't overlap.
 

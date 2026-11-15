@@ -234,7 +234,7 @@ def main():
                          "ci95": wilson(k, n)})
         return rows
 
-    spec = {"mock": False, "note": "To be reviewed by the team before use.",
+    spec = {"mock": False, "note": "Analysis to be reviewed by the team before use.",
             "source": "USFS FPA-FOD 7th ed. (RDS-2013-0009.7) California fires + NASA FIRMS MODIS C6.1 / VIIRS S-NPP 375 m",
             "rule": "detected = hotspot within sqrt(area/pi)+1 km between discovery-2h and containment+12h; isolated fires; type 0; MODIS conf>=30, VIIRS n/h",
             "years_with_data": years_done, "satellites": {}}

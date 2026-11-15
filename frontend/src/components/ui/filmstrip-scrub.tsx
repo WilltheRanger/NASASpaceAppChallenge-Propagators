@@ -9,7 +9,8 @@
  * Changed for Anchor: frames are years and carry their own preview and thumbnail nodes; no idle auto-scrub and
  * no hover scrub (nothing moves until the reader does); the readout is a plain solid chip supplied by the caller
  * (no glass, no uppercase); colours come from --fs-* tokens; the preview height is set by the caller; the small
- * state, reduced-motion and visibility hooks are inlined.
+ * state, reduced-motion and visibility hooks are inlined; a "ruler" strip (the caller draws notches, no cell boxes) as
+ * well as the original frames; a `still` override so a page-level motion switch can stop the spring.
  */
 import * as React from 'react'
 import { cn } from '@/lib/utils'
@@ -33,6 +34,11 @@ export interface FilmstripScrubProps extends Omit<React.HTMLAttributes<HTMLDivEl
   scrubberLabel: string
   previewClassName?: string
   stripClassName?: string
+  /** "frames": a cell box per frame, dimmed until active (the original). "ruler": no boxes, the caller's notches only */
+  variant?: 'frames' | 'ruler'
+  playheadClassName?: string
+  /** forces the reduced-motion path (no spring), e.g. from a page-level motion switch */
+  still?: boolean
   stiffness?: number
   damping?: number
 }
@@ -67,7 +73,7 @@ function useOnScreen(ref: React.RefObject<HTMLElement | null>) {
 
 export function FilmstripScrub({
   frames, frameIndex, onFrameIndexChange, readout, scrubberLabel, previewClassName, stripClassName,
-  stiffness = SPRING_K, damping = SPRING_C, className, ...props
+  variant = 'frames', playheadClassName, still: stillProp, stiffness = SPRING_K, damping = SPRING_C, className, ...props
 }: FilmstripScrubProps) {
   const n = frames.length
   const maxIndex = Math.max(0, n - 1)
@@ -82,7 +88,8 @@ export function FilmstripScrub({
   const onChangeRef = React.useRef(onFrameIndexChange)
   onChangeRef.current = onFrameIndexChange
 
-  const still = usePrefersReducedMotion()
+  const prefersStill = usePrefersReducedMotion()
+  const still = stillProp ?? prefersStill
   const onScreen = useOnScreen(rootRef)
   const animate = n > 0 && !still && onScreen
 
@@ -201,7 +208,7 @@ export function FilmstripScrub({
           stripClassName,
         )}
       >
-        <div ref={stripRef} className="relative flex h-full gap-[2px] overflow-hidden rounded-[4px]">
+        <div ref={stripRef} className={cn('relative flex h-full overflow-hidden rounded-[4px]', variant === 'frames' && 'gap-[2px]')}>
           {frames.map((f, i) => (
             <div
               key={f.id}
@@ -209,9 +216,12 @@ export function FilmstripScrub({
               aria-hidden
               data-active={i === index ? 'true' : 'false'}
               className={cn(
-                'relative min-w-0 flex-1 bg-[color:var(--fs-cell)] opacity-60 transition-opacity duration-150 data-[active=true]:opacity-100',
-                'data-[active=true]:after:pointer-events-none data-[active=true]:after:absolute data-[active=true]:after:inset-0 data-[active=true]:after:content-[\'\']',
-                'data-[active=true]:after:shadow-[inset_0_0_0_1.5px_var(--fs-accent)]',
+                'group relative min-w-0 flex-1',
+                variant === 'frames' && [
+                  'bg-[color:var(--fs-cell)] opacity-60 transition-opacity duration-150 data-[active=true]:opacity-100',
+                  'data-[active=true]:after:pointer-events-none data-[active=true]:after:absolute data-[active=true]:after:inset-0 data-[active=true]:after:content-[\'\']',
+                  'data-[active=true]:after:shadow-[inset_0_0_0_1.5px_var(--fs-accent)]',
+                ],
               )}
             >
               {f.thumb}
@@ -222,7 +232,7 @@ export function FilmstripScrub({
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div
             ref={playheadRef}
-            className="absolute -top-2 bottom-0 z-10 -ml-px w-0.5 bg-[color:var(--fs-accent)]"
+            className={cn('absolute -top-2 bottom-0 z-10 -ml-px w-0.5 bg-[color:var(--fs-accent)]', playheadClassName)}
             style={{ left: `${((index + 0.5) / (maxIndex + 1)) * 100}%` }}
           >
             <span className="absolute -top-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-[2px] bg-[color:var(--fs-accent)]" />

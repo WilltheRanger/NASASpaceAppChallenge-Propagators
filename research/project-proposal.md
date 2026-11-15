@@ -468,6 +468,7 @@ If a hypothesis fails, we report it; that is still a finding. This is the "show 
 
 ## 14. References
 
+
 **References (verify each before citing):**
 - Fusco, E.J. et al. (2019). Detection rates and biases of fire observations from MODIS and agency reports in the conterminous United States. *Remote Sensing of Environment* 220, 30–40. [record](https://experts.colorado.edu/display/pubid_247828)
 - Hawbaker, T.J. et al. (2008). Detection rates of the MODIS active fire product in the United States. *RSE*. [doi](https://doi.org/10.1016/j.rse.2007.12.008)

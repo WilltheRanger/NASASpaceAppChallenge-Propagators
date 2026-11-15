@@ -1,23 +1,28 @@
-// Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request). Field footage of the thing itself:
-// the burning forest seen from orbit at full bleed, the verdict on it and a pass line along its bottom edge where
-// Aqua's tick slides later as the year changes; one frame you can switch between the three passes of a single day;
-// one sage band of clock effects drawn against the noise floor; then the calendar.
-// Black, bone and sage; small labels set on images at their lower left; square media, 4 px on small controls.
-// Every number comes from src/r2/data.ts (data/mock, labelled MOCK). Imagery: NASA Worldview / GIBS, public domain.
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+// Round 2 · Direction D, "Field film" (Anduril-inspired, at the team's request), now two pages.
+// Landing (D's original hero, kept): each region's photograph at full bleed with its verdict decoding over it, the page
+// stepping through the six regions until one is picked; how Anchor reads a count on a bone band; the six regions as
+// photograph tiles; the tagline. App: the verdict beside the region's photograph, the year reel on a ruler, the three
+// passes of one day, the clock effect by year against the noise floor on the one sage band, then the calendar.
+// Black, bone and sage; square media, 4 px on small controls. Motion follows Anduril's patterns as read from their
+// code (designs/round-2/anduril-study.md), behind a footer switch seeded from the reader's reduced-motion setting.
+// Every number comes from src/r2/data.ts (data/mock, labelled MOCK). Region photographs: Unsplash, credited in the
+// footer. Pass imagery: NASA Worldview / GIBS, public domain.
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import { ArrowRight, Menu } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Menu, Pause, Play } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle, RegionSelect, YearSlider } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 import {
-  MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, fmtRange, hm, minutesBetween, pct, regionData, verdictHeadline, verdictLines,
+  MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, fmtRange, hm, minutesBetween, pct, phrase, regionData, verdictHeadline, verdictLines,
   type RegionData, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
 import { FilmstripScrub } from '@/components/ui/filmstrip-scrub'
+import { AnomalyChart, type AnomalyPoint } from '@/components/ui/anomaly-chart'
 import { AnchorLogo } from '@/components/brand/anchor-logo'
+import { photoFor } from '@/r2/photos'
 
 /* ---------- Tokens: black ground, bone text, one sage band; the photographs carry the colour ---------- */
 
@@ -49,7 +54,7 @@ const SCRIM_TOP = 'linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 
 // one bottom ramp, at most 0.6
 const RAMP = 'linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.32) 66%, rgba(0, 0, 0, 0.5) 84%, rgba(0, 0, 0, 0.6) 100%)'
 // a soft local plate behind the verdict block, where the photograph is brightest
-const PLATE_VERDICT = 'radial-gradient(ellipse 70% 64% at 28% 52%, rgba(0, 0, 0, 0.68) 0%, rgba(0, 0, 0, 0.56) 45%, rgba(0, 0, 0, 0) 100%)'
+const PLATE_VERDICT = 'radial-gradient(ellipse 72% 66% at 28% 54%, rgba(0, 0, 0, 0.76) 0%, rgba(0, 0, 0, 0.62) 45%, rgba(0, 0, 0, 0) 100%)'
 
 const TOKENS = {
   ...BASE_TOKENS,
@@ -58,6 +63,8 @@ const TOKENS = {
   '--fs-32': '32px',
   '--fs-40': '40px',
   '--fs-72': '72px',
+  // the landing's statement: the region's name, and the closing line
+  '--fs-display': 'clamp(56px, 11vw, 168px)',
   '--lh-display': '1.02',
   '--track-display': '-0.03em',
   '--track-title': '-0.01em',
@@ -70,6 +77,10 @@ const TOKENS = {
   '--scrims-wide': [SCRIM_TOP, PLATE_VERDICT, RAMP].join(', '),
   '--scrims-narrow': [SCRIM_TOP, RAMP].join(', '),
   '--scrim-tile': 'linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.5) 22%, rgba(0, 0, 0, 0) 52%)',
+  // the statement hero: a little at the top for the bar, more at the bottom for the name and the tabs
+  '--scrim-statement': 'linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.4) 12%, rgba(0, 0, 0, 0) 26%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.5) 72%, rgba(0, 0, 0, 0.78) 100%)',
+  // region tiles carry two lines of text over a photograph that may be bright (haze, sky)
+  '--scrim-card': 'linear-gradient(0deg, rgba(0, 0, 0, 0.86) 0%, rgba(0, 0, 0, 0.62) 34%, rgba(0, 0, 0, 0) 70%)',
   // the pass line's plate along the bottom edge of the photograph
   '--plate': 'rgba(11, 13, 11, 0.86)',
   // the ±noise band on the sage table: ink at 12% over sage, solid so stacked rows read as one band
@@ -134,8 +145,8 @@ function useMedia(query: string) {
 /* ---------- Content helpers ---------- */
 
 const IMG = `${import.meta.env.BASE_URL}img/`
-const HERO_SRC = `${IMG}amazon-viirs-fires-2024-08-23.jpg`
-const HERO_LABEL = 'VIIRS · 23 Aug 2024 · smoke and active fires over the Amazon · NASA Worldview / GIBS'
+const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
+const FEATURED = 'br-amazon'
 
 /** Sections that exist in this comp; the rest of the index belongs to the full build. */
 const IN_COMP = new Set<string>(['verdict', 'clock', 'audit', 'calendar'])
@@ -151,9 +162,132 @@ const noiseText = (d: RegionData) => `±${Number(d.noise.toFixed(1))}%`
 
 const defaultYear = (d: RegionData) => d.latestOk?.year ?? d.years[d.years.length - 1]?.year ?? d.lastDrift?.year ?? 2025
 
+type Nav = 'dev' | 'artifact'
+type Page = 'landing' | 'app'
+type Links = { app: (r: string) => string; landing: (r: string) => string }
+type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
+
+/** Where the two pages live: query strings in the dev comp; two files in the comment artifact, the region in the hash. */
+const linksFor = (nav: Nav): Links => ({
+  app: (r) => (nav === 'artifact' ? `app.html#region=${r}` : `?d=d&page=app&region=${r}`),
+  landing: (r) => (nav === 'artifact' ? `index.html#region=${r}` : `?d=d&region=${r}`),
+})
+
 function initialRegion() {
-  const r = new URLSearchParams(window.location.search).get('region')
-  return r && REGIONS.some((x) => x.id === r) ? r : 'br-amazon'
+  const q = new URLSearchParams(window.location.search).get('region')
+  const h = /(?:^#|&)region=([\w-]+)/.exec(window.location.hash)?.[1]
+  const r = q ?? h
+  return r && REGIONS.some((x) => x.id === r) ? r : FEATURED
+}
+
+function writeRegion(nav: Nav, id: string) {
+  try {
+    if (nav === 'artifact') window.history.replaceState(null, '', `#region=${id}`)
+    else {
+      const p = new URLSearchParams(window.location.search)
+      p.set('region', id)
+      window.history.replaceState(null, '', `?${p.toString()}${window.location.hash}`)
+    }
+  } catch { /* sandboxed frames may refuse history writes */ }
+}
+
+/* ---------- Motion: Anduril's patterns, read from their code (designs/round-2/anduril-study.md) ---------- */
+
+const MOTION_KEY = 'anchor-motion'
+/** On unless the reader asks for reduced motion; the footer switch overrides it and is remembered when storage allows. */
+function readMotion() {
+  try {
+    const v = window.localStorage.getItem(MOTION_KEY)
+    if (v === 'on' || v === 'off') return v === 'on'
+  } catch { /* storage can be blocked */ }
+  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+const MotionContext = createContext<{ on: boolean; set: (on: boolean) => void }>({ on: true, set: () => {} })
+const useMotion = () => useContext(MotionContext)
+
+/** True once the element has been `threshold` in view (their InView: 0.05 for slices, 0.5 for cards); true at once
+ *  without motion or without IntersectionObserver, so nothing can stay hidden. */
+function useInView<T extends Element>(motion: boolean, threshold = 0.05) {
+  const ref = useRef<T | null>(null)
+  const [seen, setSeen] = useState(!motion)
+  useEffect(() => {
+    if (!motion) { setSeen(true); return }
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') { setSeen(true); return }
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setSeen(true); io.disconnect() } }, { threshold })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [motion, threshold])
+  return [ref, seen] as const
+}
+
+/** Their decode (TextAnimationHelper.animateText): characters settle left to right on an easeInOutSine clock while the
+ *  rest are redrawn 20 times a second as random letters (digits within numbers), case kept, spaces and punctuation kept. */
+function useDecode(text: string, run: boolean, ms = 500) {
+  const [out, setOut] = useState(text)
+  useLayoutEffect(() => {
+    if (!run) { setOut(text); return }
+    const AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    const pick = (set: string) => set[Math.floor(Math.random() * set.length)]
+    const scramble = (c: string) => (/[0-9]/.test(c) ? pick('0123456789') : /[a-z]/.test(c) ? pick(AZ).toLowerCase() : /[A-Z]/.test(c) ? pick(AZ) : c)
+    const start = performance.now()
+    let raf = 0
+    let last = -1
+    const frame = (now: number) => {
+      const t = Math.min(1, (now - start) / ms)
+      if (t === 1) { setOut(text); return }
+      if (now - last >= 50 || last < 0) {
+        last = now
+        const settled = Math.max(1, Math.round((0.5 - Math.cos(Math.PI * t) / 2) * text.length))
+        setOut(text.slice(0, settled) + [...text.slice(settled)].map(scramble).join(''))
+      }
+      raf = requestAnimationFrame(frame)
+    }
+    frame(start)
+    return () => cancelAnimationFrame(raf)
+  }, [text, run, ms])
+  return out
+}
+
+/** Text that decodes into place. An invisible copy holds the layout; screen readers get the clean text once. */
+function Decode({ text, run, ms }: { text: string; run: boolean; ms?: number }) {
+  const shown = useDecode(text, run, ms)
+  return (
+    <span className="relative block">
+      <span aria-hidden className="invisible">{text}</span>
+      <span aria-hidden className="absolute inset-0">{shown}</span>
+      <span className="sr-only">{text}</span>
+    </span>
+  )
+}
+
+/** Their line rise (SplitText + y 100% → 0, 1000 ms easeOutExpo), for a whole title: it rises from behind a mask the
+ *  first time half of it is in view. */
+function Rise({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+  const motion = useMotion()
+  const [ref, seen] = useInView<HTMLDivElement>(motion.on, 0.5)
+  return (
+    <div ref={ref} className="overflow-hidden pb-1">
+      <div style={{ transitionDelay: `${delay}ms` }} className={cn('transition-transform duration-1000 ease-[var(--ease)]', seen ? 'translate-y-0' : 'translate-y-full')}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** Their page change, halved for two static pages: this page fades and grows to 1.02 about the middle of the screen,
+ *  then the link is followed; the next page arrives from 0.98 (in FieldFilm). Plain navigation without motion. */
+function useLeave(motion: boolean): Leave {
+  return (e) => {
+    if (!motion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    const href = e.currentTarget.getAttribute('href')
+    const root = document.getElementById('anchor-root')
+    if (!href || href.startsWith('#') || !root?.animate) return
+    e.preventDefault()
+    root.style.transformOrigin = `50% ${window.scrollY + window.innerHeight / 2}px`
+    root.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.02)' }], { duration: 350, easing: EASE, fill: 'forwards' })
+    window.setTimeout(() => { window.location.href = href }, 340)
+  }
 }
 
 /** The audit band's heading, as a finding: the run of latest years whose whole range sits outside the noise floor. */
@@ -177,6 +311,11 @@ const ease = 'transition-colors duration-150 ease-[var(--ease)]'
 const slideEase = 'transition-transform duration-240 ease-[var(--ease)] motion-reduce:transition-none'
 const title = 'text-balance text-[length:var(--fs-32)] font-medium leading-9 tracking-[var(--track-title)]'
 const shell = 'mx-auto w-full max-w-[var(--maxw)] px-4 sm:px-8'
+/** Their link underline: draws in from the left on hover, leaves to the right. */
+const underline = cn(
+  'relative rounded after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-right after:scale-x-0 after:bg-current after:content-[\'\']',
+  'after:transition-transform after:duration-300 after:ease-[var(--ease)] hover:after:origin-left hover:after:scale-x-100',
+)
 
 const selectClasses = {
   trigger: cn(
@@ -225,50 +364,137 @@ const modeClasses = {
   ),
 }
 
-/* ---------- Page ---------- */
+/* ---------- Pages ---------- */
 
-export default function FieldFilm() {
+export default function FieldFilm({ page, nav = 'dev' }: { page?: Page; nav?: Nav }) {
   usePortalTokens()
-  const [region, setRegion] = useState(initialRegion)
-  const d = useMemo(() => regionData(region), [region])
-  const [year, setYear] = useState(() => defaultYear(regionData(initialRegion())))
-  const [mode, setMode] = useState<CalendarMode>('anomaly')
-  const small = useMedia('(max-width: 639px)')
-
-  const onRegion = (id: string) => {
-    setRegion(id)
-    setYear(defaultYear(regionData(id)))
-    const p = new URLSearchParams(window.location.search)
-    p.set('region', id)
-    try { window.history.replaceState(null, '', `?${p.toString()}${window.location.hash}`) } catch { /* sandboxed frames may refuse history writes */ }
+  const which: Page = page ?? (new URLSearchParams(window.location.search).get('page') === 'app' ? 'app' : 'landing')
+  const [motion, setMotionState] = useState(readMotion)
+  const setMotion = (on: boolean) => {
+    setMotionState(on)
+    try { window.localStorage.setItem(MOTION_KEY, on ? 'on' : 'off') } catch { /* storage can be blocked */ }
   }
+  const [region, setRegion] = useState(initialRegion)
+  const links = linksFor(nav)
+  const leave = useLeave(motion)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root?.animate) return
+    if (motion) root.animate([{ opacity: 0, transform: 'scale(0.98)' }, { opacity: 1, transform: 'none' }], { duration: 350, easing: EASE })
+    // coming back through history must not land on a faded page
+    const back = (e: PageTransitionEvent) => { if (e.persisted) root.getAnimations().forEach((a) => a.cancel()) }
+    window.addEventListener('pageshow', back)
+    return () => window.removeEventListener('pageshow', back)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
-    <div
-      style={TOKENS as unknown as CSSProperties}
-      className="relative min-h-screen overflow-x-clip bg-[color:var(--ground)] font-[family-name:var(--f-ui)] text-sm text-[color:var(--bone)] antialiased"
-    >
-      <TopBar region={region} onRegion={onRegion} />
-      <main>
-        <Hero d={d} year={year} onYear={setYear} />
-        <Passes d={d} />
-        <ClockEffect d={d} />
-        <Calendar d={d} mode={mode} onMode={setMode} small={small} />
-      </main>
-      <footer className="border-t border-[color:var(--hairline)]">
-        <div className={cn(shell, 'flex flex-col gap-2 py-12 text-xs text-[color:var(--bone3)] sm:flex-row sm:justify-between sm:gap-8')}>
-          <div className="flex flex-col gap-2">
-            <p>Anchor · Team Propagators</p>
-            <p>Opening photograph: {HERO_LABEL}</p>
-          </div>
-          <p className="sm:text-right">{DATA_NOTE}</p>
-        </div>
-      </footer>
-    </div>
+    <MotionContext.Provider value={{ on: motion, set: setMotion }}>
+      <div
+        id="anchor-root"
+        ref={rootRef}
+        style={TOKENS as unknown as CSSProperties}
+        data-motion={motion ? 'on' : 'off'}
+        className="relative min-h-screen overflow-x-clip bg-[color:var(--ground)] font-[family-name:var(--f-ui)] text-sm text-[color:var(--bone)] antialiased"
+      >
+        {which === 'app' ? (
+          <AppPage region={region} onRegion={(id) => { setRegion(id); writeRegion(nav, id) }} links={links} leave={leave} />
+        ) : (
+          <LandingPage region={region} setRegion={setRegion} onPick={(id) => writeRegion(nav, id)} links={links} leave={leave} />
+        )}
+        <Footer />
+      </div>
+    </MotionContext.Provider>
   )
 }
 
-/* ---------- Top bar: transparent on the photograph, no blur ---------- */
+function LandingPage({ region, setRegion, onPick, links, leave }: { region: string; setRegion: (id: string) => void; onPick: (id: string) => void; links: Links; leave: Leave }) {
+  return (
+    <>
+      <LandingTopBar app={links.app(region)} leave={leave} />
+      <main>
+        <LandingHero region={region} setRegion={setRegion} onPick={onPick} app={links.app(region)} leave={leave} />
+        <HowItWorks />
+        <RegionIndex links={links} leave={leave} />
+        <Closing href={links.app(region)} leave={leave} />
+      </main>
+    </>
+  )
+}
+
+function AppPage({ region, onRegion, links, leave }: { region: string; onRegion: (id: string) => void; links: Links; leave: Leave }) {
+  const d = useMemo(() => regionData(region), [region])
+  const [year, setYear] = useState(() => defaultYear(d))
+  const [mode, setMode] = useState<CalendarMode>('anomaly')
+  const small = useMedia('(max-width: 639px)')
+  const pick = (id: string) => { onRegion(id); setYear(defaultYear(regionData(id))) }
+  return (
+    <>
+      <AppTopBar region={region} onRegion={pick} home={links.landing(region)} leave={leave} />
+      <main>
+        <VerdictHeader d={d} year={year} onYear={setYear} />
+        <Passes d={d} />
+        <ClockEffect d={d} year={year} onYear={setYear} small={small} />
+        <Calendar d={d} mode={mode} onMode={setMode} small={small} />
+      </main>
+    </>
+  )
+}
+
+/* ---------- Footer: credits, the AI note, the motion switch ---------- */
+
+/** Their animation switch: two words with a pill that slides between them; role="switch". */
+function MotionSwitch() {
+  const m = useMotion()
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={m.on}
+      onClick={() => m.set(!m.on)}
+      className={cn('inline-flex items-center gap-3 rounded text-xs text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}
+    >
+      <span>Motion</span>
+      <span aria-hidden className="relative grid grid-cols-2 rounded bg-[color:var(--raised)] p-0.5">
+        <span className={cn('absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-[3px] bg-[color:var(--bone)] transition-transform duration-300 ease-[var(--ease)]', m.on && 'translate-x-full')} />
+        <span className={cn('relative px-2 py-0.5 text-center', m.on ? 'text-[color:var(--bone2)]' : 'text-[color:var(--ink)]')}>Off</span>
+        <span className={cn('relative px-2 py-0.5 text-center', m.on ? 'text-[color:var(--ink)]' : 'text-[color:var(--bone2)]')}>On</span>
+      </span>
+    </button>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'grid grid-cols-1 gap-8 py-12 text-xs text-[color:var(--bone3)] lg:grid-cols-12 lg:gap-x-6')}>
+        <div className="flex flex-col items-start gap-2 lg:col-span-4">
+          <p className="text-[color:var(--bone2)]">Anchor · Team Propagators</p>
+          <p>{DATA_NOTE}</p>
+          <div className="mt-2"><MotionSwitch /></div>
+        </div>
+        <div className="lg:col-span-8">
+          <p className="text-[color:var(--bone2)]">Photographs</p>
+          <ul className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
+            {REGIONS.map((r) => {
+              const p = photoFor(r.id)
+              return (
+                <li key={r.id}>
+                  {r.name}: <a href={p.url} target="_blank" rel="noreferrer" className={cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>{p.by}</a> on Unsplash
+                </li>
+              )
+            })}
+            <li>Three passes of one day: NASA Worldview / GIBS, public domain</li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+/* ---------- Top bars ---------- */
 
 /** Phone and tablet index (below 1280 px): the same sections; the ones this comp doesn't have are listed, disabled. */
 function SectionsIndex() {
@@ -302,11 +528,52 @@ function MockTag({ className }: { className?: string }) {
   return <span className={cn('shrink-0 rounded border border-[color:var(--hairline)] px-2 py-1 text-xs text-[color:var(--bone)]', className)}>Mock data</span>
 }
 
-function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) => void }) {
+const primaryButton = cn(
+  'inline-flex h-12 items-center justify-center gap-2 rounded bg-[color:var(--bone)] px-5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]',
+  ease,
+  focusRing,
+)
+const secondaryButton = cn(
+  'inline-flex h-12 items-center justify-center rounded border border-[color:var(--bone-30)] px-5 text-sm font-medium text-[color:var(--bone)] hover:bg-[color:var(--hairline)]',
+  ease,
+  focusRing,
+)
+
+/** Landing: transparent on the photograph, as before; the way into the audit at the right. */
+function LandingTopBar({ app, leave }: { app: string; leave: Leave }) {
   return (
     <header className="absolute inset-x-0 top-0 z-20">
       <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
-        <a href="#verdict" aria-label="Anchor, back to the verdict" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
+        <a href="#top" aria-label="Anchor, back to the top" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
+          <AnchorLogo height={20} />
+        </a>
+        <nav aria-label="On this page" className="hidden md:block xl:col-span-6 xl:justify-self-center">
+          <ul className="flex items-center gap-6 text-sm">
+            <li><a href="#how" className={cn(underline, 'text-[color:var(--bone)]', focusRing)}>How it works</a></li>
+            <li><a href="#regions" className={cn(underline, 'text-[color:var(--bone)]', focusRing)}>Regions</a></li>
+          </ul>
+        </nav>
+        <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:col-span-3">
+          <MockTag className="hidden bg-[color:var(--plate)] sm:inline-block" />
+          <a
+            href={app}
+            onClick={leave}
+            className={cn('inline-flex h-9 items-center rounded bg-[color:var(--bone)] px-3 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]', ease, focusRing)}
+          >
+            Open the audit
+          </a>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+/** App: a solid bar that stays at the top while the audit scrolls under it. */
+function AppTopBar({ region, onRegion, home, leave }: { region: string; onRegion: (id: string) => void; home: string; leave: Leave }) {
+  return (
+    <header className="sticky top-0 z-30 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
+      <div className={cn(shell, 'flex h-16 items-center justify-between gap-4 xl:grid xl:h-18 xl:grid-cols-12 xl:gap-x-6')}>
+        <a href={home} onClick={leave} aria-label="Anchor home" className={cn('flex shrink-0 items-center rounded leading-none xl:col-span-3 xl:justify-self-start', focusRing)}>
           <AnchorLogo height={20} />
         </a>
         <nav aria-label="Sections" className="hidden xl:col-span-6 xl:flex xl:justify-center">
@@ -314,16 +581,7 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
             {SECTIONS.map((s) => (
               <li key={s.id}>
                 {IN_COMP.has(s.id) ? (
-                  <a
-                    href={`#${s.id}`}
-                    aria-current={s.id === 'verdict' ? 'true' : undefined}
-                    className={cn(
-                      'rounded',
-                      s.id === 'verdict' ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]',
-                      ease,
-                      focusRing,
-                    )}
-                  >
+                  <a href={`#${s.id}`} className={cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
                     {s.label}
                   </a>
                 ) : (
@@ -343,76 +601,181 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
   )
 }
 
-/* ---------- Hero: the VIIRS scene, the verdict on it, the pass line along its bottom edge ---------- */
+/* ---------- Landing hero: a statement piece, the region's name on its ground; the verdict follows below ---------- */
 
-function Hero({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+const DWELL = 'animate-[anchor-dwell_7s_linear_forwards]'
+const statement = 'text-balance text-[length:var(--fs-display)] font-medium leading-[0.92] tracking-[-0.04em]'
+const titleLarge = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]'
+/** The statement's wording: "The Amazon", not "Amazon" (which reads as the company); places that take no article stay bare. */
+const statementName = (id: string) => {
+  const the = phrase(id).the
+  return the.startsWith('the ') ? `The ${the.slice(4)}` : phrase(id).short
+}
+
+function LandingHero({ region, setRegion, onPick, app, leave }: { region: string; setRegion: (id: string) => void; onPick: (id: string) => void; app: string; leave: Leave }) {
+  const motion = useMotion()
+  const d = useMemo(() => regionData(region), [region])
   const { look, change } = verdictLines(d)
+  const ids = REGIONS.map((r) => r.id)
+  // the tour: on until a region is picked; held while paused, while the statement is out of view, or while the tabs have focus
+  const [auto, setAuto] = useState(true)
+  const [paused, setPaused] = useState(false)
+  const [held, setHeld] = useState(false)
+  const [inView, setInView] = useState(true)
+  const heroRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const el = heroRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => setInView(e.intersectionRatio >= 0.5), { threshold: [0, 0.5, 1] })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  // photographs load as their region is first shown, then stay for the crossfade
+  const [loaded, setLoaded] = useState<string[]>([region])
+  useEffect(() => { setLoaded((l) => (l.includes(region) ? l : [...l, region])) }, [region])
+
+  const touring = motion.on && auto
+  const running = touring && !paused && !held && inView
+  const next = () => setRegion(ids[(ids.indexOf(region) + 1) % ids.length])
+  const pick = (id: string) => { setAuto(false); setRegion(id); onPick(id) }
+
   return (
-    <section id="verdict" aria-labelledby="verdict-h" className="relative isolate">
-      {/* the photograph: the top of the page on phones and tablets, the whole hero from 1280 px */}
-      <div className="absolute inset-x-0 top-0 -z-10 h-90 overflow-hidden sm:h-120 xl:bottom-0 xl:h-auto">
-        <img
-          src={HERO_SRC}
-          alt="Smoke and active fires over the Amazon, VIIRS true colour, 23 Aug 2024"
-          width={1600}
-          height={960}
-          className="size-full object-cover xl:object-top"
-        />
-        <div aria-hidden className="absolute inset-0 bg-[image:var(--scrims-narrow)] xl:bg-[image:var(--scrims-wide)]" />
-      </div>
-
-      <div className="flex flex-col xl:min-h-[var(--hero-h)]">
-        <div className={cn(shell, 'flex flex-1 flex-col')}>
-          <div aria-hidden className="h-16 shrink-0 xl:h-18" />
-          {/* phones and tablets: clear photograph, its label at the lower left; the verdict follows on black */}
-          <div className="flex h-74 flex-col items-start justify-end gap-2 pb-4 sm:h-104 xl:hidden">
-            <MockTag className="sm:hidden" />
-          </div>
-
-          <div className="pt-10 xl:mt-auto xl:pt-12">
-            <div className="xl:grid xl:grid-cols-12 xl:gap-x-6">
-              <div className="xl:col-span-8">
-                <h1
-                  id="verdict-h"
-                  className="text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)] md:text-[length:var(--fs-72)]"
+    <>
+      {/* the statement: the region's name on its ground, nothing else but the way to change it */}
+      <section id="top" ref={heroRef} aria-labelledby="region-h" className="relative isolate flex h-[78svh] max-h-[1040px] min-h-[560px] flex-col">
+        <div className="absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]">
+          {loaded.map((id) => {
+            const p = photoFor(id)
+            return (
+              <img
+                key={id}
+                src={p.src}
+                srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
+                sizes="100vw"
+                alt={id === region ? p.alt : ''}
+                aria-hidden={id === region ? undefined : true}
+                width={p.width}
+                height={p.height}
+                style={{ objectPosition: p.focus }}
+                className={cn('absolute inset-0 size-full object-cover transition-opacity duration-700 ease-[var(--ease)]', id === region ? 'opacity-100' : 'opacity-0')}
+              />
+            )
+          })}
+          <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
+        </div>
+        <div aria-hidden className="h-16 shrink-0 xl:h-18" />
+        <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
+          <MockTag className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
+          <h1 id="region-h" className={statement}>
+            <Decode text={statementName(region)} run={motion.on} ms={600} />
+          </h1>
+        </div>
+        {/* the region tabs along the bottom edge, on a dark plate */}
+        <div className="bg-[color:var(--plate)]">
+          <div
+            className={cn(shell, 'flex items-start gap-4 py-5')}
+            onFocus={() => setHeld(true)}
+            onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHeld(false) }}
+          >
+            <ToggleGroup.Root
+              type="single"
+              value={region}
+              onValueChange={(v) => { if (v) pick(v) }}
+              aria-label="Region shown"
+              className="grid flex-1 grid-cols-3 gap-x-4 gap-y-3 md:grid-cols-6 md:gap-x-6"
+            >
+              {REGIONS.map((r) => (
+                <ToggleGroup.Item
+                  key={r.id}
+                  value={r.id}
+                  className={cn('relative pt-3 text-left text-sm leading-5 text-[color:var(--bone2)] hover:text-[color:var(--bone)] data-[state=on]:text-[color:var(--bone)]', ease, focusRing)}
                 >
-                  {verdictHeadline(d)}
-                </h1>
-                <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <a
-                    href="#calendar"
-                    className={cn(
-                      'inline-flex h-12 items-center justify-center gap-2 rounded bg-[color:var(--bone)] px-5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]',
-                      ease,
-                      focusRing,
-                    )}
-                  >
-                    Explore the calendar
-                    <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => downloadSummary(d)}
-                    className={cn(
-                      'inline-flex h-12 items-center justify-center rounded border border-[color:var(--bone-30)] px-5 text-sm font-medium text-[color:var(--bone)] hover:bg-[color:var(--hairline)]',
-                      ease,
-                      focusRing,
-                    )}
-                  >
-                    Download summary
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="hidden pb-6 xl:block" />
+                  <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-[color:var(--bone-20)]" />
+                  {r.id === region ? (
+                    <span
+                      key={touring ? 'tour' : 'still'}
+                      aria-hidden
+                      onAnimationEnd={touring ? next : undefined}
+                      style={{ animationPlayState: running ? 'running' : 'paused' }}
+                      className={cn('absolute inset-x-0 top-0 h-0.5 origin-left bg-[color:var(--bone)]', touring && DWELL)}
+                    />
+                  ) : null}
+                  {phrase(r.id).short}
+                </ToggleGroup.Item>
+              ))}
+            </ToggleGroup.Root>
+            {touring ? (
+              <button
+                type="button"
+                onClick={() => setPaused((v) => !v)}
+                aria-label={paused ? 'Resume the tour of the regions' : 'Pause the tour of the regions'}
+                className={cn('mt-1.5 inline-flex size-8 shrink-0 items-center justify-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}
+              >
+                {paused ? <Play size={16} strokeWidth={1.5} aria-hidden /> : <Pause size={16} strokeWidth={1.5} aria-hidden />}
+              </button>
+            ) : null}
           </div>
         </div>
+      </section>
 
-        {/* the pass line: along the bottom edge on a dark plate from 1280 px, on the black ground below that */}
-        <div className="mt-12 xl:mt-0 xl:bg-[color:var(--plate)]">
-          <PassReel d={d} year={year} onYear={onYear} />
+      {/* the verdict and the way in, under the statement */}
+      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-4">
+        <div className={cn(shell, 'grid grid-cols-1 py-16 xl:grid-cols-12 xl:gap-x-6 xl:py-20')}>
+          <div className="xl:col-span-8">
+            <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
+            <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a href={app} onClick={leave} className={primaryButton}>
+                <span>Open the audit<span className="hidden sm:inline"> for {d.phrase.the}</span></span>
+                <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
+              </a>
+              <a href="#how" className={secondaryButton}>How it works</a>
+            </div>
+          </div>
         </div>
+      </section>
+    </>
+  )
+}
+
+/* ---------- App header: the verdict beside the region's photograph, then the year reel ---------- */
+
+function VerdictHeader({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+  const { look, change } = verdictLines(d)
+  const p = photoFor(d.id)
+  return (
+    <section id="verdict" aria-labelledby="verdict-h">
+      <div className={cn(shell, 'grid grid-cols-1 gap-8 pb-12 pt-6 xl:grid-cols-12 xl:gap-x-6 xl:pb-16 xl:pt-14')}>
+        <figure className="m-0 xl:order-2 xl:col-span-5">
+          <img
+            key={d.id}
+            src={p.src}
+            srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
+            sizes="(min-width: 1280px) 38vw, 100vw"
+            alt={p.alt}
+            width={p.width}
+            height={p.height}
+            style={{ objectPosition: p.focus }}
+            className="aspect-video w-full bg-[color:var(--surface)] object-cover animate-[anchor-fade_500ms_cubic-bezier(0.22,1,0.36,1)] xl:aspect-[4/3]"
+          />
+        </figure>
+        <div className="xl:order-1 xl:col-span-7 xl:self-end">
+          <MockTag className="mb-4 inline-block sm:hidden" />
+          <h1 id="verdict-h" className="text-balance text-[length:var(--fs-40)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)]">
+            {verdictHeadline(d)}
+          </h1>
+          <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a href="#calendar" className={primaryButton}>
+              Explore the calendar
+              <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
+            </a>
+            <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>Download summary</button>
+          </div>
+        </div>
+      </div>
+      <div className="border-y border-[color:var(--hairline)] bg-[color:var(--surface)]">
+        <PassReel d={d} year={year} onYear={onYear} />
       </div>
     </section>
   )
@@ -429,25 +792,32 @@ const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
 
 /** When each satellite looked, as a reel of years: drag or arrow through the frames and the large frame
  *  crossfades from year to year, so Aqua's mark walks later; each strip cell zooms on the fixed clock and Aqua. */
+const MONTH_NOTCHES = Array.from({ length: 12 }, (_, k) => k)
+
 function PassReel({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+  const motion = useMotion()
   const years = d.drift.map((r) => r.year)
   const dr = d.driftAt(year)
   const frames = useMemo(() => {
-    const lo = Math.min(...d.drift.map((r) => Math.min(hm(r.viirs_lst), hm(r.aqua_lst)))) - 0.25
-    const hi = Math.max(...d.drift.map((r) => Math.max(hm(r.viirs_lst), hm(r.aqua_lst)))) + 0.25
-    const x = (t: number) => `${(((t - lo) / (hi - lo)) * 100).toFixed(2)}%`
     return d.drift.map((r) => {
-      const fx = hm(r.viirs_lst), ax = hm(r.aqua_lst)
       return {
         id: String(r.year),
         valueText: `${r.year}: Terra ${r.terra_lst}, fixed clock ${r.viirs_lst}, Aqua ${r.aqua_lst}`,
         preview: <PassFigure dr={r} year={r.year} />,
+        // a ruler: a notch per month, a taller one where the year starts, the tallest mid-year under the playhead
         thumb: (
           <div className="absolute inset-0">
-            <span className="absolute bottom-5 top-2 w-px bg-[color:var(--sage)]" style={{ left: x(fx) }} />
-            <span className="absolute bottom-5 top-2 w-0.5 -translate-x-1/2 bg-[color:var(--bone)]" style={{ left: x(ax) }} />
-            <span className="absolute bottom-5 h-0.5 bg-[color:var(--bone-80)]" style={{ left: x(Math.min(fx, ax)), width: `${(Math.abs(ax - fx) / (hi - lo)) * 100}%` }} />
-            <span className="absolute bottom-1 left-1.5 hidden text-xs leading-4 tabular-nums text-[color:var(--bone3)] sm:block">{r.year}</span>
+            {MONTH_NOTCHES.map((k) => (
+              <span
+                key={k}
+                style={{ left: `${(k / 12) * 100}%` }}
+                className={cn(
+                  'absolute top-0 w-px bg-[color:var(--bone-30)] group-data-[active=true]:bg-[color:var(--bone-80)]',
+                  k === 6 ? 'h-5' : k === 0 ? 'h-3' : 'hidden h-1.5 sm:block',
+                )}
+              />
+            ))}
+            <span className="absolute bottom-0 left-1/2 hidden -translate-x-1/2 text-xs leading-4 tabular-nums text-[color:var(--bone3)] group-data-[active=true]:text-[color:var(--bone)] sm:block">{r.year}</span>
           </div>
         ),
       }
@@ -461,7 +831,7 @@ function PassReel({ d, year, onYear }: { d: RegionData; year: number; onYear: (y
   return (
     <div className={cn(shell, 'py-6')} style={reelVars}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <p className="text-sm text-[color:var(--bone2)]">When each satellite looked · drag the reel through the years</p>
+        <p className="text-sm text-[color:var(--bone2)]">When each satellite looked · drag along the years</p>
         <p className="text-sm tabular-nums text-[color:var(--bone)]">
           {year} · Aqua {dr.aqua_lst}, {Math.abs(shift)} min {shift >= 0 ? 'after' : 'before'} the fixed clock
         </p>
@@ -471,8 +841,11 @@ function PassReel({ d, year, onYear }: { d: RegionData; year: number; onYear: (y
         frameIndex={Math.max(0, years.indexOf(year))}
         onFrameIndexChange={(i) => onYear(years[i])}
         scrubberLabel="Year shown on the reel"
+        variant="ruler"
+        still={!motion.on}
+        playheadClassName="sm:bottom-5"
         previewClassName="mt-4 h-26 sm:h-30"
-        stripClassName="mt-4 h-12 sm:h-16"
+        stripClassName="mt-4 h-8 sm:h-12"
       />
       <div aria-hidden className="mt-2 flex justify-between text-xs tabular-nums text-[color:var(--bone3)] sm:hidden">
         <span>{years[0]}</span><span>{years[years.length - 1]}</span>
@@ -646,93 +1019,201 @@ function Passes({ d }: { d: RegionData }) {
   )
 }
 
-/* ---------- Clock effect by year: the one sage band, each range drawn against the noise floor ---------- */
+/* ---------- Landing: how Anchor reads a count, on a bone band ---------- */
 
-function rangeAxis(d: RegionData) {
-  const known = d.years.filter((y) => y.lo != null && y.hi != null)
-  const lo = Math.min(-d.noise, ...known.map((y) => y.lo!))
-  const hi = Math.max(d.noise, ...known.map((y) => y.hi!))
-  const step = hi - lo > 60 ? 20 : 10
-  const a = Math.floor(lo / step) * step
-  const b = Math.ceil(hi / step) * step
-  const ticks: number[] = []
-  for (let v = a; v <= b; v += step) ticks.push(v)
-  return { x: (v: number) => `${(((v - a) / (b - a)) * 100).toFixed(3)}%`, ticks }
+function HowItWorks() {
+  const motion = useMotion()
+  const d = useMemo(() => regionData(FEATURED), [])
+  const y = d.latestOk?.year ?? 2025
+  const dr = d.driftAt(y)
+  const { look } = verdictLines(d)
+  const [ref, seen] = useInView<HTMLOListElement>(motion.on, 0.3)
+  const steps = [
+    { t: 'The reference satellite drifted', b: `Official counts follow Aqua, chosen because it always looked at about the same time of day. ${look}` },
+    { t: 'Fires burn more in the afternoon', b: 'So a later look counts more of them, and the official count moves with the satellite’s clock as well as with the fires.' },
+    { t: 'Anchor holds the clock still', b: 'We recount every month on one fixed clock and report, per region and year, how much of the official change comes from the drift, with a range and a noise floor.' },
+  ]
+  // the pass figure, re-inked for the bone ground
+  const inked = { '--bone': 'var(--ink)', '--bone3': '#4E514A', '--bone-30': 'rgba(11, 13, 11, 0.3)', '--sage': '#4C5E50' } as CSSProperties
+  return (
+    <section id="how" aria-labelledby="how-h" className="scroll-mt-4 bg-[color:var(--bone)] text-[color:var(--ink)]">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
+        <div className="lg:col-span-4">
+          <Rise><h2 id="how-h" className={titleLarge}>How Anchor reads a fire count</h2></Rise>
+          <p className="mt-4 max-w-[var(--measure)] text-sm">The Amazon in {y}, from the team’s data files (mock for now).</p>
+        </div>
+        <div className="min-w-0 lg:col-span-8">
+          {dr ? <div style={inked}><PassFigure dr={dr} year={y} /></div> : null}
+          {/* their rule + slide: each step's rule draws, then its words arrive from the left, 100 ms apart */}
+          <ol ref={ref} className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-6">
+            {steps.map((s, i) => (
+              <li key={s.t} className="relative pt-4">
+                <span
+                  aria-hidden
+                  style={{ transitionDelay: `${i * 100}ms` }}
+                  className={cn('absolute inset-x-0 top-0 h-px origin-left bg-[color:var(--ink)] transition-transform duration-1000 ease-[var(--ease)]', seen ? 'scale-x-100' : 'scale-x-0')}
+                />
+                <div
+                  style={{ transitionDelay: `${200 + i * 100}ms` }}
+                  className={cn('transition-[opacity,transform] duration-1000 ease-[var(--ease)]', seen ? 'translate-x-0 opacity-100' : '-translate-x-[10%] opacity-0')}
+                >
+                  <p className="text-lg font-medium">{s.t}</p>
+                  <p className="mt-2 text-sm">{s.b}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
+  )
 }
+
+/* ---------- Landing: the six regions as photograph tiles ---------- */
+
+function RegionIndex({ links, leave }: { links: Links; leave: Leave }) {
+  const motion = useMotion()
+  const [ref, seen] = useInView<HTMLUListElement>(motion.on, 0.2)
+  return (
+    <section id="regions" aria-labelledby="regions-h" className={cn(shell, 'scroll-mt-4 py-24')}>
+      <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
+        <div className="lg:col-span-4"><Rise><h2 id="regions-h" className={titleLarge}>Six regions, one fixed clock</h2></Rise></div>
+        <p className="max-w-[var(--measure)] text-sm text-[color:var(--bone2)] lg:col-span-8 lg:self-end">
+          Each audit opens on its verdict, then shows when each satellite looked, the clock effect year by year and the fire calendar.
+        </p>
+      </div>
+      <ul ref={ref} className="mt-10 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {REGIONS.map((r, i) => (
+          <RegionTile key={r.id} id={r.id} name={r.name} i={i} seen={seen} href={links.app(r.id)} leave={leave} />
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+/** Their product tile: media, title, one line, ↗; the line decodes as the tile arrives (750 ms). */
+function RegionTile({ id, name, i, seen, href, leave }: { id: string; name: string; i: number; seen: boolean; href: string; leave: Leave }) {
+  const motion = useMotion()
+  const p = photoFor(id)
+  const verdict = useMemo(() => verdictHeadline(regionData(id)), [id])
+  return (
+    <li
+      style={{ transitionDelay: `${i * 80}ms` }}
+      className={cn('transition-[opacity,transform] duration-500 ease-[var(--ease)]', seen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0')}
+    >
+      <a href={href} onClick={leave} className={cn('group relative block aspect-4/3 overflow-hidden bg-[color:var(--surface)]', focusRing)}>
+        <img
+          src={p.srcSm}
+          alt=""
+          width={720}
+          height={Math.round((720 * p.height) / p.width)}
+          loading="lazy"
+          style={{ objectPosition: p.focus }}
+          className="size-full object-cover transition-transform duration-500 ease-[var(--ease)] group-hover:scale-[1.03]"
+        />
+        <span aria-hidden className="absolute inset-0 bg-[image:var(--scrim-card)]" />
+        <span className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4">
+          <span className="min-w-0">
+            <span className="block text-lg font-medium text-[color:var(--bone)]">{name}</span>
+            <span className="mt-1 block text-sm text-[color:var(--bone-80)]"><Decode text={verdict} run={motion.on && seen} ms={750} /></span>
+          </span>
+          <ArrowUpRight
+            size={18}
+            strokeWidth={1.5}
+            aria-hidden
+            className="mb-0.5 shrink-0 text-[color:var(--bone)] transition-transform duration-300 ease-[var(--ease)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+          />
+        </span>
+      </a>
+    </li>
+  )
+}
+
+/** Their closing slogan, as Anchor's tagline, with one last way in. */
+function Closing({ href, leave }: { href: string; leave: Leave }) {
+  return (
+    <section aria-labelledby="close-h" className="border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'flex flex-col items-center py-24 text-center sm:py-32')}>
+        <Rise>
+          <h2 id="close-h" className={statement}>Count the fires, not the clock.</h2>
+        </Rise>
+        <a href={href} onClick={leave} className={cn(primaryButton, 'mt-10')}>
+          Open the audit
+          <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
+        </a>
+      </div>
+    </section>
+  )
+}
+
+/* ---------- Clock effect by year: the one sage band; 21st.dev's anomaly chart against the noise floor ---------- */
 
 const tickText = (v: number) => (v === 0 ? '0%' : pct(v, 0))
 
-function ClockEffect({ d }: { d: RegionData }) {
+function ClockEffect({ d, year, onYear, small }: { d: RegionData; year: number; onYear: (y: number) => void; small: boolean }) {
   const { why } = verdictLines(d)
-  const axis = rangeAxis(d)
-  const band = { '--n0': axis.x(-d.noise), '--nw': `calc(${axis.x(d.noise)} - ${axis.x(-d.noise)})` } as CSSProperties
-  const cell = 'py-4 align-baseline'
+  const n = noiseText(d)
+  const [inspect, setInspect] = useState<number | null>(null)
+  const selected = d.years.findIndex((y) => y.year === year)
+  const latest = d.years.findIndex((y) => y.year === d.latestOk?.year)
+  const shownIndex = inspect ?? (selected >= 0 ? selected : latest >= 0 ? latest : d.years.length - 1)
+  const shown = d.years[shownIndex]
+  const points = useMemo<AnomalyPoint[]>(
+    () =>
+      d.years.map((y) => ({
+        id: String(y.year),
+        label: String(y.year),
+        value: y.gap,
+        range: y.lo != null && y.hi != null ? [y.lo, y.hi] : null,
+        expected: [-d.noise, d.noise],
+        outside: y.verdict === 'clock',
+        valueText:
+          y.verdict === 'na'
+            ? `${y.year}: not enough fires to measure`
+            : `${y.year}: clock effect ${effectText(y)}, range ${rangeText(y)}, ${y.verdict === 'clock' ? 'clear of' : 'overlapping'} the ${n} noise floor`,
+      })),
+    [d, n],
+  )
+  const chartVars = {
+    '--ac-line': 'var(--ink)',
+    '--ac-fg': 'var(--ink)',
+    '--ac-surface': 'var(--sage)',
+    '--ac-band': 'var(--sage-band)',
+    '--ac-grid': 'rgba(11, 13, 11, 0.12)',
+    '--ac-zero': 'rgba(11, 13, 11, 0.5)',
+  } as CSSProperties
   return (
-    <section id="audit" aria-labelledby="audit-h" className="bg-[color:var(--sage)] text-[color:var(--ink)]">
+    <section id="audit" aria-labelledby="audit-h" style={chartVars} className="scroll-mt-20 bg-[color:var(--sage)] text-[color:var(--ink)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6')}>
         <div className="lg:col-span-4">
           <h2 id="audit-h" className={title}>{effectHeading(d)}</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm">
-            How much Aqua's later look changed each year's official count, with its range. Years whose whole range sits
-            outside {noiseText(d)} show a clock effect.
+            How much Aqua's later look changed each year's official count, with its range. A year whose whole range sits
+            outside {n} shows a clock effect.
           </p>
         </div>
-        <div className="lg:col-span-8">
-          <table className="w-full border-collapse text-left">
-            <caption className="sr-only">
-              Clock effect by year for {d.name}: how much Aqua's later look changed the official count, its range drawn against the {noiseText(d)} noise floor, and the reading
-            </caption>
-            <thead>
-              <tr className="border-b border-[color:var(--ink-20)] text-xs">
-                <th scope="col" className="pb-2 pr-4 align-bottom font-normal">Year</th>
-                <th scope="col" className="px-4 pb-2 text-right align-bottom font-normal">Clock effect</th>
-                <th scope="col" className="hidden px-4 pb-2 text-right align-bottom font-normal sm:table-cell">Range</th>
-                <th scope="col" className="hidden w-2/5 px-4 pb-2 align-bottom font-normal sm:table-cell">
-                  <span className="sr-only">Range against the {noiseText(d)} noise floor</span>
-                  <span aria-hidden className="relative block h-4">
-                    {axis.ticks.map((v, i) => (
-                      <span
-                        key={v}
-                        style={{ '--x': axis.x(v) } as CSSProperties}
-                        className={cn('absolute left-[var(--x)] top-0 leading-4', i === 0 ? '' : i === axis.ticks.length - 1 ? '-translate-x-full' : '-translate-x-1/2')}
-                      >
-                        {tickText(v)}
-                      </span>
-                    ))}
-                  </span>
-                </th>
-                <th scope="col" className="pb-2 pl-4 align-bottom font-normal">Reading</th>
-              </tr>
-            </thead>
-            <tbody>
-              {d.years.map((y) => (
-                <tr key={y.year} className="border-b border-[color:var(--ink-20)]">
-                  <th scope="row" className={cn(cell, 'pr-4 text-lg font-normal tabular-nums')}>{y.year}</th>
-                  <td className={cn(cell, 'px-4 text-right')}>
-                    <span className="block text-lg font-medium tabular-nums">{effectText(y)}</span>
-                    <span className="block text-sm tabular-nums sm:hidden">{rangeText(y)}</span>
-                  </td>
-                  <td className={cn(cell, 'hidden px-4 text-right text-sm tabular-nums sm:table-cell')}>{rangeText(y)}</td>
-                  <td className="hidden px-4 py-4 align-top sm:table-cell">
-                    <div aria-hidden style={band} className="relative h-7">
-                      {/* the noise band runs the full row height, so the rows read as one shaded strip */}
-                      <span className="absolute -inset-y-4 left-[var(--n0)] w-[var(--nw)] bg-[color:var(--sage-band)]" />
-                      {y.lo != null && y.hi != null && y.gap != null ? (
-                        <span
-                          style={{ '--b0': axis.x(y.lo), '--bw': `calc(${axis.x(y.hi)} - ${axis.x(y.lo)})`, '--bp': axis.x(y.gap) } as CSSProperties}
-                          className="absolute inset-0"
-                        >
-                          <span className="absolute left-[var(--b0)] top-1/2 h-1 w-[var(--bw)] -translate-y-1/2 bg-[color:var(--ink)]" />
-                          <span className="absolute left-[var(--bp)] top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-[color:var(--ink)]" />
-                        </span>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className={cn(cell, 'pl-4 text-sm')}>{READING[y.verdict]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="min-w-0 lg:col-span-8">
+          {shown ? (
+            <p aria-live="polite" className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
+              <span className="tabular-nums">{shown.year}</span>
+              <span className="text-lg font-medium">{shown.verdict === 'na' ? 'No reading' : effectText(shown)}</span>
+              {shown.verdict !== 'na' ? <span className="tabular-nums">Range {rangeText(shown)}</span> : null}
+              <span>{READING[shown.verdict]}</span>
+            </p>
+          ) : null}
+          <AnomalyChart
+            className="mt-4"
+            points={points}
+            height={small ? 240 : 300}
+            activeIndex={shownIndex}
+            selectedIndex={selected >= 0 ? selected : null}
+            onInspect={setInspect}
+            onSelect={(i) => onYear(d.years[i].year)}
+            groupLabel={`Clock effect by year for ${d.name}`}
+            bandLabel={`${n} noise floor`}
+            formatTick={tickText}
+            legend={{ outside: 'Range clear of the noise floor', inside: 'Range overlaps it', range: 'Range' }}
+          />
           {why ? <p className="mt-6 max-w-[var(--measure)] text-sm">{why}</p> : null}
           <p className="mt-4 text-xs">Source: audit/{d.id}.json · MOCK</p>
         </div>

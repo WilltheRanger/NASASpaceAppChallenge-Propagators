@@ -3,7 +3,7 @@
 <!-- impeccable:product-schema 1 -->
 
 Transcribed from `frontend/requirements.md` (signed off Sat Nov 14, 2026), `frontend/ux-brief.md` (approved) and
-`productID.md` §1–3, 6–7. No new facts were added here; open items stay open.
+`productID.md` §1–3, 6–7. No new facts were added here; open items stay open. Written for Team Propagators.
 
 ## Platform
 
@@ -75,6 +75,7 @@ with an error range and a noise floor. We did not find anyone auditing INPE's of
   X", never "first" or "only". Words to avoid: first, only, revolutionary, AI-powered, proves, debunks, wrong, scandal,
   magic, seamless, unlock; "record" except when quoting.
 - No NASA logos, flags or mission identifiers. Team members are minors: no names, photos, faces or voices anywhere.
+- AI use is disclosed once, in the slides and on the project page; nothing in the app or the repo names an AI tool as author or label (team rule, 15 Nov 2026).
 - Stage 1 references the team picked: Ciechanowski's operable figures, Apex Space spec cards, Linear's real product
   under the headline, Oxide's engineering-document details; parts Leaderboard Bars, Circularium Ring, Flip-Disk Matrix,
   COBE Globe. The team asked for rich colour with images and meaningful shaders, not a plain grey template.

@@ -1,6 +1,6 @@
 # Round 2 · Directions (Round 1 rejected)
 
- Every number in the comps comes from `data/mock/` and carries
+Every number in the comps comes from `data/mock/` and carries
 a MOCK badge; none of it may go in a slide or screenshot.
 
 ## Why Round 1 failed, against the kit's own rules

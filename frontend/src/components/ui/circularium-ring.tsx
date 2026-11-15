@@ -9,7 +9,6 @@
  * `maxValue` (no rounding), the hour at the top is configurable (`topHour`), tooltips and
  * the subtitle are passed in, and the weekday filter is off by default.
  * The rendering engine is the original's.
- * for Team Propagators.
  */
 import * as React from 'react'
 
