@@ -131,7 +131,7 @@ export type Links = {
   overview: () => string
   /** a region's page; without an id, the Regions page as it opens */
   regions: (id?: string) => string
-  /** the Simulator, flown to a studied place when given one */
+  /** the Explore page, flown to a studied place when given one */
   sim: (place?: string) => string
   /** the Method page, at a section when given one */
   method: (section?: string) => string
@@ -143,7 +143,7 @@ export type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
 export const linksFor = (nav: Nav): Links => ({
   overview: () => (nav === 'artifact' ? 'index.html' : './'),
   regions: (id) => (nav === 'artifact' ? `regions.html${id ? `#region=${id}` : ''}` : id ? `?region=${id}` : '?page=regions'),
-  sim: (place) => (nav === 'artifact' ? `sim.html${place ? `#place=${place}` : ''}` : `?page=sim${place ? `&place=${place}` : ''}`),
+  sim: (place) => (nav === 'artifact' ? `sim.html${place ? `#place=${place}` : ''}` : `?page=explore${place ? `&place=${place}` : ''}`),
   method: (section) => (nav === 'artifact' ? `method.html${section ? `#${section}` : ''}` : `?page=method${section ? `#${section}` : ''}`),
 })
 
@@ -180,8 +180,8 @@ export const CREDITS: { name: string; links: { text: string; href: string }[] }[
   { name: 'Punjab burn timing: Jethva 2026, Remote Sensing', links: [{ text: 'doi:10.3390/rs18101506', href: JETHVA }] },
   { name: 'Satellite imagery: NASA Worldview / GIBS', links: [{ text: 'worldview.earthdata.nasa.gov', href: 'https://worldview.earthdata.nasa.gov' }] },
   { name: 'Land outlines: Natural Earth, public domain', links: [{ text: 'naturalearthdata.com', href: 'https://www.naturalearthdata.com' }] },
-  { name: 'Explore page country list: mledoze/countries, ODbL', links: [{ text: 'github.com/mledoze/countries', href: 'https://github.com/mledoze/countries' }] },
-  { name: 'Explore page place search: Nominatim, © OpenStreetMap contributors, ODbL', links: [{ text: 'openstreetmap.org/copyright', href: 'https://www.openstreetmap.org/copyright' }] },
+  { name: 'Explore country list: mledoze/countries, ODbL', links: [{ text: 'github.com/mledoze/countries', href: 'https://github.com/mledoze/countries' }] },
+  { name: 'Explore place search: Nominatim, © OpenStreetMap contributors, ODbL', links: [{ text: 'openstreetmap.org/copyright', href: 'https://www.openstreetmap.org/copyright' }] },
 ]
 
 /* ---------- Motion: Anduril's patterns, read from their code (designs/round-2/anduril-study.md) ---------- */
@@ -389,7 +389,7 @@ export function SatMark({ sat, size = 10 }: { sat: 'terra' | 'viirs' | 'aqua'; s
   return <span aria-hidden className="inline-block shrink-0 rounded-full bg-[color:var(--sat-aqua)]" style={{ width: size, height: size }} />
 }
 
-/* ---------- The bar: the logo and the four pages, on every page but the Simulator (which has its own) ---------- */
+/* ---------- The bar: the logo and the four pages, on every page but Explore (which has its own) ---------- */
 
 const PAGES: { page: Page; label: string; href: (l: Links) => string }[] = [
   { page: 'overview', label: 'Overview', href: (l) => l.overview() },
@@ -476,7 +476,7 @@ export function Footer({ links, leave }: { links: Links; leave: Leave }) {
             <li>Overview, wildfire smoke at dusk: <a href={OVERVIEW_PHOTO.url} target="_blank" rel="noreferrer" className={link}>{OVERVIEW_PHOTO.by}</a> on Unsplash</li>
             <li>Three looks at one Amazon day: NASA Worldview / GIBS, public domain</li>
             <li>One fire day in Pará, 2 Sep 2024: NASA Worldview / GIBS, VIIRS true colour</li>
-            <li>Explore page maps: NASA Worldview / GIBS and NASA Blue Marble</li>
+            <li>Explore maps: NASA Worldview / GIBS and NASA Blue Marble</li>
           </ul>
         </div>
       </div>

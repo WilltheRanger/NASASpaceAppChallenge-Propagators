@@ -1,4 +1,4 @@
-// SI: the Simulator's question-and-answer panel. Every answer is assembled from data the page already holds (the
+// SI: the Explore page's question-and-answer panel. Every answer is assembled from data the page already holds (the
 // team's drift, audit and daylight files, and the past day's NASA FIRMS detections) by fixed rules: a question is matched
 // to one of a few kinds, and the answer's sentences carry the sources their numbers come from. Nothing is generated, so
 // nothing is invented; a question outside these kinds gets the list of what SI can answer.
@@ -120,7 +120,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
 
 function daylightAnswer(ctx: SiContext, q: string): SiAnswer {
   const region = studiedIn(q) ?? ctx.region
-  if (!region) return { sentences: [{ text: 'Daylight after the alert is measured for the six places. Pick one, or play one real fire day in the Amazon with made-up helicopters.' }], sources: [], actions: [{ kind: 'day', label: 'Play one fire day' }], followUps: ['What am I looking at?'] }
+  if (!region) return { sentences: [{ text: 'Daylight after the alert is measured for the six places. Pick one, or play one real fire day in the Amazon.' }], sources: [], actions: [{ kind: 'day', label: 'Play one fire day' }], followUps: ['What am I looking at?'] }
   const h = daylightHeadline(region)
   const d = regionData(region)
   const lvl2 = h?.quote === 'level2a'

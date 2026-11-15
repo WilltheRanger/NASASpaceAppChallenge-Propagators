@@ -591,8 +591,8 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
         <Door
           href={links.sim()}
           leave={leave}
-          title="Explore"
-          line="Switch Aqua between its two times. Play one fire day."
+          title="Explore any place"
+          line="Search the globe for any 2° square's count. Switch Aqua between its two times. Play one real fire day."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}sim/${FEATURED}-context.jpg`} alt="" loading="lazy" className={pic} style={{ objectPosition: '30% 62%' }} />}
         />

@@ -34,7 +34,7 @@ for (const f of videos) copyFileSync(join('public', 'video', 'regions', f), join
 
 const contract = `<!--
   Anchor: satellite fire counts on a fixed clock. Team Propagators. A NASA Space Apps Challenge 2026 team project, not an
-  official NASA product. Four pages: the overview (this page), the Regions page (regions.html), the Explore page (sim.html)
+  official NASA product. Four pages: the overview (this page), the Regions page (regions.html), Explore (sim.html)
   and the Method page (method.html). Every number comes from the team's JSON files (data/out). Drone footage and photographs
   are credited in the footer; pass and map imagery: NASA Worldview / GIBS.
 -->`

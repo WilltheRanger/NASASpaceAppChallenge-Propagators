@@ -3,6 +3,8 @@
  * (the projection eases from globe to web mercator across a band of zoom levels set for each flight). On it: the past
  * day's NASA FIRMS daytime fire detections in the site's satellite marks (Aqua an amber dot, VIIRS a green diamond,
  * Terra a blue ring), which can be clicked; the six studied regions, framed by white corner brackets; a faint grid.
+ * Optionally the world's 2-degree squares, coloured by how far Aqua's count sits from what we'd expect: they show far
+ * out and fade as the map closes in, where the fires take over.
  *
  * Imagery: the comment page carries one 4096 px Blue Marble image, cut into tiles here (no network), and sharper Blue
  * Marble around each studied region; the live site also streams NASA GIBS Blue Marble and Sentinel-2 cloudless close up.
@@ -43,8 +45,13 @@ export interface EarthGlobeProps {
   fire: number | null
   near: number[]
   callouts: Callout[]
-  /** a scene drawn over the map instead of the day's fires: one fire day's fires and the trips to them */
-  scene?: { fires: GeoJSON.FeatureCollection; trips: GeoJSON.FeatureCollection } | null
+  /** a scene drawn over the map instead of the day's fires: one real fire day's fires, seen by one satellite or not */
+  scene?: GeoJSON.FeatureCollection | null
+  /** the world's 2-degree squares (polygons with id, ok, c = colour, o = strength); null hides them. A single square
+   *  is drawn as an outline only and leaves the fires and clicks as they are. */
+  cells?: GeoJSON.FeatureCollection | null
+  /** the picked square's id */
+  cell?: string | null
   /** where the panels sit, so a place lands in the clear middle */
   padding: EarthPadding
   /** the Blue Marble image the comment page cuts into tiles */
@@ -55,6 +62,9 @@ export interface EarthGlobeProps {
   onArrive?: (key: string) => void
   onPick?: (id: string) => void
   onFire?: (i: number | null) => void
+  onCell?: (id: string) => void
+  /** the square under the pointer, or null */
+  onCellHover?: (id: string | null) => void
   /** the map's view, when it comes to rest: [west, south, east, north], and its zoom */
   onRest?: (b: Box, zoom: number) => void
   onFail?: () => void
@@ -68,6 +78,8 @@ const S2 = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/
 const AQUA = '#C8801F', TERRA = '#448BCB', VIIRS = '#49A46E', BONE = '#ECE9E1', GROUND = '#0B0D0B'
 const NONE = { type: 'FeatureCollection', features: [] } as GeoJSON.FeatureCollection
 const FIRE_LAYERS = ['fire-viirs', 'fire-terra', 'fire-aqua'] as const
+/** the squares show below this zoom; the fires take over above it */
+const CELLS_GONE = 6.5
 
 /** the fire points as GeoJSON, once: g = 0 Terra, 1 Aqua, 2 VIIRS */
 let firesGeo: GeoJSON.FeatureCollection | null = null
@@ -199,6 +211,9 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
   const motionRef = React.useRef(motion)
   motionRef.current = motion
   const flight = React.useRef(0)
+  const cellsOn = React.useRef(false)
+  // one square alone is a picked square's outline at a place, not the world layer
+  cellsOn.current = (props.cells?.features.length ?? 0) > 1
 
   // the map, once
   React.useEffect(() => {
@@ -222,7 +237,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         frames: { type: 'geojson', data: NONE },
         fires: { type: 'geojson', data: NONE },
         'scene-fires': { type: 'geojson', data: NONE },
-        'scene-trips': { type: 'geojson', data: NONE },
+        cells: { type: 'geojson', data: NONE },
       },
       layers: [
         { id: 'ocean', type: 'background', paint: { 'background-color': '#0A1A2C' } },
@@ -231,6 +246,11 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'ctx-slot', type: 'background', layout: { visibility: 'none' } },
         ...(live ? [{ id: 's2', type: 'raster' as const, source: 's2', minzoom: 4.5, paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 4.5, 0, 6, 1], 'raster-fade-duration': 250 } }] : []) as never[],
         { id: 'grid', type: 'line', source: 'grid', paint: { 'line-color': BONE, 'line-width': 0.6, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 0, 0.09, 6, 0.05] } },
+        // the 2-degree squares: filled where readable, a faint outline where there are too few fires; gone by zoom 6.5
+        { id: 'cell-fill', type: 'fill', source: 'cells', filter: ['get', 'ok'], paint: { 'fill-color': ['get', 'c'], 'fill-opacity': ['interpolate', ['linear'], ['zoom'], 5, ['get', 'o'], CELLS_GONE, 0], 'fill-antialias': false } },
+        { id: 'cell-thin', type: 'line', source: 'cells', filter: ['!', ['get', 'ok']], paint: { 'line-color': BONE, 'line-width': 0.6, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 1, 0.07, 3, 0.13, 5, 0.13, CELLS_GONE, 0] } },
+        { id: 'cell-hit', type: 'fill', source: 'cells', paint: { 'fill-color': '#000', 'fill-opacity': 0 } },
+        { id: 'cell-sel', type: 'line', source: 'cells', filter: ['==', ['get', 'id'], ''], paint: { 'line-color': BONE, 'line-width': 2 } },
         { id: 'region-hit', type: 'fill', source: 'regions', paint: { 'fill-color': '#000', 'fill-opacity': 0 } },
         { id: 'region-edge', type: 'line', source: 'regions', paint: { 'line-color': BONE, 'line-opacity': ['case', ['get', 'on'], 0.6, 0.22], 'line-width': 1, 'line-dasharray': [2, 3] } },
         { id: 'frames', type: 'line', source: 'frames', layout: { 'line-cap': 'square', 'line-join': 'miter' }, paint: { 'line-color': BONE, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, 0.7] } },
@@ -244,14 +264,12 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
           paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 1.4, 4, 2.4, 8, 4.4, 11, 6], 'circle-pitch-alignment': 'map' },
         },
         { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, [1, 1.3, 4, 2.2, 8, 4, 11, 6]) as never },
-        // one fire day: trips (helicopters solid, ground crews dashed), then the fires
-        { id: 'scene-trip-ground', type: 'line', source: 'scene-trips', filter: ['==', ['get', 'kind'], 'ground'], layout: { 'line-cap': 'round' }, paint: { 'line-color': BONE, 'line-width': 1.25, 'line-opacity': 0.65, 'line-dasharray': [2, 2] } },
-        { id: 'scene-trip-heli', type: 'line', source: 'scene-trips', filter: ['==', ['get', 'kind'], 'helicopter'], layout: { 'line-cap': 'round' }, paint: { 'line-color': BONE, 'line-width': 2.2, 'line-opacity': 0.95 } },
+        // one real fire day: the fires this satellite missed (dim), then the ones it saw
         { id: 'scene-fire-dim', type: 'circle', source: 'scene-fires', filter: ['!', ['get', 'seen']], paint: { 'circle-color': '#8D8A84', 'circle-opacity': 0.75, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 9, 3.5], 'circle-stroke-color': GROUND, 'circle-stroke-width': 0.6 } },
         {
           id: 'scene-fire', type: 'circle', source: 'scene-fires', filter: ['get', 'seen'],
           paint: {
-            'circle-color': ['case', ['get', 'reached'], BONE, 'rgba(11, 13, 11, 0.55)'],
+            'circle-color': BONE,
             'circle-stroke-color': BONE, 'circle-stroke-width': 1.6,
             'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'frp']], 0, 3.5, 30, 6.5, 80, 11],
           },
@@ -296,6 +314,9 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
       // a click inside a card drawn on the map is the card's, not the map's
       if ((e.originalEvent?.target as HTMLElement | null)?.closest?.('.maplibregl-marker')) return
       const p = e.point
+      // far out with the squares showing, a click picks the square; close in, the fires come first
+      const cellAt = () => (cellsOn.current && map.getZoom() < CELLS_GONE ? map.queryRenderedFeatures(p, { layers: ['cell-hit'] })[0]?.properties?.id : null)
+      if (map.getZoom() < 5) { const c = cellAt(); if (c) { cb.current.onCell?.(String(c)); return } }
       const hits = map.queryRenderedFeatures([[p.x - 6, p.y - 6], [p.x + 6, p.y + 6]], { layers: FIRE_LAYERS.filter((l) => map.getLayoutProperty(l, 'visibility') !== 'none') as string[] }) as MapGeoJSONFeature[]
       if (hits.length) {
         let best = hits[0], d = Infinity
@@ -308,11 +329,17 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         cb.current.onFire?.(Number(best.properties?.i))
         return
       }
+      const c = cellAt()
+      if (c) { cb.current.onCell?.(String(c)); return }
       const r = map.queryRenderedFeatures(p, { layers: ['region-hit'] })[0]
       if (r?.properties?.id) { cb.current.onPick?.(String(r.properties.id)); return }
       cb.current.onFire?.(null)
     })
-    for (const l of [...FIRE_LAYERS, 'region-hit']) {
+    let hovered: string | null = null
+    const hover = (id: string | null) => { if (id !== hovered) { hovered = id; cb.current.onCellHover?.(id) } }
+    map.on('mousemove', 'cell-hit', (e) => { hover(cellsOn.current && map.getZoom() < CELLS_GONE ? String(e.features?.[0]?.properties?.id ?? '') || null : null) })
+    map.on('mouseleave', 'cell-hit', () => hover(null))
+    for (const l of [...FIRE_LAYERS, 'region-hit', 'cell-hit']) {
       map.on('mouseenter', l, () => { map.getCanvas().style.cursor = 'pointer' })
       map.on('mouseleave', l, () => { map.getCanvas().style.cursor = '' })
     }
@@ -341,9 +368,26 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
   React.useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
-    ;(map.getSource('scene-fires') as GeoJSONSource | undefined)?.setData(props.scene?.fires ?? NONE)
-    ;(map.getSource('scene-trips') as GeoJSONSource | undefined)?.setData(props.scene?.trips ?? NONE)
+    ;(map.getSource('scene-fires') as GeoJSONSource | undefined)?.setData(props.scene ?? NONE)
   }, [ready, props.scene])
+
+  // the 2-degree squares; while they show, the day's fires fade in only as the squares fade out
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    ;(map.getSource('cells') as GeoJSONSource | undefined)?.setData(props.cells ?? NONE)
+    const on = (props.cells?.features.length ?? 0) > 1
+    const fade = (to: number) => (on ? ['interpolate', ['linear'], ['zoom'], 4.5, 0, CELLS_GONE - 0.5, to] : to) as never
+    map.setPaintProperty('fire-viirs', 'icon-opacity', fade(1))
+    map.setPaintProperty('fire-terra', 'circle-stroke-opacity', fade(1))
+    map.setPaintProperty('fire-aqua', 'circle-opacity', fade(1))
+    map.setPaintProperty('fire-aqua', 'circle-stroke-opacity', fade(1))
+  }, [ready, props.cells])
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map.setFilter('cell-sel', ['==', ['get', 'id'], props.cell ?? ''])
+  }, [ready, props.cell])
 
   // which satellites show
   React.useEffect(() => {
