@@ -40,7 +40,7 @@ for ai,a in enumerate(sorted(out.glob('VNP.*.npz'))):
   y.close()
  x.close()
 k=np.isfinite(best);ids=np.flatnonzero(k);left=left[k];right=right[k];components=numeric_components(left,right)
-r={'date':date,'grid_spacing_degrees':.005,'grid_centers':N,'eligible_grid_pairs':len(ids),'distinct_native_pixel_pairs':len(np.unique(np.rec.fromarrays([left,right]))),'native_dependence_components':len(np.unique(components)),'primary45_eligible_grid_centers':int(np.isfinite(best45).sum()),'status':'posthoc_full_day_sensitivity_not_full_calibration_or_p9','input_complete':True,'expected_swaths':sum(e['product'] in ['VNP14IMG','VJ114IMG'] for e in manifest['granules']),'native_id_granules':{'snpp':[json.loads(p.with_suffix('.json').read_text())['fire'] for p in sorted(out.glob('VNP.*.npz'))],'noaa20':[json.loads(p.with_suffix('.json').read_text())['fire'] for p in sorted(out.glob('VJ1.*.npz'))]},'biomes':{}}
+r={'date':date,'grid_sha256':grid_hash,'grid_spacing_degrees':.005,'grid_centers':N,'eligible_grid_pairs':len(ids),'distinct_native_pixel_pairs':len(np.unique(np.rec.fromarrays([left,right]))),'native_dependence_components':len(np.unique(components)),'primary45_eligible_grid_centers':int(np.isfinite(best45).sum()),'status':'posthoc_full_day_sensitivity_not_full_calibration_or_p9','input_complete':True,'expected_swaths':sum(e['product'] in ['VNP14IMG','VJ114IMG'] for e in manifest['granules']),'native_id_granules':{'snpp':[json.loads(p.with_suffix('.json').read_text())['fire'] for p in sorted(out.glob('VNP.*.npz'))],'noaa20':[json.loads(p.with_suffix('.json').read_text())['fire'] for p in sorted(out.glob('VJ1.*.npz'))]},'biomes':{}}
 codes=grid['biome_code'][ids]
 for j,b in enumerate(grid['biome_names']):
  s=codes==j;ff=xf[k][s];gg=yf[k][s]

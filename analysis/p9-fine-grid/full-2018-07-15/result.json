@@ -83,5 +83,6 @@
     "discordant_grid_centers": 1
   },
   "discordant_grid_centers": 153,
-  "interpretation": "Grid-center support, not independent fire events. Native dependence and whole-date uncertainty must be retained; original P9 unchanged."
+  "interpretation": "Grid-center support, not independent fire events. Native dependence and whole-date uncertainty must be retained; original P9 unchanged.",
+  "grid_sha256": "e214b75eac48234ec36479ef2c52529da79279079b2e5620fb3c4070cc1226e0"
 }

@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'p9-swath-access'))
 from fit_calibration import fit_arrays,information_diagnostics
+from resume_validation import sha256
 
 def aggregate(lon,lat,codes,paired,spacing=.005):
  ids=paired['grid_id'];lo=lon[ids];la=lat[ids];bi=codes[ids]
@@ -20,7 +21,7 @@ def aggregate(lon,lat,codes,paired,spacing=.005):
  return result
 
 def run(here,bootstrap=1000):
- grid=np.load(here/'full-grid.npz');names=grid['biome_names'];allrows=[];dependence=[]
+ grid_hash=sha256(here/'full-grid.npz');grid=np.load(here/'full-grid.npz');names=grid['biome_names'];allrows=[];dependence=[]
  expected={datetime.date(y,m,15).isoformat() for y in [2018,2019,2020] for m in [1,3,5,7,9,11]}
  files=[]
  for p in sorted(here.glob('full-*/paired-native-components.npz')):
@@ -30,6 +31,7 @@ def run(here,bootstrap=1000):
   if not report.exists():continue
   meta=json.loads(report.read_text());assert meta['date']==date
   if not meta.get('input_complete',False):continue
+  if meta.get('grid_sha256')!=grid_hash:raise ValueError('paired-data grid fingerprint missing or mismatched')
   d=np.load(p);rows=aggregate(grid['lon'],grid['lat'],grid['biome_code'],d)
   for r in rows:allrows.append((date,*r.tolist()))
   files.append(date)
@@ -57,6 +59,6 @@ def run(here,bootstrap=1000):
   out['valid_day_bootstraps']=len(betas)
   if len(betas)<.8*bootstrap:out['reason']='unstable_day_bootstrap';continue
   out.update(status='estimated_association_not_causal',reason=None,beta=float(b[1]),ci95=np.percentile(betas,[2.5,97.5]).tolist())
- return {'analysis':'posthoc_fine_grid_area_sensitivity','complete':set(files)==expected,'paired_dates':files,'planned_dates':18,'weight':'cos(latitude)*(0.005/0.05)^2; area quadrature, NOT independent fire counts','uncertainty':'whole-date bootstrap preserves native-pixel dependence within day; repeated fires across days may remain dependent','original_P9':'unchanged','native_dependence':dependence,'biomes':reports}
+ return {'analysis':'posthoc_fine_grid_area_sensitivity','grid_sha256':grid_hash,'complete':set(files)==expected,'paired_dates':files,'planned_dates':18,'weight':'cos(latitude)*(0.005/0.05)^2; area quadrature, NOT independent fire counts','uncertainty':'whole-date bootstrap preserves native-pixel dependence within day; repeated fires across days may remain dependent','original_P9':'unchanged','native_dependence':dependence,'biomes':reports}
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--root',type=Path,default=Path(__file__).resolve().parent);p.add_argument('--out',type=Path,required=True);a=p.parse_args();a.out.write_text(json.dumps(run(a.root),indent=2)+'\n')

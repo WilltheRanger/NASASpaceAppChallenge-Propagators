@@ -1,5 +1,5 @@
 """Bounded per-swath extraction for the fixed CALIBRATION_PLAN sample."""
-import argparse,datetime,hashlib,json,sys
+import argparse,datetime,hashlib,json,sys,resource,platform
 from pathlib import Path
 import h5py,numpy as np
 from scipy.spatial import cKDTree
@@ -8,6 +8,14 @@ from pilot import xyz
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'ibge-exact-diagnosis'))
 from classify import Classifier
 BIOMES=['amazon','cerrado','caatinga','mata_atlantica','pantanal','pampa']
+def query_grid_batched(tree,lat,lon,candidate,block_size=100000):
+ if block_size<1:raise ValueError('positive query block size required')
+ dist=np.empty(len(candidate),dtype=float);idx=np.empty(len(candidate),dtype=np.intp)
+ for start in range(0,len(candidate),block_size):
+  selected=candidate[start:start+block_size]
+  dist[start:start+len(selected)],idx[start:start+len(selected)]=tree.query(xyz(lat[selected],lon[selected]),distance_upper_bound=375)
+ return dist,idx
+
 def grid(archive,out):
  lon,lat=np.meshgrid(np.arange(-73.975,-34,.05),np.arange(-33.975,6,.05));lon=lon.ravel();lat=lat.ravel()
  labels=Classifier(archive).classify(lon,lat);k=np.isin(labels,BIOMES)
@@ -33,9 +41,11 @@ def extract(fire,geo,gridfile,out,max_zenith=45):
     bounds=[min(bounds[0],float(lat[k].min())),max(bounds[1],float(lat[k].max())),min(bounds[2],float(lon[k].min())),max(bounds[3],float(lon[k].max()))]
    native_parts.append(np.flatnonzero(k)+row*fm.shape[1]);points.append(xyz(lat[k],lon[k]))
   native=np.concatenate(native_parts);tree=cKDTree(np.concatenate(points))
+  del points,native_parts
   candidate=np.flatnonzero((glat>=bounds[0]-.005)&(glat<=bounds[1]+.005)&(glon>=bounds[2]-.007)&(glon<=bounds[3]+.007))
-  dist,idx=tree.query(xyz(glat[candidate],glon[candidate]),distance_upper_bound=375)
+  dist,idx=query_grid_batched(tree,glat,glon,candidate)
   q=np.flatnonzero(np.isfinite(dist));ids=candidate[q];pix=native[idx[q]];selected_dist=dist[q];mask=fm.ravel()[pix]
+  del tree,native,idx,dist,q,candidate
   z=g['geolocation_data/sensor_zenith'];raw=z[:].ravel()[pix];zen=raw*float(np.asarray(z.attrs['scale_factor']).item())
   usable=(raw>=0)&(zen<=max_zenith)&np.isin(mask,[5,8,9]);ids=ids[usable];pix=pix[usable];zen=zen[usable];mask=mask[usable];selected_dist=selected_dist[usable]
   t=g['scan_line_attributes/ev_mid_time'];label=t.attrs['long_name'].decode()
@@ -53,7 +63,7 @@ def extract(fire,geo,gridfile,out,max_zenith=45):
   secs0=(start-epoch).total_seconds();secs1=(end-epoch).total_seconds()
   if len(utc) and (utc.min()<secs0-2 or utc.max()>secs1+2):raise ValueError('scan time outside declared UTC swath')
   np.savez_compressed(out,grid_id=ids,native_pixel_id=pix,fire=np.isin(mask,[8,9]),zenith=zen,distance_m=selected_dist,utc_seconds_since_1993=utc,local_hour=(utc%86400)/3600+glon[ids]/15)
-  report={'fire':fire.name,'geo':geo.name,'grid':gridfile.name,'sample':out.name,'usable_centers':len(ids),'fire_centers':int(np.isin(mask,[8,9]).sum()),'hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [fire,geo,out]},'max_sensor_zenith_degrees':max_zenith,'status':'extracted_not_calibrated'}
+  report={'fire':fire.name,'geo':geo.name,'grid':gridfile.name,'sample':out.name,'usable_centers':len(ids),'fire_centers':int(np.isin(mask,[8,9]).sum()),'hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [fire,geo,out]},'max_sensor_zenith_degrees':max_zenith,'status':'extracted_not_calibrated','peak_process_rss_mib':resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/(1048576 if platform.system()=='Darwin' else 1024),'query_batch_size':100000}
   out.with_suffix('.json').write_text(json.dumps(report,indent=2)+'\n')
   return report
 if __name__=='__main__':

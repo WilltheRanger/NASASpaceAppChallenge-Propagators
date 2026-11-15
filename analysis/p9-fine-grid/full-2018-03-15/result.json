@@ -1,0 +1,81 @@
+{
+  "date": "2018-03-15",
+  "grid_spacing_degrees": 0.005,
+  "grid_centers": 28424955,
+  "eligible_grid_pairs": 1522942,
+  "distinct_native_pixel_pairs": 1522925,
+  "native_dependence_components": 1397540,
+  "primary45_eligible_grid_centers": 0,
+  "status": "posthoc_full_day_sensitivity_not_full_calibration_or_p9",
+  "input_complete": true,
+  "expected_swaths": 18,
+  "native_id_granules": {
+    "snpp": [
+      "VNP14IMG.A2018074.1524.002.2024079105442.nc",
+      "VNP14IMG.A2018074.1530.002.2024079105438.nc",
+      "VNP14IMG.A2018074.1536.002.2024079105440.nc",
+      "VNP14IMG.A2018074.1706.002.2024079105441.nc",
+      "VNP14IMG.A2018074.1712.002.2024079105439.nc",
+      "VNP14IMG.A2018074.1718.002.2024079105443.nc",
+      "VNP14IMG.A2018074.1848.002.2024079105441.nc",
+      "VNP14IMG.A2018074.1854.002.2024079105437.nc",
+      "VNP14IMG.A2018074.1900.002.2024079105439.nc"
+    ],
+    "noaa20": [
+      "VJ114IMG.A2018074.1442.002.2024005014850.nc",
+      "VJ114IMG.A2018074.1448.002.2024005014841.nc",
+      "VJ114IMG.A2018074.1612.002.2024005014834.nc",
+      "VJ114IMG.A2018074.1618.002.2024005014831.nc",
+      "VJ114IMG.A2018074.1624.002.2024005014839.nc",
+      "VJ114IMG.A2018074.1754.002.2024005014834.nc",
+      "VJ114IMG.A2018074.1800.002.2024005014835.nc",
+      "VJ114IMG.A2018074.1806.002.2024005014839.nc",
+      "VJ114IMG.A2018074.1936.002.2024005014834.nc"
+    ]
+  },
+  "biomes": {
+    "amazon": {
+      "eligible_centers": 181265,
+      "snpp_fire_centers": 0,
+      "noaa_fire_centers": 0,
+      "discordant_fire_centers": 0,
+      "native_dependence_components": 161041
+    },
+    "cerrado": {
+      "eligible_centers": 405351,
+      "snpp_fire_centers": 0,
+      "noaa_fire_centers": 1,
+      "discordant_fire_centers": 1,
+      "native_dependence_components": 373638
+    },
+    "caatinga": {
+      "eligible_centers": 316024,
+      "snpp_fire_centers": 1,
+      "noaa_fire_centers": 0,
+      "discordant_fire_centers": 1,
+      "native_dependence_components": 287215
+    },
+    "mata_atlantica": {
+      "eligible_centers": 437655,
+      "snpp_fire_centers": 7,
+      "noaa_fire_centers": 5,
+      "discordant_fire_centers": 10,
+      "native_dependence_components": 405489
+    },
+    "pantanal": {
+      "eligible_centers": 32043,
+      "snpp_fire_centers": 0,
+      "noaa_fire_centers": 0,
+      "discordant_fire_centers": 0,
+      "native_dependence_components": 30887
+    },
+    "pampa": {
+      "eligible_centers": 150604,
+      "snpp_fire_centers": 0,
+      "noaa_fire_centers": 0,
+      "discordant_fire_centers": 0,
+      "native_dependence_components": 139473
+    }
+  },
+  "grid_sha256": "e214b75eac48234ec36479ef2c52529da79279079b2e5620fb3c4070cc1226e0"
+}
