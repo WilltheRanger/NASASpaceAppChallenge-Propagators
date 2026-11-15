@@ -79,7 +79,7 @@ const CSS = `
 .pz a.row:hover{color:var(--ink)}
 .pz .row[aria-current]{color:var(--ink);font-weight:500}
 .pz .row.mute{color:var(--ink3)}
-.pz .reg{display:flex;align-items:center;gap:12px;width:calc(100% + 12px);height:44px;margin-inline:-6px;padding-inline:6px;color:var(--ink2);text-align:left;transition:color 160ms var(--ease),box-shadow 160ms var(--ease)}
+.pz .reg{display:flex;align-items:center;gap:8px;width:calc(100% + 12px);height:52px;margin-inline:-6px;padding-inline:6px;color:var(--ink2);text-align:left;transition:color 160ms var(--ease),box-shadow 160ms var(--ease)}
 .pz .reg:hover{color:var(--ink)}
 .pz .reg[data-state="on"]{color:var(--ink);font-weight:500;box-shadow:inset 0 0 0 1.5px var(--ink)}
 .pz .sw{display:inline-block;width:12px;height:12px;flex:none}
@@ -454,9 +454,9 @@ const pathStyle = (p: string, extra: CSSProperties) => ({ ...extra, d: `path("${
 /** The region's own poster, small: its rings in its own signal colour (no gaps at this size). */
 const THUMB_DRIFT: Record<string, DriftRow[]> = Object.fromEntries(REGIONS.map((r) => [r.id, regionData(r.id).drift]))
 function RegionThumb({ id }: { id: string }) {
-  const S = 32
+  const S = 40
   const drift = THUMB_DRIFT[id] ?? []
-  if (!drift.length) return <span aria-hidden className="block size-8 flex-none bg-[var(--card)]" />
+  if (!drift.length) return <span aria-hidden className="block size-10 flex-none bg-[var(--card)]" />
   const { rings } = ringBands(drift, S, 1)
   const colour = SIG[id]
   return (
