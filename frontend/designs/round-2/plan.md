@@ -190,3 +190,46 @@ morning one, explores the contact sheet.
 FIRST VIEWPORT: left 5/12 headline, subhead, actions; right 7/12 the record card overlapping three prints.
 FORM: challenger `operate-b-exposure-record-zone-sheets`, seed `f8cb74ea`, no staging.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+
+---
+
+## D · Field film (Anduril-inspired, added at the team's request)
+
+The team asked for Anduril- and Palantir-inspired directions again, built to the rules this time. The reference pins
+the look (dark for D), so the daylight-scene default yields here.
+
+- **Product.** As above.
+- **Character.** steady, cinematic, matter-of-fact.
+- **World.** Field footage of the thing itself: the burning forest seen from orbit, labelled like equipment, in a field
+  palette of black, bone and sage.
+- **Moments.** (1) The hero: the real VIIRS scene of the Amazon under smoke, full bleed, with the verdict on its darkest
+  part and a pass line along the bottom edge where Aqua's tick slides later as the year changes. (2) The same scene from
+  Terra, VIIRS and Aqua on one day, as an uneven photo grid with pass names set on the images.
+- **Signature.** Labels set on the image at its lower left, small and bone-coloured, like names on equipment.
+
+**Colour plan (dark, Restrained + photography).** Ground `#0B0D0B`, surface `#121413`, raised `#1C1F1D`, hairline bone
+at 10%; text bone `#ECE9E1` / `#ADAFA8` / `#8B8D86` (5.8:1). Sage `#748677` for one band (ink text on it 5.0:1).
+Figure: Aqua = bone, fixed clock = sage, Terra = muted bone. Calendar (dark, brighter = further from the median): sand
+`#3F301B → #D6A866` above, slate `#1C313D → #68A4C6` below, midpoint `#1D1F1D`. The photographs carry the colour.
+
+**Type.** Albert Sans only; 12 / 14 / 18 / 32 / 72 (40 on mobile); 400 and 500; sentence case.
+
+## E · Operating picture (Palantir-inspired, added at the team's request)
+
+- **Product.** As above.
+- **Character.** austere, exact, typographic.
+- **World.** An operating picture: one light-grey page of very large plain sentences, and the working product in its own
+  dark window, the way an analyst sees it.
+- **Moments.** (1) The product window under the headline: look time by year (Aqua drifting later, the fixed clock flat,
+  Terra earlier), the year scrubber, and the readout. (2) The six regions as a giant typographic index, each with its
+  latest clock effect.
+- **Signature.** The two-tone sentence: every finding is one sentence whose second half drops to grey.
+
+**Colour plan (Restrained page, one dark window).** Page `#F0F0F0`, ink `#0B0B0B` / `#484848` / `#696969` (4.8:1),
+grey clause `#777777` (3.9:1, large text only). Window `#101213`, panel `#191B1D`, text `#E6E8EA` / `#A8ABAE` /
+`#898C90`. Data (validated, dark band, CVD ΔE 22.3): Aqua amber `#CB8117`, Terra blue `#4D92CA`, fixed clock `#E6E8EA`
+as the neutral reference. Calendar in the window: amber `#503816 → #F8AC3D` above, blue `#203B50 → #6FB5EF` below,
+midpoint `#252728`.
+
+**Type.** Golos Text only; 12 / 14 / 20 / 32 / 72 (40 on mobile); 400 and 500; sentence case; tabular figures in the
+window's tables and axes.
