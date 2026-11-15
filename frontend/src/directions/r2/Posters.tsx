@@ -263,7 +263,7 @@ export default function Posters() {
               <p className="t20 mt-6 max-w-xl text-[var(--ink2)]">{curly(`${lines.look} ${lines.change}`)}</p>
               <AuditBars d={d} />
               {lines.why ? <p className="t14 mt-3 max-w-xl text-[var(--ink2)]">{curly(lines.why)}</p> : null}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:mt-auto lg:pt-6">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:mt-auto lg:pt-4">
                 <a href="#calendar" className="btn btn-1 fr t14">
                   Explore the calendar
                   <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
@@ -377,7 +377,7 @@ function AuditBars({ d }: { d: RegionData }) {
   }, [d])
   const noise = Math.round(d.noise)
   return (
-    <div id="audit" className="lb mt-6">
+    <div id="audit" className="lb mt-5">
       <LeaderboardBars
         rows={rows}
         rowLabel="Year"
