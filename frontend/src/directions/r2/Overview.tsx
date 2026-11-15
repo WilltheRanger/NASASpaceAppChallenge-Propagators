@@ -14,7 +14,8 @@
  * Every number comes from src/r2/data.ts (data/out/drift and data/out/audit); "unusual" is the audit's outside_noise,
  * read only where the year's status is ok. The satellite pictures are NASA Worldview / GIBS (credited in the footer).
  */
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { motion as m, useMotionTemplate, useScroll, useTransform } from 'framer-motion'
 import { ArrowDown, ArrowUpRight } from 'lucide-react'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
@@ -23,7 +24,7 @@ import { LOOK_RANGE, REGIONS, fmtRange, hm, lookChange, phrase, pct, regionData 
 import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, IMG, JETHVA, Reveal, Rule, SatMark, SiteBar, focusRing, glideTo, numWord, primaryButton, shell, textLink, underline, useInView,
+  CAVEAT, FEATURED, IMG, JETHVA, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
   useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -84,19 +85,11 @@ const expo = 'ease-[cubic-bezier(0.19,1,0.22,1)]'
 const plate = 'rounded-[3px] bg-[color:var(--plate)] px-2 py-1 text-xs text-[color:var(--bone)]'
 
 export default function Overview({ links, leave }: { links: Links; leave: Leave }) {
-  const motion = useMotion()
-  const toFinding = (e: ReactMouseEvent<HTMLAnchorElement>) => {
-    const el = document.getElementById('finding')
-    if (!el) return
-    e.preventDefault()
-    glideTo(el, motion.on)
-    document.getElementById('finding-h')?.focus({ preventScroll: true })
-  }
   return (
     <>
       <SiteBar page="overview" links={links} leave={leave} />
       <main>
-        <Park onFound={toFinding} />
+        <Park />
         <Later />
         <OneDay />
         <Finding />
@@ -106,61 +99,65 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
   )
 }
 
-/* ---------- The park: a framed photograph with the question on it ---------- */
+/* ---------- The park: the fire first; scrolling brings up the question ---------- */
 
-function Park({ onFound }: { onFound: (e: ReactMouseEvent<HTMLAnchorElement>) => void }) {
+/** Phones and tablets: the scrim rises from the bottom, under the title. */
+const LOW_SCRIM = 'linear-gradient(0deg, rgba(11,13,11,0.94) 0%, rgba(11,13,11,0.74) 32%, rgba(11,13,11,0.36) 62%, rgba(11,13,11,0.12) 100%)'
+/** Wide screens: the scrim deepens the dark sky on the left, where the title sits. */
+const WIDE_SCRIM = 'linear-gradient(90deg, rgba(11,13,11,0.9) 0%, rgba(11,13,11,0.62) 36%, rgba(11,13,11,0) 66%), linear-gradient(0deg, rgba(11,13,11,0.6) 0%, rgba(11,13,11,0) 38%)'
+const BOB = '@keyframes anchor-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}'
+
+/** A tall section whose framed photograph sticks under the bar. The page opens on the fire alone; scrolling darkens the
+ *  picture, pushes in a little and brings up the question, then the page moves on. With motion off it is one still
+ *  screen with the question already on it. */
+function Park() {
   const motion = useMotion()
-  // the picture settles from a slight zoom once the page has drawn
-  const [settled, setSettled] = useState(!motion.on)
-  useEffect(() => {
-    if (!motion.on) { setSettled(true); return }
-    const t = window.setTimeout(() => setSettled(true), 300)
-    return () => window.clearTimeout(t)
-  }, [motion.on])
+  const on = motion.on
+  const ref = useRef<HTMLElement | null>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
+  const scrim = useTransform(scrollYProgress, [0.04, 0.45], [0, 1])
+  const show = useTransform(scrollYProgress, [0.1, 0.42], [0, 1])
+  const rise = useTransform(scrollYProgress, [0.1, 0.5], [48, 0])
+  const blurPx = useTransform(scrollYProgress, [0.1, 0.42], [12, 0])
+  const blur = useMotionTemplate`blur(${blurPx}px)`
+  const grow = useTransform(scrollYProgress, [0, 1], [1, 1.08])
+  const cue = useTransform(scrollYProgress, [0, 0.06], [1, 0])
   const p = OVERVIEW_PHOTO
   return (
-    <section aria-labelledby="park-h" className="pt-14">
-      <div className="px-2 pt-2 sm:px-4 sm:pt-4">
-        {/* their framed film: the picture inside a thin ground frame, sized so the next chapter's title peeks below. On
-            phones the picture is a band above the words (a portrait crop under a title card leaves only a wash). */}
-        <div className="relative isolate flex flex-col overflow-hidden rounded-[4px] bg-[color:var(--surface)] sm:h-[calc(100svh-176px)] sm:min-h-[520px]">
-          <div className="relative -z-10 h-[46svh] min-h-[280px] max-h-[440px] overflow-hidden sm:absolute sm:inset-0 sm:h-auto sm:max-h-none">
-            <img
-              src={p.src(1600)}
-              srcSet={`${p.src(960)} 960w, ${p.src(1600)} 1600w, ${p.src(2400)} 2400w`}
-              sizes="100vw"
-              alt={p.alt}
-              width={p.width}
-              height={p.height}
-              style={{ '--focus': p.focus, '--focus-phone': p.focusPhone } as CSSProperties}
-              className={cn(
-                'absolute inset-0 size-full object-cover object-[var(--focus-phone)] sm:object-[var(--focus)]',
-                motion.on && `transition-transform duration-[2600ms] ${expo}`,
-                motion.on && !settled ? 'scale-[1.06]' : 'scale-100',
-              )}
-            />
-            {/* phones: the band melts into the frame below it */}
-            <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 sm:hidden" style={{ background: 'linear-gradient(0deg, #121413 0%, rgba(18,20,19,0.6) 45%, rgba(18,20,19,0) 100%)' }} />
-          </div>
-          {/* scrims: from the bottom on tablets, from the left (the dark sky) on wide screens */}
-          <div aria-hidden className="absolute inset-0 -z-10 hidden sm:block lg:hidden" style={{ background: 'linear-gradient(0deg, rgba(11,13,11,0.94) 0%, rgba(11,13,11,0.74) 30%, rgba(11,13,11,0.42) 56%, rgba(11,13,11,0) 82%)' }} />
-          <div aria-hidden className="absolute inset-0 -z-10 hidden lg:block" style={{ background: 'linear-gradient(90deg, rgba(11,13,11,0.9) 0%, rgba(11,13,11,0.62) 36%, rgba(11,13,11,0) 66%), linear-gradient(0deg, rgba(11,13,11,0.6) 0%, rgba(11,13,11,0) 38%)' }} />
-          <div className="relative -mt-14 w-full p-5 pb-7 sm:mt-auto sm:p-10 lg:p-14">
-            <h1 id="park-h" className="max-w-[15ch] text-balance text-[clamp(38px,5.6vw,88px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]">
+    <section ref={ref} aria-labelledby="park-h" className={cn('relative pt-14', on && 'h-[175svh]')}>
+      <div className={cn('px-2 pt-2 sm:px-4 sm:pt-4', on && 'sticky top-14')}>
+        {/* their framed film: the picture inside a thin ground frame */}
+        <div
+          style={{ '--focus': p.focus, '--focus-phone': p.focusPhone } as CSSProperties}
+          className="relative isolate h-[calc(100svh-72px)] min-h-[480px] overflow-hidden rounded-[4px] bg-[color:var(--surface)] sm:h-[calc(100svh-88px)]"
+        >
+          <m.img
+            src={p.src(1600)}
+            srcSet={`${p.src(960)} 960w, ${p.src(1600)} 1600w, ${p.src(2400)} 2400w`}
+            sizes="100vw"
+            alt={p.alt}
+            width={p.width}
+            height={p.height}
+            style={{ scale: on ? grow : 1 }}
+            className="absolute inset-0 -z-10 size-full object-cover object-[var(--focus-phone)] sm:object-[var(--focus)]"
+          />
+          <m.div aria-hidden className="absolute inset-0 -z-10 lg:hidden" style={{ background: LOW_SCRIM, opacity: on ? scrim : 1 }} />
+          <m.div aria-hidden className="absolute inset-0 -z-10 hidden lg:block" style={{ background: WIDE_SCRIM, opacity: on ? scrim : 1 }} />
+          <div className="relative flex h-full items-end p-5 pb-10 sm:p-10 lg:p-14">
+            <m.h1
+              id="park-h"
+              style={on ? { opacity: show, y: rise, filter: blur } : undefined}
+              className="max-w-[15ch] text-balance text-[clamp(40px,5.8vw,92px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]"
+            >
               Imagine counting people in a park every day at <span className="tabular-nums">1:30</span>.
-            </h1>
-            <div className="mt-8">
-              <a href="#finding" onClick={onFound} className={primaryButton}>
-                See what we found <ArrowDown size={16} strokeWidth={1.5} aria-hidden />
-              </a>
-            </div>
+            </m.h1>
           </div>
-          {/* the link's underline needs position: relative, so the corner placement lives on a wrapper */}
-          <span className="absolute right-3 top-3 sm:bottom-4 sm:right-5 sm:top-auto">
-            <a href={p.url} target="_blank" rel="noreferrer" className={cn('text-xs text-[color:var(--bone2)] hover:text-[color:var(--bone)]', underline, focusRing)}>
-              Photo: {p.by}, Unsplash
-            </a>
-          </span>
+          {on ? (
+            <m.span aria-hidden style={{ opacity: cue }} className="pointer-events-none absolute bottom-5 left-1/2 -ml-[18px] flex size-9 items-center justify-center rounded-full bg-[color:var(--plate)] text-[color:var(--bone)]">
+              <style>{BOB}</style>
+              <ArrowDown size={18} strokeWidth={1.5} style={{ animation: 'anchor-bob 1.8s ease-in-out infinite' }} />
+            </m.span>
+          ) : null}
         </div>
       </div>
     </section>
