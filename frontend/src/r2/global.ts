@@ -57,3 +57,33 @@ export function reading(c: GlobalCell, year: 2024 | 2025) {
 /** Diverging steps around L = 1: how far the count sits from the fixed clock. 0 is within 5%. */
 export const L_STEPS = [0.05, 0.1, 0.2, 0.35, 0.5]
 export const stepOf = (L: number) => { const d = Math.abs(L - 1); let s = 0; for (const t of L_STEPS) if (d > t) s++; return s }
+
+/** said beside every world-map reading */
+export const EXPLORATORY = 'Early exploration: the same comparison as the six places, not checked against any country’s own count.'
+
+// sand above what we'd expect, slate below (the calendar's two arms, one step brighter for a dark map); grey within 5%
+export const UP = ['#604825', '#876533', '#AE8446', '#D6A866', '#F0CB8E']
+export const DOWN = ['#29495C', '#36647D', '#4B82A1', '#68A4C6', '#9CC8E2']
+export const NEAR = '#5B5D57'
+export const THIN = '#3A3D39'
+export const colorOf = (L: number) => { const s = stepOf(L); return s === 0 ? NEAR : (L > 1 ? UP : DOWN)[s - 1] }
+
+const side = (v: number, pos: string, neg: string) => `${Math.abs(v)}°${v === 0 ? '' : v > 0 ? pos : neg}`
+export const cellName = (c: GlobalCell) => `${side(c.lat0, 'N', 'S')} to ${side(c.lat1, 'N', 'S')}, ${side(c.lon0, 'E', 'W')} to ${side(c.lon1, 'E', 'W')}`
+/** the id of the 2-degree square that holds a point (the grid's corners sit on even degrees) */
+export const cellIdAt = (lon: number, lat: number) => `g2_${Math.floor(lon / 2) * 2}_${Math.floor(lat / 2) * 2}`
+
+/** The grid as map polygons: c = fill colour, o = fill strength (0.8 unusual for that square, 0.35 not), ok = readable. */
+export function cellFeatures(grid: GlobalGrid, year: 2024 | 2025): GeoJSON.FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: grid.cells.map((c) => {
+      const r = reading(c, year)
+      return {
+        type: 'Feature',
+        properties: { id: c.id, ok: r.ok, c: r.ok && r.L != null ? colorOf(r.L) : THIN, o: r.ok ? (r.outside ? 0.8 : 0.35) : 0 },
+        geometry: { type: 'Polygon', coordinates: [[[c.lon0, c.lat0], [c.lon1, c.lat0], [c.lon1, c.lat1], [c.lon0, c.lat1], [c.lon0, c.lat0]]] },
+      }
+    }),
+  }
+}

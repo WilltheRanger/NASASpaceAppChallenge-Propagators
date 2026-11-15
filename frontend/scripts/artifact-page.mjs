@@ -32,7 +32,7 @@ for (const f of videos) copyFileSync(join('public', 'video', 'regions', f), join
 
 const contract = `<!--
   Anchor: satellite fire counts on a fixed clock. Team Propagators. A NASA Space Apps Challenge 2026 team project, not an
-  official NASA product. Four pages: the overview (this page), the Regions page (regions.html), the Simulator (sim.html)
+  official NASA product. Four pages: the overview (this page), the Regions page (regions.html), Explore (sim.html)
   and the Method page (method.html). Every number comes from the team's JSON files (data/out). Drone footage and photographs
   are credited in the footer; pass and map imagery: NASA Worldview / GIBS.
 -->`
@@ -75,10 +75,10 @@ const regionsPage = page('regions', 'Anchor · Regions', "One place at a time: A
 const methodPage = page('method', 'Anchor · Method', 'How Anchor compares Aqua with what we would expect, the ten checks, the California real-fires test, the match with INPE, the limits and the sources. Team Propagators, NASA Space Apps Challenge 2026.')
 // the simulator's direction, kept in its page so the build carries it
 const simContract = `<!--
-  Simulator. A map of the past day's fires: click any fire to see which satellites saw that spot, and when. The map
+  Explore. A map of the past day's fires: click any fire to see which satellites saw that spot, and when. The map
   engine's worker is assets/maplibre-gl-worker.mjs, next to the app script.
 -->`
-const sim = page('sim', 'Anchor · Simulator', "Anchor simulator: click any fire to see which satellites saw it and when; try Aqua's old and new times. Team Propagators, NASA Space Apps Challenge 2026.", simContract)
+const sim = page('sim', 'Anchor · Explore', "Anchor Explore: click any fire to see which satellites saw it and when; try Aqua's old and new times. Team Propagators, NASA Space Apps Challenge 2026.", simContract)
 // the old audit address: forward to the Regions page, keeping #region=… and the calendar's from, to and cal
 const redirect = `<!doctype html>
 <html lang="en">

@@ -288,7 +288,7 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
           <a href={links.regions()} onClick={leave} className={primaryButton}>
             Explore the regions <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
           </a>
-          <a href={links.sim()} onClick={leave} className={secondaryButton}>Try the Simulator</a>
+          <a href={links.sim()} onClick={leave} className={secondaryButton}>Explore any place</a>
           <a href={links.method()} onClick={leave} className={secondaryButton}>How we know</a>
         </div>
       </div>

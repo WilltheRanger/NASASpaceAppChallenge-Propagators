@@ -41,7 +41,7 @@ const Method = lazy(() => import('./Method'))
 
 /** Page names as the URL (?page=…) or the comment artifact's data-page gives them. "app" was the audit page's address,
  *  and "home" the landing that came before the overview. */
-const PAGE_NAMES: Record<string, Page> = { overview: 'overview', home: 'overview', regions: 'regions', app: 'regions', sim: 'sim', method: 'method' }
+const PAGE_NAMES: Record<string, Page> = { overview: 'overview', home: 'overview', regions: 'regions', app: 'regions', sim: 'sim', explore: 'sim', method: 'method' }
 
 /** The comment artifact names its page (data-page); the site reads ?page=. With no page named, a region in the URL opens
  *  the Regions page and anything else the overview. The artifact's front page (index.html) still answers its old
@@ -317,7 +317,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
   const validation = isValidation(d.id)
   const sim = (
     <a href={links.sim(d.id)} onClick={leave} className={primaryButton}>
-      Open in the Simulator <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
+      Open in Explore <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
     </a>
   )
   const lookLine = look ? (
