@@ -12,6 +12,7 @@ export type SiAction =
   | { kind: 'fly'; label: string; place: Place }
   | { kind: 'filter'; label: string; group: 'terra' | 'aqua' | 'viirs' | 'all' }
   | { kind: 'fire'; label: string; i: number }
+  | { kind: 'day'; label: string }
 /** `select`: a detection the page should select and show as the answer arrives */
 export type SiAnswer = { sentences: SiSentence[]; sources: SiSource[]; actions?: SiAction[]; followUps?: string[]; select?: number }
 export type SiContext = { region: string | null; place: Place | null; view: Box | null; fire: number | null }
@@ -119,7 +120,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
 
 function daylightAnswer(ctx: SiContext, q: string): SiAnswer {
   const region = studiedIn(q) ?? ctx.region
-  if (!region) return { sentences: [{ text: 'Daylight after the alert is measured for the six studied regions. Pick one.' }], sources: [], followUps: ['What am I looking at?'] }
+  if (!region) return { sentences: [{ text: 'Daylight after the alert is measured for the six places. Pick one, or play one real fire day in the Amazon with made-up helicopters.' }], sources: [], actions: [{ kind: 'day', label: 'Play one fire day' }], followUps: ['What am I looking at?'] }
   const h = daylightHeadline(region)
   const d = regionData(region)
   const lvl2 = h?.quote === 'level2a'
@@ -132,6 +133,7 @@ function daylightAnswer(ctx: SiContext, q: string): SiAnswer {
       ...(h?.aqua_look_change_min != null ? [{ text: `The pass moved ${Math.round(h.aqua_look_change_min)} minutes later.`, cite: [`daylight-${region}`] }] : []),
     ],
     sources: [SRC.daylight(region)],
+    actions: [{ kind: 'day', label: 'Play one fire day' }],
     followUps: ['What is the fix?', 'When does Aqua pass here?'],
   }
 }

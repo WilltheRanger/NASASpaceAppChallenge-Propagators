@@ -12,7 +12,7 @@
  * FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Plus, Search, X } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Play, Plus, Search, X } from 'lucide-react'
 import { AnchorLogo, AnchorMark } from '@/components/brand/anchor-logo'
 import { DecipherText } from '@/components/ui/decipher-text'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -26,6 +26,7 @@ import { REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, hm, isValidation, n
 import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, SAT, SAT_NAMES, SENSOR, WINDOW, groupOf, histogram, lstOf, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
 import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
+import { BASES as DAY_BASES, BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, FLEET, PASS_END, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
 import CONTEXT from '@/r2/earth/context.json'
 import { cn } from '@/lib/utils'
 
@@ -202,6 +203,10 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const [siOpen, setSiOpen] = useState(false)
   const [tab, setTab] = useState<'info' | 'si'>('info')
   const [clock, setClockState] = useState<Clock>('new')
+  /** one fire day with a made-up response: which satellite's pass raises the alert, and the alert's (made-up) delay */
+  const [day, setDay] = useState<{ src: DaySource; delay: DayDelay } | null>(null)
+  const playDay = () => { setFire(null); setShow({ terra: false, aqua: false, viirs: false }); setDay({ src: 'Aqua', delay: 0 }) }
+  const endDay = () => { setDay(null); setShow(ALL) }
   /** Aqua's old time or its new one: the map shows the fires seen at about that time */
   const setClock = (c: Clock) => {
     setClockState(c)
@@ -245,12 +250,13 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     setFire(null)
     setClockState('new')
     setShow(ALL)
+    setDay(null)
     const xy = p.kind === 'Place' || p.kind === 'Coordinates'
     writeParams(nav, { place: xy ? `xy-${p.lat.toFixed(4)},${p.lon.toFixed(4)}` : p.id, name: p.kind === 'Place' ? p.name : null })
     // the place's heading takes focus, so the next Tab continues from the place, not the top of the page
     requestAnimationFrame(() => headRef.current?.focus({ preventScroll: true }))
   }
-  const back = () => { setPlace(null); setArrived(false); setQ(''); setFire(null); writeParams(nav, { place: null, name: null }) }
+  const back = () => { setPlace(null); setArrived(false); setQ(''); setFire(null); setDay(null); setShow(ALL); writeParams(nav, { place: null, name: null }) }
   const pickRegion = (id: string) => { const p = STUDIED_PLACES.find((x) => x.id === id); if (p) choose(p) }
 
   const pickFire = (i: number) => {
@@ -270,7 +276,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   }
   const onAction = (x: SiAction) => {
     if (x.kind === 'fly') choose(x.place)
-    else if (x.kind === 'filter') setShow(x.group === 'all' ? ALL : { terra: x.group === 'terra', aqua: x.group === 'aqua', viirs: x.group === 'viirs' })
+    else if (x.kind === 'filter') { setDay(null); setShow(x.group === 'all' ? ALL : { terra: x.group === 'terra', aqua: x.group === 'aqua', viirs: x.group === 'viirs' }) }
+    else if (x.kind === 'day') playDay()
     else pickFire(x.i)
   }
 
@@ -292,12 +299,14 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const padding: EarthPadding = useMemo(() => (wide
     ? { top: 24, left: 24, right: 72 + (siOpen && !xl ? 352 : 0), bottom: chartH + 28 }
     : { top: 76, left: 16, right: 16, bottom: sheetH + 12 }), [wide, xl, siOpen, chartH, sheetH])
-  const target: EarthTarget = useMemo(() => (place ? { key: place.id, bbox: boxFor(place), maxZoom: !live && !region ? 4.6 : undefined } : null), [place, live, region])
+  const target: EarthTarget = useMemo(() => (day ? { key: 'fire-day', bbox: DAY_BOX } : place ? { key: place.id, bbox: boxFor(place), maxZoom: !live && !region ? 4.6 : undefined } : null), [day != null, place, live, region]) // eslint-disable-line react-hooks/exhaustive-deps
+  const sceneData = useMemo(() => (day ? dayScene(day.src, day.delay) : null), [day?.src, day?.delay]) // eslint-disable-line react-hooks/exhaustive-deps
   const context: EarthOverlay = useMemo(() => (region ? { src: `${IMG}sim/${region}-context.jpg`, bbox: (CONTEXT as Record<string, number[]>)[region] as unknown as Box } : null), [region])
   const near = useMemo(() => (fire == null ? [] : sightings(fire).map((s) => s.i).filter((x): x is number => x != null)), [fire])
   const callouts: Callout[] = []
   if (fire != null) callouts.push({ key: `fire-${fire}`, lon: LON[fire], lat: LAT[fire], anchor: 'bottom', content: <FireCard i={fire} onClose={() => setFire(null)} motion={motion} /> })
-  if (place && !region && arrived) callouts.push({ key: `pin-${place.id}`, lon: place.lon, lat: place.lat, anchor: 'center', content: <Reticle text={coords(place.lat, place.lon)} motion={motion} /> })
+  if (day) for (const b of DAY_BASES) callouts.push({ key: `base-${b.name}`, lon: b.lon, lat: b.lat, anchor: 'center', content: <BaseMark name={b.name} /> })
+  if (place && !region && arrived && !day) callouts.push({ key: `pin-${place.id}`, lon: place.lon, lat: place.lat, anchor: 'center', content: <Reticle text={coords(place.lat, place.lon)} motion={motion} /> })
 
   const search = (
     <SearchField
@@ -307,14 +316,15 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     />
   )
   const rail = !place ? (
-    <Idle onPick={pickRegion} />
+    <Idle onPick={pickRegion} onPlayDay={playDay} />
   ) : facts ? (
-    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} clock={clock} onClock={setClock} />
+    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} clock={clock} onClock={setClock}
+      daylight={facts.d.id === 'br-amazon' ? <DaySection onPlay={playDay} active={day != null} /> : null} />
   ) : (
     <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} />
   )
   const footer = <p className="px-5 pb-5 pt-1 text-[11px] leading-4 text-[color:var(--bone3)]">{FOOTER}</p>
-  const chart = <LookChart box={view} show={show} setShow={setShow} fire={fire} near={near} oldClock={facts?.look.old ? { from: hm(facts.look.old), to: hm(facts.look.old) } : OLD_CLOCK} live={live} motion={motion} />
+  const chart = day ? <FireDayPanel day={day} setDay={setDay} onClose={endDay} motion={motion} /> : <LookChart box={view} show={show} setShow={setShow} fire={fire} near={near} oldClock={facts?.look.old ? { from: hm(facts.look.old), to: hm(facts.look.old) } : OLD_CLOCK} live={live} motion={motion} />
   const si = (onClose?: () => void, className?: string) => (
     <SiChat turns={turns} onAsk={onAsk} onAction={onAction} starters={STARTERS} motion={motion} onClose={onClose} className={className} />
   )
@@ -365,6 +375,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
               fire={fire}
               near={near}
               callouts={callouts}
+              scene={sceneData}
               padding={padding}
               baseSrc={`${IMG}earth/bluemarble-4096.jpg`}
               live={live}
@@ -614,7 +625,7 @@ const Key = ({ children }: { children: ReactNode }) => (
 
 /* ---------- the left rail ---------- */
 
-function Idle({ onPick }: { onPick: (id: string) => void }) {
+function Idle({ onPick, onPlayDay }: { onPick: (id: string) => void; onPlayDay: () => void }) {
   return (
     <div className="flex flex-col gap-7 px-5 pb-6 pt-6">
       <div>
@@ -650,7 +661,19 @@ function Idle({ onPick }: { onPick: (id: string) => void }) {
           ))}
         </ul>
       </div>
+      <DaySection onPlay={onPlayDay} active={false} />
     </div>
+  )
+}
+
+/** The way into one fire day: daylight for firefighters, with a made-up response. */
+function DaySection({ onPlay, active }: { onPlay: () => void; active: boolean }) {
+  return (
+    <section aria-labelledby="day-h" className="flex flex-col gap-2 border-t border-[color:var(--hairline)] pt-4">
+      <h3 id="day-h" className="text-sm font-medium text-[color:var(--bone)]">Daylight for firefighters</h3>
+      <p className="text-xs leading-5 text-[color:var(--bone2)]">Play one real fire day in the Amazon. Pick which satellite raises the alert and see how much daylight the helicopters have left. The helicopters and bases are made up.</p>
+      <button type="button" onClick={onPlay} disabled={active} className={cn(secondary, 'w-fit disabled:opacity-50')}><Play size={15} strokeWidth={1.75} aria-hidden /> {active ? 'Playing below the map' : 'Play one fire day'}</button>
+    </section>
   )
 }
 
@@ -812,6 +835,82 @@ function PlacePanel({ place, headRef, onBack, onFly, onStrongest }: { place: Pla
       </div>
       {s.total ? <button type="button" onClick={onStrongest} className={cn(secondary, 'w-fit')}><Flame size={15} strokeWidth={1.75} aria-hidden /> Strongest fire</button> : null}
     </div>
+  )
+}
+
+/* ---------- under the map: one fire day ---------- */
+
+const dayLabel = (s: string) => { const [y, m, d] = s.split('-').map(Number); return `${d} ${MONTHS[m - 1]} ${y}` }
+
+/** One fire day with a made-up response: pick the satellite whose pass raises the alert and the alert's delay; the
+ *  numbers roll (21st.dev's delta number ticker) and the map draws which fires the made-up units reach. */
+function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource; delay: DayDelay }; setDay: (d: { src: DaySource; delay: DayDelay }) => void; onClose: () => void; motion: boolean }) {
+  const r = dayRun(day.src, day.delay).summary
+  const stat = 'border-t border-[color:var(--hairline)] pt-2'
+  const big = 'text-[22px] font-medium leading-[1.25] tracking-[-0.01em] text-[color:var(--bone)]'
+  return (
+    <section aria-labelledby="fireday-h" className={cn(glass, 'px-4 pb-3 pt-3')}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 id="fireday-h" className="text-sm font-medium text-[color:var(--bone)]">One fire day: {dayLabel(FIRE_DAY_DATE)}, Pará, Brazil</h2>
+          <p className="mt-0.5 text-xs leading-5 text-[color:var(--bone3)]">
+            <span className="text-[color:var(--bone)]">Real:</span> {DAY_FIRES.length} fires and when each satellite passed (NASA FIRMS).{' '}
+            <span className="text-[color:var(--bone)]">Made up:</span> {DAY_BASES.length} bases, {FLEET.helicopters} helicopters, {FLEET.crews} ground crews and the alert delay.
+          </p>
+        </div>
+        <button type="button" aria-label="Back to the past day's fires" title="Back to the past day's fires" onClick={onClose} className={cn('-mr-1 grid size-9 shrink-0 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
+          <X size={16} strokeWidth={1.75} aria-hidden />
+        </button>
+      </div>
+      <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
+        <div className="min-w-[260px] flex-1">
+          <p className="mb-1 text-xs text-[color:var(--bone2)]">Alert from</p>
+          <SegmentedControl<DaySource>
+            label="Alert from"
+            value={day.src}
+            onChange={(src) => setDay({ ...day, src })}
+            motion={motion}
+            segmentClassName="px-2 py-1.5 text-center"
+            options={(['Terra', 'VIIRS', 'Aqua'] as DaySource[]).map((v) => ({ value: v, name: `${v}, pass ends ${fmtHM(PASS_END[v])}`, label: <span><span className="block text-sm">{v}</span><span className="block text-[11px] tabular-nums opacity-80">{fmtHM(PASS_END[v])}</span></span> }))}
+          />
+        </div>
+        <div className="w-[200px]">
+          <p className="mb-1 text-xs text-[color:var(--bone2)]">Alert delay <span className="text-[color:var(--bone3)]">(made up)</span></p>
+          <SegmentedControl<DayDelay>
+            label="Alert delay"
+            value={day.delay}
+            onChange={(delay) => setDay({ ...day, delay })}
+            motion={motion}
+            segmentClassName="px-2 py-[11px] text-center text-sm"
+            options={[{ value: 0, name: 'No delay', label: 'None' }, { value: 3, name: 'Three hours', label: '3 hours' }]}
+          />
+        </div>
+      </div>
+      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+        <div className={stat}><dt className="text-xs text-[color:var(--bone2)]">Alert arrives</dt><dd><DeltaTicker value={r.first_alert} basis={null} format={fmtHM} formatDelta={() => ''} label="Alert arrives" motion={motion} ghost={false} valueClassName={big} /></dd></div>
+        <div className={stat}><dt className="text-xs text-[color:var(--bone2)]">Daylight left</dt><dd><DeltaTicker value={r.daylight_left_at_first_alert_h} basis={null} format={(h) => dur(h)} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName={big} /></dd></div>
+        <div className={stat}><dt className="text-xs text-[color:var(--bone2)]">Helicopter trips</dt><dd><DeltaTicker value={r.helicopter_sorties} basis={null} format={fmtInt} formatDelta={() => ''} label="Helicopter trips" motion={motion} ghost={false} valueClassName={big} /></dd></div>
+        <div className={stat}><dt className="text-xs text-[color:var(--bone2)]">Fires reached</dt><dd className="flex items-baseline gap-1.5"><DeltaTicker value={r.fires_reached} basis={null} format={fmtInt} formatDelta={() => ''} label="Fires reached" motion={motion} ghost={false} valueClassName={big} /><span className="text-xs tabular-nums text-[color:var(--bone3)]">of {r.fires_alerted} seen</span></dd></div>
+      </dl>
+      <div aria-hidden className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[color:var(--bone2)]">
+        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[color:var(--bone)]" />reached</span>
+        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full border-[1.5px] border-[color:var(--bone)]" />seen, not reached</span>
+        <span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-[#8D8A84]" />missed by this satellite</span>
+        <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-[color:var(--bone)]" />helicopter</span>
+        <span className="flex items-center gap-1.5"><span className="h-0 w-4 border-t border-dashed border-[color:var(--bone)]" />ground crew</span>
+      </div>
+      <p className="mt-2 text-[11px] text-[color:var(--bone3)]">Helicopters fly only in daylight; sunset {fmtHM(SUNSET)}, local sun time. Made-up bases and fleet, real fires and passes.</p>
+    </section>
+  )
+}
+
+/** a made-up base on the map */
+function BaseMark({ name }: { name: string }) {
+  return (
+    <span className="flex -translate-y-px items-center gap-1.5 whitespace-nowrap rounded-[3px] bg-[rgba(11,13,11,0.88)] px-1.5 py-0.5 text-[11px] leading-none text-[color:var(--bone)]">
+      <span aria-hidden className="size-2.5 border-2 border-[color:var(--bone)] bg-[color:var(--ground)]" />
+      {name.replace('Sao', 'São')} <span className="text-[color:var(--bone3)]">base (made up)</span>
+    </span>
   )
 }
 

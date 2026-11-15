@@ -43,6 +43,8 @@ export interface EarthGlobeProps {
   fire: number | null
   near: number[]
   callouts: Callout[]
+  /** a scene drawn over the map instead of the day's fires: one fire day's fires and the trips to them */
+  scene?: { fires: GeoJSON.FeatureCollection; trips: GeoJSON.FeatureCollection } | null
   /** where the panels sit, so a place lands in the clear middle */
   padding: EarthPadding
   /** the Blue Marble image the comment page cuts into tiles */
@@ -219,6 +221,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         regions: { type: 'geojson', data: NONE },
         frames: { type: 'geojson', data: NONE },
         fires: { type: 'geojson', data: NONE },
+        'scene-fires': { type: 'geojson', data: NONE },
+        'scene-trips': { type: 'geojson', data: NONE },
       },
       layers: [
         { id: 'ocean', type: 'background', paint: { 'background-color': '#0A1A2C' } },
@@ -240,6 +244,18 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
           paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 1.4, 4, 2.4, 8, 4.4, 11, 6], 'circle-pitch-alignment': 'map' },
         },
         { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, [1, 1.3, 4, 2.2, 8, 4, 11, 6]) as never },
+        // one fire day: trips (helicopters solid, ground crews dashed), then the fires
+        { id: 'scene-trip-ground', type: 'line', source: 'scene-trips', filter: ['==', ['get', 'kind'], 'ground'], layout: { 'line-cap': 'round' }, paint: { 'line-color': BONE, 'line-width': 1.25, 'line-opacity': 0.65, 'line-dasharray': [2, 2] } },
+        { id: 'scene-trip-heli', type: 'line', source: 'scene-trips', filter: ['==', ['get', 'kind'], 'helicopter'], layout: { 'line-cap': 'round' }, paint: { 'line-color': BONE, 'line-width': 2.2, 'line-opacity': 0.95 } },
+        { id: 'scene-fire-dim', type: 'circle', source: 'scene-fires', filter: ['!', ['get', 'seen']], paint: { 'circle-color': '#8D8A84', 'circle-opacity': 0.75, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 9, 3.5], 'circle-stroke-color': GROUND, 'circle-stroke-width': 0.6 } },
+        {
+          id: 'scene-fire', type: 'circle', source: 'scene-fires', filter: ['get', 'seen'],
+          paint: {
+            'circle-color': ['case', ['get', 'reached'], BONE, 'rgba(11, 13, 11, 0.55)'],
+            'circle-stroke-color': BONE, 'circle-stroke-width': 1.6,
+            'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'frp']], 0, 3.5, 30, 6.5, 80, 11],
+          },
+        },
         {
           id: 'fire-near', type: 'circle', source: 'fires', filter: ['in', ['get', 'i'], ['literal', []]],
           paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 5, 8, 8], 'circle-pitch-alignment': 'map' },
@@ -320,6 +336,14 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
       features: regions.map((r) => ({ type: 'Feature', properties: { id: r.id, on: r.id === selected }, geometry: { type: 'MultiLineString', coordinates: brackets(r.bbox) } })),
     })
   }, [ready, regionKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // one fire day's scene
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    ;(map.getSource('scene-fires') as GeoJSONSource | undefined)?.setData(props.scene?.fires ?? NONE)
+    ;(map.getSource('scene-trips') as GeoJSONSource | undefined)?.setData(props.scene?.trips ?? NONE)
+  }, [ready, props.scene])
 
   // which satellites show
   React.useEffect(() => {
