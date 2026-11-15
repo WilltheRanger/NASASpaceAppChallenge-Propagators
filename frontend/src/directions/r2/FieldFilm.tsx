@@ -344,8 +344,6 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
 
 function Hero({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
   const { look, change } = verdictLines(d)
-  const latest = d.latestOk
-  const range = latest && latest.lo != null && latest.hi != null ? `Range ${fmtRange(latest.lo, latest.hi)} (latest audit year)` : null
   return (
     <section id="verdict" aria-labelledby="verdict-h" className="relative isolate">
       {/* the photograph: the top of the page on phones and tablets, the whole hero from 1280 px */}
@@ -378,7 +376,6 @@ function Hero({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: nu
                 >
                   {verdictHeadline(d)}
                 </h1>
-                {range ? <p className="mt-4 text-sm text-[color:var(--bone2)]">{range}</p> : null}
                 <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <a
