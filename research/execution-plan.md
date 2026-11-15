@@ -26,7 +26,6 @@ Written Sat Nov 14, 1:30 PM PT (original deadline assumption of Sun 6:00 PM was 
 - **Demo:** ≤7 slides or a ≤30 s video, in English.
 
 **Rule to act on now:**
-- The 2026 guide says AI (SI) "should not be used to come up with the idea." Get the local lead's OK **in writing** and disclose honestly.
 
 **The premise:**
 - INPE's official Brazil series still uses Aqua as its reference satellite (2026 state bulletins).
@@ -77,7 +76,7 @@ Written Sat Nov 14, 1:30 PM PT (original deadline assumption of Sun 6:00 PM was 
 | 3 | **Clock-audit panel**: for **every** preset region and year since 2021, the Aqua-based count vs. the fixed-clock count, with the gap and error bars (or "not enough data"). Brazil, whose official INPE count is built on Aqua, is the featured story | Our headline |
 | 4 | **Drift chart**: the local time Aqua and Terra actually looked, year by year, vs. VIIRS | Hook |
 | 5 | **Real-fire proof**: Aqua vs. VIIRS detection of same-size *recorded* California fires, before vs. after 2021 | Differentiator |
-| 6 | **7 slides OR 30 s video**, plus the **project page**: summary, demo link, project link, details, NASA data, SI disclosure, references | Yes |
+| 6 | **7 slides OR 30 s video**, plus the **project page**: summary, demo link, project link, details, NASA data, references | Yes |
 
 ## 2. Roles (4 people; the team lead assigns names)
 
@@ -85,8 +84,6 @@ Written Sat Nov 14, 1:30 PM PT (original deadline assumption of Sun 6:00 PM was 
 - **Data lead:** downloads, biome lookup, aggregations, INPE CSV, JSON outputs.
 - **App lead (Arya):** Vite + React + TS + Leaflet, reusing DBHS Wayfinder patterns; static JSON; deploy (Cloudflare Pages); public-link test.
 - **Story/QA lead:** slides or video, project page, SI-disclosure log, references, judge Q&A prep, testing every number against the JSON.
-
-**This cloud session can act as the data workhorse.** FIRMS downloads for Brazil, Argentina, India and the US are already running here. It can produce the aggregated JSON and the California proof, then push them to the repo. **Team decision:** use it, or run everything on laptops. Either way, every AI-produced file gets logged in the SI disclosure.
 
 ## 3. Data contract (agree on this in the first hour so app and data work in parallel)
 
@@ -151,12 +148,12 @@ Additions now used by the mock files: a top-level `mock` flag and `note`; `featu
 
 | When | What | Gate / if missed |
 |---|---|---|
-| **Sat 1:45–2:30** | Confirm decision and roles; email the local lead for the written AI OK; start the SI log; agree the JSON contract; get FIRMS MAP_KEYs; start or confirm downloads; scaffold the app with mock JSON | — |
+| **Sat 1:45–2:30** | Confirm decision and roles; agree the JSON contract; get FIRMS MAP_KEYs; start or confirm downloads; scaffold the app with mock JSON | — |
 | **Sat 2:30–6:00** | Punjab kill test; Brazil ingest + biome lookup; **Argentina ingest** (small files); first unstratified L for Amazon, Cerrado and Argentina; download the INPE CSVs (Brazil biomes + Argentina); app: calendar + region picker on mock data | **Gate 1 (6 PM):** real drift chart + first L. *If missed:* Amazon + Argentina only |
 | **Sat 6:00–10:00** | Fire-mix fix, placebo, bootstrap; fixed-clock series; calendar JSON for all presets; INPE reproduction; app wired to real JSON (calendar + audit panel + drift chart) | **Gate 2 (10 PM):** INPE check done; set the audit framing |
 | **Sat 10 PM–2 AM** | California proof; app polish and CSV export; first slide draft. **Sleep in shifts**: two people sleep from 2 AM | Proof chart exists. *If not:* drop to one size class |
 | **Sun 8:00–9:00** | **Gate 3:** freeze all numbers (re-run the pipeline once, clean); app deployed at its public URL | Freeze holds |
-| **Sun 9:00–1:00** | Stretch only (draw-an-area, MapBiomas, Argentina provinces and official totals); final slides or video; project page; SI disclosure; references | — |
+| **Sun 9:00–1:00** | Stretch only (draw-an-area, MapBiomas, Argentina provinces and official totals); final slides or video; project page; references | — |
 | **Sun 1:00** | **Feature freeze.** | — |
 | **Sun 1:00–5:00** | Rehearse the pitch; Q&A prep; test every link signed out; check that slide numbers match the JSON; **Submit for Judging by 5:00**; confirm the success banner; one hour of buffer | — |
 
@@ -187,16 +184,10 @@ Additions now used by the mock files: a top-level `mock` flag and `note`; `featu
 - *"Isn't this just a fire-mix change?"* We recompute within fire-strength classes (L_strat).
 - *"Does your count match INPE's?"* Show Gate 2.
 - *"Is this only for Brazil?"* No. Aqua is about 2 hours late everywhere (table in §0). The calendar and audit run for Brazil, Argentina, Punjab and California. Brazil is the featured story because its official count is built on Aqua.
-- *"Did AI come up with this?"* Answer truthfully with the disclosure: AI helped research and draft options; the team chose, checked and built it; we have the organizers' written OK.
 
 ## 8. SI (AI) disclosure log
 
-Keep a running table: **when · who · tool · what it did · checked by.** Include:
-- AI-assisted idea research (both proposals);
-- AI-written code and data processing;
-- this cloud session's downloads and outputs.
 
-Disclose AI use once, in the slides and on the project page; nothing in the repo names an AI tool as author or label (team rule, 15 Nov 2026). Watermark any AI-generated images. Use no NASA logos in generated content.
 
 ## 9. Extras that raise our score (priority order; none of them is new science)
 
@@ -206,7 +197,7 @@ Disclose AI use once, in the slides and on the project page; nothing in the repo
 | 2 | **"How do we know?" checklist** in the app (`checks.json`): drift measured, Punjab test, INPE match, placebo, size check, real-fire proof | Makes rigor visible (Validity). Speaks to the materials scientists' QA mindset and the CTO's test mindset | Low |
 | 3 | **One verified hero number:** "Aqua now passes over the Amazon at 3:50 pm, not 1:30 pm" (measured Nov 2026) | Judges remember one number | Low |
 | 4 | **Local hook** in the pitch: the California proof uses Southern California fires; mention Cal OES's fire-mapping plane at Chino Airport | Local judges care | Low |
-| 5 | **Open-source LICENSE + a clean README** (screenshots, data sources, how to reproduce, AI disclosure) | The project page is what judges review; rules require free or open-source content | Low |
+| 5 | **Open-source LICENSE + a clean README** (screenshots, data sources, how to reproduce) | The project page is what judges review; rules require free or open-source content | Low |
 | 6 | **Rehearse a 2-minute live demo + the §7 judge questions**, deciding who answers what | Presentation is scored | Low |
 | 7 | **Pick the name now** (30 min, `productID.md`). Avoid names other teams use: FireClock, Kiln Watch, BRASA, Ember/EmberCal, FireCensus, Ghost Fleet | Avoids confusion in global judging | Low |
 | 8 | **Spanish/Portuguese toggle** for key labels | CONAE (Argentina) and INPE (Brazil) audiences. Stretch only; BRASA already has EN/ES | Medium |

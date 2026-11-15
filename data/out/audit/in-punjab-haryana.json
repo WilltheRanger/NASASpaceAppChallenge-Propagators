@@ -1,0 +1,118 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS India country files, preset bbox).",
+ "region": "in-punjab-haryana",
+ "method": "L = Aqua daytime hotspot detections / (S-NPP detections x 2012-2020 Aqua/S-NPP ratio by calendar month), on days both satellites returned data; 95% 16-day block bootstrap (1000). gap_pct = (L - 1) x 100, Aqua's excess over the benchmark; share_of_observed_pct = (1 - 1/L) x 100, the part of Aqua's own count above the benchmark. Neither attributes the gap to orbit drift alone.",
+ "baseline": {
+  "years": "2012-2020",
+  "ratio": 0.169,
+  "noise_floor": 0.105,
+  "placebo_min": 0.895,
+  "placebo_max": 1.094,
+  "placebo_years": [
+   {
+    "year": 2012,
+    "L": 1.078
+   },
+   {
+    "year": 2013,
+    "L": 1.009
+   },
+   {
+    "year": 2014,
+    "L": 0.955
+   },
+   {
+    "year": 2015,
+    "L": 0.895
+   },
+   {
+    "year": 2016,
+    "L": 0.937
+   },
+   {
+    "year": 2017,
+    "L": 0.927
+   },
+   {
+    "year": 2018,
+    "L": 1.086
+   },
+   {
+    "year": 2019,
+    "L": 1.094
+   },
+   {
+    "year": 2020,
+    "L": 1.061
+   }
+  ]
+ },
+ "years": [
+  {
+   "year": 2021,
+   "status": "ok",
+   "L": 1.06,
+   "L_lo": 0.781,
+   "L_hi": 1.215,
+   "L_strat": 1.058,
+   "aqua_count": 21100,
+   "fixed_count": 19899,
+   "gap_pct": 6.0,
+   "share_of_observed_pct": 5.7,
+   "outside_noise": false
+  },
+  {
+   "year": 2022,
+   "status": "ok",
+   "L": 1.108,
+   "L_lo": 0.903,
+   "L_hi": 1.221,
+   "L_strat": 1.146,
+   "aqua_count": 14796,
+   "fixed_count": 13356,
+   "gap_pct": 10.8,
+   "share_of_observed_pct": 9.7,
+   "outside_noise": true
+  },
+  {
+   "year": 2023,
+   "status": "insufficient_data",
+   "L": null,
+   "L_lo": null,
+   "L_hi": null,
+   "L_strat": null,
+   "aqua_count": 10295,
+   "fixed_count": 8880,
+   "gap_pct": null,
+   "share_of_observed_pct": null,
+   "outside_noise": true
+  },
+  {
+   "year": 2024,
+   "status": "insufficient_data",
+   "L": null,
+   "L_lo": null,
+   "L_hi": null,
+   "L_strat": null,
+   "aqua_count": 7271,
+   "fixed_count": 5327,
+   "gap_pct": null,
+   "share_of_observed_pct": null,
+   "outside_noise": true
+  },
+  {
+   "year": 2025,
+   "status": "insufficient_data",
+   "L": null,
+   "L_lo": null,
+   "L_hi": null,
+   "L_strat": null,
+   "aqua_count": 5842,
+   "fixed_count": 3704,
+   "gap_pct": null,
+   "share_of_observed_pct": null,
+   "outside_noise": true
+  }
+ ]
+}

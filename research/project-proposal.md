@@ -69,7 +69,6 @@
 
 **Scale:** about 320 public repos created since Sep 2026 mention "MODIS and VIIRS Hot Spots" in their name, description or README. About 375 mention the other fire challenge, "Flame in Freefall". Not every repo is a separate team, but it is hundreds, not dozens.
 
-**Lesson:** AI-assisted teams converge on the same clever methods. Our edge has to be a **different reference**, a **different question** and **validation nobody else can do**.
 
 ### 1.3 Why now: verified facts
 
@@ -407,7 +406,7 @@ If a hypothesis fails, we report it; that is still a finding. This is the "show 
 | H0–H6 | Ingest; California matchup; sample dataset; data dictionary | Scaffold Vite + React + Leaflet; data contract (JSON schema); AOI draw | `scientific-glossary.md`, `sensor-differences.md`, `data-limitations.md` |
 | H6–H12 | POD curves, a50/a90, drift by year, H3 → **first WOW charts** | Calendar heat-map + spec-sheet cards with real JSON | Draft 7 slides and demo script; screenshot for check-in |
 | H12–H20 | Calendar estimator; validation B/C/D | Seen-vs-missed map; anomaly explorer; CSV export | `evaluation-cases.md` from ground truth |
-| H20–H26 | Expand to the West/CONUS; Argentina transfer (E) | AI assistant (tool-calling, labeled claims); deploy (Cloudflare Pages / Vercel) | Project page text; AI/SI disclosure; credits |
+| H20–H26 | Expand to the West/CONUS; Argentina transfer (E) | AI assistant (tool-calling, labeled claims); deploy (Cloudflare Pages / Vercel) | Project page text; credits |
 | H26–end | Freeze numbers; rerun pipeline from scratch | Polish, performance, accessibility; link tests while signed out | Final slides or 30-second video; submit; check the success banner |
 
 **MVP (must ship):** California + CONUS-West POD curves, drift chart, H3, harmonized California calendar with intervals, validation B(i–iii) + C, four app screens, CSV.
@@ -467,9 +466,7 @@ If a hypothesis fails, we report it; that is still a finding. This is the "show 
 
 ---
 
-## 14. AI/SI disclosure and references
-
-**Disclosure.** The team must verify every claim and number before using it. AI use for research, code and text is disclosed in the slides and on the project page, per the event's AI/SI rules.
+## 14. References
 
 **References (verify each before citing):**
 - Fusco, E.J. et al. (2019). Detection rates and biases of fire observations from MODIS and agency reports in the conterminous United States. *Remote Sensing of Environment* 220, 30–40. [record](https://experts.colorado.edu/display/pubid_247828)
@@ -595,7 +592,7 @@ Crop burns are small, short, daytime and planned: the hardest fires for satellit
 | Sun ~1 am | Spec sheets + shared-blind-spot table done (first WOW chart frozen) | Ship binned rates only |
 | Sun ~10 am | CA calendar + one validation number (2023–24 hold-out) | Show raw per-sensor + "big fires only" tier |
 | Sun ~noon | **Feature freeze** | — |
-| Remaining time | 7 slides or 30-second video, project page, AI/SI disclosure, link test signed out | — |
+| Remaining time | 7 slides or 30-second video, project page, link test signed out | — |
 
 **Stretch order:**
 1. NOAA-21

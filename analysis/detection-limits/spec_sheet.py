@@ -234,7 +234,7 @@ def main():
                          "ci95": wilson(k, n)})
         return rows
 
-    spec = {"mock": False, "note": "Analysis to be reviewed by the team before use.",
+    spec = {"mock": False, "note": "To be reviewed by the team before use.",
             "source": "USFS FPA-FOD 7th ed. (RDS-2013-0009.7) California fires + NASA FIRMS MODIS C6.1 / VIIRS S-NPP 375 m",
             "rule": "detected = hotspot within sqrt(area/pi)+1 km between discovery-2h and containment+12h; isolated fires; type 0; MODIS conf>=30, VIIRS n/h",
             "years_with_data": years_done, "satellites": {}}
@@ -261,7 +261,7 @@ def main():
             res[res.FIRE_YEAR.between(2012, 2020) & (res.FIRE_SIZE >= 1) & res[sat].notna()], sat)
         spec["satellites"][sat] = entry
     with open(os.path.join(a.out, "detection_limits_california.json"), "w") as fh:
-        json.dump(spec, fh, indent=1)
+        json.dump(spec, fh, indent=1, allow_nan=False)
 
     # contract file for the app: proof_california.json
     proof = {"mock": False, "note": spec["note"], "size_classes": [c[0] for c in CLASSES], "years": []}
@@ -275,19 +275,19 @@ def main():
             proof["years"].append({"year": y, "size_class": name, "aqua_pod": pod("Aqua"), "terra_pod": pod("Terra"),
                                    "viirs_pod": pod("S-NPP"), "n": int(len(sub))})
     with open(os.path.join(a.out, "proof_california.json"), "w") as fh:
-        json.dump(proof, fh, indent=1)
+        json.dump(proof, fh, indent=1, allow_nan=False)
 
     # local hook: fires within 25 km of Chino Hills, >= 1 acre, colored by which satellite caught them
     dist = haversine_km(res.LATITUDE.values, res.LONGITUDE.values, CHINO_HILLS[0], CHINO_HILLS[1])
     near = res[(dist <= 25) & (res.FIRE_SIZE >= 1)]
     socal = {"mock": False, "note": spec["note"], "center": {"lat": CHINO_HILLS[0], "lon": CHINO_HILLS[1]}, "radius_km": 25,
-             "fires": [{"year": int(r.FIRE_YEAR), "name": r.FIRE_NAME, "acres": float(r.FIRE_SIZE), "lat": float(r.LATITUDE),
+             "fires": [{"year": int(r.FIRE_YEAR), "name": None if pd.isna(r.FIRE_NAME) else str(r.FIRE_NAME), "acres": float(r.FIRE_SIZE), "lat": float(r.LATITUDE),
                         "lon": float(r.LONGITUDE), "aqua": None if pd.isna(r.Aqua) else bool(r.Aqua),
                         "terra": None if pd.isna(r.Terra) else bool(r.Terra),
                         "viirs": None if pd.isna(r["S-NPP"]) else bool(r["S-NPP"])}
                        for _, r in near.iterrows()]}
     with open(os.path.join(a.out, "socal_seen_missed.json"), "w") as fh:
-        json.dump(socal, fh, indent=1)
+        json.dump(socal, fh, indent=1, allow_nan=False)
     print("wrote", a.out)
 
 
