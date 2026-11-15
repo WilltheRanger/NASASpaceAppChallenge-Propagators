@@ -29,12 +29,17 @@ export const WINDOW = { start: DAY.start, end: DAY.end }
 export const TOTALS = DAY.counts as [number, number, number, number]
 
 export const utcOf = (i: number) => new Date(START + MIN[i] * 60000)
-/** local solar time in hours (0-24) */
-export function lstOf(i: number) {
-  const t = utcOf(i)
-  const m = t.getUTCHours() * 60 + t.getUTCMinutes() + LON[i] * 4
-  return (((m % 1440) + 1440) % 1440) / 60
+/** local solar time in hours (0-24), worked out once for every row: the UTC minute of the day plus 4 minutes a degree */
+const LST = new Float32Array(N)
+{
+  const t0 = new Date(START)
+  const startMin = t0.getUTCHours() * 60 + t0.getUTCMinutes()
+  for (let i = 0; i < N; i++) {
+    const m = startMin + MIN[i] + LON[i] * 4
+    LST[i] = (((m % 1440) + 1440) % 1440) / 60
+  }
 }
+export const lstOf = (i: number) => LST[i]
 
 /** a coarse grid of the rows, for finding what lies near a point */
 const CELL = 0.25
@@ -74,11 +79,18 @@ export function sightings(i: number) {
 
 export type Box = readonly [number, number, number, number]
 const inBox = (i: number, b: Box) => LON[i] >= b[0] && LON[i] <= b[2] && LAT[i] >= b[1] && LAT[i] <= b[3]
+/** every row inside a box (or every row): a small box walks only its own cells of the coarse grid */
+function each(b: Box | null, f: (i: number) => void) {
+  if (!b) { for (let i = 0; i < N; i++) f(i); return }
+  const x0 = Math.floor(b[0] / CELL), x1 = Math.floor(b[2] / CELL), y0 = Math.floor(b[1] / CELL), y1 = Math.floor(b[3] / CELL)
+  if ((x1 - x0 + 1) * (y1 - y0 + 1) > 4000) { for (let i = 0; i < N; i++) if (inBox(i, b)) f(i); return }
+  for (let gx = x0; gx <= x1; gx++) for (let gy = y0; gy <= y1; gy++) for (const i of GRID.get(`${gx},${gy}`) ?? []) if (inBox(i, b)) f(i)
+}
 
 /** counts and median local solar time per satellite group inside a box (or worldwide) */
 export function summary(b: Box | null) {
   const acc: Record<SatGroup, number[]> = { terra: [], aqua: [], viirs: [] }
-  for (let i = 0; i < N; i++) if (!b || inBox(i, b)) acc[groupOf(SAT[i])].push(lstOf(i))
+  each(b, (i) => { acc[groupOf(SAT[i])].push(LST[i]) })
   const med = (v: number[]) => { if (!v.length) return null; const s = [...v].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] }
   return {
     terra: { n: acc.terra.length, lst: med(acc.terra) },
@@ -93,12 +105,10 @@ export const BIN_FROM = 6, BIN_TO = 19, BIN = 0.5
 export function histogram(b: Box | null) {
   const n = Math.round((BIN_TO - BIN_FROM) / BIN)
   const h: Record<SatGroup, number[]> = { terra: Array(n).fill(0), aqua: Array(n).fill(0), viirs: Array(n).fill(0) }
-  for (let i = 0; i < N; i++) {
-    if (b && !inBox(i, b)) continue
-    const t = lstOf(i)
-    const k = Math.floor((t - BIN_FROM) / BIN)
+  each(b, (i) => {
+    const k = Math.floor((LST[i] - BIN_FROM) / BIN)
     if (k >= 0 && k < n) h[groupOf(SAT[i])][k]++
-  }
+  })
   return h
 }
 

@@ -11,20 +11,18 @@
  * FORM: docked rails around the map (revised after the critique and the audit; was corner instruments).
  * FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Play, Plus, Search, X } from 'lucide-react'
-import { AnchorLogo, AnchorMark } from '@/components/brand/anchor-logo'
 import { DecipherText } from '@/components/ui/decipher-text'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { DeltaTicker } from '@/components/ui/delta-ticker'
 import { SiChat, type SiTurn } from '@/components/ui/si-chat'
 import { ChartLine } from '@/components/ui/chart-line'
-import { ChartKpi } from '@/components/ui/chart-kpi'
 import { DaylightSection } from './daylight'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData } from '@/r2/data'
-import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, SAT, SAT_NAMES, WINDOW, groupOf, histogram, lstOf, sightings, strongest, summary, type SatGroup } from '@/r2/fires'
+import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, N as DOTS, SAT, SAT_NAMES, TOTALS, WINDOW, groupOf, histogram, lstOf, sightings, strongest, summary, type SatGroup } from '@/r2/fires'
 import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
 import { BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, PASS_END, SOURCES as DAY_SOURCES, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
@@ -32,6 +30,7 @@ import { DOWN, EXPLORATORY, L_STEPS, NEAR, UP, cellFeatures, cellIdAt, cellName,
 import { CellPanel } from './GlobalLayer'
 import CONTEXT from '@/r2/earth/context.json'
 import { cn } from '@/lib/utils'
+import { SiteBar, type Links } from './common'
 
 type Nav = 'dev' | 'artifact'
 type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
@@ -167,6 +166,19 @@ function useHeight(ref: RefObject<HTMLElement>, fallback: number) {
   return h
 }
 
+/** What the pointer is reading on the map (a box), kept outside React state: only the chart listens, so moving the
+ *  pointer never redraws the page. */
+function makeProbe() {
+  let box: Box | null = null
+  const subs = new Set<() => void>()
+  return {
+    get: () => box,
+    set: (b: Box | null) => { if (b === box) return; box = b; subs.forEach((f) => f()) },
+    subscribe: (f: () => void) => { subs.add(f); return () => { subs.delete(f) } },
+  }
+}
+type Probe = ReturnType<typeof makeProbe>
+
 /* ---------- shared pieces ---------- */
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
@@ -247,6 +259,44 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const sheetH = useHeight(sheetRef, 260)
   const fireRef = useRef(fire)
   fireRef.current = fire
+  // the square under the pointer: the chart reads it, and a frame follows the pointer on the map
+  const probe = useMemo(makeProbe, [])
+  const frameRef = useRef<HTMLDivElement>(null)
+  const onProbe = (p: { box: Box; x: number; y: number; r: number } | null) => {
+    probe.set(p ? p.box : null)
+    const el = frameRef.current
+    if (!el) return
+    el.style.opacity = p ? '1' : '0'
+    if (p) { el.style.transform = `translate(${p.x - p.r}px, ${p.y - p.r}px)`; el.style.width = el.style.height = `${p.r * 2}px` }
+  }
+  // phones: the panel is a sheet pulled up or down between three heights, so the globe stays in view
+  const stageRef = useRef<HTMLElement>(null)
+  const [snap, setSnap] = useState(0)
+  const [pull, setPull] = useState<number | null>(null)
+  const pullFrom = useRef<{ y: number; h: number; moved: boolean } | null>(null)
+  const sheetPx = (i: number) => Math.round((stageRef.current?.clientHeight ?? 640) * SHEET[i])
+  const onPullDown = (e: ReactPointerEvent<HTMLButtonElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    pullFrom.current = { y: e.clientY, h: sheetRef.current?.offsetHeight ?? sheetPx(snap), moved: false }
+  }
+  const onPullMove = (e: ReactPointerEvent<HTMLButtonElement>) => {
+    const from = pullFrom.current
+    if (!from) return
+    const dy = from.y - e.clientY
+    if (Math.abs(dy) > 4) from.moved = true
+    if (from.moved) setPull(Math.max(sheetPx(0) - 24, Math.min(sheetPx(SHEET.length - 1) + 12, from.h + dy)))
+  }
+  const onPullUp = () => {
+    const from = pullFrom.current
+    pullFrom.current = null
+    if (!from) return
+    if (!from.moved) { setSnap((v) => (v + 1) % SHEET.length); return }
+    const h = pull ?? from.h
+    let best = 0
+    SHEET.forEach((_, i) => { if (Math.abs(sheetPx(i) - h) < Math.abs(sheetPx(best) - h)) best = i })
+    setSnap(best)
+    setPull(null)
+  }
 
   const region = place?.region ?? null
   const facts = useMemo(() => (region ? regionFacts(region) : null), [region])
@@ -323,6 +373,9 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  // phones: picking a place, a square or a fire lifts the sheet to its middle height
+  useEffect(() => { if (place || cellId || fire != null || day) setSnap((v) => Math.max(v, 1)) }, [place, cellId, fire, day])
+
   // without the globe, a restored place shows its panel at once
   useEffect(() => { if (failed && place) setArrived(true) }, [failed, place])
 
@@ -363,8 +416,19 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   ) : (
     <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} cell={placeCell} year={mapYear} onCell={grid ? (id) => pickCell(id) : undefined} />
   )
-  const footer = <p className="px-5 pb-5 pt-1 text-[11px] leading-4 text-[color:var(--bone3)]">{FOOTER}</p>
-  const chart = day ? <FireDayPanel day={day} setDay={setDay} onClose={endDay} motion={motion} /> : <LookChart box={view} show={show} setShow={setShow} fire={fire} near={near} oldClock={facts?.look.old ? { from: hm(facts.look.old), to: hm(facts.look.old) } : OLD_CLOCK} live={live} motion={motion} />
+  const siteLinks: Links = {
+    overview: () => overviewHref ?? home,
+    regions: (id) => regionsHref(id ?? region ?? 'br-amazon'),
+    sim: () => (nav === 'artifact' ? 'sim.html' : '?page=explore'),
+    method: () => methodHref ?? (nav === 'artifact' ? 'method.html' : '?page=method'),
+  }
+  const footer = (
+    <div className="flex flex-col gap-3 px-5 pb-5 pt-2">
+      <ElasticSwitch checked={motion} onCheckedChange={setMotion} label="Motion" />
+      <p className="text-xs leading-5 text-[color:var(--bone3)]">{FOOTER}</p>
+    </div>
+  )
+  const chart = day ? <FireDayPanel day={day} setDay={setDay} onClose={endDay} motion={motion} /> : <LookChart box={view} probe={probe} show={show} setShow={setShow} fire={fire} near={near} oldClock={facts?.look.old ? { from: hm(facts.look.old), to: hm(facts.look.old) } : OLD_CLOCK} live={live} motion={motion} />
   const si = (onClose?: () => void, className?: string) => (
     <SiChat turns={turns} onAsk={onAsk} onAction={onAction} starters={STARTERS} motion={motion} onClose={onClose} className={className} />
   )
@@ -372,23 +436,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   return (
     <>
       <style>{TAG_CSS}</style>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
-        <div className="flex h-14 items-center justify-between gap-4 px-4 lg:px-5">
-          <a href={home} onClick={leave} aria-label="Anchor home" className={cn('flex shrink-0 items-center rounded leading-none', focusRing)}>
-            <span className="sm:hidden"><AnchorMark size={18} /></span>
-            <span className="hidden sm:block"><AnchorLogo height={18} /></span>
-          </a>
-          <div className="flex items-center gap-3 text-[13px] sm:gap-5 sm:text-sm">
-            <nav aria-label="Pages" className="flex items-center gap-3 sm:gap-5">
-              <a href={overviewHref ?? home} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Overview</a>
-              <a href={regionsHref(region ?? 'br-amazon')} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Regions</a>
-              <span aria-current="page" className="border-b border-[color:var(--bone)] py-2 text-[color:var(--bone)]">Explore</span>
-              <a href={methodHref ?? (nav === 'artifact' ? 'method.html' : '?page=method')} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Method</a>
-            </nav>
-            <ElasticSwitch checked={motion} onCheckedChange={setMotion} label="Motion" />
-          </div>
-        </div>
-      </header>
+      <SiteBar page="sim" links={siteLinks} leave={leave} regionsHref={regionsHref(region ?? 'br-amazon')} />
 
       <main className="fixed inset-x-0 bottom-0 top-14 flex bg-[#03060A]">
         {place ? <h1 className="sr-only">Explore: {place.name}</h1> : null}
@@ -399,7 +447,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           </aside>
         ) : null}
 
-        <section aria-label="Map" className="relative min-w-0 flex-1 overflow-hidden">
+        <section ref={stageRef} aria-label="Map" className="relative min-w-0 flex-1 overflow-hidden">
           <div aria-hidden className={cn('absolute inset-0', STARS)} />
           {failed ? (
             <img src={`${IMG}earth/bluemarble-4096.jpg`} alt="" className="absolute inset-0 size-full object-cover opacity-80" />
@@ -428,9 +476,16 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
               onPick={(id) => (id === region ? setFire(null) : pickRegion(id))}
               onFire={(i) => (i == null ? setFire(null) : pickFire(i))}
               onRest={(b, z) => { setView(z < 2.6 ? null : b); setZoom(z) }}
+              onProbe={wide && !day ? onProbe : undefined}
               onFail={() => setFailed(true)}
             />
           )}
+          {/* the square the chart is reading, following the pointer */}
+          <div ref={frameRef} aria-hidden className="pointer-events-none absolute left-0 top-0 z-10 opacity-0 transition-opacity duration-150">
+            {(['left-0 top-0 border-l border-t', 'right-0 top-0 border-r border-t', 'bottom-0 right-0 border-b border-r', 'bottom-0 left-0 border-b border-l'] as const).map((c) => (
+              <span key={c} className={cn('absolute size-3 border-[color:var(--bone)]', c)} />
+            ))}
+          </div>
           <p aria-live="polite" className="sr-only">{place && arrived ? `Showing ${place.name}.` : ''}{fire != null ? ` Fire seen by ${SAT_NAMES[SAT[fire]]} at ${fmtHM(lstOf(fire))} local solar time.` : ''}</p>
 
           {/* while the globe flies: where it is going */}
@@ -502,8 +557,24 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           {!wide ? (
             <>
               <div className={cn(glass, 'absolute inset-x-3 top-3 z-30')}>{search}</div>
-              <div ref={sheetRef} className="absolute inset-x-0 bottom-0 z-20 flex max-h-[56svh] flex-col rounded-t-lg border-t border-[color:var(--hairline)] bg-[color:var(--ground)]">
-                <div className="px-4 pt-3">
+              <div
+                ref={sheetRef}
+                className={cn('absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-xl border-t border-[color:var(--bone-20)] bg-[color:var(--ground)] shadow-[0_-12px_32px_rgba(0,0,0,0.5)]', motion && pull == null && 'transition-[height] duration-300 ease-[var(--ease)]')}
+                style={{ height: pull ?? `${SHEET[snap] * 100}%` }}
+              >
+                <button
+                  type="button"
+                  aria-label={snap === SHEET.length - 1 ? 'Panel: lower it' : 'Panel: raise it'}
+                  onPointerDown={onPullDown}
+                  onPointerMove={onPullMove}
+                  onPointerUp={onPullUp}
+                  onPointerCancel={onPullUp}
+                  onKeyDown={(e) => { if (e.key === 'ArrowUp') { e.preventDefault(); setSnap((v) => Math.min(SHEET.length - 1, v + 1)) } else if (e.key === 'ArrowDown') { e.preventDefault(); setSnap((v) => Math.max(0, v - 1)) } }}
+                  className={cn('flex h-7 w-full shrink-0 cursor-grab touch-none items-center justify-center rounded-t-xl active:cursor-grabbing', focusRing)}
+                >
+                  <span aria-hidden className="h-1 w-10 rounded-full bg-[color:var(--bone-30)]" />
+                </button>
+                <div className="px-4">
                   <SegmentedControl<'info' | 'si'>
                     label="Panel"
                     value={tab}
@@ -514,7 +585,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
                   />
                 </div>
                 {tab === 'si' ? (
-                  si(undefined, 'h-[46svh]')
+                  si(undefined, 'min-h-0 flex-1')
                 ) : (
                   <div className="min-h-0 flex-1 overflow-y-auto pb-4">
                     {rail}
@@ -699,15 +770,16 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
   return (
     <div className="flex flex-col gap-7 px-5 pb-6 pt-6">
       <div>
-        <h1 className="text-[22px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
-          INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
+        <h1 className="text-[26px] font-medium leading-[1.15] tracking-[-0.02em] text-[color:var(--bone)] [text-wrap:balance]">
+          Which satellite saw each fire, and when?
         </h1>
-        <p className="mt-3 text-sm text-[color:var(--bone2)]">{world ? 'Search or turn the globe to any place. Far out, each square shows Aqua’s 2025 count against what we’d expect; click one for its numbers. Close in, click any fire to see which satellite saw it, and when.' : 'Click any fire to see which satellite saw it, and when.'}</p>
+        <p className="mt-3 text-base text-[color:var(--bone2)]">{world ? 'Turn the globe. Click a square for its count, or zoom in and click a fire.' : 'Turn the globe, zoom in and click a fire.'}</p>
+        <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map.</p>
       </div>
       <div>
         <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--hairline)] pb-2">
           <h2 className="text-sm font-medium text-[color:var(--bone)]">Six places</h2>
-          <span className="text-xs text-[color:var(--bone3)]">2025 count vs what we’d expect</span>
+          <span className="text-xs text-[color:var(--bone3)]">2025 count against what we’d expect</span>
         </div>
         <ul>
           {LIST.map(({ id, name, f }) => (
@@ -743,9 +815,7 @@ function DaySection({ onPlay, onYears, active }: { onPlay?: () => void; onYears?
   return (
     <section aria-labelledby="day-h" className="flex flex-col gap-2 border-t border-[color:var(--hairline)] pt-4">
       <h3 id="day-h" className="text-sm font-medium text-[color:var(--bone)]">Daylight for firefighters</h3>
-      <p className="text-xs leading-5 text-[color:var(--bone2)]">
-        {onPlay ? 'Play one real fire day in the Amazon: pick which satellite raises the alert, and see which fires it saw and how much daylight is left when the alert arrives.' : 'How much daylight is left after an alert from each satellite, year by year. The alert delays are NASA’s published range for its fire data.'}
-      </p>
+      <p className="text-sm text-[color:var(--bone2)]">{onPlay ? 'One real fire day in the Amazon: which fires each satellite saw, and how much daylight was left.' : 'How much daylight is left after each satellite’s alert, year by year.'}</p>
       <div className="flex flex-wrap gap-2">
         {onPlay ? <button type="button" onClick={onPlay} disabled={active} className={cn(secondary, 'disabled:opacity-50')}><Play size={15} strokeWidth={1.75} aria-hidden /> {active ? 'Playing below the map' : 'Play one fire day'}</button> : null}
         {onYears ? <button type="button" onClick={onYears} className={secondary}>Daylight by year <ArrowRight size={14} strokeWidth={1.75} aria-hidden /></button> : null}
@@ -761,6 +831,8 @@ const BackButton = ({ onBack, label = 'All regions' }: { onBack: () => void; lab
 )
 
 type Clock = 'old' | 'new'
+/** the phone sheet's three heights, as shares of the stage */
+const SHEET = [0.24, 0.52, 0.88]
 
 function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion, clock, onClock, daylight }: {
   f: Facts; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onStrongest: () => void; studyHref: string; leave: Leave; motion: boolean
@@ -780,9 +852,8 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
       {f.count ? (
         <div>
           <p className="text-[40px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{signed(f.count.gap)}%</p>
-          <p className="mt-2 text-sm text-[color:var(--bone2)]">Aqua’s {f.count.year} count vs what we’d expect</p>
-          <p className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">How sure we are: {signed(f.count.lo)}% to {signed(f.count.hi)}% · {f.count.outside ? 'unusual' : 'not unusual'}</p>
-          <p className="mt-3 text-xs leading-5 text-[color:var(--bone2)]">{CAVEAT}</p>
+          <p className="mt-2 text-sm text-[color:var(--bone2)]">Aqua’s {f.count.year} count against what we’d expect. {f.count.outside ? 'Unusual.' : 'Not unusual.'}</p>
+          <p className="mt-3 text-sm text-[color:var(--bone3)]">{CAVEAT}</p>
         </div>
       ) : f.nov ? (
         <div>
@@ -791,25 +862,6 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
           <p className="mt-1 text-xs text-[color:var(--bone3)]">Our test case. 2023–2025 have too few fires to read.</p>
         </div>
       ) : null}
-      {f.drift.length > 1 && f.look.old && f.look.now ? (
-        <ChartKpi
-          title="When Aqua looks here"
-          description="Local sun time, by year"
-          labels={f.drift.map((r) => String(r.year))}
-          values={f.drift.map((r) => r.aqua)}
-          compare={f.drift.map((r) => r.viirs)}
-          valueLabel="Aqua"
-          compareLabel="VIIRS, which kept its time"
-          headline={hm(f.look.now)}
-          from={hm(f.look.old)}
-          format={fmtHM}
-          delta={`+${Math.round((hm(f.look.now) - hm(f.look.old)) * 60)} min`}
-          deltaNote={`later than ${f.look.old} in 2012–20`}
-          color="#C8801F"
-          motion={motion}
-        />
-      ) : null}
-
       {/* the switch: Aqua at its old time or its new one; the numbers roll and the map follows */}
       <section aria-labelledby="try-h" className="flex flex-col gap-3">
         <h3 id="try-h" className="text-sm font-medium text-[color:var(--bone)]">Try Aqua’s two times</h3>
@@ -827,13 +879,13 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
         <dl className="flex flex-col">
           <Readout name="Aqua looks at" value={look[clock]} basis={look[old ? 'new' : 'old']} format={fmtHM} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
           {count ? (
-            <Readout name={old ? 'Fires we’d expect Aqua to count' : 'Fires Aqua counted'} note={old ? `${f.count?.year}, estimated from real data` : `${f.count?.year}, real data`} value={count[clock]} basis={count[old ? 'new' : 'old']} format={fmtInt} formatDelta={(d) => `${d > 0 ? '+' : '−'}${fmtInt(Math.abs(d))}`} motion={motion} />
+            <Readout name={old ? 'Fires we’d expect Aqua to count' : 'Fires Aqua counted'} note={old ? `${f.count?.year}, estimated` : `${f.count?.year}, counted`} value={count[clock]} basis={count[old ? 'new' : 'old']} format={fmtInt} formatDelta={(d) => `${d > 0 ? '+' : '−'}${fmtInt(Math.abs(d))}`} motion={motion} />
           ) : (
             <div className="border-t border-[color:var(--hairline)] py-2.5"><dt className="text-xs text-[color:var(--bone2)]">Fires counted</dt><dd className="mt-0.5 text-sm text-[color:var(--bone3)]">Too few to read in 2025</dd></div>
           )}
-          <Readout name="Daylight left after the alert" note="if the alert comes 1.5 h after the pass" value={light[clock]} basis={light[old ? 'new' : 'old']} format={(h) => dur(h)} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
+          <Readout name="Daylight left after the alert" note="alert 1.5 h after the pass" value={light[clock]} basis={light[old ? 'new' : 'old']} format={(h) => dur(h)} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
         </dl>
-        <p className="text-xs text-[color:var(--bone3)]">The map now shows {old ? 'the fires seen at about 1:30 pm by VIIRS, the satellites that kept their time.' : 'the fires Aqua saw.'}</p>
+        <p className="text-sm text-[color:var(--bone3)]">The map shows {old ? 'the fires VIIRS saw, at about Aqua’s old time.' : 'the fires Aqua saw.'}</p>
       </section>
 
       {daylight}
@@ -1084,12 +1136,12 @@ function WorldControl({ grid, layer, setLayer, year, setYear, hover, closeIn, wi
       ) : layer === 'clock' ? (
         <>
           <div className="mt-2.5 flex items-center justify-between gap-3">
-            <p className="text-xs leading-4 text-[color:var(--bone)]">Aqua’s count vs<br />what we’d expect</p>
+            <p className="text-xs leading-4 text-[color:var(--bone)]">Aqua’s count against<br />what we’d expect</p>
             <SegmentedControl<2024 | 2025> label="Year" value={year} onChange={setYear} motion={motion} segmentClassName="px-2 py-1 text-xs tabular-nums" options={[{ value: 2025, name: '2025', label: '2025' }, { value: 2024, name: '2024', label: '2024' }]} />
           </div>
           {wide ? (
             <>
-              <div aria-hidden className="mt-2 flex items-center gap-2 text-[11px] text-[color:var(--bone3)]">
+              <div aria-hidden className="mt-2.5 flex items-center gap-2 text-xs text-[color:var(--bone3)]">
                 <span>below</span>
                 <span className="flex gap-px">
                   {[4, 3, 2, 1, 0].map((i) => <span key={`d${i}`} className={sw} style={{ background: DOWN[i] }} />)}
@@ -1098,14 +1150,12 @@ function WorldControl({ grid, layer, setLayer, year, setYear, hover, closeIn, wi
                 </span>
                 <span>above</span>
               </div>
-              <p className="mt-1.5 text-[11px] leading-4 text-[color:var(--bone3)]" title={`Colour steps at ${L_STEPS.map((t) => Math.round(t * 100)).join(', ')}% from what we’d expect; grey is within ${Math.round(L_STEPS[0] * 100)}%.`}>Strong colour: unusual for that square. Faint: not unusual. Outline only: too few fires to read.</p>
-              <p className="mt-1.5 text-[11px] leading-4 tabular-nums text-[color:var(--bone2)]">{fmtInt(tally.ok)} squares can be read; {fmtInt(tally.up + tally.down)} are unusual ({fmtInt(tally.up)} above, {fmtInt(tally.down)} below).</p>
-              <p className="mt-1.5 min-h-8 text-[11px] leading-4 tabular-nums text-[color:var(--bone)]" aria-live="off">
-                {hover ? `${cellName(hover)}: ${h && h.ok && h.L != null && h.lo != null && h.hi != null ? `${pctOf(h.L)} (${pctOf(h.lo)} to ${pctOf(h.hi)}), ${h.outside ? 'unusual' : 'not unusual'}` : 'too few fires to read'}` : 'Point at a square to read it; click for its numbers.'}
+              <p className="mt-2 min-h-8 text-xs leading-4 tabular-nums text-[color:var(--bone)]" aria-live="off" title={`Strong colour: unusual for that square. Faint: not unusual. Outline only: too few fires to read. ${fmtInt(tally.ok)} squares can be read; ${fmtInt(tally.up + tally.down)} are unusual.`}>
+                {hover ? `${cellName(hover)}: ${h && h.ok && h.L != null && h.lo != null && h.hi != null ? `${pctOf(h.L)}, ${h.outside ? 'unusual' : 'not unusual'}` : 'too few fires to read'}` : 'Point at a square to read it. Click it for more.'}
               </p>
             </>
           ) : null}
-          <p className="mt-1.5 text-[11px] leading-4 text-[color:var(--bone3)]">{EXPLORATORY}</p>
+          <p className="mt-1.5 text-xs leading-4 text-[color:var(--bone3)]">{EXPLORATORY}</p>
         </>
       ) : null}
     </div>
@@ -1121,9 +1171,11 @@ const TICKS = [6, 9, 12, 15, 18].map((h) => ({ x: h, label: h === 12 ? 'Noon' : 
 /** Each satellite's fires by time of day, as one hump per satellite (21st.dev's Chart Line), with Aqua's 2012–20
  *  clock marked and an arrow to where Aqua looks now. Each hump is scaled to its own peak: it shows when, not how many;
  *  the tooltip gives the counts. */
-function LookChart({ box, show, setShow, fire, near, oldClock, live, motion }: {
-  box: Box | null; show: Show; setShow: (s: Show) => void; fire: number | null; near: number[]; oldClock: { from: number; to: number } | null; live: boolean; motion: boolean
+function LookChart({ box: viewBox, probe, show, setShow, fire, near, oldClock, live, motion }: {
+  box: Box | null; probe: Probe; show: Show; setShow: (s: Show) => void; fire: number | null; near: number[]; oldClock: { from: number; to: number } | null; live: boolean; motion: boolean
 }) {
+  const pointed = useSyncExternalStore(probe.subscribe, probe.get)
+  const box = pointed ?? viewBox
   const key = box ? box.map((v) => v.toFixed(2)).join(',') : 'world'
   const hist = useMemo(() => histogram(box), [key]) // eslint-disable-line react-hooks/exhaustive-deps
   const sum = useMemo(() => summary(box), [key]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -1138,7 +1190,7 @@ function LookChart({ box, show, setShow, fire, near, oldClock, live, motion }: {
   return (
     <ChartLine
       title="When each satellite saw fires"
-      description={`Real NASA data · ${box ? 'fires in view' : 'all fires on the map'} · ${WHEN} · local sun time`}
+      description={`${pointed ? 'Fires in the square at your pointer' : box ? 'Fires in view' : 'All fires on the map'} · ${WHEN} · local sun time`}
       data={data}
       series={series}
       domain={[BIN_FROM, BIN_TO]}
@@ -1157,12 +1209,12 @@ function LookChart({ box, show, setShow, fire, near, oldClock, live, motion }: {
       footer={
         <>
           <div className="mt-1 flex items-start justify-between gap-3 border-t border-[color:var(--hairline)] pt-2 text-[11px] text-[color:var(--bone3)]">
-            <p>NASA FIRMS · NASA Blue Marble{live ? ' · Sentinel-2 cloudless by EOX, CC BY 4.0' : ''}</p>
+            <p>Move the pointer over the map to read one spot.</p>
             <button type="button" aria-expanded={sources} onClick={() => setSources(!sources)} className={cn('shrink-0 rounded underline decoration-[color:var(--bone-30)] underline-offset-2 hover:text-[color:var(--bone)]', focusRing)}>Sources</button>
           </div>
           {sources ? (
             <ul className="mt-2 flex list-none flex-col gap-1 text-[11px] text-[color:var(--bone3)]">
-              <li>Fires: NASA FIRMS, MODIS C6.1 (Terra, Aqua) and VIIRS 375 m (NOAA-20, NOAA-21), daytime, {WINDOW.start}–{WINDOW.end} UTC; one per satellite per 2 km cell.</li>
+              <li>Fires: NASA FIRMS, MODIS (Terra, Aqua) and VIIRS 375 m (NOAA-20, NOAA-21), {WINDOW.start} to {WINDOW.end} UTC. The files hold {fmtInt(TOTALS.reduce((a, b) => a + b, 0))} daytime detections; the map draws {fmtInt(DOTS)}, the strongest per satellite in each 2 km square.</li>
               <li>Globe: NASA Blue Marble{live ? ', through NASA GIBS' : ''}.</li>
               {live ? <li>Close up: Sentinel-2 cloudless 2016 by EOX (s2maps.eu), contains modified Copernicus Sentinel data 2016, CC BY 4.0.</li> : null}
               <li>Aqua 2012–20: the team’s drift files. Countries: mledoze/countries, ODbL.</li>
