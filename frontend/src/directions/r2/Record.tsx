@@ -36,7 +36,8 @@ const GRAIN =
 const TOKENS = {
   ...BASE_TOKENS,
   // backlit table: one neutral, near-white where the lamp is, falling off to the table tint
-  '--backlight': 'radial-gradient(ellipse 1240px 860px at 60% 440px, #FBFDFD 0%, #F5F9F9 40%, #ECF1F1 82%)',
+  '--backlight': 'radial-gradient(ellipse 1100px 820px at 70% 440px, #FFFFFF 0%, #F3F7F7 30%, #ECF1F1 55%, #E3EAEA 88%)',
+  '--table-edge': '#E3EAEA',
   '--sheet-90': 'rgba(255, 255, 255, 0.9)',
   '--grain': GRAIN,
   // correction magenta: marks and text, only where the clock changed the count
@@ -66,10 +67,11 @@ const TOKENS = {
   '--maxw': '1440px',
   '--measure': '36rem',
   '--select-max': '220px',
-  '--card-drop': '-64px',
-  '--terra-w': '92%',
-  '--viirs-w': '94%',
-  '--aqua-w': '100%',
+  // prints as shares of the right column (252 / 272 / 252 px at 1440); the card's top lands at about two thirds of their height
+  '--terra-w': '31.8%',
+  '--viirs-w': '34.3%',
+  '--aqua-w': '31.8%',
+  '--overlap': 'calc(-9.8cqw - 26px)',
   '--aqua-w-sm': '60%',
   '--tilt-terra': '-2deg',
   '--tilt-viirs': '1deg',
@@ -98,6 +100,9 @@ const TOKENS = {
   '--cal-empty': 'transparent',
   '--cal-cell': '#FFFFFF',
   '--cal-hatch': 'rgba(15, 18, 19, 0.18)',
+  '--cal-prov-mix': '40%',
+  '--cal-cols': '44px repeat(12, minmax(0, 1fr)) 56px',
+  '--rebate-fg': '#D7DBDB',
   '--cal-focus': '#0F1213',
   '--cal-fg': '#0F1213',
   '--cal-muted': '#656A6A',
@@ -133,10 +138,11 @@ const READING: Record<Verdict, string> = { clock: 'clock effect', noise: 'within
 const rangeOf = (y: AuditRow) => (y.lo != null && y.hi != null ? fmtRange(y.lo, y.hi) : null)
 const endash = (s: string) => s.replace('-', '–')
 
-const noteFor = (y: AuditRow) =>
-  y.fixed == null
-    ? `${y.year}: the official count was ${fmtInt(y.aqua)} hotspots; not enough fires to measure on the fixed clock`
-    : `${y.year}: the official count was ${fmtInt(y.aqua)} hotspots; on the fixed clock, ${fmtInt(y.fixed)}`
+function noteFor(y: AuditRow) {
+  const counts = `the official count was ${fmtInt(y.aqua)} hotspots${y.fixed == null ? '' : `; on the fixed clock, ${fmtInt(y.fixed)}`}`
+  if (y.gap == null || y.lo == null || y.hi == null) return `${y.year}: not enough fires to measure the clock effect; ${counts}`
+  return `${y.year}: clock effect ${pct(y.gap)} (${fmtRange(y.lo, y.hi)})${y.verdict === 'noise' ? ', within noise' : ''}; ${counts}`
+}
 
 const defaultYear = (d: RegionData) => d.latestOk?.year ?? d.years[d.years.length - 1]?.year ?? 2025
 
@@ -163,23 +169,24 @@ type Axis = ReturnType<typeof axisFor>
 // The prints are one Amazon scene; their look times are the Amazon drift file's 2026 values (typical, not that day's).
 const AMAZON_2026 = regionData('br-amazon').driftAt(2026)
 const IMG = `${import.meta.env.BASE_URL}img/prints/`
+const FRAMES = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
 const PRINTS = [
   {
-    key: 'terra', src: `${IMG}amazon-terra-sq.jpg`, name: 'Terra', pass: 'morning pass', look: AMAZON_2026?.terra_lst, typical: true,
+    key: 'terra', src: `${IMG}amazon-terra-sq.jpg`, name: 'Terra', look: AMAZON_2026?.terra_lst, typical: true,
     tilt: 'rotate-[var(--tilt-terra)]',
-    place: 'col-start-1 w-full lg:col-span-3 lg:col-start-1 lg:mt-10 lg:w-[var(--terra-w)]',
+    place: 'col-start-1 w-full lg:mt-6 lg:w-[var(--terra-w)]',
     alt: 'Terra’s morning view of the Amazon scene on 4 Sep 2026: smoke haze, a few clouds, fire dots visible',
   },
   {
-    key: 'viirs', src: `${IMG}amazon-viirs-sq.jpg`, name: 'VIIRS', pass: 'fixed clock', look: AMAZON_2026?.viirs_lst, typical: false,
+    key: 'viirs', src: `${IMG}amazon-viirs-sq.jpg`, name: 'VIIRS', look: AMAZON_2026?.viirs_lst, typical: false,
     tilt: 'rotate-[var(--tilt-viirs)]',
-    place: 'col-start-2 mt-6 w-full lg:col-span-3 lg:col-start-4 lg:mt-0 lg:w-[var(--viirs-w)] lg:justify-self-end',
+    place: 'col-start-2 mt-6 w-full lg:mt-0 lg:w-[var(--viirs-w)]',
     alt: 'VIIRS’s early-afternoon view of the same scene: small cumulus clouds spread across it',
   },
   {
-    key: 'aqua', src: `${IMG}amazon-aqua-sq.jpg`, name: 'Aqua', pass: 'afternoon pass', look: AMAZON_2026?.aqua_lst, typical: true,
+    key: 'aqua', src: `${IMG}amazon-aqua-sq.jpg`, name: 'Aqua', look: AMAZON_2026?.aqua_lst, typical: true,
     tilt: 'rotate-[var(--tilt-aqua)]',
-    place: 'col-span-2 w-[var(--aqua-w-sm)] justify-self-end lg:col-span-3 lg:col-start-9 lg:mt-20 lg:w-[var(--aqua-w)] lg:justify-self-start',
+    place: 'col-span-2 w-[var(--aqua-w-sm)] justify-self-end lg:mt-3 lg:w-[var(--aqua-w)]',
     alt: 'Aqua’s later afternoon view of the same scene: towering clouds cover most of it',
   },
 ]
@@ -188,26 +195,26 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-
 
 const selectClasses = {
   trigger: cn(
-    'inline-flex h-9 min-w-0 max-w-[var(--select-max)] items-center gap-1 rounded-lg border border-[var(--hairline)] bg-[var(--sheet)] pl-2 pr-1 text-sm text-[color:var(--ink)] sm:gap-2 sm:pl-3 sm:pr-2',
+    'inline-flex h-9 min-w-0 max-w-[var(--select-max)] items-center gap-1 rounded border border-[var(--hairline)] bg-[var(--sheet)] pl-2 pr-1 text-sm text-[color:var(--ink)] sm:gap-2 sm:pl-3 sm:pr-2',
     'transition-colors duration-150 ease-[var(--ease)] hover:border-[var(--hairline-strong)] [&>span:first-child]:truncate',
     focusRing,
   ),
   icon: 'shrink-0 text-[color:var(--ink3)]',
-  content: 'z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border border-[var(--hairline)] bg-[var(--sheet)] p-1 font-[family-name:var(--f-ui)] text-[color:var(--ink)] shadow-[var(--shadow-sheet)]',
-  item: 'relative flex h-9 cursor-default select-none items-center gap-2 rounded px-2 text-sm text-[color:var(--ink)] outline-none data-[highlighted]:bg-[var(--raised)] data-[state=checked]:font-medium',
+  content: 'z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded border border-[var(--hairline)] bg-[var(--sheet)] p-1 font-[family-name:var(--f-ui)] text-[color:var(--ink)] shadow-[var(--shadow-sheet)]',
+  item: 'relative flex h-9 cursor-default select-none items-center gap-2 rounded-xs px-2 text-sm text-[color:var(--ink)] outline-none data-[highlighted]:bg-[var(--raised)] data-[state=checked]:font-medium',
 }
 
 const menuClasses = {
   trigger: cn(
-    'inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--hairline)] bg-[var(--sheet)] text-[color:var(--ink2)] transition-colors duration-150 ease-[var(--ease)] hover:border-[var(--hairline-strong)] lg:hidden',
+    'inline-flex size-9 shrink-0 items-center justify-center rounded border border-[var(--hairline)] bg-[var(--sheet)] text-[color:var(--ink2)] transition-colors duration-150 ease-[var(--ease)] hover:border-[var(--hairline-strong)] lg:hidden',
     focusRing,
   ),
-  content: 'z-50 min-w-48 rounded-lg border border-[var(--hairline)] bg-[var(--sheet)] p-1 font-[family-name:var(--f-ui)] text-[color:var(--ink)] shadow-[var(--shadow-sheet)]',
-  item: 'flex h-9 cursor-default select-none items-center rounded px-2 text-sm text-[color:var(--ink)] outline-none data-[highlighted]:bg-[var(--raised)] data-[disabled]:text-[color:var(--ink3)]',
+  content: 'z-50 min-w-48 rounded border border-[var(--hairline)] bg-[var(--sheet)] p-1 font-[family-name:var(--f-ui)] text-[color:var(--ink)] shadow-[var(--shadow-sheet)]',
+  item: 'flex h-9 cursor-default select-none items-center rounded-xs px-2 text-sm text-[color:var(--ink)] outline-none data-[highlighted]:bg-[var(--raised)] data-[disabled]:text-[color:var(--ink3)]',
 }
 
 const modeClasses = {
-  root: 'inline-flex h-9 overflow-hidden rounded-lg border border-[var(--hairline)] bg-[var(--sheet)]',
+  root: 'inline-flex h-9 overflow-hidden rounded border border-[var(--hairline)] bg-[var(--sheet)]',
   item: cn(
     'px-4 text-sm text-[color:var(--ink2)] outline-none transition-colors duration-150 ease-[var(--ease)] hover:text-[color:var(--ink)]',
     'focus-visible:shadow-[var(--ring-inset)] data-[state=on]:bg-[var(--ink)] data-[state=on]:text-white data-[state=on]:focus-visible:shadow-[var(--ring-on-ink)]',
@@ -241,14 +248,14 @@ export default function Record() {
   return (
     <div
       style={TOKENS as unknown as CSSProperties}
-      className="min-h-screen overflow-x-clip bg-[var(--table)] bg-[image:var(--backlight)] bg-no-repeat font-[family-name:var(--f-ui)] text-[color:var(--ink)] antialiased"
+      className="min-h-screen overflow-x-clip bg-[var(--table-edge)] bg-[image:var(--backlight)] bg-no-repeat font-[family-name:var(--f-ui)] text-[color:var(--ink)] antialiased"
     >
       <TopBar region={region} onRegion={onRegion} />
 
       <main>
-        <section id="verdict" aria-labelledby="verdict-h" className="mx-auto max-w-[var(--maxw)] px-4 pt-12 sm:px-8 lg:pt-16">
-          <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-0">
-            <div className="lg:col-span-5 lg:row-start-1">
+        <section id="verdict" aria-labelledby="verdict-h" className="mx-auto max-w-[var(--maxw)] px-4 pt-12 sm:px-8">
+          <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-12 lg:items-center lg:gap-x-6">
+            <div className="lg:col-span-5">
               <h1
                 id="verdict-h"
                 className="text-balance font-[family-name:var(--f-cond)] text-[length:var(--fs-44)] font-medium leading-[var(--lh-display)] tracking-[var(--track-display)] sm:text-[length:var(--fs-88)]"
@@ -259,7 +266,7 @@ export default function Record() {
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <a
                   href="#calendar"
-                  className={cn('inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[var(--ink)] px-5 text-sm font-medium text-white transition-colors duration-150 ease-[var(--ease)] hover:bg-[var(--ink-hover)]', focusRing)}
+                  className={cn('inline-flex h-11 items-center justify-center gap-2 rounded bg-[var(--ink)] px-5 text-sm font-medium text-white transition-colors duration-150 ease-[var(--ease)] hover:bg-[var(--ink-hover)]', focusRing)}
                 >
                   Explore the calendar
                   <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
@@ -267,22 +274,21 @@ export default function Record() {
                 <button
                   type="button"
                   onClick={() => downloadSummary(d)}
-                  className={cn('inline-flex h-11 items-center justify-center rounded-lg border border-[var(--hairline)] bg-[var(--sheet)] px-5 text-sm font-medium text-[color:var(--ink)] transition-colors duration-150 ease-[var(--ease)] hover:border-[var(--hairline-strong)]', focusRing)}
+                  className={cn('inline-flex h-11 items-center justify-center rounded border border-[var(--hairline)] bg-[var(--sheet)] px-5 text-sm font-medium text-[color:var(--ink)] transition-colors duration-150 ease-[var(--ease)] hover:border-[var(--hairline-strong)]', focusRing)}
                 >
                   Download summary
                 </button>
               </div>
             </div>
 
-            {/* the prints lie on the table below the text; the record card drops onto one corner of the VIIRS print */}
-            <div className="lg:col-span-12 lg:row-start-2 lg:mt-6">
-              <div className="grid grid-cols-2 items-start gap-x-4 gap-y-6 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-0">
+            {/* the light table: three prints laid in a row, the record card over their lower third */}
+            <div className="@container flex flex-col lg:col-span-7">
+              <div className="grid grid-cols-2 items-start gap-x-4 gap-y-6 lg:flex lg:justify-between lg:gap-0">
                 {PRINTS.map((p) => <Print key={p.key} p={p} />)}
               </div>
-              <p className="mt-6 text-xs text-[color:var(--ink3)]">{caption}</p>
+              <p className="mt-6 text-xs text-[color:var(--ink3)] lg:order-last lg:mt-4">{caption}</p>
+              <RecordCard d={d} year={year} onYear={setYear} className="mt-6 lg:mt-[var(--overlap)]" />
             </div>
-
-            <RecordCard d={d} year={year} onYear={setYear} className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:mb-[var(--card-drop)] lg:self-end" />
           </div>
         </section>
 
@@ -322,25 +328,22 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
         </a>
         <nav aria-label="Sections" className="hidden lg:block">
           <ul className="flex items-center gap-6 text-sm">
-            {SECTIONS.map((s) => (
+            {SECTIONS.filter((s) => s.inComp).map((s) => (
               <li key={s.id}>
-                {s.inComp ? (
-                  <a
-                    href={`#${s.id}`}
-                    aria-current={s.id === 'verdict' ? 'true' : undefined}
-                    className={cn(
-                      'rounded transition-colors duration-150 ease-[var(--ease)]',
-                      s.id === 'verdict' ? 'font-medium text-[color:var(--ink)]' : 'text-[color:var(--ink2)] hover:text-[color:var(--ink)]',
-                      focusRing,
-                    )}
-                  >
-                    {s.label}
-                  </a>
-                ) : (
-                  <span title="In the full build" className="cursor-default text-[color:var(--ink3)]">{s.label}</span>
-                )}
+                <a
+                  href={`#${s.id}`}
+                  aria-current={s.id === 'verdict' ? 'true' : undefined}
+                  className={cn(
+                    'rounded transition-colors duration-150 ease-[var(--ease)]',
+                    s.id === 'verdict' ? 'font-medium text-[color:var(--ink)]' : 'text-[color:var(--ink2)] hover:text-[color:var(--ink)]',
+                    focusRing,
+                  )}
+                >
+                  {s.label}
+                </a>
               </li>
             ))}
+            <li className="text-xs text-[color:var(--ink3)]">More sections in the full build</li>
           </ul>
         </nav>
         <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
@@ -361,17 +364,18 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
 /* ---------- Prints ---------- */
 
 function Print({ p }: { p: (typeof PRINTS)[number] }) {
+  // the stamp sits on the print's top border, where the record card can't cover it: the pass and its typical look
+  // time in 2026 from the Amazon drift file, not this day's exact overpass
   return (
-    <figure className={cn('m-0 self-start rounded bg-[var(--sheet)] p-2 pb-0 shadow-[var(--shadow-sheet)] ring-1 ring-[var(--hairline)]', p.tilt, p.place)}>
-      <img src={p.src} alt={p.alt} width={720} height={720} className="block aspect-square w-full object-cover" />
-      {/* the stamp on the lower border: the pass and its typical look time in 2026, not this day's exact overpass */}
-      <figcaption className="flex flex-wrap items-baseline justify-between gap-x-3 py-2 text-xs leading-4 text-[color:var(--ink2)]">
-        <span>{p.name} · {p.pass}</span>
-        <span>
-          {p.typical ? 'typical look in 2026 ' : null}
-          <span className="font-[family-name:var(--f-mono)] tabular-nums text-[color:var(--ink)]">{p.look}</span>
+    <figure className={cn('m-0 self-start rounded bg-[var(--sheet)] p-2 shadow-[var(--shadow-sheet)] ring-1 ring-[var(--hairline)]', p.tilt, p.place)}>
+      <figcaption className="pb-2 text-xs leading-4 text-[color:var(--ink2)]">
+        <span className="block text-[color:var(--ink)]">{p.name}</span>
+        <span className="block">
+          {p.typical ? 'typical look in 2026' : 'fixed clock'} ·{' '}
+          <span className="whitespace-nowrap font-[family-name:var(--f-mono)] tabular-nums text-[color:var(--ink)]">{p.look}</span>
         </span>
       </figcaption>
+      <img src={p.src} alt={p.alt} width={720} height={720} className="block aspect-square w-full object-cover" />
     </figure>
   )
 }
@@ -577,7 +581,7 @@ function RecordRow({ d, y, axis, selected, headline, headlineCorrected, onSelect
           {y.gap == null ? '—' : pct(y.gap)}
         </span>
         {range ? (
-          <span className={cn('block text-xs leading-4 text-[color:var(--ink3)]', mono)}>{range}</span>
+          <span className={cn('block text-xs leading-4 text-[color:var(--ink3)] sm:hidden', mono)}>{range}</span>
         ) : (
           <span className="block text-xs leading-4 text-[color:var(--ink3)] sm:hidden">not enough fires</span>
         )}
@@ -644,7 +648,11 @@ function ContactSheet({ d, mode, onMode, small }: { d: RegionData; mode: Calenda
           </button>
         </div>
 
-        <div ref={calRef} className="relative mt-6 [&_[role=row]>span:last-child:not([role])]:font-[family-name:var(--f-mono)]">
+        {/* the calendar's own readout, then a film rebate with frame numbers, then the grid (fire-calendar.tsx untouched) */}
+        <div
+          ref={calRef}
+          className="relative mt-6 flex flex-col [&>div:first-child]:contents [&>div:first-child>[role=grid]]:order-3 [&>div:first-child>p]:order-1 [&_[role=row]>span:last-child:not([role])]:font-[family-name:var(--f-mono)]"
+        >
           <FireCalendar
             years={grid.years}
             cells={grid.cells}
@@ -655,6 +663,13 @@ function ContactSheet({ d, mode, onMode, small }: { d: RegionData; mode: Calenda
             monthLabels={small ? 'initial' : 'short'}
             label={`Fire calendar for ${d.name}, ${mode === 'anomaly' ? 'each month against its median' : 'fixed-clock hotspot count'}`}
           />
+          <div aria-hidden className="order-2 mb-1 grid grid-cols-[var(--cal-cols)] gap-[var(--cal-gap)]">
+            <div className="col-span-12 col-start-2 grid grid-cols-12 gap-[var(--cal-gap)] rounded-[var(--cal-radius)] bg-[var(--ink)]">
+              {FRAMES.map((n) => (
+                <span key={n} className="text-center font-[family-name:var(--f-mono)] text-xs leading-5 tabular-nums text-[color:var(--rebate-fg)]">{n}</span>
+              ))}
+            </div>
+          </div>
           {ring ? (
             <span
               aria-hidden
