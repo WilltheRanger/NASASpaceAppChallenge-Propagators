@@ -15,12 +15,13 @@ import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui
 import { ModeToggle, RegionSelect, YearSlider } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
 import {
-  MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, countName, fmtRange, hm, minutesBetween, pct, phrase, regionData, verdictHeadline, verdictLines,
-  type RegionData, type Verdict,
+  CHECKS, MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, countName, fmtRange, hm, minutesBetween, pct, phrase, regionData, verdictHeadline, verdictLines,
+  type Check, type RegionData, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
 import { FilmstripScrub } from '@/components/ui/filmstrip-scrub'
 import { AnomalyChart, type AnomalyPoint } from '@/components/ui/anomaly-chart'
+import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/series-chart'
 import { AnchorLogo } from '@/components/brand/anchor-logo'
 import { photoFor } from '@/r2/photos'
 
@@ -151,7 +152,7 @@ const FEATURED = 'br-amazon'
 const ANY_MOCK = REGIONS.some((r) => regionData(r.id).mock)
 
 /** Sections that exist in this comp; the rest of the index belongs to the full build. */
-const IN_COMP = new Set<string>(['verdict', 'clock', 'audit', 'calendar'])
+const IN_COMP = new Set<string>(['verdict', 'clock', 'two-clocks', 'audit', 'calendar', 'checks', 'limits'])
 
 const READING: Record<Verdict, string> = { clock: 'Clock effect', noise: 'Within noise', na: 'Not enough fires' }
 const DATA_NOTE = "Every number comes from the team's JSON files."
@@ -443,8 +444,11 @@ function AppPage({ region, onRegion, links, leave }: { region: string; onRegion:
         <AppStatement d={d} />
         <AppVerdict d={d} year={year} onYear={setYear} />
         <Passes d={d} />
+        <TwoClocks d={d} year={year} onYear={setYear} small={small} />
         <ClockEffect d={d} year={year} onYear={setYear} small={small} />
         <Calendar d={d} mode={mode} onMode={setMode} small={small} />
+        <Checks />
+        <Limits />
       </main>
     </>
   )
@@ -649,7 +653,9 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
   const [moved, setMoved] = useState(false)
   const sectionRef = useRef<HTMLElement | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
-  useStage(sectionRef, stageRef, motion.on, (v) => setMoved(v > 0.04))
+  // the landing's statement stays still; the zoom-out reveal opens the audit page instead
+  const hold = false
+  useStage(sectionRef, stageRef, hold, (v) => setMoved(v > 0.04))
   // photographs load as their region is first shown, then stay for the crossfade
   const [loaded, setLoaded] = useState<string[]>([region])
   useEffect(() => { setLoaded((l) => (l.includes(region) ? l : [...l, region])) }, [region])
@@ -663,11 +669,11 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
     <>
       {/* the statement: the region's name on its ground and the way to change it, held for a screen of scrolling while
           the photograph closes in to a frame (still without motion) */}
-      <section id="top" ref={sectionRef} aria-labelledby="region-h" className={cn('relative', motion.on && 'h-[200svh]')}>
+      <section id="top" ref={sectionRef} aria-labelledby="region-h" className={cn('relative', hold && 'h-[200svh]')}>
         <div
           ref={stageRef}
           style={{ '--p': 0 } as CSSProperties}
-          className={cn('sticky top-0 isolate flex flex-col overflow-hidden bg-[color:var(--ground)]', FRAME, motion.on ? 'h-[100svh]' : 'h-[78svh] max-h-[1040px] min-h-[560px]')}
+          className={cn('sticky top-0 isolate flex flex-col overflow-hidden bg-[color:var(--ground)]', FRAME, hold ? 'h-[100svh]' : 'h-[78svh] max-h-[1040px] min-h-[560px]')}
         >
         <div className={cn('absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]', FRAME_CLIP)}>
           {loaded.map((id) => {
@@ -683,7 +689,7 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
                 width={p.width}
                 height={p.height}
                 style={{ objectPosition: p.focus }}
-                className={cn('absolute inset-0 size-full object-cover transition-opacity duration-700 ease-[var(--ease)]', SETTLE, id === region ? 'opacity-100' : 'opacity-0')}
+                className={cn('absolute inset-0 size-full object-cover transition-opacity duration-700 ease-[var(--ease)]', hold && SETTLE, id === region ? 'opacity-100' : 'opacity-0')}
               />
             )
           })}
@@ -748,7 +754,7 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
       </section>
 
       {/* the verdict and the way in, rising under the framed photograph */}
-      <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-4', motion.on && '-mt-[40svh]')}>
+      <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-4', hold && '-mt-[40svh]')}>
         <div className={cn(shell, 'grid grid-cols-1 py-16 xl:grid-cols-12 xl:gap-x-6 xl:py-20')}>
           <div className="xl:col-span-8">
             <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
@@ -767,43 +773,65 @@ function LandingHero({ region, setRegion, onPick, app, leave }: { region: string
   )
 }
 
-/* ---------- App opening: a still statement, the region's name on its photograph; the verdict follows ---------- */
+/* ---------- App opening: the statement, framed as you scroll (a zoom-out reveal), the verdict rising under it ---------- */
 
-/** The audit opens on the region's photograph with its name, still (the zoom-out reveal lives on the landing). */
+/** The region's photograph at full bleed with its name, held for one screen of scrolling while the photograph closes in
+ *  to a framed picture and settles from 1.12 to 1; the name rides the frame's lower edge, shrinks a little and fades.
+ *  Without motion it is a still statement. */
 function AppStatement({ d }: { d: RegionData }) {
+  const motion = useMotion()
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
   const p = photoFor(d.id)
+  useStage(sectionRef, stageRef, motion.on)
+
   return (
-    <section id="top" aria-labelledby="region-h" className="relative isolate flex h-[78svh] max-h-[1040px] min-h-[560px] flex-col">
-      <div className="absolute inset-0 -z-10 overflow-hidden bg-[color:var(--surface)]">
-        <img
-          key={d.id}
-          src={p.src}
-          srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
-          sizes="100vw"
-          alt={p.alt}
-          width={p.width}
-          height={p.height}
-          style={{ objectPosition: p.focus }}
-          className="absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover"
-        />
-        <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
-      </div>
-      <div className={cn(shell, 'mt-auto pb-8 sm:pb-10')}>
-        <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
-        <h1 id="region-h" className={statement}>
-          <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
-        </h1>
+    <section ref={sectionRef} id="top" aria-labelledby="region-h" className={cn('relative', motion.on ? 'h-[200svh]' : 'h-[78svh] max-h-[1040px] min-h-[560px]')}>
+      <div
+        ref={stageRef}
+        style={{ '--p': 0 } as CSSProperties}
+        className={cn('sticky top-0 overflow-hidden bg-[color:var(--ground)]', FRAME, motion.on ? 'h-[100svh]' : 'h-full')}
+      >
+        <div className={cn('absolute inset-0', FRAME_CLIP)}>
+          <img
+            key={d.id}
+            src={p.src}
+            srcSet={`${p.srcSm} 720w, ${p.src} 1920w`}
+            sizes="100vw"
+            alt={p.alt}
+            width={p.width}
+            height={p.height}
+            style={{ objectPosition: p.focus }}
+            className={cn('absolute inset-0 size-full animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)] object-cover', SETTLE)}
+          />
+          <div aria-hidden className="absolute inset-0 bg-[image:var(--scrim-statement)]" />
+        </div>
+        <div className={cn('absolute inset-x-0 bottom-0', RIDE, FADE_NAME)}>
+          <div className={cn(shell, 'pb-8 sm:pb-10')}>
+            <MockTag show={d.mock} className="mb-4 inline-block bg-[color:var(--plate)] sm:hidden" />
+            <h1 id="region-h" className={cn(statement, SHRINK)}>
+              <span key={d.id} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(d.id)}</span>
+            </h1>
+          </div>
+        </div>
+        {motion.on ? (
+          <div aria-hidden className={cn('absolute bottom-6 right-4 flex items-center gap-2 text-xs text-[color:var(--bone2)] sm:right-8', FADE_SOON)}>
+            Scroll
+            <ArrowDown size={14} strokeWidth={1.5} />
+          </div>
+        ) : null}
       </div>
     </section>
   )
 }
 
-/** The verdict under the statement, then the reel. */
+/** The verdict, rising into the space under the framed photograph during the last part of the opening, then the reel. */
 function AppVerdict({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+  const motion = useMotion()
   const { look, change } = verdictLines(d)
   return (
-    <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-20">
-      <div className={cn(shell, 'grid grid-cols-1 py-16 xl:grid-cols-12 xl:gap-x-6 xl:py-20')}>
+    <section id="verdict" aria-labelledby="verdict-h" className={cn('relative z-10 scroll-mt-20', motion.on && '-mt-[40svh]')}>
+      <div className={cn(shell, 'grid grid-cols-1 pb-12 pt-6 xl:grid-cols-12 xl:gap-x-6 xl:pb-16')}>
         <div className="xl:col-span-8">
           <h2 id="verdict-h" className={titleLarge}>{verdictHeadline(d)}</h2>
           <p className="mt-6 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">{look} {change}</p>
@@ -1077,6 +1105,311 @@ function Passes({ d }: { d: RegionData }) {
             {example ? 'Example scene: Amazon, 4 Sep 2026 · ' : ''}Imagery: NASA Worldview / GIBS, true colour
           </figcaption>
         </figure>
+      </div>
+    </section>
+  )
+}
+
+/* ---------- Two clocks: Terra and Aqua as probes, their difference, and the fire-day curve they trace ---------- */
+
+/** A ratio against 2012-2020 (1 = no change) as a percent change; a log difference as a percent change. */
+const asPct = (ratio: number) => (ratio - 1) * 100
+const logPct = (v: number) => (Math.exp(v) - 1) * 100
+
+function niceTicks(lo: number, hi: number) {
+  const span = hi - lo || 1
+  const step = span <= 12 ? 2 : span <= 24 ? 5 : span <= 60 ? 10 : 20
+  const d0 = Math.floor(lo / step) * step
+  const d1 = Math.ceil(hi / step) * step
+  const ticks: number[] = []
+  for (let v = d0; v <= d1 + 1e-9; v += step) ticks.push(Math.round(v * 1e6) / 1e6)
+  return { d0, d1: d1 === d0 ? d0 + step : d1, ticks }
+}
+
+/** The section's title, from the latest year in the file: a direction is named only when the range clears zero. */
+function twoClocksHeading(d: RegionData) {
+  const last = [...d.two].reverse().find((t) => Number.isFinite(t.clock_diff))
+  if (!last) return `The two clocks for ${d.phrase.the} are not in the data yet`
+  const v = logPct(last.clock_diff)
+  const lo = logPct(last.clock_lo)
+  const hi = logPct(last.clock_hi)
+  if (lo > 0 || hi < 0) return `In ${last.year}, with shared orbit sampling cancelled, Aqua's count sits ${Math.round(Math.abs(v))}% ${v > 0 ? 'above' : 'below'} Terra's`
+  return `In ${last.year} the two clocks agree within their range once shared orbit sampling is cancelled`
+}
+
+function TwoClocks({ d, year, onYear, small }: { d: RegionData; year: number; onYear: (y: number) => void; small: boolean }) {
+  const two = d.two
+  const [inspect, setInspect] = useState<number | null>(null)
+  const selected = two.findIndex((t) => t.year === year)
+  const shownIndex = inspect ?? (selected >= 0 ? selected : two.length - 1)
+  const t = two[shownIndex]
+  const labels = two.map((x) => String(x.year))
+  const probes: Series[] = [
+    { id: 'aqua', label: 'Aqua', marker: 'filled', color: 'var(--bone)', values: two.map((x) => asPct(x.A)), lo: two.map((x) => asPct(x.A_lo)), hi: two.map((x) => asPct(x.A_hi)) },
+    { id: 'terra', label: 'Terra', marker: 'hollow', color: 'var(--bone3)', values: two.map((x) => asPct(x.T)), lo: two.map((x) => asPct(x.T_lo)), hi: two.map((x) => asPct(x.T_hi)) },
+  ]
+  const difference: AnomalyPoint[] = two.map((x) => {
+    const v = logPct(x.clock_diff)
+    const lo = logPct(x.clock_lo)
+    const hi = logPct(x.clock_hi)
+    return { id: String(x.year), label: String(x.year), value: v, range: [lo, hi], outside: lo > 0 || hi < 0, valueText: `${x.year}: Aqua against Terra ${pct(v)}, range ${fmtRange(lo, hi)}` }
+  })
+  const columnText = (i: number) => {
+    const x = two[i]
+    return `${x.year}: Aqua ${pct(asPct(x.A))} looking at ${x.aqua_lst}, Terra ${pct(asPct(x.T))} looking at ${x.terra_lst}, each against 2012 to 2020`
+  }
+  const first = two[0]
+  const last = two[two.length - 1]
+  const way = (a: string, b: string) => (hm(b) < hm(a) ? 'earlier' : hm(b) > hm(a) ? 'later' : 'at the same time')
+  const ink = { fg: 'var(--bone2)', grid: 'var(--hairline)', surface: 'var(--ground)', guide: 'var(--bone)' }
+  const diffVars = {
+    '--ac-line': 'var(--bone)', '--ac-fg': 'var(--bone2)', '--ac-surface': 'var(--ground)', '--ac-band': 'transparent',
+    '--ac-grid': 'var(--hairline)', '--ac-zero': 'var(--bone-30)',
+  } as CSSProperties
+  const pick = (i: number) => onYear(two[i].year)
+  const caption = (head: string, line: string) => (
+    <figcaption className="mb-4">
+      <span className="block text-lg font-medium">{head}</span>
+      <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{line}</span>
+    </figcaption>
+  )
+
+  return (
+    <section id="two-clocks" aria-labelledby="two-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
+        <div className="lg:col-span-4">
+          <h2 id="two-h" className={title}>{twoClocksHeading(d)}</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            Terra and Aqua carry the same camera. Since 2021 Terra has looked earlier and Aqua later, each counted against the
+            same VIIRS reference. Dividing one by the other cancels what both share, the orbit's sampling of the region, and
+            leaves the clock.
+          </p>
+          {t ? (
+            <dl aria-live="polite" className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
+              <dt className="text-[color:var(--bone3)]">Year</dt>
+              <dd className="tabular-nums">{t.year}</dd>
+              <dt className="text-[color:var(--bone3)]">Aqua</dt>
+              <dd className="tabular-nums">{pct(asPct(t.A))} at {t.aqua_lst} <span className="text-[color:var(--bone3)]">{fmtRange(asPct(t.A_lo), asPct(t.A_hi))}</span></dd>
+              <dt className="text-[color:var(--bone3)]">Terra</dt>
+              <dd className="tabular-nums">{pct(asPct(t.T))} at {t.terra_lst} <span className="text-[color:var(--bone3)]">{fmtRange(asPct(t.T_lo), asPct(t.T_hi))}</span></dd>
+              <dt className="text-[color:var(--bone3)]">Aqua against Terra</dt>
+              <dd className="tabular-nums">{pct(logPct(t.clock_diff))} <span className="text-[color:var(--bone3)]">{fmtRange(logPct(t.clock_lo), logPct(t.clock_hi))}</span></dd>
+              <dt className="text-[color:var(--bone3)]">Shared sampling</dt>
+              <dd className="tabular-nums">{pct(logPct(t.sampling_est))} <span className="text-[color:var(--bone3)]">cancelled</span></dd>
+            </dl>
+          ) : null}
+        </div>
+
+        {two.length ? (
+          <div className="flex min-w-0 flex-col gap-16 lg:col-span-8">
+            <figure className="m-0">
+              {caption('The two probes', 'Each satellite’s count against VIIRS, 2012–2020 = 0. Hover or step through the years.')}
+              <SeriesChart
+                labels={labels}
+                series={probes}
+                reference={{ value: 0, label: 'VIIRS reference', color: 'var(--sage)' }}
+                height={small ? 220 : 260}
+                activeIndex={shownIndex}
+                selectedIndex={selected >= 0 ? selected : null}
+                onInspect={setInspect}
+                onSelect={pick}
+                groupLabel={`Terra and Aqua against VIIRS for ${d.name}`}
+                columnText={columnText}
+                formatTick={tickText}
+                ink={ink}
+              />
+            </figure>
+            <figure className="m-0" style={diffVars}>
+              {caption('The difference, with shared sampling cancelled', 'Aqua’s change against Terra’s each year; a range clear of zero is the clock.')}
+              <AnomalyChart
+                points={difference}
+                height={small ? 200 : 220}
+                activeIndex={shownIndex}
+                selectedIndex={selected >= 0 ? selected : null}
+                onInspect={setInspect}
+                onSelect={pick}
+                groupLabel={`Aqua against Terra for ${d.name}`}
+                formatTick={tickText}
+                legend={{ outside: 'Range clear of zero', inside: 'Range overlaps zero', range: 'Range' }}
+              />
+            </figure>
+            <figure className="m-0">
+              {caption(
+                'The fire-day curve',
+                `Where each satellite looked, and what it counted there. From ${first.year} to ${last.year} Terra’s look moved ${way(first.terra_lst, last.terra_lst)} and Aqua’s ${way(first.aqua_lst, last.aqua_lst)}; VIIRS is the fixed reference. Together the points trace the day.`,
+              )}
+              <DayCurve d={d} active={shownIndex} small={small} />
+            </figure>
+            <p className="text-xs text-[color:var(--bone3)]">Source: twoclocks/{d.id}.json{d.twoMock ? ' · MOCK' : ''}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-[color:var(--bone2)] lg:col-span-8">The two-clocks test for {d.phrase.the} is not in the data yet.</p>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/** Where each satellite looked and what it counted there, year by year, on a clock of the day: Terra's points (hollow),
+ *  Aqua's (filled) and the VIIRS reference (a sage diamond at zero, by definition), joined in time order into the curve
+ *  they trace. Every point comes straight from the file; nothing is fitted. */
+function DayCurve({ d, active, small }: { d: RegionData; active: number; small: boolean }) {
+  const boxRef = useRef<HTMLDivElement | null>(null)
+  const width = useMeasuredWidth(boxRef)
+  const two = d.two
+  const terra = two.map((t) => ({ x: hm(t.terra_lst), y: asPct(t.T), year: t.year }))
+  const aqua = two.map((t) => ({ x: hm(t.aqua_lst), y: asPct(t.A), year: t.year }))
+  const viirsAt = d.driftAt(two[active]?.year ?? two[two.length - 1]?.year ?? 2025)?.viirs_lst
+  const ref = viirsAt ? { x: hm(viirsAt), y: 0, year: 0 } : null
+  const all = [...terra, ...aqua, ...(ref ? [ref] : [])]
+  const x0 = Math.floor(Math.min(...all.map((p) => p.x)) - 0.5)
+  const x1 = Math.ceil(Math.max(...all.map((p) => p.x)) + 0.5)
+  const sc = niceTicks(Math.min(0, ...all.map((p) => p.y)), Math.max(0, ...all.map((p) => p.y)))
+  const height = small ? 220 : 260
+  const M = { top: 16, right: 16, bottom: 32, left: 48 }
+  const plotW = Math.max(0, width - M.left - M.right)
+  const plotH = height - M.top - M.bottom
+  const X = (h: number) => M.left + ((h - x0) / (x1 - x0)) * plotW
+  const Y = (v: number) => M.top + (1 - (v - sc.d0) / (sc.d1 - sc.d0)) * plotH
+  const hours = Array.from({ length: x1 - x0 + 1 }, (_, i) => x0 + i)
+  const curve = [...all].sort((a, b) => a.x - b.x)
+  const path = (pts: { x: number; y: number }[]) => pts.map((p) => `${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join(' ')
+  const lastT = terra[terra.length - 1]
+  const lastA = aqua[aqua.length - 1]
+  const description = two.length
+    ? `Fire-day curve for ${d.name}: Terra looked from ${two[0].terra_lst} to ${two[two.length - 1].terra_lst} and counted ${pct(terra[0].y)} to ${pct(lastT.y)} against 2012 to 2020; Aqua looked from ${two[0].aqua_lst} to ${two[two.length - 1].aqua_lst} and counted ${pct(aqua[0].y)} to ${pct(lastA.y)}${viirsAt ? `; VIIRS, the reference, looked at ${viirsAt}` : ''}.`
+    : `Fire-day curve for ${d.name}: not in the data yet.`
+
+  return (
+    <div ref={boxRef} role="img" aria-label={description} className="relative w-full" style={{ height }}>
+      {width > 0 && two.length ? (
+        <svg width={width} height={height} aria-hidden className="absolute inset-0 block overflow-visible">
+          {sc.ticks.map((v) => (
+            <g key={v}>
+              <line x1={M.left} x2={M.left + plotW} y1={Y(v)} y2={Y(v)} stroke="var(--hairline)" shapeRendering="crispEdges" />
+              <text x={M.left - 8} y={Y(v)} textAnchor="end" dominantBaseline="central" fontSize={12} fill="var(--bone2)">{tickText(v)}</text>
+            </g>
+          ))}
+          {hours.map((h) => (
+            <text key={h} x={X(h)} y={M.top + plotH + 20} textAnchor="middle" fontSize={12} fill="var(--bone2)">{hourLabel(h)}</text>
+          ))}
+          {/* the curve the points trace through the day */}
+          <polyline points={path(curve)} fill="none" stroke="var(--bone-20)" strokeWidth={8} strokeLinecap="round" strokeLinejoin="round" />
+          {/* each satellite's path, year by year */}
+          <polyline points={path(terra)} fill="none" stroke="var(--bone3)" strokeWidth={1} />
+          <polyline points={path(aqua)} fill="none" stroke="var(--bone)" strokeWidth={1} />
+          {terra.map((p, i) => (
+            <circle key={`t${p.year}`} cx={X(p.x)} cy={Y(p.y)} r={i === active ? 5.5 : 3.5} fill="var(--ground)" stroke="var(--bone3)" strokeWidth={2} />
+          ))}
+          {aqua.map((p, i) => (
+            <circle key={`a${p.year}`} cx={X(p.x)} cy={Y(p.y)} r={i === active ? 5.5 : 3.5} fill="var(--bone)" stroke="var(--ground)" strokeWidth={i === active ? 2 : 1} />
+          ))}
+          {ref ? (
+            <g>
+              <rect x={X(ref.x) - 5} y={Y(0) - 5} width={10} height={10} transform={`rotate(45 ${X(ref.x)} ${Y(0)})`} fill="var(--sage)" />
+              <text x={X(ref.x)} y={Y(0) + 20} textAnchor="middle" fontSize={12} fill="var(--sage)" stroke="var(--ground)" strokeWidth={4} paintOrder="stroke">VIIRS {viirsAt}</text>
+            </g>
+          ) : null}
+          <text x={X(lastT.x) - 10} y={Y(lastT.y)} textAnchor="end" dominantBaseline="central" fontSize={12} fill="var(--bone2)" stroke="var(--ground)" strokeWidth={4} paintOrder="stroke">Terra {two[two.length - 1].year}</text>
+          <text x={X(lastA.x) + 10} y={Y(lastA.y)} dominantBaseline="central" fontSize={12} fill="var(--bone)" stroke="var(--ground)" strokeWidth={4} paintOrder="stroke">Aqua {two[two.length - 1].year}</text>
+        </svg>
+      ) : null}
+    </div>
+  )
+}
+
+/* ---------- How do we know? The pre-registered checks, P1-P10 ---------- */
+
+const COUNT_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve']
+const STATUS: Record<Check['status'], string> = { pass: 'Passes', fail: 'Fails', pending: 'Still to run' }
+
+function checksHeading(cs: Check[]) {
+  const n = cs.length
+  const pass = cs.filter((c) => c.status === 'pass').length
+  const fail = cs.filter((c) => c.status === 'fail').length
+  const pending = n - pass - fail
+  if (!n) return 'The checks are not in the data yet'
+  if (pending === n) return `${COUNT_WORDS[n] ?? n} checks, written down before the results, still to run`
+  return [`${pass} of ${n} checks pass`, fail ? `${fail} ${fail === 1 ? 'fails' : 'fail'}` : '', pending ? `${pending} still to run` : ''].filter(Boolean).join(', ')
+}
+
+/** The team names INPE only once its reproduction (P3) matches; until then a check speaks of the official series. */
+function checkText(c: Check, inpeConfirmed: boolean) {
+  return inpeConfirmed ? c.name : c.name.replace(/INPE's/g, 'the official').replace(/\bINPE\b/g, 'the official series')
+}
+
+function StatusMark({ status }: { status: Check['status'] }) {
+  if (status === 'pass') {
+    return (
+      <svg width={14} height={14} viewBox="0 0 14 14" aria-hidden>
+        <circle cx={7} cy={7} r={7} fill="var(--bone)" />
+        <path d="M4 7.2 6.1 9.2 10 5" fill="none" stroke="var(--ink)" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    )
+  }
+  if (status === 'fail') {
+    return (
+      <svg width={14} height={14} viewBox="0 0 14 14" aria-hidden>
+        <rect x={1} y={1} width={12} height={12} fill="none" stroke="var(--bone)" strokeWidth={1.6} />
+        <path d="M4.5 4.5 9.5 9.5M9.5 4.5 4.5 9.5" stroke="var(--bone)" strokeWidth={1.6} strokeLinecap="round" />
+      </svg>
+    )
+  }
+  return (
+    <svg width={14} height={14} viewBox="0 0 14 14" aria-hidden>
+      <circle cx={7} cy={7} r={6} fill="none" stroke="var(--bone3)" strokeWidth={1.6} />
+    </svg>
+  )
+}
+
+function Checks() {
+  const { checks, mock } = CHECKS
+  const inpe = checks.find((c) => c.id === 'P3')?.status === 'pass'
+  return (
+    <section id="checks" aria-labelledby="checks-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
+        <div className="lg:col-span-4">
+          <h2 id="checks-h" className={title}>{checksHeading(checks)}</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            How do we know? Each check was written down in the team’s plan before the results came in. Their status updates
+            as the pipeline runs.
+          </p>
+        </div>
+        <div className="min-w-0 lg:col-span-8">
+          <ol className="border-t border-[color:var(--hairline)]">
+            {checks.map((c) => (
+              <li key={c.id} className="grid grid-cols-[3rem_1fr] gap-x-4 gap-y-2 border-b border-[color:var(--hairline)] py-4 sm:grid-cols-[3rem_1fr_8rem]">
+                <span className="text-sm tabular-nums text-[color:var(--bone3)]">{c.id}</span>
+                <div className="min-w-0">
+                  <p className="text-sm text-[color:var(--bone)]">{checkText(c, inpe)}</p>
+                  {c.detail ? <p className="mt-1 text-xs text-[color:var(--bone2)]">{c.detail}</p> : null}
+                </div>
+                <span className="col-start-2 inline-flex items-center gap-2 text-xs text-[color:var(--bone2)] sm:col-start-auto sm:justify-end">
+                  <StatusMark status={c.status} />
+                  {STATUS[c.status]}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: checks.json{mock ? ' · MOCK' : ''}</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ---------- Limits: the team's own caveats ---------- */
+
+function Limits() {
+  return (
+    <section id="limits" aria-labelledby="limits-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-6 py-24 lg:grid-cols-12 lg:gap-x-6')}>
+        <div className="lg:col-span-4">
+          <h2 id="limits-h" className={title}>What this audit can’t tell you</h2>
+        </div>
+        <div className="lg:col-span-8">
+          <p className="max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">The team is writing this section.</p>
+        </div>
       </div>
     </section>
   )

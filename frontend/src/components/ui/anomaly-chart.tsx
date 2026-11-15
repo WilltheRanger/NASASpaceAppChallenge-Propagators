@@ -10,7 +10,8 @@
  * carries its uncertainty range as a whisker; points outside the band are filled and the rest hollow, so the reading
  * never rests on colour alone; a zero line and labelled ticks; the band is labelled where it is drawn; gaps where a
  * year has no value; one column at a time can be inspected by pointer or keyboard (a radio group with roving focus),
- * and the caller shows the reading; colours come from --ac-* tokens. No entrance animation.
+ * and the caller shows the reading; year labels thin out on narrow screens; colours come from --ac-* tokens. No
+ * entrance animation.
  */
 import * as React from 'react'
 import { cn } from '@/lib/utils'
@@ -137,6 +138,8 @@ export function AnomalyChart({
     bandText = { x: right, y: clear(above - 12, above + 3) || !clear(below - 12, below + 3) ? above : below }
   }
 
+  // with many narrow columns, label every few, counting back from the latest
+  const labelEvery = col > 0 && col < 36 ? Math.ceil(36 / col) : 1
   const fallbackStop = (() => { for (let i = n - 1; i >= 0; i--) if (points[i].value != null) return i; return n - 1 })()
   const tabStop = selectedIndex ?? activeIndex ?? fallbackStop
   const move = (to: number) => {
@@ -207,7 +210,7 @@ export function AnomalyChart({
                 </g>
               ),
             )}
-            {points.map((p, i) => (
+            {points.map((p, i) => (n - 1 - i) % labelEvery !== 0 ? null : (
               <text
                 key={`x-${p.id}`}
                 x={cx(i)}
