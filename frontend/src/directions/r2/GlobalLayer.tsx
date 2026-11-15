@@ -8,9 +8,7 @@ import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { cn } from '@/lib/utils'
 import { REGIONS, fmtInt, fmtShift, pct, type CalendarCell } from '@/r2/data'
 import { COAST } from '@/r2/globe-land'
-import { L_STEPS, globalCell, globalGrid, reading, stepOf, type GlobalCalendar, type GlobalCell, type GlobalGrid } from '@/r2/global'
-
-const EXPLORATORY = 'Early exploration: the same comparison as the six places, not checked against any country’s own count.'
+import { DOWN, EXPLORATORY, L_STEPS, NEAR, THIN, UP, cellName, colorOf, globalCell, globalGrid, reading, type GlobalCalendar, type GlobalCell, type GlobalGrid } from '@/r2/global'
 
 // the page's classes, as FieldFilm.tsx sets them
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
@@ -19,21 +17,11 @@ const title = 'text-balance text-[length:var(--fs-40)] font-medium leading-[var(
 const shell = 'mx-auto w-full max-w-[var(--maxw)] px-4 sm:px-8'
 const pill = cn('h-9 px-4 text-sm outline-none', ease, focusRing)
 
-// sand above the fixed clock, slate below (the calendar's two arms, one step brighter for a dark map); grey within 5%
-const UP = ['#604825', '#876533', '#AE8446', '#D6A866', '#F0CB8E']
-const DOWN = ['#29495C', '#36647D', '#4B82A1', '#68A4C6', '#9CC8E2']
-const NEAR = '#5B5D57'
-const THIN = '#3A3D39'
-const colorOf = (L: number) => { const s = stepOf(L); return s === 0 ? NEAR : (L > 1 ? UP : DOWN)[s - 1] }
-
 // the map shows 84N to 60S: every cell with a detection sits inside it
 const LAT_TOP = 84, LAT_BOTTOM = -60, DEG = 2
 const COLS = 360 / DEG, ROWS = (LAT_TOP - LAT_BOTTOM) / DEG
 
-const side = (v: number, pos: string, neg: string) => `${Math.abs(v)}°${v === 0 ? '' : v > 0 ? pos : neg}`
-const cellName = (c: GlobalCell) => `${side(c.lat0, 'N', 'S')} to ${side(c.lat1, 'N', 'S')}, ${side(c.lon0, 'E', 'W')} to ${side(c.lon1, 'E', 'W')}`
-
-function describe(c: GlobalCell, year: 2024 | 2025) {
+export function describe(c: GlobalCell, year: 2024 | 2025) {
   const r = reading(c, year)
   if (!r.ok || r.L == null || r.lo == null || r.hi == null) return `Too few fires to read in ${year}`
   return `Aqua ${pct((r.L - 1) * 100, 0)} against what we’d expect in ${year} (how sure we are: ${pct((r.lo - 1) * 100, 0)} to ${pct((r.hi - 1) * 100, 0)}); ${r.outside ? 'unusual' : 'not unusual'} for this square`
@@ -133,7 +121,7 @@ export function GlobalLayer({ region, small }: { region: string; small: boolean 
   )
 }
 
-function Legend() {
+export function Legend() {
   const sw = 'inline-block h-3 w-4'
   const edge = (i: number) => Math.round(L_STEPS[i] * 100)
   return (
@@ -260,7 +248,7 @@ function WorldMap({ grid, byKey, year, region, picked, onHover, onPick }: {
   )
 }
 
-function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 | 2025; small: boolean }) {
+export function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 | 2025; small: boolean }) {
   const [cal, setCal] = useState<GlobalCalendar | null>(null)
   const [state, setState] = useState<'none' | 'loading' | 'ready' | 'failed'>('none')
   const hasCalendar = cell.status === 'ok' || cell.status_2024 === 'ok'

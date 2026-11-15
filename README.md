@@ -29,6 +29,7 @@ Every number in the app comes from the JSON files in `data/out/`, which are prod
 - **Daylight left after the alert:** how much daylight remains when each satellite's alert arrives, before and after the drift.
 - **Ten written predictions:** each checked against the data, with failures reported as written.
 - **A world map (exploratory):** the same clock audit on every 2° cell of the map with enough fires, with a calendar per cell. It is not checked against a national reference series.
+- **Explore, a globe for any place:** far out, the world map's 2° cells; click one for its reading and calendar. Close in, the past day's NASA FIRMS detections; click one to see which satellites saw that spot, and when. A searched place shows the reading of the cell it sits in. One real fire day (Pará, 2 Sep 2024) shows which fires each pass saw and the daylight left when its alert arrives; the alert delays are NASA's published range for FIRMS data. Nothing on the page is modelled.
 - **A limits section:** in the app and below.
 
 ## Method in brief

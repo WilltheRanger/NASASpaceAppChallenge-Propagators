@@ -1,9 +1,9 @@
-// Daylight left after the alert, moved off the Region page for the Simulator: how much day an alert from each pass
+// Daylight left after the alert, moved off the Region page for the Explore page: how much day an alert from each pass
 // leaves before sunset, year by year, and one real fire day in Pará. Self-contained (it reads the region's files itself)
 // and sized by its container, not the window, so it fits a 340 px rail or a full page.
 // Real: the look times, the fires, the passes and the counts (NASA FIRMS); sunset from NOAA's solar equations.
-// Made up, and labelled so: the alert delays (none, 1.5 and 3 hours) are examples. The fire-day file also holds
-// helicopters, bases and a fleet; they are illustrative assumptions and nothing here reads them.
+// The alert delays (none, 1.5 and 3 hours) are examples inside NASA's published range for FIRMS data, labelled so.
+// Nothing here reads the fire-day file's other fields.
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/series-chart'
 import { FIRE_DAY, MONTHS, daylight, daylightHeadline, fmtHM, fmtInt, regionData, type DayFire, type RegionData, type SatKey } from '@/r2/data'
@@ -192,8 +192,7 @@ export function FireDayMap() {
       <More label="How we worked it out" className="mt-1">
         <p className="mt-1 text-xs text-[color:var(--bone2)]">
           A fire is a patch of detections in touching 0.05° cells. Alert = the end of the pass over this box, plus the example
-          delay. Sunset: NOAA’s solar equations at the box centre. The day’s file also lists bases and helicopters; those are
-          made-up examples and are not used here.
+          delay. Sunset: NOAA’s solar equations at the box centre.
         </p>
       </More>
     </figure>

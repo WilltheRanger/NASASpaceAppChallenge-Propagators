@@ -1,0 +1,337 @@
+{
+ "url": "http://localhost:4173/",
+ "checks": {
+  "E1_tally": {
+   "pass": true,
+   "rows": [
+    {
+     "year": 2025,
+     "file": "721 squares can be read; 354 are unusual (260 above, 94 below).",
+     "page": "721 squares can be read; 354 are unusual (260 above, 94 below).",
+     "pass": true
+    },
+    {
+     "year": 2024,
+     "file": "776 squares can be read; 326 are unusual (277 above, 49 below).",
+     "page": "776 squares can be read; 326 are unusual (277 above, 49 below).",
+     "pass": true
+    }
+   ]
+  },
+  "E2_squares": {
+   "pass": true,
+   "rows": [
+    {
+     "cell": "g2_-44_-4",
+     "readable": true,
+     "expected": [
+      "+34%",
+      "How sure we are: +5% to +58%",
+      "unusual for this square",
+      "Aqua 2,826 · S-NPP 10,830"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_-92_18",
+     "readable": true,
+     "expected": [
+      "−3%",
+      "How sure we are: −25% to +19%",
+      "not unusual for this square",
+      "Aqua 2,389 · S-NPP 14,480"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_34_-20",
+     "readable": true,
+     "expected": [
+      "+17%",
+      "How sure we are: +4% to +35%",
+      "unusual for this square",
+      "Aqua 8,243 · S-NPP 43,387"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_38_-18",
+     "readable": true,
+     "expected": [
+      "+15%",
+      "How sure we are: +1% to +37%",
+      "unusual for this square",
+      "Aqua 4,598 · S-NPP 28,397"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_28_-2",
+     "readable": true,
+     "expected": [
+      "+8%",
+      "How sure we are: −11% to +38%",
+      "not unusual for this square",
+      "Aqua 611 · S-NPP 4,496"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_138_-24",
+     "readable": false,
+     "expected": [
+      "Too few fires to read in 2025",
+      "Aqua 19 · S-NPP 142"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_56_22",
+     "readable": false,
+     "expected": [
+      "Too few fires to read in 2025",
+      "Aqua 5 · S-NPP 1,252"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_-180_66",
+     "readable": false,
+     "expected": [
+      "Too few fires to read in 2025",
+      "Aqua 0 · S-NPP 0"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_136_-2",
+     "readable": false,
+     "expected": [
+      "Too few fires to read in 2025",
+      "Aqua 3 · S-NPP 139"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "cell": "g2_-108_46",
+     "readable": false,
+     "expected": [
+      "Too few fires to read in 2025",
+      "Aqua 9 · S-NPP 34"
+     ],
+     "missing": [],
+     "pass": true
+    }
+   ]
+  },
+  "E3_fire_day": {
+   "pass": true,
+   "rows": [
+    {
+     "alert_from": "Terra",
+     "delay_h": 0,
+     "expected": [
+      "Alert arrives: 10:02",
+      "Daylight left: 7 h 58",
+      "Fires this pass saw: 35",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "Terra",
+     "delay_h": 1.5,
+     "expected": [
+      "Alert arrives: 11:32",
+      "Daylight left: 6 h 28",
+      "Fires this pass saw: 35",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "Terra",
+     "delay_h": 3,
+     "expected": [
+      "Alert arrives: 13:02",
+      "Daylight left: 4 h 58",
+      "Fires this pass saw: 35",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "S-NPP",
+     "delay_h": 0,
+     "expected": [
+      "Alert arrives: 13:44",
+      "Daylight left: 4 h 16",
+      "Fires this pass saw: 74",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "S-NPP",
+     "delay_h": 1.5,
+     "expected": [
+      "Alert arrives: 15:14",
+      "Daylight left: 2 h 46",
+      "Fires this pass saw: 74",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "S-NPP",
+     "delay_h": 3,
+     "expected": [
+      "Alert arrives: 16:44",
+      "Daylight left: 1 h 16",
+      "Fires this pass saw: 74",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "NOAA-20",
+     "delay_h": 0,
+     "expected": [
+      "Alert arrives: 14:08",
+      "Daylight left: 3 h 52",
+      "Fires this pass saw: 79",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "NOAA-20",
+     "delay_h": 1.5,
+     "expected": [
+      "Alert arrives: 15:38",
+      "Daylight left: 2 h 22",
+      "Fires this pass saw: 79",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "NOAA-20",
+     "delay_h": 3,
+     "expected": [
+      "Alert arrives: 17:08",
+      "Daylight left: 52 min",
+      "Fires this pass saw: 79",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "Aqua",
+     "delay_h": 0,
+     "expected": [
+      "Alert arrives: 14:47",
+      "Daylight left: 3 h 13",
+      "Fires this pass saw: 58",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "Aqua",
+     "delay_h": 1.5,
+     "expected": [
+      "Alert arrives: 16:17",
+      "Daylight left: 1 h 43",
+      "Fires this pass saw: 58",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    },
+    {
+     "alert_from": "Aqua",
+     "delay_h": 3,
+     "expected": [
+      "Alert arrives: 17:47",
+      "Daylight left: 13 min",
+      "Fires this pass saw: 58",
+      "of 92",
+      "18:00"
+     ],
+     "missing": [],
+     "pass": true
+    }
+   ]
+  },
+  "E4_wording": {
+   "pass": true,
+   "rows": [
+    {
+     "page": "/",
+     "found": [],
+     "pass": true
+    },
+    {
+     "page": "?page=regions&region=br-amazon",
+     "found": [],
+     "pass": true
+    },
+    {
+     "page": "?page=explore",
+     "found": [],
+     "pass": true
+    },
+    {
+     "page": "?page=explore&place=br-amazon",
+     "found": [],
+     "pass": true
+    },
+    {
+     "page": "?page=explore&cell=g2_-56_-12",
+     "found": [],
+     "pass": true
+    },
+    {
+     "page": "?page=method",
+     "found": [],
+     "pass": true
+    }
+   ]
+  },
+  "E5_no_page_errors": {
+   "pass": true,
+   "errors": []
+  }
+ }
+}
