@@ -33,7 +33,8 @@ const TOKENS = {
   ...BASE_TOKENS,
   // backlit table: a soft tone shift inside the one neutral, brightest behind the prints and the record
   '--backlight': 'radial-gradient(ellipse 980px 700px at 70% 460px, #F3F7F7 0%, rgba(243, 247, 247, 0) 100%)',
-  // correction magenta: marks and text. Used only where the clock changed the count.
+  // correction magenta: marks and text. Used only where the clock changed the count. The correction hatch is --magenta
+  // at 16% (1 px every 6 px); a selected year the clock did not change gets the same hatch in ink instead.
   '--magenta': '#D31A8D',
   '--magenta-text': '#BB007A',
   '--hatch-correction': 'repeating-linear-gradient(135deg, rgba(211, 26, 141, 0.16) 0 1px, transparent 1px 6px)',
@@ -52,13 +53,14 @@ const TOKENS = {
   '--measure': '36rem',
   '--hero-h': 'calc(100svh - 57px)',
   '--select-max': '220px',
-  '--print-w': 'min(216px, calc((100% - 24px) / 3))',
+  // prints: 200 px image in an 8 px border (216 wide), sized from the light-table container; the card covers their lower half
+  '--print-w': 'min(216px, calc((100cqw - 72px) / 3))',
+  '--print-w-sm': 'min(216px, calc((100cqw - 24px) / 3))',
+  '--overlap': 'calc((var(--print-w) + 24px) * -0.5 - 4px)',
   '--tilt-terra': '-2deg',
   '--tilt-viirs': '1deg',
   '--tilt-aqua': '-1.5deg',
   '--tilt-card': '-1deg',
-  '--overlap': '-108px',
-  '--card-pt': '132px',
   // calendar toners (stepped): blue below the median, sepia above, neutral zones for counts
   '--cal-down-1': '#E0E9F1',
   '--cal-down-2': '#BBCDDD',
@@ -346,20 +348,21 @@ function TopBar({ region, onRegion }: { region: string; onRegion: (id: string) =
 /* ---------- Hero composition: prints laid on the record card, on the light table ---------- */
 
 function Print({ p }: { p: (typeof PRINTS)[number] }) {
+  // the label sits on the print's top margin: the record card lies over the lower half of each print
   return (
     <figure
       className={cn(
-        'm-0 w-[var(--print-w)] shrink-0 rounded bg-[var(--sheet)] px-2 pt-2 shadow-[var(--shadow-sheet)] ring-1 ring-[var(--hairline)]',
+        'm-0 w-[var(--print-w-sm)] shrink-0 rounded bg-[var(--sheet)] p-2 shadow-[var(--shadow-sheet)] ring-1 ring-[var(--hairline)] lg:w-[var(--print-w)]',
         p.tilt,
         p.drop,
       )}
     >
-      <img src={p.src} alt={p.alt} width={720} height={720} className="block aspect-square w-full object-cover" />
-      <figcaption className="py-2 text-xs leading-4 text-[color:var(--ink2)]">
+      <figcaption className="pb-2 text-xs leading-4 text-[color:var(--ink2)]">
         {p.name}
         <span className="hidden sm:inline"> · </span>
         <span className="block sm:inline">{p.pass}</span>
       </figcaption>
+      <img src={p.src} alt={p.alt} width={720} height={720} className="block aspect-square w-full object-cover" />
     </figure>
   )
 }
@@ -367,14 +370,14 @@ function Print({ p }: { p: (typeof PRINTS)[number] }) {
 function LightTable({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
   const selected = d.years.find((y) => y.year === year) ?? d.years[d.years.length - 1]
   return (
-    <div className="relative">
-      <div className="relative z-10 flex items-start justify-between gap-3 lg:px-6">
+    <div className="@container relative">
+      <div className="relative flex items-start justify-between gap-3 lg:px-6">
         {PRINTS.map((p) => <Print key={p.name} p={p} />)}
       </div>
 
       <article
         aria-labelledby="record-h"
-        className="relative mt-6 rounded bg-[var(--sheet)] p-4 shadow-[var(--shadow-sheet)] ring-1 ring-[var(--hairline)] sm:p-6 lg:mt-[var(--overlap)] lg:rotate-[var(--tilt-card)] lg:pt-[var(--card-pt)]"
+        className="relative z-10 mt-6 rounded bg-[var(--sheet)] p-4 shadow-[var(--shadow-sheet)] ring-1 ring-[var(--hairline)] sm:p-6 lg:mt-[var(--overlap)] lg:rotate-[var(--tilt-card)]"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
           <h2 id="record-h" className="font-[family-name:var(--f-cond)] text-[length:var(--fs-28)] font-medium leading-8 tracking-[var(--track-display)]">
@@ -387,17 +390,17 @@ function LightTable({ d, year, onYear }: { d: RegionData; year: number; onYear: 
 
         <div className="-mx-4 mt-4 overflow-x-auto sm:-mx-6">
           <table className="w-full border-collapse">
-            <caption className="sr-only">
+            <caption className="sr-only text-sm">
               Clock effect by year for {d.name}: when Aqua looked, the fixed clock, the shift between them, the clock effect with its range, and the reading against the ±{d.noise}% noise floor. Choose a year to read its counts.
             </caption>
             <thead>
               <tr className="h-8 border-b border-[var(--ink)] text-xs text-[color:var(--ink3)]">
-                <th scope="col" className="pl-4 pr-2 text-left font-normal sm:pl-6">Year</th>
+                <th scope="col" className="pl-4 pr-0 text-left font-normal sm:pl-6 sm:pr-2">Year</th>
                 <th scope="col" className="hidden px-3 text-right font-normal sm:table-cell">Aqua looked</th>
                 <th scope="col" className="hidden px-3 text-right font-normal sm:table-cell">Fixed clock</th>
-                <th scope="col" className="px-2 text-right font-normal sm:px-3">Shift</th>
-                <th scope="col" className="px-2 text-right font-normal sm:px-3">Clock effect</th>
-                <th scope="col" className="px-2 text-right font-normal sm:px-3">Range</th>
+                <th scope="col" className="pl-1 pr-2 text-right font-normal sm:px-3">Shift</th>
+                <th scope="col" className="pl-1 pr-2 text-right font-normal sm:px-3">Clock effect</th>
+                <th scope="col" className="pl-1 pr-2 text-right font-normal sm:px-3">Range</th>
                 <th scope="col" className="pl-2 pr-4 text-left font-normal sm:pl-3 sm:pr-6">Reading</th>
               </tr>
             </thead>
@@ -413,7 +416,8 @@ function LightTable({ d, year, onYear }: { d: RegionData; year: number; onYear: 
           {selected ? noteFor(selected) : null}
         </p>
         <p className="mt-2 text-xs text-[color:var(--ink3)]">
-          Clock effect = Aqua-based count ÷ fixed-clock count − 1. Range from the regional bootstrap. Source: audit/{d.id}.json, drift/{d.id}.json · MOCK
+          Clock effect = Aqua-based count ÷ fixed-clock count − 1. Range from the regional bootstrap. Source:{' '}
+          <span className="whitespace-nowrap">audit/{d.id}.json,</span> <span className="whitespace-nowrap">drift/{d.id}.json · MOCK</span>
         </p>
       </article>
 
@@ -424,7 +428,7 @@ function LightTable({ d, year, onYear }: { d: RegionData; year: number; onYear: 
   )
 }
 
-const valueCell = 'whitespace-nowrap px-2 text-right font-[family-name:var(--f-mono)] text-xs tabular-nums sm:px-3 sm:text-sm'
+const valueCell = 'whitespace-nowrap pl-1 pr-2 text-right font-[family-name:var(--f-mono)] text-xs tabular-nums sm:px-3 sm:text-sm'
 
 function RecordRow({ d, y, selected, onSelect }: { d: RegionData; y: AuditRow; selected: boolean; onSelect: () => void }) {
   const dr = d.driftAt(y.year)
@@ -441,12 +445,12 @@ function RecordRow({ d, y, selected, onSelect }: { d: RegionData; y: AuditRow; s
         selected && (corrected ? 'bg-[image:var(--hatch-correction)]' : 'bg-[image:var(--hatch-neutral)]'),
       )}
     >
-      <th scope="row" className="pl-4 pr-2 text-left font-normal sm:pl-6">
+      <th scope="row" className="pl-4 pr-0 text-left font-normal sm:pl-6 sm:pr-2">
         <button
           type="button"
           aria-pressed={selected}
           onClick={(e) => { e.stopPropagation(); onSelect() }}
-          className={cn('-mx-1 inline-flex h-8 items-center gap-2 rounded px-1 text-xs tabular-nums text-[color:var(--ink)] sm:text-sm', focusRing)}
+          className={cn('-mx-1 inline-flex h-8 items-center gap-1 rounded px-1 sm:gap-2 text-xs tabular-nums text-[color:var(--ink)] sm:text-sm', focusRing)}
         >
           <span aria-hidden className={cn('size-2 shrink-0', selected ? 'bg-[var(--ink)]' : 'border border-[var(--ink3)]')} />
           <span className={selected ? 'font-medium' : undefined}>{y.year}</span>
