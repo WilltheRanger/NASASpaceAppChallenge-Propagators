@@ -20,6 +20,7 @@ import { DeltaTicker } from '@/components/ui/delta-ticker'
 import { SiChat, type SiTurn } from '@/components/ui/si-chat'
 import { ChartLine } from '@/components/ui/chart-line'
 import { ChartKpi } from '@/components/ui/chart-kpi'
+import { DaylightSection } from './daylight'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, hm, isValidation, novemberRatio, regionData } from '@/r2/data'
@@ -205,7 +206,11 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const [clock, setClockState] = useState<Clock>('new')
   /** one fire day with a made-up response: which satellite's pass raises the alert, and the alert's (made-up) delay */
   const [day, setDay] = useState<{ src: DaySource; delay: DayDelay } | null>(null)
-  const playDay = () => { setFire(null); setShow({ terra: false, aqua: false, viirs: false }); setDay({ src: 'Aqua', delay: 0 }) }
+  const playDay = () => { setLightOpen(false); setFire(null); setShow({ terra: false, aqua: false, viirs: false }); setDay({ src: 'Aqua', delay: 0 }) }
+  /** the Daylight section (moved here from the Region page), over the map */
+  const [lightOpen, setLightOpen] = useState(false)
+  const lightRef = useRef(lightOpen)
+  lightRef.current = lightOpen
   const endDay = () => { setDay(null); setShow(ALL) }
   /** Aqua's old time or its new one: the map shows the fires seen at about that time */
   const setClock = (c: Clock) => {
@@ -251,12 +256,13 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     setClockState('new')
     setShow(ALL)
     setDay(null)
+    setLightOpen(false)
     const xy = p.kind === 'Place' || p.kind === 'Coordinates'
     writeParams(nav, { place: xy ? `xy-${p.lat.toFixed(4)},${p.lon.toFixed(4)}` : p.id, name: p.kind === 'Place' ? p.name : null })
     // the place's heading takes focus, so the next Tab continues from the place, not the top of the page
     requestAnimationFrame(() => headRef.current?.focus({ preventScroll: true }))
   }
-  const back = () => { setPlace(null); setArrived(false); setQ(''); setFire(null); setDay(null); setShow(ALL); writeParams(nav, { place: null, name: null }) }
+  const back = () => { setPlace(null); setArrived(false); setQ(''); setFire(null); setDay(null); setShow(ALL); setLightOpen(false); writeParams(nav, { place: null, name: null }) }
   const pickRegion = (id: string) => { const p = STUDIED_PLACES.find((x) => x.id === id); if (p) choose(p) }
 
   const pickFire = (i: number) => {
@@ -287,6 +293,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
       const t = e.target
       const inField = t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); inputRef.current?.focus(); setOpen(true) }
+      else if (e.key === 'Escape' && !inField && lightRef.current) setLightOpen(false)
       else if (e.key === 'Escape' && !inField && fireRef.current != null) setFire(null)
     }
     window.addEventListener('keydown', onKey)
@@ -319,7 +326,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     <Idle onPick={pickRegion} onPlayDay={playDay} />
   ) : facts ? (
     <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} clock={clock} onClock={setClock}
-      daylight={facts.d.id === 'br-amazon' ? <DaySection onPlay={playDay} active={day != null} /> : null} />
+      daylight={<DaySection onPlay={facts.d.id === 'br-amazon' ? playDay : undefined} onYears={() => setLightOpen(true)} active={day != null} />} />
   ) : (
     <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} />
   )
@@ -420,6 +427,16 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
 
           {wide ? (
             <div ref={chartRef} className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2">{chart}</div>
+          ) : null}
+
+          {lightOpen && region ? (
+            <div role="region" aria-label="Daylight for firefighters" className="absolute inset-0 z-40 overflow-y-auto bg-[color:var(--ground)] px-5 pb-10 pt-4 sm:px-8">
+              <div className="mb-5 flex items-center justify-between gap-3 border-b border-[color:var(--hairline)] pb-3">
+                <p className="text-sm text-[color:var(--bone2)]">Daylight for firefighters · {short(REGIONS.find((r) => r.id === region)?.name ?? region)}</p>
+                <button type="button" onClick={() => setLightOpen(false)} className={secondary}><X size={15} strokeWidth={1.75} aria-hidden /> Back to the map</button>
+              </div>
+              <DaylightSection region={region} motion={motion} nav={nav} level={2} />
+            </div>
           ) : null}
 
           {wide && !xl && siOpen ? (
@@ -660,19 +677,26 @@ function Idle({ onPick, onPlayDay }: { onPick: (id: string) => void; onPlayDay: 
             </li>
           ))}
         </ul>
+        <p className="mt-3 text-xs leading-5 text-[color:var(--bone3)]">{CAVEAT}</p>
       </div>
       <DaySection onPlay={onPlayDay} active={false} />
     </div>
   )
 }
 
-/** The way into one fire day: daylight for firefighters, with a made-up response. */
-function DaySection({ onPlay, active }: { onPlay: () => void; active: boolean }) {
+/** Daylight for firefighters: one fire day with a made-up response (the Amazon), and daylight left after each
+ *  satellite's alert, year by year (the Daylight section, moved here from the Region page). */
+function DaySection({ onPlay, onYears, active }: { onPlay?: () => void; onYears?: () => void; active: boolean }) {
   return (
     <section aria-labelledby="day-h" className="flex flex-col gap-2 border-t border-[color:var(--hairline)] pt-4">
       <h3 id="day-h" className="text-sm font-medium text-[color:var(--bone)]">Daylight for firefighters</h3>
-      <p className="text-xs leading-5 text-[color:var(--bone2)]">Play one real fire day in the Amazon. Pick which satellite raises the alert and see how much daylight the helicopters have left. The helicopters and bases are made up.</p>
-      <button type="button" onClick={onPlay} disabled={active} className={cn(secondary, 'w-fit disabled:opacity-50')}><Play size={15} strokeWidth={1.75} aria-hidden /> {active ? 'Playing below the map' : 'Play one fire day'}</button>
+      <p className="text-xs leading-5 text-[color:var(--bone2)]">
+        {onPlay ? 'Play one real fire day in the Amazon: pick which satellite raises the alert and see how much daylight the helicopters have left. The helicopters and bases are made up.' : 'How much daylight is left after an alert from each satellite, year by year. The alert delays are made-up examples.'}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {onPlay ? <button type="button" onClick={onPlay} disabled={active} className={cn(secondary, 'disabled:opacity-50')}><Play size={15} strokeWidth={1.75} aria-hidden /> {active ? 'Playing below the map' : 'Play one fire day'}</button> : null}
+        {onYears ? <button type="button" onClick={onYears} className={secondary}>Daylight by year <ArrowRight size={14} strokeWidth={1.75} aria-hidden /></button> : null}
+      </div>
     </section>
   )
 }
