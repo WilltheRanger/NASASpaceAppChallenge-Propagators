@@ -3,3 +3,4 @@ dist/
 *.local
 dist-artifact/
 .vite/
+public/live/

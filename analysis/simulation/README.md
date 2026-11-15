@@ -40,6 +40,47 @@ Open `preview.html` through any local web server (for example `python3 -m http.s
 - It does not model fire spread, weather, terrain, roads, crew rules, or INPE's operational alert system, which combines all satellites. Fleet, bases and speeds are assumptions chosen to be plausible; change them in `response_sim.py` and the outputs follow.
 - Units are not real deployments, and the results are not operational advice.
 
+## Worldwide: any place, live data
+
+Search a place, get the last 7 days of real detections there, and run the same simulation. The site stays static (GitHub Pages); there is no server and no API key.
+
+### Data flow
+1. **Fetch (scheduled build).** `live_tiles.py` downloads FIRMS's keyless global 7-day files: MODIS C6.1 (Terra, Aqua) and VIIRS C2 (NOAA-20, NOAA-21). S-NPP has been off since 2 November 2026; its file is empty. The files update about hourly.
+2. **Tile.** Daytime detections are cut into 10° tiles of rows `[lat, lon, utc_date, utc_hhmm, satellite, frp]`, with an `index.json` (tiles, counts per day, update time) and `places.json` (Natural Earth populated places, public domain).
+3. **Publish.** The tiles go into `frontend/public/live/` before `vite build`, so the browser reads them from the site's own origin. This is required: FIRMS sends no CORS headers, so a browser cannot fetch FIRMS directly.
+4. **Search.** The browser geocodes the query with OpenStreetMap Nominatim (CORS enabled; at most 1 request per second; attribution required; query on submit, not per keystroke).
+5. **Select.** Box around the point: ±1.5° latitude, ±2.5° longitude, the Amazon scenario's size. The browser fetches the 1–4 tiles the box touches, keeps detections inside it, and picks the busiest day (or the user picks one of the 7).
+6. **Simulate.** Same rules as `response_sim.py`: 0.05° cell clustering, pass end per satellite, sunset from latitude and date, dispatch. Bases are the three nearest places in the box; they are illustrative and should be draggable.
+7. **Fallback.** No detections in the box in 7 days: say so, and offer the bundled historical scenarios (the six regions, `data/out/sim/`), so the demo never depends on live data.
+
+### Measured (run of 15 Nov 2026 07:50 UTC)
+| Item | Value |
+|---|---|
+| Daytime detections, 7 days, worldwide | 606,154 |
+| Non-empty tiles | 203 |
+| Median tile | 13 kB |
+| Largest tile (0–10° N, 20–30° E, central Africa) | 4.0 MB raw, 0.66 MB gzipped |
+| `places.json` | 243 kB |
+| Build time | 13 s |
+
+Example, Central African Republic (6.6° N, 20.5° E), 12 Nov 2026: 187 fires; passes Terra 08:28, NOAA-21 12:48, NOAA-20 13:43, Aqua 15:49 local solar time. With the 3 h delay, the Aqua alert arrives after sunset: 0 helicopter sorties, against 2 from VIIRS.
+
+### Run
+```
+python3 analysis/simulation/live_tiles.py frontend/public/live PLACES_GEOJSON
+python3 analysis/simulation/response_sim.py --live frontend/public/live 6.6 20.5 OUT_DIR   # one place, offline check
+```
+`PLACES_GEOJSON` is Natural Earth's `ne_10m_populated_places_simple.geojson`. In the Pages workflow, add a `schedule` trigger (for example every 3 hours) and run `live_tiles.py` before `npm run build`. Keep `frontend/public/live/` out of git.
+
+### Browser side (to build)
+- Port `cluster`, `sunset` and `simulate` from `response_sim.py` to TypeScript (about 150 lines); the JSON shape stays the same, so the existing map and timeline read it unchanged.
+- Show the data time (`index.json: updated_utc`) and "near-real-time FIRMS data, not standard processing".
+
+### Limits
+- Last 7 days only. Any past date needs the FIRMS area API, which requires a MAP_KEY and therefore a small proxy (for example a Cloudflare Worker); not built.
+- Days are UTC dates; near the date line a local day can span two.
+- Live results are illustrative and change hourly; they are not frozen numbers and do not go on slides.
+
 ## Prior work checked
 - Existing tools were reviewed before writing this one.
 - [wild-env](https://github.com/amilcodes/wild-env) (Apache-2.0) models heterogeneous aircraft and ground resources for reinforcement-learning research. It needs PyTorch, RLlib and a desktop Qt viewer.

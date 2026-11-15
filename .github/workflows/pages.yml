@@ -4,6 +4,8 @@
 # One-time setup: Settings → Pages → Source: GitHub Actions (on a free plan the repository must be public), then
 # Settings → Secrets and variables → Actions → Variables: DEPLOY_PAGES = true. Until that variable is set, pushes skip
 # the deploy instead of failing; "Run workflow" on the Actions tab deploys by hand at any time.
+# Every 3 hours the site is rebuilt with the latest FIRMS 7-day detections worldwide (frontend/public/live/, not in git),
+# for the response simulator's place search. If FIRMS is down, the site deploys without live data.
 name: Deploy site
 
 on:
@@ -13,7 +15,10 @@ on:
       - 'frontend/**'
       - 'data/out/**'
       - 'analysis/brazil-data/out/**'
+      - 'analysis/simulation/live_tiles.py'
       - '.github/workflows/pages.yml'
+  schedule:
+    - cron: '17 */3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -38,6 +43,15 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Live FIRMS tiles
+        continue-on-error: true
+        run: |
+          pip install --quiet pandas
+          curl -sfL -o places.geojson https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_populated_places_simple.geojson
+          python analysis/simulation/live_tiles.py frontend/public/live places.geojson
       - run: npm run build
         working-directory: frontend
         env:
