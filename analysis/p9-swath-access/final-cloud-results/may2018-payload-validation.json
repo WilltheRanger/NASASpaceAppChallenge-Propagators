@@ -1,0 +1,56 @@
+[
+  {
+    "filename": "VJ114IMG.A2018135.1530.002.2024007044340.nc",
+    "day_night_flag": "Day",
+    "sha256": "ce7d7ad6f3e85c13f6b2732a84a490f24f30de8f0334c1353bf4417ad4f836b5",
+    "exact_preselected_geo_match": true
+  },
+  {
+    "filename": "VJ114IMG.A2018135.1536.002.2024007044333.nc",
+    "day_night_flag": "Day",
+    "sha256": "d0b1ab1901bced7f97fc704a5b3d7b9923281738bbfc7bb94b01737753220075",
+    "exact_preselected_geo_match": true
+  },
+  {
+    "filename": "VJ114IMG.A2018135.1542.002.2024007044337.nc",
+    "day_night_flag": "Day",
+    "sha256": "a7720b0d9ceaf2e02d39c69a11147ed51340a5da62bf5cf6dd726eb288fdabc0",
+    "exact_preselected_geo_match": true
+  },
+  {
+    "filename": "VJ114IMG.A2018135.1712.002.2024007044333.nc",
+    "day_night_flag": "Day",
+    "sha256": "e8dd7b08a36f45ff86fa23fd6333fd9d5a1e6d2d936ebdca3868c55e0944d21c",
+    "exact_preselected_geo_match": true
+  },
+  {
+    "filename": "VJ114IMG.A2018135.1718.002.2024007044341.nc",
+    "day_night_flag": "Day",
+    "sha256": "26458bd231f6f437bc9a5e1a7b77546a0ae0516d2fd78d445f5cda8cc8e8ddf5",
+    "exact_preselected_geo_match": true
+  },
+  {
+    "filename": "VJ114IMG.A2018135.1724.002.2024007044335.nc",
+    "day_night_flag": "Day",
+    "sha256": "048e4a5cb0c7acf41d3ab49ecd992fd5e5332d2fb395c03425023f3b0508f9ad",
+    "exact_preselected_geo_match": true
+  },
+  {
+    "filename": "VJ114IMG.A2018135.1854.002.2024007044332.nc",
+    "day_night_flag": "Day",
+    "sha256": "20108d795ea79e8d7b7294a8a68ace8d7d253cf6175a2a75faeee98035536afd",
+    "exact_preselected_geo_match": true
+  },
+  {
+    "filename": "VJ114IMG.A2018135.1900.002.2024007044335.nc",
+    "day_night_flag": "Day",
+    "sha256": "cad8b3afe57ff80b5a4a140061575e8b0bf5e82368e5aa8eb2e78dd21af6d10d",
+    "exact_preselected_geo_match": true
+  },
+  {
+    "filename": "VJ114IMG.A2018135.1906.002.2024007044334.nc",
+    "day_night_flag": "Day",
+    "sha256": "8a9a9c03860cc724006921b54d64cb9569ffff98c0e5904eb043be1cc8590aac",
+    "exact_preselected_geo_match": true
+  }
+]

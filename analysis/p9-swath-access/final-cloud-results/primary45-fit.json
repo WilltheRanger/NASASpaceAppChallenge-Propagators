@@ -1,0 +1,110 @@
+{
+  "acquired_paired_dates": 18,
+  "planned_dates": 18,
+  "complete": true,
+  "biomes": [
+    {
+      "biome": "amazon",
+      "eligible_cells": 0,
+      "informative_cells": 0,
+      "informative_dates": 0,
+      "sampled_snpp_fire_weight": 0.0,
+      "sampled_noaa20_fire_weight": 0.0,
+      "events_by_date": {},
+      "informative_cells_by_order": {
+        "negative": 0,
+        "positive": 0
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "cerrado",
+      "eligible_cells": 0,
+      "informative_cells": 0,
+      "informative_dates": 0,
+      "sampled_snpp_fire_weight": 0.0,
+      "sampled_noaa20_fire_weight": 0.0,
+      "events_by_date": {},
+      "informative_cells_by_order": {
+        "negative": 0,
+        "positive": 0
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "caatinga",
+      "eligible_cells": 0,
+      "informative_cells": 0,
+      "informative_dates": 0,
+      "sampled_snpp_fire_weight": 0.0,
+      "sampled_noaa20_fire_weight": 0.0,
+      "events_by_date": {},
+      "informative_cells_by_order": {
+        "negative": 0,
+        "positive": 0
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "mata_atlantica",
+      "eligible_cells": 0,
+      "informative_cells": 0,
+      "informative_dates": 0,
+      "sampled_snpp_fire_weight": 0.0,
+      "sampled_noaa20_fire_weight": 0.0,
+      "events_by_date": {},
+      "informative_cells_by_order": {
+        "negative": 0,
+        "positive": 0
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "pantanal",
+      "eligible_cells": 0,
+      "informative_cells": 0,
+      "informative_dates": 0,
+      "sampled_snpp_fire_weight": 0.0,
+      "sampled_noaa20_fire_weight": 0.0,
+      "events_by_date": {},
+      "informative_cells_by_order": {
+        "negative": 0,
+        "positive": 0
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "pampa",
+      "eligible_cells": 0,
+      "informative_cells": 0,
+      "informative_dates": 0,
+      "sampled_snpp_fire_weight": 0.0,
+      "sampled_noaa20_fire_weight": 0.0,
+      "events_by_date": {},
+      "informative_cells_by_order": {
+        "negative": 0,
+        "positive": 0
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    }
+  ],
+  "interpretation": "Original P9 outcomes unchanged; do not score incomplete or unidentified calibration as a pass."
+}

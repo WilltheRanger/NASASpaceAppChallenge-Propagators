@@ -319,7 +319,176 @@
       "links": [
         "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2018135.1906.021.2021040233945.nc"
       ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1530.002.2024007044340.nc",
+      "title": "VJ114IMG.A2018135.1530.002.2024007044340",
+      "start": "2018-05-15T15:30:00.000Z",
+      "end": "2018-05-15T15:36:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1530.002.2024007044340.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1530.021.2021041003040.nc",
+        "original_geolocation_cmr_id": "G2122768961-LAADS",
+        "payload_validation": "pending"
+      }
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1536.002.2024007044333.nc",
+      "title": "VJ114IMG.A2018135.1536.002.2024007044333",
+      "start": "2018-05-15T15:36:00.000Z",
+      "end": "2018-05-15T15:42:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1536.002.2024007044333.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1536.021.2021040235702.nc",
+        "original_geolocation_cmr_id": "G2122768718-LAADS",
+        "payload_validation": "pending"
+      }
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1542.002.2024007044337.nc",
+      "title": "VJ114IMG.A2018135.1542.002.2024007044337",
+      "start": "2018-05-15T15:42:00.000Z",
+      "end": "2018-05-15T15:48:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1542.002.2024007044337.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1542.021.2021040234849.nc",
+        "original_geolocation_cmr_id": "G2122767282-LAADS",
+        "payload_validation": "pending"
+      }
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1712.002.2024007044333.nc",
+      "title": "VJ114IMG.A2018135.1712.002.2024007044333",
+      "start": "2018-05-15T17:12:00.000Z",
+      "end": "2018-05-15T17:18:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1712.002.2024007044333.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1712.021.2021040234412.nc",
+        "original_geolocation_cmr_id": "G2122767815-LAADS",
+        "payload_validation": "pending"
+      }
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1718.002.2024007044341.nc",
+      "title": "VJ114IMG.A2018135.1718.002.2024007044341",
+      "start": "2018-05-15T17:18:00.000Z",
+      "end": "2018-05-15T17:24:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1718.002.2024007044341.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1718.021.2021040234219.nc",
+        "original_geolocation_cmr_id": "G2122767782-LAADS",
+        "payload_validation": "pending"
+      }
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1724.002.2024007044335.nc",
+      "title": "VJ114IMG.A2018135.1724.002.2024007044335",
+      "start": "2018-05-15T17:24:00.000Z",
+      "end": "2018-05-15T17:30:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1724.002.2024007044335.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1724.021.2021040233519.nc",
+        "original_geolocation_cmr_id": "G2122767817-LAADS",
+        "payload_validation": "pending"
+      }
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1854.002.2024007044332.nc",
+      "title": "VJ114IMG.A2018135.1854.002.2024007044332",
+      "start": "2018-05-15T18:54:00.000Z",
+      "end": "2018-05-15T19:00:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1854.002.2024007044332.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1854.021.2021040232319.nc",
+        "original_geolocation_cmr_id": "G2122768839-LAADS",
+        "payload_validation": "pending"
+      }
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1900.002.2024007044335.nc",
+      "title": "VJ114IMG.A2018135.1900.002.2024007044335",
+      "start": "2018-05-15T19:00:00.000Z",
+      "end": "2018-05-15T19:06:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1900.002.2024007044335.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1900.021.2021040234956.nc",
+        "original_geolocation_cmr_id": "G2122768991-LAADS",
+        "payload_validation": "pending"
+      }
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "LAADS_ARCHIVE:VJ114IMG.A2018135.1906.002.2024007044334.nc",
+      "title": "VJ114IMG.A2018135.1906.002.2024007044334",
+      "start": "2018-05-15T19:06:00.000Z",
+      "end": "2018-05-15T19:12:00.000Z",
+      "size_mb": null,
+      "links": [
+        "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/VJ114IMG.A2018135.1906.002.2024007044334.nc"
+      ],
+      "provenance": {
+        "method": "official_LAADS_inventory_exact_date_time_match_to_existing_CMR_selected_VJ103IMG",
+        "archive_inventory_url": "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5200/VJ114IMG/2018/135/",
+        "matched_geolocation_filename": "VJ103IMG.A2018135.1906.021.2021040233945.nc",
+        "original_geolocation_cmr_id": "G2122768618-LAADS",
+        "payload_validation": "pending"
+      }
     }
   ],
-  "total_mb": 2860.0268554687523
+  "total_mb": 2860.0268554687523,
+  "archive_inventory_supplement": {
+    "original_manifest_sha256": "959f1178e084a2596f00854cf932c61860316e931a197a2f5845b5e30b5d0cc3",
+    "original_manifest_filename": "2018-05-15.json",
+    "added_granules": 9,
+    "selection": "All existing NOAA20 Brazil daytime geolocation selections retained; no new dates, geometry filters, thresholds, or outcome selection. CMR fire-product index omission repaired using official LAADS inventory.",
+    "verified_utc": "2026-11-15T17:36:26.035805+00:00"
+  }
 }
