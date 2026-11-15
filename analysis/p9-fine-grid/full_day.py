@@ -3,11 +3,14 @@ from pathlib import Path
 import json,shutil,sys
 import numpy as np
 from extract_fine import extract
+from resume_validation import sha256,validate_output
 from dependence import numeric_components
 ROOT=Path(__file__).resolve().parents[2];HERE=Path(__file__).resolve().parent
 date=sys.argv[1] if len(sys.argv)>1 else '2018-07-15'
 manifest=json.loads((ROOT/'analysis/p9-swath-access/calibration_manifests'/f'{date}.json').read_text())
 out=HERE/('full-'+date);out.mkdir(exist_ok=True);gf=HERE/'full-grid.npz'
+grid_hash=sha256(gf)
+with np.load(gf) as _grid:grid_size=len(_grid['lon'])
 for e in manifest['granules']:
  if e['product'] not in ['VNP14IMG','VJ114IMG']:continue
  f=ROOT/'raw'/(e['title']+'.nc');sat='VNP' if e['product']=='VNP14IMG' else 'VJ1';code,t=f.name.split('.')[1:3]
@@ -16,7 +19,9 @@ for e in manifest['granules']:
  if not dst.exists():
   if shutil.disk_usage(ROOT).free<10.5*1024**3:raise RuntimeError('10GiB guard plus 512MiB next-output reserve')
   report=extract(f,gs[0],gf,dst,85)
+  report['grid_sha256']=grid_hash;dst.with_suffix('.json').write_text(json.dumps(report,indent=2)+'\n')
   print(dst.name,report['usable_centers'],flush=True)
+ validate_output(dst,f,gs[0],grid_hash,grid_size)
 if shutil.disk_usage(ROOT).free<10.5*1024**3:raise RuntimeError('10GiB guard plus pairing-output reserve')
 grid=np.load(gf);N=len(grid['lon'])
 best=np.full(N,np.inf);best45=np.full(N,np.inf);left=np.full(N,-1,dtype=np.int64);right=left.copy();xf=np.zeros(N,bool);yf=xf.copy();zmax=np.zeros(N,dtype=np.float32);dtbest=np.full(N,np.nan);zd=np.full(N,np.nan)
