@@ -6,61 +6,91 @@
    "id": "P1",
    "name": "Aqua's look time over each Brazilian biome rises every year 2021-2025; VIIRS stays flat",
    "status": "pending",
-   "detail": "Reading (a) 2022-2025 each >= prior year: 6/6 biomes. Reading (b) also 2021 >= 2020: 3/6 (amazon 2021 vs 2020: -0.7 min; cerrado 2021 vs 2020: -0.9 min; pantanal 2021 vs 2020: -0.6 min). S-NPP within 10 min of 2012-2020 every year: 6/6. Readings disagree: the team must pick one in research/predictions.md before this is scored."
+   "detail": "Reading (a) 2022-2025 each >= prior year: 6/6 biomes. Reading (b) also 2021 >= 2020: 3/6 (amazon 2021 vs 2020: -0.7 min; cerrado 2021 vs 2020: -0.9 min; pantanal 2021 vs 2020: -0.6 min). S-NPP within 10 min of 2012-2020 every year: 6/6. Readings disagree: the team must pick one in research/predictions.md before this is scored.",
+   "rule_written": "Each year \u2265 the year before; VIIRS within \u00b110 min of 2012 to 2020",
+   "rule_implemented": "Median near-nadir local solar time per biome and year (FIRMS); both readings of 'every year' reported.",
+   "result_existed_before_commit": true
   },
   {
    "id": "P2",
    "name": "Punjab Aqua look time follows Jethva 2026 (1:44 PM in 2021 to 3:12 PM in 2025)",
    "status": "pass",
-   "detail": "Aqua later every year 2021-2025: yes; total rise 76 min (rule 60-120). Our absolute times run 27-39 min earlier than Jethva's; time convention not yet checked."
+   "detail": "Aqua later every year 2021-2025: yes; total rise 76 min (rule 60-120). Our absolute times run 27-39 min earlier than Jethva's; time convention not yet checked.",
+   "rule_written": "Same direction each year; total rise 60 to 120 min",
+   "rule_implemented": "As written, on the preset Punjab + Haryana bbox, all months.",
+   "result_existed_before_commit": false
   },
   {
    "id": "P3",
    "name": "Our FIRMS Aqua data reproduces INPE's reference counts",
    "status": "pass",
-   "detail": "Biome-months 2012-2020 within 10% of INPE: 96.6% with all daytime Aqua detections, 81.6% with the plan's filters (type 0, confidence >= 30). Rule: >= 90%. Note: P3 was computed before the predictions were committed (see the honest timeline)."
+   "detail": "Biome-months 2012-2020 within 10% of INPE: 96.6% with all daytime Aqua detections, 81.6% with the plan's type and confidence filters. Rule: >= 90%. Study period: 2021-2025 337/360 (93.6%), 2025 63/72 (87.5%). INPE uses the same NASA/UMD MODIS algorithm, so this shows we track the intended series; it is not an independent check of individual fires.",
+   "rule_written": "\u2265 90% of biome-months 2012 to 2020 within 10%",
+   "rule_implemented": "Scored with all daytime detections; the written rule names no filter, and the filtered count misses the threshold.",
+   "result_existed_before_commit": true
   },
   {
    "id": "P4",
    "name": "Day-to-day sampling noise explains the pre-drift wobble",
    "status": "pass",
-   "detail": "Placebo years (2012-2020, each held out) whose 95% block-bootstrap interval contains 1: amazon 7/9, cerrado 9/9, caatinga 8/9, mata_atlantica 8/9, pantanal 7/9, pampa 8/9. Rule: >= 7/9. Detection rule used: L outside the placebo range."
+   "detail": "Placebo years (2012-2020, each held out) whose 95% day-bootstrap interval contains 1: amazon 8/9, cerrado 9/9, caatinga 9/9, mata_atlantica 9/9, pantanal 9/9, pampa 9/9. Rule: >= 7/9. With the 16-day block bootstrap used elsewhere: amazon 7/9, cerrado 9/9, caatinga 8/9, mata_atlantica 8/9, pantanal 7/9, pampa 8/9. Nine placebo years give a coarse range: a tenth exchangeable year would fall outside the first nine's min-max about 20% of the time.",
+   "rule_written": "The day-bootstrap interval of each placebo year's L (2012 to 2020, one year held out at a time) contains 1 in at least 7 of 9 years. **If it fails:** use the placebo range (min to max of the 9 values) as the uncertainty for 2021 to 2025. Either way, a post-2021 L counts as a detection only if it falls **outside** the placebo range",
+   "rule_implemented": "As written (day bootstrap); block-bootstrap result shown alongside.",
+   "result_existed_before_commit": false
   },
   {
    "id": "P5",
    "name": "Fire-size mix doesn't explain the audit",
    "status": "pass",
-   "detail": "L_strat (days split into S-NPP mean-FRP terciles, reweighted to the 2012-2020 mix) inside L's 95% interval in 29/29 biome-years 2021-2025. Largest move: 0.082. Day-level classes (the daily file has no per-detection FRP)."
+   "detail": "Sensitivity to daily mean S-NPP FRP: L_strat (days split into FRP terciles, reweighted to the 2012-2020 mix) inside L's 95% interval in 29/29 biome-years 2021-2025. Largest move 0.084; Amazon 2025 moves from 1.296 to 1.212. Daily mean FRP is a weak proxy for fire size; this is not a direct size test.",
+   "rule_written": "`L_strat` inside the interval of `L`",
+   "rule_implemented": "Per-day FRP classes, because the daily file has no per-detection FRP.",
+   "result_existed_before_commit": false
   },
   {
    "id": "P6",
    "name": "VIIRS is a stable clock",
    "status": "pass",
-   "detail": "L with NOAA-20 as reference inside L with S-NPP's 95% interval in 30/30 biome-years 2021-2025 (both baselines 2018-2020, the years both satellites flew). Largest gap: 0.204."
+   "detail": "L with S-NPP as reference inside the 95% interval of L with NOAA-20 in 30/30 biome-years 2021-2025, both on days when Aqua, S-NPP and NOAA-20 all returned data and on a 2018-2020 baseline. Paired difference S-NPP minus NOAA-20: median -0.002, largest 0.112; its interval excludes 0 in 1/30. Both references are VIIRS and share the Aqua numerator, so this cannot detect a bias common to both.",
+   "rule_written": "L with an S-NPP reference within the interval of L with a NOAA-20 reference",
+   "rule_implemented": "As written, on a common availability mask. An earlier version admitted days when S-NPP was down and tested the reverse direction.",
+   "result_existed_before_commit": false
   },
   {
    "id": "P7",
    "name": "Closure: the timing slope predicts the observed L",
    "status": "fail",
-   "detail": "L_pred inside the 90% interval of L in 16/23 strict biome-years (70%; rule >= 75%). beta = log(Aqua/Terra) per hour of look-time gap, 2012-2020 (same MODIS sensor, same days). Misses: amazon 2023 (pred 1.12, obs 1.01), amazon 2024 (pred 1.29, obs 1.09), cerrado 2024 (pred 1.10, obs 1.18), caatinga 2024 (pred 1.21, obs 1.47), mata_atlantica 2021 (pred 1.01, obs 1.05), mata_atlantica 2023 (pred 1.10, obs 1.02), pantanal 2024 (pred 1.10, obs 0.97)."
+   "detail": "L_pred inside the 90% interval of L in 16/23 strict biome-years (70%; rule >= 75%). beta = log(Aqua/Terra) per hour of look-time gap, 2012-2020 (same MODIS sensor, same days). Misses: amazon 2023 (pred 1.12, obs 1.01), amazon 2024 (pred 1.29, obs 1.10), cerrado 2024 (pred 1.10, obs 1.18), caatinga 2024 (pred 1.21, obs 1.47), mata_atlantica 2023 (pred 1.10, obs 1.02), mata_atlantica 2024 (pred 1.24, obs 1.18), pantanal 2024 (pred 1.10, obs 0.97).",
+   "rule_written": "L_pred inside the 90% interval of observed L in at least 75% of strict-test biome-years (biomes \u00d7 years where Aqua's shift \u2264 1 hour)",
+   "rule_implemented": "As written; beta from the 2012-2020 log(Aqua/Terra) slope per hour.",
+   "result_existed_before_commit": false
   },
   {
    "id": "P8",
    "name": "VIIRS detects small real fires better than MODIS",
    "status": "pass",
-   "detail": "a50 (fire size detected half the time), 2012-2020: S-NPP 319 acres [271.0, 375.1], Aqua 946 acres [777.2, 1168.0]. Not pre-registered (computed before the commit)."
+   "detail": "a50 (fire size detected half the time), 2012-2020: S-NPP 319 acres [271.0, 375.1], Aqua 946 acres [777.2, 1168.0]. Not pre-registered (computed before the commit). These describe one matching procedure for isolated, agency-recorded California fires, not universal sensor limits.",
+   "rule_written": "a50(VIIRS) < a50(Aqua), with intervals not overlapping",
+   "rule_implemented": "As written, on FPA-FOD California fires 2012-2020.",
+   "result_existed_before_commit": true
   },
   {
    "id": "P9",
    "name": "Opposite drifts move the Terra and Aqua probes in opposite directions",
    "status": "fail",
-   "detail": "Pass in 4/6 biomes with beta > 0: amazon A up, T down; cerrado A up, T down; caatinga A up, T down; mata_atlantica A up, T down; pantanal A not monotone, T not monotone; pampa A up, T not monotone. Deviation: the written gate uses VIIRS same-day pairs, but S-NPP and NOAA-20 look at the same local time (13:31 vs 13:31 over the Amazon in 2024), so that slope cannot be measured. Gate used: the MODIS Terra/Aqua slope beta."
+   "detail": "Pass in 4/6 biomes with beta > 0: amazon A up, T down; cerrado A up, T down; caatinga A up, T down; mata_atlantica A up, T down; pantanal A not monotone, T not monotone; pampa A up, T not monotone. Deviation: the written gate uses VIIRS same-day pairs, but S-NPP and NOAA-20 look at the same local time (13:31 vs 13:31 over the Amazon in 2024), so that slope cannot be measured. Gate used: the MODIS Terra/Aqua slope beta.",
+   "rule_written": "In each region where VIIRS same-day pairs show fire rising after 1:30 PM (\u03b2 > 0): A_y rises and T_y falls (2023 to 2025)",
+   "rule_implemented": "Deviates from the written gate: MODIS Terra/Aqua slope instead of VIIRS same-day pairs.",
+   "result_existed_before_commit": true
   },
   {
    "id": "P10",
    "name": "The two-clock difference agrees with the audit",
    "status": "fail",
-   "detail": "Clock share of log A_y = clock_diff x dA/(dA - dT) inside the 95% interval of log L_y in 14/23 biome-years 2022-2025 (61%; rule >= 75%). Misses: amazon 2025, cerrado 2025, caatinga 2023, caatinga 2024, mata_atlantica 2024, mata_atlantica 2025, pantanal 2023, pantanal 2024, pampa 2023."
+   "detail": "Clock share of log A_y = clock_diff x dA/(dA - dT) inside the 95% interval of log L_y in 15/23 biome-years 2022-2025 (65%; rule >= 75%). Misses: amazon 2025, cerrado 2025, caatinga 2024, mata_atlantica 2024, mata_atlantica 2025, pantanal 2023, pantanal 2024, pampa 2023.",
+   "rule_written": "The clock share of log A_y from the difference method lies inside the bootstrap interval of log L_y in \u2265 75% of biome-years 2022 to 2025",
+   "rule_implemented": "Clock share defined here as clock_diff x dA/(dA - dT); the plan's own definition is not in the repo.",
+   "result_existed_before_commit": false
   }
  ]
 }
