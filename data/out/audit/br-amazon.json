@@ -1,0 +1,75 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS S-NPP daily counts (brady/brazil-data). AI-generated analysis (Claude); team review required before any slide.",
+ "region": "br-amazon",
+ "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month); 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
+ "baseline": {
+  "years": "2012-2020",
+  "ratio": 0.226,
+  "noise_floor": 0.09,
+  "placebo_min": 0.91,
+  "placebo_max": 1.056
+ },
+ "years": [
+  {
+   "year": 2021,
+   "status": "ok",
+   "L": 1.024,
+   "L_lo": 0.969,
+   "L_hi": 1.098,
+   "L_strat": 1.012,
+   "aqua_count": 69250,
+   "fixed_count": 67632,
+   "gap_pct": 2.4,
+   "outside_noise": false
+  },
+  {
+   "year": 2022,
+   "status": "ok",
+   "L": 1.027,
+   "L_lo": 0.951,
+   "L_hi": 1.11,
+   "L_strat": 1.024,
+   "aqua_count": 100480,
+   "fixed_count": 97811,
+   "gap_pct": 2.7,
+   "outside_noise": false
+  },
+  {
+   "year": 2023,
+   "status": "ok",
+   "L": 1.02,
+   "L_lo": 0.965,
+   "L_hi": 1.089,
+   "L_strat": 1.02,
+   "aqua_count": 91747,
+   "fixed_count": 89906,
+   "gap_pct": 2.0,
+   "outside_noise": false
+  },
+  {
+   "year": 2024,
+   "status": "ok",
+   "L": 1.109,
+   "L_lo": 1.043,
+   "L_hi": 1.185,
+   "L_strat": 1.113,
+   "aqua_count": 123746,
+   "fixed_count": 111585,
+   "gap_pct": 10.9,
+   "outside_noise": true
+  },
+  {
+   "year": 2025,
+   "status": "ok",
+   "L": 1.297,
+   "L_lo": 1.136,
+   "L_hi": 1.512,
+   "L_strat": 1.214,
+   "aqua_count": 40877,
+   "fixed_count": 31517,
+   "gap_pct": 29.7,
+   "outside_noise": true
+  }
+ ]
+}
