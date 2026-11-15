@@ -2,6 +2,7 @@
 // Deterministic frame renderer: seeks the page to each frame time and screenshots it.
 // Preview:  node render.mjs --times 3,15.5,60 --out preview
 // Full:     node render.mjs --fps 30 --workers 4 --out frames
+// Range:    node render.mjs --from 760 --to 900 --out frames   (re-render frames [from, to) only)
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright');
 import fs from 'node:fs';
@@ -47,11 +48,12 @@ try {
   } else {
     const total = await (async () => { const p = await openPage(browser); const v = await p.evaluate(() => window.__total); await p.close(); return v; })();
     const N = Math.ceil(total * FPS);
-    const chunk = Math.ceil(N / WORKERS);
+    const LO = Number(args.from || 0), HI = Math.min(N, Number(args.to || N));
+    const chunk = Math.ceil((HI - LO) / WORKERS);
     const t0 = Date.now();
     let done = 0;
     await Promise.all(Array.from({ length: WORKERS }, async (_, w) => {
-      const a = w * chunk, b = Math.min(N, a + chunk);
+      const a = LO + w * chunk, b = Math.min(HI, a + chunk);
       if (a >= b) return;
       const page = await openPage(browser);
       await warm(page, a / FPS);
@@ -63,7 +65,7 @@ try {
       }
       await page.close();
     }));
-    console.log(`rendered ${N} frames in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
+    console.log(`rendered ${HI - LO} of ${N} frames in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
 } finally {
   await browser.close();
