@@ -1,5 +1,8 @@
 # ui-progress.md: Phase 3 · UI (rule of three)
 
+- **Comment page (current):** (private link) — direction D live, private; the team
+  comments on it and each round republishes to the same link (`ARTIFACT_OUT=<dir> npm run artifact`, then publish
+  `<dir>/page.html` with its `assets/` and `img/` files).
 - **Canvas:** (private link) ("Anchor", Design type). Round 1 screenshots are uploaded
   as assets; artboards stay unpublished until the team says the canvas (shared by link) may be used.
 - **Live prototype:** `frontend/` (Vite + React + TypeScript + Tailwind v4). `npm run dev`, then `?d=a` … `?d=e`
@@ -10,8 +13,8 @@
 - **Design system:** none yet (locked in Round 4). User chose "design Anchor's own".
 
 ## Current round
-**Round 2 · Directions** (after Round 1 was rejected), five directions (D and E added at the team's request), waiting
-for the user's pick. Overview: `designs/round-2/renders/round2-overview.jpg`.
+**Round 2 · Directions** (after Round 1 was rejected), five directions (D and E added at the team's request).
+**Picked: D · Field film.** The team now edits it slowly through comments on the comment page. Overview: `designs/round-2/renders/round2-overview.jpg`.
 
 | | Direction | Source | Idea | Independent review (1–5 per lens: hierarchy, fit, slop, craft, UX, technical, motion) |
 |---|---|---|---|---|
@@ -35,6 +38,8 @@ per direction in `designs/round-2/plan.md`.
 | Phase 3 | Round 1 rebuild | Real 21st.dev components instead of hand-drawn parts | "the design looks like you mostly made it" |
 | Phase 3 | Extra directions | D (Anduril-inspired), E (Palantir-inspired) | User request, "completely free" |
 | Phase 3 | Round 1 | Rejected all five | "You didnt follow any of the design rules" |
+| Phase 3 | Round 2 | **D · Field film** (Anduril-inspired) | "lets go with this one. I need to slowly edit this" |
+| Phase 3 | Logo | The clock-sweep mark from B (quarter-arc + bar) with the Host Grotesk wordmark | "can you make this our logo please" |
 
 ## History
 - Hand-built HTML drafts of Round 1 A–C (`designs/round-1/*.html`) were superseded by the component-based rebuild.

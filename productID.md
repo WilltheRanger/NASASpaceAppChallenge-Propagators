@@ -70,7 +70,12 @@ Decided by the team.
 
 *Prompt: three strategic logo directions: concept name, core idea, logo type, shapes or symbolism, typography, colours, audience connection.*
 
-**Pending: Phase 3**, drawn alongside the three UI directions so mark and interface come from one idea.
+**Chosen (Phase 3, Round 2): the clock-sweep mark.** A quarter-arc, the sweep of a clock hand from noon, stands beside
+one upright bar, the fixed clock that doesn't move; together they read as the drift measured against a fixed reference.
+The wordmark "Anchor" is set in Host Grotesk 500 and outlined, so it never depends on a font loading. One colour only:
+ink `#0F0F0F` on light grounds, bone `#ECE9E1` on dark. Files: `frontend/public/brand/anchor-logo.svg`,
+`anchor-logo-light.svg`, `anchor-mark.svg`; component `frontend/src/components/brand/anchor-logo.tsx`. No NASA marks,
+flags or mission insignia are ever combined with it.
 
 ## 6. Voice and messaging
 
