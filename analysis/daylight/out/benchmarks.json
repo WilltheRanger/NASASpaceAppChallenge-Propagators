@@ -1,0 +1,284 @@
+{
+ "generated": "2026-11-15T07:07:16Z",
+ "script": "analysis/daylight/daylight.py",
+ "benchmarks": [
+  {
+   "id": "B1",
+   "name": "Sunset vs astropy",
+   "metric": "max |diff| over 144 cases (6 region centres x 24 dates of 2025), minutes",
+   "threshold": "<= 1.0 min, 144/144",
+   "value": "max 0.063 min, mean 0.024 min, 144/144 within 1 min",
+   "status": "PASS",
+   "evidence": "worst case lat 37.25, 2025-02-15: ours 17.6708 h, astropy 17.6698 h"
+  },
+  {
+   "id": "B2",
+   "name": "Sunset vs NOAA Solar Calculator web page",
+   "metric": "|diff| per case, minutes (the page shows whole minutes)",
+   "threshold": "<= 1 min, 4/4",
+   "value": "4/4 within 1 min",
+   "status": "PASS",
+   "evidence": [
+    "Manaus 2025-09-15: NOAA 17:58 (UTC-4) = 17.9653 h LMST; ours 17.9627 h (17:58); diff -0.16 min",
+    "Chino Hills 2025-06-21: NOAA 20:06 (UTC-7) = 19.2513 h LMST; ours 19.2434 h (19:15); diff -0.47 min",
+    "Punjab + Haryana box centre 2025-11-01: NOAA 17:40 (UTC+5.5) = 17.2133 h LMST; ours 17.2134 h (17:13); diff +0.01 min",
+    "Amazon box centre 2025-09-15: NOAA 17:51 (UTC-4) = 17.9500 h LMST; ours 17.9548 h (17:57); diff +0.29 min"
+   ]
+  },
+  {
+   "id": "B3",
+   "name": "Declination and equation of time vs astropy",
+   "metric": "max |diff| on the B1 grid",
+   "threshold": "decl <= 0.02 deg, EoT <= 0.3 min",
+   "value": "decl 0.0030 deg, EoT 0.058 min",
+   "status": "PASS",
+   "evidence": "astropy apparent place of the sun (true equator and equinox of date); EoT from Greenwich apparent sidereal time"
+  },
+  {
+   "id": "B4",
+   "name": "Look-time reproduction",
+   "metric": "HH:MM match of yearly median local solar time, 252 cells",
+   "threshold": "exact >= 98%, within 1 min 100%",
+   "value": "exact 252/252 (100.0%), within 1 min 252/252",
+   "status": "PASS",
+   "evidence": "no mismatches"
+  },
+  {
+   "id": "B5",
+   "name": "Count reproduction",
+   "metric": "region x satellite x year near-nadir totals equal to the repo's daily CSVs",
+   "threshold": "100% exact",
+   "value": "252/252 exact; 6,468,069 detections in Level 2",
+   "status": "PASS",
+   "evidence": "all region-years match"
+  },
+  {
+   "id": "B6",
+   "name": "Season stability",
+   "metric": "regions whose 3-month window differs between `fixed` and raw `aqua`",
+   "threshold": "0 of 6",
+   "value": "0 of 6",
+   "status": "PASS",
+   "evidence": {
+    "br-amazon": [
+     "Aug",
+     "Sep",
+     "Oct"
+    ],
+    "br-cerrado": [
+     "Aug",
+     "Sep",
+     "Oct"
+    ],
+    "br-pantanal": [
+     "Aug",
+     "Sep",
+     "Oct"
+    ],
+    "ar-argentina": [
+     "Jul",
+     "Aug",
+     "Sep"
+    ],
+    "in-punjab-haryana": [
+     "Oct",
+     "Nov",
+     "Dec"
+    ],
+    "us-california": [
+     "Aug",
+     "Sep",
+     "Oct"
+    ]
+   }
+  },
+  {
+   "id": "B7",
+   "name": "Arithmetic identity (Level 1)",
+   "metric": "max |daylight change + look change| over 6 regions, minutes",
+   "threshold": "<= 1 min",
+   "value": "0.231 min",
+   "status": "PASS",
+   "evidence": [
+    "br-amazon: daylight -79.91 min, look +79.89 min, residual -0.022 min (sunset change -0.022 min)",
+    "br-cerrado: daylight -76.54 min, look +76.56 min, residual +0.012 min (sunset change +0.012 min)",
+    "br-pantanal: daylight -80.19 min, look +80.22 min, residual +0.035 min (sunset change +0.035 min)",
+    "ar-argentina: daylight -71.74 min, look +71.89 min, residual +0.153 min (sunset change +0.153 min)",
+    "in-punjab-haryana: daylight -76.98 min, look +76.89 min, residual -0.095 min (sunset change -0.095 min)",
+    "us-california: daylight -69.45 min, look +69.22 min, residual -0.231 min (sunset change -0.231 min)"
+   ]
+  },
+  {
+   "id": "B8",
+   "name": "VIIRS flat",
+   "metric": "max |daylight range - look-time range| 2012 to 2025, minutes",
+   "threshold": "<= 1 min",
+   "value": "0.746 min",
+   "status": "PASS",
+   "evidence": [
+    "br-amazon: daylight range 9.90 min, look range 10.00 min",
+    "br-cerrado: daylight range 10.01 min, look range 10.00 min",
+    "br-pantanal: daylight range 10.05 min, look range 10.00 min",
+    "ar-argentina: daylight range 9.42 min, look range 9.00 min",
+    "in-punjab-haryana: daylight range 10.84 min, look range 11.00 min",
+    "us-california: daylight range 8.25 min, look range 9.00 min"
+   ]
+  },
+  {
+   "id": "B9",
+   "name": "Terra opposite",
+   "metric": "region-years 2021 to 2025 where Terra looked earlier but daylight did not rise",
+   "threshold": "0",
+   "value": "0 of 30",
+   "status": "PASS",
+   "evidence": "daylight rose in all 30 region-years with an earlier Terra look"
+  },
+  {
+   "id": "B10",
+   "name": "Level 1 vs Level 2a",
+   "metric": "Aqua daylight (0 h latency), Level 1 minus Level 2a median, 54 region-years 2012 to 2020",
+   "threshold": "every gap <= 30 min; any larger gap explained with numbers",
+   "value": "max |gap| 45.5 min; 49 of 54 within 30 min, 5 over",
+   "status": "ACCEPTED",
+   "evidence": [
+    "br-amazon: max gap +1.5 min (2018), 0 of 9 years over 30 min",
+    "br-cerrado: max gap -1.2 min (2012), 0 of 9 years over 30 min",
+    "br-pantanal: max gap -5.7 min (2014), 0 of 9 years over 30 min",
+    "ar-argentina: max gap -30.9 min (2014), 2 of 9 years over 30 min",
+    "in-punjab-haryana: max gap -12.5 min (2012), 0 of 9 years over 30 min",
+    "us-california: max gap -45.5 min (2018), 3 of 9 years over 30 min",
+    "ar-argentina 2014: gap -30.9 min = look time +0.1 + fire dates -26.1 (median detection date 2014-08-22 vs season middle 2014-08-15; 50% of detections in the season months) + latitude -5.0 (median -27.9 vs box centre -38.5); sum -30.9",
+    "ar-argentina 2017: gap -30.3 min = look time +0.1 + fire dates -24.8 (median detection date 2017-08-19 vs season middle 2017-08-15; 54% of detections in the season months) + latitude -5.5 (median -28.2 vs box centre -38.5); sum -30.3",
+    "us-california 2012: gap -36.2 min = look time +0.1 + fire dates -32.4 (median detection date 2012-08-16 vs season middle 2012-09-15; 66% of detections in the season months) + latitude -3.8 (median 40.0 vs box centre 37.2); sum -36.2",
+    "us-california 2015: gap -31.9 min = look time -0.3 + fire dates -29.3 (median detection date 2015-08-16 vs season middle 2015-09-15; 59% of detections in the season months) + latitude -2.3 (median 38.9 vs box centre 37.2); sum -31.9",
+    "us-california 2018: gap -45.5 min = look time -0.2 + fire dates -42.4 (median detection date 2018-08-08 vs season middle 2018-09-15; 57% of detections in the season months) + latitude -2.9 (median 39.3 vs box centre 37.2); sum -45.5",
+    "Cause: Level 1 is one day (season middle) at one latitude (box centre) by its definition; real fires burn on other dates and latitudes. Not a code error: B1 to B5 hold and each gap splits fully into date and latitude terms.",
+    "Team decision (Nov 14): keep Level 1 as specified; quote the Level 2a median for ar-argentina, us-california (headline.quote = level2a in their JSON)."
+   ]
+  },
+  {
+   "id": "B11",
+   "name": "Level 2b identity",
+   "metric": "max |(D_cf - D) - shift| over unclamped Aqua detections, hours",
+   "threshold": "<= 1e-9 h",
+   "value": "3.55e-15 h",
+   "status": "PASS",
+   "evidence": "1,582,871 Aqua detections x 3 latencies; excluded as after dark: actual 58,796, what-if 2,670 detection-latency cases"
+  },
+  {
+   "id": "B12",
+   "name": "Prior-work cross-check (Para, 2 Sep 2024)",
+   "metric": "Aqua median look time and sunset of data/out/sim/amazon-2024-09-02.json",
+   "threshold": "Aqua median equal at 2 decimals; file's sunset reproduced with its own formula; difference from ours explained",
+   "value": "Aqua median ours 14.54 vs file 14.54; file's formula gives 17.999 vs file 17.999; ours 17.985 h, diff -0.84 min",
+   "status": "PASS",
+   "evidence": "sunset diff -0.84 min = equation of time -0.59 min (EoT +0.59 min on that date, absent from the file's formula) + hour-angle term -0.26 min (declination 7.480 deg ours vs 6.955 deg in the file's formula)"
+  },
+  {
+   "id": "B13",
+   "name": "No mock inputs",
+   "metric": "result inputs with \"mock\": false",
+   "threshold": "13 of 13",
+   "value": "13 of 13",
+   "status": "PASS",
+   "evidence": {
+    "result_inputs_mock_false": [
+     "data/out/calendar/ar-argentina.json",
+     "data/out/calendar/br-amazon.json",
+     "data/out/calendar/br-cerrado.json",
+     "data/out/calendar/br-pantanal.json",
+     "data/out/calendar/in-punjab-haryana.json",
+     "data/out/calendar/us-california.json",
+     "data/out/drift/ar-argentina.json",
+     "data/out/drift/br-amazon.json",
+     "data/out/drift/br-cerrado.json",
+     "data/out/drift/br-pantanal.json",
+     "data/out/drift/in-punjab-haryana.json",
+     "data/out/drift/us-california.json",
+     "data/out/regions.json"
+    ],
+    "mock_not_false": [],
+    "benchmark_reference_files_without_a_mock_field": [
+     "analysis/brazil-data/out/biome_lookup_0p1deg.csv",
+     "analysis/brazil-data/out/firms_daily_by_biome.csv",
+     "analysis/statistics/out/regions_daily.csv",
+     "data/out/sim/amazon-2024-09-02.json"
+    ],
+    "raw": "112 NASA FIRMS yearly country CSV files in RAW_DIR"
+   }
+  },
+  {
+   "id": "B14",
+   "name": "Schema",
+   "metric": "problems across the 6 JSON files (parse, required fields, NaN, unexpected nulls)",
+   "threshold": "0",
+   "value": "0",
+   "status": "PASS",
+   "evidence": "6 files, 14 years each, all required fields present"
+  },
+  {
+   "id": "B15",
+   "name": "Determinism",
+   "metric": "outputs with identical SHA-256 across two full runs (same --generated stamp)",
+   "threshold": "12 of 12",
+   "value": "12 of 12",
+   "status": "PASS",
+   "evidence": {
+    "ar-argentina.json": "bd50951d3f78bc67",
+    "ar-argentina.png": "d6bc036c811c8337",
+    "br-amazon.json": "b13f2fabc35a7a15",
+    "br-amazon.png": "730a8ae0b3d748f6",
+    "br-cerrado.json": "8d0c932d3908bb14",
+    "br-cerrado.png": "2e65389196b6b24c",
+    "br-pantanal.json": "7d1bef0077d67e6d",
+    "br-pantanal.png": "c19c684a0e39bfb0",
+    "in-punjab-haryana.json": "cbff81d71c1bedca",
+    "in-punjab-haryana.png": "82603d1ecdc0d196",
+    "us-california.json": "e0f9c297f7edcb87",
+    "us-california.png": "2ffa6bd480059b80"
+   }
+  },
+  {
+   "id": "B16",
+   "name": "Independent audit",
+   "metric": "5 seeded values (seed 20261114) recomputed from raw inputs by separate code; plus 5 non-zero values drawn the same way and the headline values",
+   "threshold": "5 of 5 seeded, and every extra value (times within 1 min, shares within 0.001, counts exact)",
+   "value": "5 of 5 seeded, 5 of 5 extra non-zero, 12 of 12 headline values",
+   "status": "PASS",
+   "evidence": {
+    "auditor": "independent recomputation, own code",
+    "auditor_notes": "Round 1: 10 values (5 seeded, 5 non-zero). Round 2: 12 headline values. Sunset by the auditor's own NOAA-equation code, cross-checked against an astropy ephemeris (within about 3 s). Auditor's flags: four seeded targets are zero shares and test little; shares that sit on a threshold move with a few seconds of sunset (Amazon 2025 after-dark share at 3 h: 2,036 of 27,575 detections lie within 1 minute of the threshold); the Punjab season window Oct to Dec beats Sep to Nov by under 1 percent.",
+    "checks": {
+     "seeded": [
+      "br-amazon 2013 aqua_D_median.0: ours 4.331, auditor 4.331190749101694, tolerance 0.01667 -> match",
+      "br-amazon 2025 viirs_share_under_2h.1.5: ours 0.0, auditor 0.0, tolerance 0.001 -> match",
+      "in-punjab-haryana 2018 viirs_share_after_dark.1.5: ours 0.0, auditor 0.0, tolerance 0.001 -> match",
+      "us-california 2020 terra_share_after_dark.3: ours 0.0, auditor 0.0, tolerance 0.001 -> match",
+      "us-california 2021 terra_share_under_2h.1.5: ours 0.0, auditor 0.0, tolerance 0.001 -> match"
+     ],
+     "extra_nonzero": [
+      "br-amazon 2021 aqua_cf_D_median.1.5: ours 2.824, auditor 2.8244456389340256, tolerance 0.01667 -> match",
+      "ar-argentina 2023 aqua_D0: ours 3.226, auditor 3.2259593979232104, tolerance 0.01667 -> match",
+      "in-punjab-haryana 2018 aqua_D0: ours 3.781, auditor 3.7809764851409238, tolerance 0.01667 -> match",
+      "us-california 2019 terra_D0: ours 7.198, auditor 7.197607416339615, tolerance 0.01667 -> match",
+      "us-california 2021 aqua_D0: ours 5.001, auditor 5.001125788952429, tolerance 0.01667 -> match"
+     ],
+     "requested_headline": [
+      "br-amazon 2025 n_aqua: ours 27575, auditor 27575, tolerance 0 -> match",
+      "br-amazon 2025 aqua_D_median.1.5: ours 1.471, auditor 1.4705550482577365, tolerance 0.01667 -> match",
+      "br-amazon 2025 aqua_share_under_2h.1.5: ours 0.9476, auditor 0.9475974614687217, tolerance 0.001 -> match",
+      "br-amazon 2025 aqua_share_after_dark.3: ours 0.5631, auditor 0.5630825022665458, tolerance 0.001 -> match",
+      "br-amazon 2025 aqua_cf_shift_min: ours 80.0, auditor 80.0, tolerance 1 -> match",
+      "br-amazon 2025 aqua_cf_share_under_2h.3: ours 0.9644, auditor 0.9644242973708069, tolerance 0.001 -> match",
+      "br-amazon 2025 aqua_cf_share_after_dark.3: ours 0.0, auditor 0.0, tolerance 0.001 -> match",
+      "br-amazon 2025 aqua_D15: ours 1.505, auditor 1.5048128410492438, tolerance 0.01667 -> match",
+      "us-california 2025 aqua_share_under_2h.1.5: ours 0.3048, auditor 0.304755944931164, tolerance 0.001 -> match",
+      "us-california 2025 aqua_cf_share_under_2h.1.5: ours 0.0801, auditor 0.08010012515644556, tolerance 0.001 -> match",
+      "ar-argentina 2025 aqua_share_after_dark.3: ours 0.6882, auditor 0.6882459929521427, tolerance 0.001 -> match",
+      "in-punjab-haryana 2025 aqua_share_under_2h.1.5: ours 0.6563, auditor 0.6563314226159458, tolerance 0.001 -> match"
+     ]
+    }
+   }
+  }
+ ]
+}

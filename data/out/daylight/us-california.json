@@ -1,0 +1,1216 @@
+{
+ "mock": false,
+ "region": "us-california",
+ "name": "California (USA)",
+ "generated": "2026-11-15T07:07:16Z",
+ "script": "analysis/daylight/daylight.py",
+ "method": "D = sunset (NOAA solar equations, local mean solar time) - (look time + latency); look times from data/out/drift; latency 0, 1.5, 3 h per NASA FIRMS. Level 1: sunset at the region box centre on the middle day of the fire season. Level 2a: every near-nadir daytime detection with its own time, date and latitude. Level 2b: the same Aqua detections moved back by the measured clock change.",
+ "sources": [
+  "NASA FIRMS yearly country files, MODIS C6.1 and VIIRS S-NPP 375 m (firms.modaps.eosdis.nasa.gov/data/country)",
+  "NASA Earthdata, 'NASA FIRMS Helps Fight Wildland Fires in Near Real-Time' (latency: within three hours; MODIS average 60 to 125 minutes)",
+  "NOAA Global Monitoring Laboratory, Solar Calculation Details (gml.noaa.gov/grad/solcalc/calcdetails.html), after Meeus, Astronomical Algorithms"
+ ],
+ "unit": "hours of daylight left after the alert (local mean solar time); shares are fractions of detections",
+ "latency_h": [
+  0.0,
+  1.5,
+  3.0
+ ],
+ "season": {
+  "months": [
+   "Aug",
+   "Sep",
+   "Oct"
+  ],
+  "month_numbers": [
+   8,
+   9,
+   10
+  ],
+  "basis": "3 consecutive calendar months with the highest summed fixed count, 2012 to 2020",
+  "mid_rule": "middle day of the window, per year",
+  "lat": 37.25,
+  "lon": -119.3
+ },
+ "headline": {
+  "aqua_D15_2012_2020_mean": 3.474,
+  "aqua_D15_2025": 2.317,
+  "aqua_daylight_change_min": -69.5,
+  "aqua_look_change_min": 69.2,
+  "quote": "level2a",
+  "level2a_aqua_D15_2012_2020_mean": 3.78,
+  "level2a_aqua_D15_2025": 2.616,
+  "level2a_aqua_daylight_change_min": -69.8,
+  "quote_reason": "Level 1 (one season day at the box centre) differs from the real detections by more than 30 minutes in some years here; quote the level2a values"
+ },
+ "level2": {
+  "detections": "daytime, type 0, MODIS confidence >= 30 and scan <= 1.3 km, VIIRS S-NPP confidence n or h and track <= 0.40 km; region membership as in the repo's counts",
+  "under_threshold_h": 2.0,
+  "what_if": "aqua_cf_* = the same Aqua detections moved back by aqua_cf_shift_min (that year's aqua_lst minus the 2012 to 2020 median aqua_lst); assumes each fire would still be detected at the earlier time",
+  "aqua_base_median_lst": "13:10"
+ },
+ "years": [
+  {
+   "year": 2012,
+   "mid_date": "2012-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.113,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:56",
+   "viirs_lst": "12:53",
+   "aqua_D0": 4.946,
+   "aqua_D15": 3.446,
+   "aqua_D3": 1.946,
+   "terra_D0": 7.18,
+   "terra_D15": 5.68,
+   "terra_D3": 4.18,
+   "viirs_D0": 5.23,
+   "viirs_D15": 3.73,
+   "viirs_D3": 2.23,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.549,
+    "1.5": 4.049,
+    "3": 2.549
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0271,
+    "3": 0.2506
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 1772,
+   "terra_D_median": {
+    "0": 7.68,
+    "1.5": 6.18,
+    "3": 4.68
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1087,
+   "viirs_D_median": {
+    "0": 5.788,
+    "1.5": 4.288,
+    "3": 2.788
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0002,
+    "3": 0.187
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 4491,
+   "aqua_cf_shift_min": 0.0,
+   "aqua_cf_D_median": {
+    "0": 5.549,
+    "1.5": 4.049,
+    "3": 2.549
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0271,
+    "3": 0.2506
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2013,
+   "mid_date": "2013-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.119,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:57",
+   "viirs_lst": "12:57",
+   "aqua_D0": 4.952,
+   "aqua_D15": 3.452,
+   "aqua_D3": 1.952,
+   "terra_D0": 7.169,
+   "terra_D15": 5.669,
+   "terra_D3": 4.169,
+   "viirs_D0": 5.169,
+   "viirs_D15": 3.669,
+   "viirs_D3": 2.169,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.318,
+    "1.5": 3.818,
+    "3": 2.318
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0541,
+    "3": 0.3956
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 2035,
+   "terra_D_median": {
+    "0": 7.502,
+    "1.5": 6.002,
+    "3": 4.502
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1617,
+   "viirs_D_median": {
+    "0": 5.538,
+    "1.5": 4.038,
+    "3": 2.538
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0157,
+    "3": 0.2748
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 5935,
+   "aqua_cf_shift_min": 0.0,
+   "aqua_cf_D_median": {
+    "0": 5.318,
+    "1.5": 3.818,
+    "3": 2.318
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0541,
+    "3": 0.3956
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2014,
+   "mid_date": "2014-09-15",
+   "sunset_lst": "18:08",
+   "sunset_h": 18.125,
+   "aqua_lst": "13:08",
+   "terra_lst": "10:57",
+   "viirs_lst": "13:02",
+   "aqua_D0": 4.992,
+   "aqua_D15": 3.492,
+   "aqua_D3": 1.992,
+   "terra_D0": 7.175,
+   "terra_D15": 5.675,
+   "terra_D3": 4.175,
+   "viirs_D0": 5.092,
+   "viirs_D15": 3.592,
+   "viirs_D3": 2.092,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.273,
+    "1.5": 3.773,
+    "3": 2.273
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0192,
+    "3": 0.3914
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 1561,
+   "terra_D_median": {
+    "0": 7.181,
+    "1.5": 5.681,
+    "3": 4.181
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1175,
+   "viirs_D_median": {
+    "0": 5.113,
+    "1.5": 3.613,
+    "3": 2.113
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0124,
+    "3": 0.3834
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 4502,
+   "aqua_cf_shift_min": -2.0,
+   "aqua_cf_D_median": {
+    "0": 5.24,
+    "1.5": 3.74,
+    "3": 2.24
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0224,
+    "3": 0.3965
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2015,
+   "mid_date": "2015-09-15",
+   "sunset_lst": "18:08",
+   "sunset_h": 18.132,
+   "aqua_lst": "13:10",
+   "terra_lst": "11:00",
+   "viirs_lst": "13:02",
+   "aqua_D0": 4.965,
+   "aqua_D15": 3.465,
+   "aqua_D3": 1.965,
+   "terra_D0": 7.132,
+   "terra_D15": 5.632,
+   "terra_D3": 4.132,
+   "viirs_D0": 5.098,
+   "viirs_D15": 3.598,
+   "viirs_D3": 2.098,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.496,
+    "1.5": 3.996,
+    "3": 2.496
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0395,
+    "3": 0.3244
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 2124,
+   "terra_D_median": {
+    "0": 7.613,
+    "1.5": 6.113,
+    "3": 4.613
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1576,
+   "viirs_D_median": {
+    "0": 5.549,
+    "1.5": 4.049,
+    "3": 2.549
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0056,
+    "3": 0.28
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 6396,
+   "aqua_cf_shift_min": 0.0,
+   "aqua_cf_D_median": {
+    "0": 5.496,
+    "1.5": 3.996,
+    "3": 2.496
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0395,
+    "3": 0.3244
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2016,
+   "mid_date": "2016-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.112,
+   "aqua_lst": "13:11",
+   "terra_lst": "10:57",
+   "viirs_lst": "12:59",
+   "aqua_D0": 4.929,
+   "aqua_D15": 3.429,
+   "aqua_D3": 1.929,
+   "terra_D0": 7.162,
+   "terra_D15": 5.662,
+   "terra_D3": 4.162,
+   "viirs_D0": 5.129,
+   "viirs_D15": 3.629,
+   "viirs_D3": 2.129,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.303,
+    "1.5": 3.803,
+    "3": 2.303
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0352,
+    "3": 0.4113
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 1590,
+   "terra_D_median": {
+    "0": 7.447,
+    "1.5": 5.947,
+    "3": 4.447
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1456,
+   "viirs_D_median": {
+    "0": 5.37,
+    "1.5": 3.87,
+    "3": 2.37
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0032,
+    "3": 0.3769
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 3738,
+   "aqua_cf_shift_min": 1.0,
+   "aqua_cf_D_median": {
+    "0": 5.32,
+    "1.5": 3.82,
+    "3": 2.32
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.034,
+    "3": 0.4069
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2017,
+   "mid_date": "2017-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.119,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:57",
+   "viirs_lst": "12:57",
+   "aqua_D0": 5.002,
+   "aqua_D15": 3.502,
+   "aqua_D3": 2.002,
+   "terra_D0": 7.169,
+   "terra_D15": 5.669,
+   "terra_D3": 4.169,
+   "viirs_D0": 5.169,
+   "viirs_D15": 3.669,
+   "viirs_D3": 2.169,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.332,
+    "1.5": 3.832,
+    "3": 2.332
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0445,
+    "3": 0.4132
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 2696,
+   "terra_D_median": {
+    "0": 7.288,
+    "1.5": 5.788,
+    "3": 4.288
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 2487,
+   "viirs_D_median": {
+    "0": 5.317,
+    "1.5": 3.817,
+    "3": 2.317
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0046,
+    "3": 0.4278
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 8670,
+   "aqua_cf_shift_min": -3.0,
+   "aqua_cf_D_median": {
+    "0": 5.282,
+    "1.5": 3.782,
+    "3": 2.282
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0634,
+    "3": 0.4214
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2018,
+   "mid_date": "2018-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.125,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:57",
+   "viirs_lst": "13:00",
+   "aqua_D0": 4.958,
+   "aqua_D15": 3.458,
+   "aqua_D3": 1.958,
+   "terra_D0": 7.175,
+   "terra_D15": 5.675,
+   "terra_D3": 4.175,
+   "viirs_D0": 5.125,
+   "viirs_D15": 3.625,
+   "viirs_D3": 2.125,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.717,
+    "1.5": 4.217,
+    "3": 2.717
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0332,
+    "3": 0.2942
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 3433,
+   "terra_D_median": {
+    "0": 7.722,
+    "1.5": 6.222,
+    "3": 4.722
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 2682,
+   "viirs_D_median": {
+    "0": 5.649,
+    "1.5": 4.149,
+    "3": 2.649
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0043,
+    "3": 0.3603
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 9515,
+   "aqua_cf_shift_min": 0.0,
+   "aqua_cf_D_median": {
+    "0": 5.717,
+    "1.5": 4.217,
+    "3": 2.717
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0332,
+    "3": 0.2942
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2019,
+   "mid_date": "2019-09-15",
+   "sunset_lst": "18:08",
+   "sunset_h": 18.131,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:56",
+   "viirs_lst": "12:57",
+   "aqua_D0": 5.014,
+   "aqua_D15": 3.514,
+   "aqua_D3": 2.014,
+   "terra_D0": 7.198,
+   "terra_D15": 5.698,
+   "terra_D3": 4.198,
+   "viirs_D0": 5.181,
+   "viirs_D15": 3.681,
+   "viirs_D3": 2.181,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 4.544,
+    "1.5": 3.044,
+    "3": 1.544
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0552,
+    "3": 0.6385
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 1159,
+   "terra_D_median": {
+    "0": 7.068,
+    "1.5": 5.568,
+    "3": 4.068
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1145,
+   "viirs_D_median": {
+    "0": 4.785,
+    "1.5": 3.285,
+    "3": 1.785
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0131,
+    "3": 0.5541
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 3272,
+   "aqua_cf_shift_min": -3.0,
+   "aqua_cf_D_median": {
+    "0": 4.494,
+    "1.5": 2.994,
+    "3": 1.494
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0638,
+    "3": 0.6618
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2020,
+   "mid_date": "2020-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.112,
+   "aqua_lst": "13:06",
+   "terra_lst": "10:57",
+   "viirs_lst": "12:58",
+   "aqua_D0": 5.012,
+   "aqua_D15": 3.512,
+   "aqua_D3": 2.012,
+   "terra_D0": 7.162,
+   "terra_D15": 5.662,
+   "terra_D3": 4.162,
+   "viirs_D0": 5.145,
+   "viirs_D15": 3.645,
+   "viirs_D3": 2.145,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 4.984,
+    "1.5": 3.484,
+    "3": 1.984
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0126,
+    "3": 0.5223
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 7595,
+   "terra_D_median": {
+    "0": 7.309,
+    "1.5": 5.809,
+    "3": 4.309
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 5741,
+   "viirs_D_median": {
+    "0": 5.226,
+    "1.5": 3.726,
+    "3": 2.226
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.003,
+    "3": 0.3288
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 25319,
+   "aqua_cf_shift_min": -4.0,
+   "aqua_cf_D_median": {
+    "0": 4.917,
+    "1.5": 3.417,
+    "3": 1.917
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0234,
+    "3": 0.5401
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2021,
+   "mid_date": "2021-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.118,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:55",
+   "viirs_lst": "12:58",
+   "aqua_D0": 5.001,
+   "aqua_D15": 3.501,
+   "aqua_D3": 2.001,
+   "terra_D0": 7.201,
+   "terra_D15": 5.701,
+   "terra_D3": 4.201,
+   "viirs_D0": 5.151,
+   "viirs_D15": 3.651,
+   "viirs_D3": 2.151,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.6,
+    "1.5": 4.1,
+    "3": 2.6
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0057,
+    "3": 0.1849
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 7211,
+   "terra_D_median": {
+    "0": 7.757,
+    "1.5": 6.257,
+    "3": 4.757
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 4986,
+   "viirs_D_median": {
+    "0": 5.684,
+    "1.5": 4.184,
+    "3": 2.684
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0019,
+    "3": 0.1812
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 19496,
+   "aqua_cf_shift_min": -3.0,
+   "aqua_cf_D_median": {
+    "0": 5.55,
+    "1.5": 4.05,
+    "3": 2.55
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0078,
+    "3": 0.2095
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2022,
+   "mid_date": "2022-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.124,
+   "aqua_lst": "13:09",
+   "terra_lst": "10:45",
+   "viirs_lst": "12:55",
+   "aqua_D0": 4.974,
+   "aqua_D15": 3.474,
+   "aqua_D3": 1.974,
+   "terra_D0": 7.374,
+   "terra_D15": 5.874,
+   "terra_D3": 4.374,
+   "viirs_D0": 5.207,
+   "viirs_D15": 3.707,
+   "viirs_D3": 2.207,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 4.806,
+    "1.5": 3.306,
+    "3": 1.806
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0526,
+    "3": 0.5713
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_aqua": 1311,
+   "terra_D_median": {
+    "0": 7.338,
+    "1.5": 5.838,
+    "3": 4.338
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1255,
+   "viirs_D_median": {
+    "0": 4.942,
+    "1.5": 3.442,
+    "3": 1.942
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0084,
+    "3": 0.5503
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 3700,
+   "aqua_cf_shift_min": -1.0,
+   "aqua_cf_D_median": {
+    "0": 4.789,
+    "1.5": 3.289,
+    "3": 1.789
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0618,
+    "3": 0.585
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2023,
+   "mid_date": "2023-09-15",
+   "sunset_lst": "18:08",
+   "sunset_h": 18.13,
+   "aqua_lst": "13:26",
+   "terra_lst": "10:30",
+   "viirs_lst": "12:58",
+   "aqua_D0": 4.697,
+   "aqua_D15": 3.197,
+   "aqua_D3": 1.697,
+   "terra_D0": 7.63,
+   "terra_D15": 6.13,
+   "terra_D3": 4.63,
+   "viirs_D0": 5.163,
+   "viirs_D15": 3.663,
+   "viirs_D3": 2.163,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 4.706,
+    "1.5": 3.206,
+    "3": 1.706
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.2232,
+    "3": 0.5554
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0434
+   },
+   "n_aqua": 1635,
+   "terra_D_median": {
+    "0": 7.814,
+    "1.5": 6.314,
+    "3": 4.814
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1396,
+   "viirs_D_median": {
+    "0": 5.083,
+    "1.5": 3.583,
+    "3": 2.083
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0241,
+    "3": 0.4533
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 5478,
+   "aqua_cf_shift_min": 16.0,
+   "aqua_cf_D_median": {
+    "0": 4.973,
+    "1.5": 3.473,
+    "3": 1.973
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.1315,
+    "3": 0.5119
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   }
+  },
+  {
+   "year": 2024,
+   "mid_date": "2024-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.111,
+   "aqua_lst": "13:47",
+   "terra_lst": "10:09",
+   "viirs_lst": "12:57",
+   "aqua_D0": 4.327,
+   "aqua_D15": 2.827,
+   "aqua_D3": 1.327,
+   "terra_D0": 7.961,
+   "terra_D15": 6.461,
+   "terra_D3": 4.961,
+   "viirs_D0": 5.161,
+   "viirs_D15": 3.661,
+   "viirs_D3": 2.161,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 5.115,
+    "1.5": 3.615,
+    "3": 2.115
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.2234,
+    "3": 0.4485
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.1041
+   },
+   "n_aqua": 1786,
+   "terra_D_median": {
+    "0": 8.498,
+    "1.5": 6.998,
+    "3": 5.498
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 1413,
+   "viirs_D_median": {
+    "0": 5.238,
+    "1.5": 3.738,
+    "3": 2.238
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0105,
+    "3": 0.4215
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 4017,
+   "aqua_cf_shift_min": 37.0,
+   "aqua_cf_D_median": {
+    "0": 5.732,
+    "1.5": 4.232,
+    "3": 2.732
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0789,
+    "3": 0.3331
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0034
+   }
+  },
+  {
+   "year": 2025,
+   "mid_date": "2025-09-15",
+   "sunset_lst": "18:07",
+   "sunset_h": 18.117,
+   "aqua_lst": "14:18",
+   "terra_lst": "09:48",
+   "viirs_lst": "12:57",
+   "aqua_D0": 3.817,
+   "aqua_D15": 2.317,
+   "aqua_D3": 0.817,
+   "terra_D0": 8.317,
+   "terra_D15": 6.817,
+   "terra_D3": 5.317,
+   "viirs_D0": 5.167,
+   "viirs_D15": 3.667,
+   "viirs_D3": 2.167,
+   "after_dark": [],
+   "aqua_D_median": {
+    "0": 4.116,
+    "1.5": 2.616,
+    "3": 1.116
+   },
+   "aqua_share_under_2h": {
+    "0": 0.0332,
+    "1.5": 0.3048,
+    "3": 0.8661
+   },
+   "aqua_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.2084
+   },
+   "n_aqua": 1598,
+   "terra_D_median": {
+    "0": 8.706,
+    "1.5": 7.206,
+    "3": 5.706
+   },
+   "terra_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "terra_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_terra": 930,
+   "viirs_D_median": {
+    "0": 5.093,
+    "1.5": 3.593,
+    "3": 2.093
+   },
+   "viirs_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0163,
+    "3": 0.4822
+   },
+   "viirs_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0
+   },
+   "n_viirs": 4724,
+   "aqua_cf_shift_min": 68.0,
+   "aqua_cf_D_median": {
+    "0": 5.249,
+    "1.5": 3.749,
+    "3": 2.249
+   },
+   "aqua_cf_share_under_2h": {
+    "0": 0.0,
+    "1.5": 0.0801,
+    "3": 0.4318
+   },
+   "aqua_cf_share_after_dark": {
+    "0": 0.0,
+    "1.5": 0.0,
+    "3": 0.0169
+   }
+  }
+ ]
+}
