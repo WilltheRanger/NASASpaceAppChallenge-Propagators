@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Anchor · Fire counts on a fixed clock</title>
-  <meta name="description" content="Aqua's daytime fire counts beside a fixed-clock VIIRS benchmark, for six fire regions, as Aqua's overpass time drifted later. Team Propagators, NASA Space Apps Challenge 2026.">
+  <meta name="description" content="Aqua, the satellite behind Brazil's official fire count, now looks later in the day. Anchor compares its count with what we'd expect at its old time, in six places. Team Propagators, NASA Space Apps Challenge 2026.">
   <meta property="og:title" content="Anchor · Fire counts on a fixed clock">
-  <meta property="og:description" content="Aqua's daytime fire counts beside a fixed-clock VIIRS benchmark, for six fire regions. Team Propagators, NASA Space Apps Challenge 2026.">
+  <meta property="og:description" content="Aqua, the satellite behind Brazil's official fire count, now looks later in the day. Anchor compares its count with what we'd expect at its old time, in six places. Team Propagators, NASA Space Apps Challenge 2026.">
   <meta name="theme-color" content="#0B0D0B">
   <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,14 +14,17 @@
   <!-- font stylesheet loads without blocking first paint; text shows in the fallback until it arrives -->
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500&display=swap" rel="stylesheet"></noscript>
-  <!-- each page's first picture (FEATURED in FieldFilm.tsx) starts downloading before the script runs -->
+  <!-- the Regions page's first picture (its region's poster; FEATURED in common.tsx) starts downloading before the script runs -->
   <script>(() => {
     const u = location.search + location.hash
-    if (/[?&#](region|round)=/.test(u)) return
-    // ?page=app, the audit page's old address, opens the region page, which starts on the same poster
-    if (/[?&#]page=/.test(u) && !/[?&#]page=app(&|#|$)/.test(u)) return
+    if (/[?&#]round=/.test(u)) return
+    const region = /[?&#]region=([\w-]+)/.exec(u)
+    const page = /[?&#]page=([\w-]+)/.exec(u)
+    // the Regions page: ?region=…, ?page=regions, or ?page=app (the audit page's old address)
+    if (!region && !(page && /^(regions|app)$/.test(page[1]))) return
+    if (page && !/^(regions|app)$/.test(page[1])) return
     const l = document.createElement('link'); l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high'
-    l.href = 'video/regions/br-amazon-poster.jpg'
+    l.href = `video/regions/${region ? region[1] : 'br-amazon'}-poster.jpg`
     document.head.appendChild(l)
   })()</script>
   <style>html, body { background: #0B0D0B; color: #ECE9E1; color-scheme: dark; }</style>

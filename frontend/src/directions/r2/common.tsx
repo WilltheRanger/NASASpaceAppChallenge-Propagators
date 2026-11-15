@@ -403,8 +403,9 @@ export function SiteBar({ page, links, leave, regionsHref }: { page: Page; links
     <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
       <div className={cn(shell, 'flex h-14 items-center justify-between gap-3')}>
         <a href={links.overview()} onClick={leave} aria-label="Anchor, overview" className={cn('flex min-h-11 shrink-0 items-center rounded leading-none', focusRing)}>
-          <AnchorMark size={20} className="sm:hidden" />
-          <AnchorLogo height={20} className="hidden sm:block" />
+          {/* the logos draw as blocks, so the switch between them sits on their wrappers */}
+          <span className="sm:hidden"><AnchorMark size={20} /></span>
+          <span className="hidden sm:block"><AnchorLogo height={20} /></span>
         </a>
         <nav aria-label="Pages">
           <ul className="flex items-center gap-1 sm:gap-2">

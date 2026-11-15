@@ -10,7 +10,7 @@ import { REGIONS, fmtInt, fmtShift, pct, type CalendarCell } from '@/r2/data'
 import { COAST } from '@/r2/globe-land'
 import { L_STEPS, globalCell, globalGrid, reading, stepOf, type GlobalCalendar, type GlobalCell, type GlobalGrid } from '@/r2/global'
 
-const EXPLORATORY = 'Exploratory: same method as the presets, not checked against a national reference series.'
+const EXPLORATORY = 'Early exploration: the same comparison as the six places, not checked against any country’s own count.'
 
 // the page's classes, as FieldFilm.tsx sets them
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
@@ -36,7 +36,7 @@ const cellName = (c: GlobalCell) => `${side(c.lat0, 'N', 'S')} to ${side(c.lat1,
 function describe(c: GlobalCell, year: 2024 | 2025) {
   const r = reading(c, year)
   if (!r.ok || r.L == null || r.lo == null || r.hi == null) return `Too few fires to read in ${year}`
-  return `Aqua ${pct((r.L - 1) * 100, 0)} against the fixed clock in ${year} (L ${r.L.toFixed(2)}, range ${r.lo.toFixed(2)} to ${r.hi.toFixed(2)}); ${r.outside ? 'outside' : 'within'} its 2012–2020 placebo range`
+  return `Aqua ${pct((r.L - 1) * 100, 0)} against what we’d expect in ${year} (how sure we are: ${pct((r.lo - 1) * 100, 0)} to ${pct((r.hi - 1) * 100, 0)}); ${r.outside ? 'unusual' : 'not unusual'} for this square`
 }
 
 export function GlobalLayer({ region, small }: { region: string; small: boolean }) {
@@ -74,11 +74,10 @@ export function GlobalLayer({ region, small }: { region: string; small: boolean 
     <section id="global" aria-labelledby="global-h" className={cn(shell, 'pb-24 pt-24')}>
       <div className="grid grid-cols-1 gap-y-8 lg:grid-cols-12 lg:gap-x-6">
         <div className="lg:col-span-4">
-          <p className="text-xs uppercase tracking-[0.08em] text-[color:var(--bone3)]">Exploratory · the whole map</p>
-          <h2 id="global-h" className={cn(title, 'mt-3')}>Where the clock moved the count</h2>
+          <h2 id="global-h" className={title}>Early exploration: the whole world</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            The same audit as the six presets, run on every 2° cell of the map with enough fires. Each cell compares Aqua’s count with the count a fixed clock
-            predicts for it. The map shows where the two part ways. It does not show how much of the gap Aqua’s later look caused.
+            The same comparison as the six places, on every 2° square of the map with enough fires: Aqua’s count against what we’d expect. The map shows
+            where the two differ; it can’t say how much of a difference the timing caused.
           </p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">{EXPLORATORY}</p>
           <button
@@ -113,8 +112,8 @@ export function GlobalLayer({ region, small }: { region: string; small: boolean 
                   ))}
                 </div>
                 <p className="text-sm text-[color:var(--bone2)]">
-                  {fmtInt(tally.ok)} of {fmtInt(tally.listed)} cells have enough fires to read in {year}. {fmtInt(tally.above + tally.below)} sit outside their own 2012–2020
-                  placebo range: {fmtInt(tally.above)} above the fixed clock, {fmtInt(tally.below)} below.
+                  {fmtInt(tally.ok)} of {fmtInt(tally.listed)} squares have enough fires to read in {year}. {fmtInt(tally.above + tally.below)} are unusual for
+                  their square: {fmtInt(tally.above)} above what we’d expect, {fmtInt(tally.below)} below.
                 </p>
               </div>
               <WorldMap grid={grid} byKey={byKey} year={year} region={region} picked={picked} onHover={setHover} onPick={setPicked} />
@@ -140,7 +139,7 @@ function Legend() {
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-[color:var(--bone3)]">
       <span className="flex items-center gap-2">
-        <span>Aqua below the fixed clock</span>
+        <span>Aqua below what we’d expect</span>
         <span className="flex gap-[2px]" aria-hidden>
           {[4, 3, 2, 1, 0].map((s) => <span key={`d${s}`} className={sw} style={{ background: DOWN[s] }} />)}
           <span className={sw} style={{ background: NEAR }} />
@@ -148,9 +147,9 @@ function Legend() {
         </span>
         <span>above</span>
       </span>
-      <span>Steps at {L_STEPS.map((_, i) => edge(i)).join(', ')}% from the fixed clock; grey is within {edge(0)}%</span>
-      <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: UP[2] }} />Full square: outside the cell’s placebo range</span>
-      <span className="flex items-center gap-2"><span aria-hidden className="inline-flex h-3 w-3 items-center justify-center"><span className="inline-block h-1.5 w-1.5" style={{ background: UP[2] }} /></span>Small square: within it</span>
+      <span>Steps at {L_STEPS.map((_, i) => edge(i)).join(', ')}% from what we’d expect; grey is within {edge(0)}%</span>
+      <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: UP[2] }} />Full square: unusual for that square</span>
+      <span className="flex items-center gap-2"><span aria-hidden className="inline-flex h-3 w-3 items-center justify-center"><span className="inline-block h-1.5 w-1.5" style={{ background: UP[2] }} /></span>Small square: not unusual</span>
       <span className="flex items-center gap-2"><span aria-hidden className="inline-flex h-3 w-3 items-center justify-center"><span className="inline-block h-1 w-1" style={{ background: '#6F726C' }} /></span>Dot: too few fires to read</span>
     </div>
   )
@@ -249,7 +248,7 @@ function WorldMap({ grid, byKey, year, region, picked, onHover, onPick }: {
         ref={canvasRef}
         role="img"
         tabIndex={0}
-        aria-label={`World map of 2-degree cells, ${year}: Aqua's fire count against the count a fixed clock predicts. ${EXPLORATORY} Arrow keys move between cells.`}
+        aria-label={`World map of 2-degree squares, ${year}: Aqua’s fire count against what we’d expect. ${EXPLORATORY} Arrow keys move between squares.`}
         className={cn('block w-full cursor-crosshair rounded', focusRing)}
         style={{ width: W || '100%', height: H || undefined }}
         onPointerMove={(e) => onHover(at(e))}
@@ -296,18 +295,18 @@ function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 | 2025;
   const placebo = cell.placebo_min != null && cell.placebo_max != null ? `${pct((cell.placebo_min - 1) * 100, 0)} to ${pct((cell.placebo_max - 1) * 100, 0)}` : null
   return (
     <div className="mt-10 border-t border-[color:var(--hairline)] pt-8" aria-live="polite">
-      <h3 className="text-lg font-medium text-[color:var(--bone)]">2° cell · {cellName(cell)}</h3>
+      <h3 className="text-lg font-medium text-[color:var(--bone)]">2° square · {cellName(cell)}</h3>
       <p className="mt-1 text-xs text-[color:var(--bone3)]">{EXPLORATORY}</p>
       <dl className="mt-6 grid grid-cols-1 gap-x-6 gap-y-5 text-sm sm:grid-cols-2">
         {rows.map(({ y, r }) => (
           <div key={y} className={cn(y === year ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone2)]')}>
-            <dt className="text-xs uppercase tracking-[0.08em] text-[color:var(--bone3)]">{y}</dt>
+            <dt className="text-xs tabular-nums text-[color:var(--bone3)]">{y}</dt>
             {r.ok && r.L != null && r.lo != null && r.hi != null ? (
               <dd className="mt-1">
                 <span className="block text-[length:var(--fs-32)] font-medium leading-none">{pct((r.L - 1) * 100, 0)}</span>
                 <span className="mt-2 block">
-                  Aqua’s count against the fixed clock. L {r.L.toFixed(2)}, 95% range {r.lo.toFixed(2)} to {r.hi.toFixed(2)}.{' '}
-                  {r.outside ? 'Outside' : 'Within'} this cell’s 2012–2020 placebo range{placebo ? ` (${placebo})` : ''}.
+                  Aqua’s count against what we’d expect. How sure we are: {pct((r.lo - 1) * 100, 0)} to {pct((r.hi - 1) * 100, 0)}.{' '}
+                  {r.outside ? 'Unusual' : 'Not unusual'} for this square{placebo ? ` (usual range ${placebo})` : ''}.
                 </span>
                 {r.shift != null ? <span className="mt-1 block">Aqua’s look time: {fmtShift(r.shift)} against 2012–2020.</span> : null}
               </dd>
@@ -321,14 +320,14 @@ function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 | 2025;
         Detections on the days both satellites reported, 2025: Aqua {fmtInt(cell.n_aqua_2025)}, S-NPP {fmtInt(cell.n_snpp_2025)}.
       </p>
       {!hasCalendar ? (
-        <p className="mt-5 text-sm text-[color:var(--bone2)]">Too few fires in both years for a fixed-clock calendar here.</p>
+        <p className="mt-5 text-sm text-[color:var(--bone2)]">Too few fires in both years for a monthly calendar here.</p>
       ) : state === 'failed' ? (
         <p className="mt-5 text-sm text-[color:var(--bone2)]">This cell’s calendar could not be loaded.</p>
       ) : !table ? (
         <p className="mt-5 text-sm text-[color:var(--bone2)]" role="status">Loading the calendar…</p>
       ) : (
         <>
-          <p className="mt-8 text-sm text-[color:var(--bone2)]">Each month on the fixed clock against the 2002–2025 median for that month: sand above, slate below.</p>
+          <p className="mt-8 text-sm text-[color:var(--bone2)]">Each month: what we’d expect Aqua to count, against normal for that month (2002–2025). Sand above, slate below.</p>
           <div className="mt-4 border-y border-[color:var(--hairline)] py-6">
             <FireCalendar
               years={table.years}
@@ -338,11 +337,11 @@ function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 | 2025;
               render="fill"
               cellHeight={small ? 16 : 20}
               monthLabels={small ? 'initial' : 'short'}
-              label={`Fire calendar for the 2-degree cell ${cellName(cell)}, each month against its median. ${EXPLORATORY}`}
+              label={`Fire calendar for the 2-degree square ${cellName(cell)}, each month compared with normal for that month. ${EXPLORATORY}`}
             />
           </div>
           <CalendarLegend mode="anomaly" render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
-          <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: global/cells/{cell.id}.json · VIIRS 375 m in Aqua-equivalent units · {EXPLORATORY}</p>
+          <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: global/cells/{cell.id}.json · counted by VIIRS, scaled to Aqua’s count · {EXPLORATORY}</p>
         </>
       )}
     </div>

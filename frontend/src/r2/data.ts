@@ -2,7 +2,7 @@
 // data/out/ when the real pipeline has written it, else from data/mock/ (same layout); every file carries its own
 // "mock" flag, and the MOCK labels on screen follow it.
 // Every value shown in the comps comes from these files.
-import regionsJson from '../../../data/mock/regions.json'
+import regionsJson from '../../../data/out/regions.json'
 // INPE's published yearly series per biome (Programa Queimadas, reference satellite Aqua), as the team's reproduction
 // table lists it next to our own FIRMS counts
 import inpeCsv from '../../../analysis/brazil-data/out/inpe_reproduction_yearly.csv?raw'
@@ -126,6 +126,26 @@ const INPE = (() => {
   return out
 })()
 export const inpeAt = (id: RegionId, year: number) => (INPE_BIOME[id] ? INPE[INPE_BIOME[id]]?.[year] ?? null : null)
+
+/** INPE's yearly count beside the team's own count of every daytime Aqua detection from NASA FIRMS, for a Brazil preset
+ *  (the reproduction table behind check P3). */
+export function inpeReproduction(id: RegionId) {
+  const biome = INPE_BIOME[id]
+  if (!biome) return []
+  const [head, ...rows] = inpeCsv.trim().split(/\r?\n/)
+  const cols = head.split(',')
+  const iy = cols.indexOf('year'), ib = cols.indexOf('biome'), ii = cols.indexOf('inpe'), ia = cols.indexOf('firms_aqua_all')
+  const seen = new Set<number>()
+  const out: { year: number; inpe: number; firms: number }[] = []
+  for (const r of rows) {
+    const c = r.split(',')
+    const year = Number(c[iy])
+    if (c[ib] !== biome || seen.has(year)) continue
+    seen.add(year)
+    out.push({ year, inpe: Number(c[ii]), firms: Number(c[ia]) })
+  }
+  return out.sort((a, b) => a.year - b.year)
+}
 export const hasOfficialSeries = (id: RegionId) => id in INPE_BIOME
 
 export function regionData(id: RegionId) {
@@ -182,6 +202,8 @@ export function regionData(id: RegionId) {
     id, name: REGIONS.find((r) => r.id === id)?.name ?? id, phrase: phrase(id),
     drift, lastDrift, driftAt, baselineYears: auditFile?.baseline.years ?? '2012-2020', noise, placebo, years, latestOk, cal,
     calYears, calSpan, driftStart, baseLook: baseLook == null ? null : fmtHM(baseLook),
+    /** the 2012-2020 exchange rate: Aqua's daytime detections per S-NPP detection on matched days */
+    ratio: base?.ratio ?? null,
     fireday: fireDayFiles[id] ?? null,
     /** two-clocks ratios (detections vs. the fixed clock, 1 = baseline) for a year, when the region has them */
     twoAt: (year: number) => twoFiles[id]?.years.find((t) => t.year === year) ?? null,
@@ -195,6 +217,18 @@ export type RegionData = ReturnType<typeof regionData>
 
 /** Punjab + Haryana is the validation case (Jethva 2026), not a sixth audit. */
 export const isValidation = (id: RegionId) => id === 'in-punjab-haryana'
+
+/** How much later Aqua looked in the drift file's last year than its 2012-2020 median (drift files), in whole minutes. */
+export function lookChange(d: RegionData) {
+  const last = d.lastDrift
+  if (!last || !d.baseLook) return null
+  return { old: d.baseLook, now: last.aqua_lst, year: last.year, minutes: Math.round((hm(last.aqua_lst) - hm(d.baseLook)) * 60), viirs: last.viirs_lst, terra: last.terra_lst }
+}
+/** The smallest and largest of those shifts across the six regions ("68 to 80 minutes"). */
+export const LOOK_RANGE = (() => {
+  const v = REGIONS.map((r) => lookChange(regionData(r.id))?.minutes).filter((m): m is number => m != null)
+  return v.length ? { min: Math.min(...v), max: Math.max(...v) } : null
+})()
 
 /** Aqua's November count as a share of S-NPP's, by year, from the calendar file: Punjab's timing evidence. */
 export function novemberRatio(d: RegionData) {
@@ -431,17 +465,13 @@ export const FIRE_DAY = (() => {
 /** A range in percentage points with signs and unit: "+16.4 to +28.4%". */
 export const fmtRange = (lo: number, hi: number, d = 1) => `${pct(lo, d).replace('%', '')} to ${pct(hi, d)}`
 
-/** Sections of the full page; only `inComp` ones exist in a Round 2 comp. */
+/** The Regions page's sections, in order (the page's section bar). Daylight now lives in the Simulator, and the method,
+ *  checks and limits on the Method page. */
 export const SECTIONS = [
-  { id: 'verdict', label: 'Verdict', inComp: true },
-  { id: 'clock', label: 'The clock', inComp: false },
-  { id: 'daylight', label: 'Daylight', inComp: false },
-  { id: 'two-clocks', label: 'Two clocks', inComp: false },
-  { id: 'audit', label: 'Audit', inComp: false },
+  { id: 'verdict', label: 'Result', inComp: true },
+  { id: 'look', label: 'When it looked', inComp: true },
+  { id: 'years', label: 'Year by year', inComp: true },
+  { id: 'two-clocks', label: 'Two clocks', inComp: true },
   { id: 'calendar', label: 'Calendar', inComp: true },
   { id: 'global', label: 'World map', inComp: true },
-  { id: 'checks', label: 'Checks', inComp: false },
-  { id: 'detection', label: 'Detection', inComp: false },
-  { id: 'limits', label: 'Limits', inComp: false },
-  { id: 'about', label: 'About', inComp: false },
 ] as const

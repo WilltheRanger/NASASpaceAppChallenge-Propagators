@@ -50,13 +50,15 @@ export function YearSlider({ value, onChange, min, max, valueText, classes, labe
   )
 }
 
-export function ModeToggle({ value, onChange, classes }: {
+export function ModeToggle({ value, onChange, classes, labels = { anomaly: 'Vs. median', count: 'Fixed-clock count' } }: {
   value: 'anomaly' | 'count'; onChange: (m: 'anomaly' | 'count') => void; classes: { root: string; item: string }
+  /** the two options' words */
+  labels?: { anomaly: string; count: string }
 }) {
   return (
     <ToggleGroup.Root type="single" value={value} onValueChange={(v) => v && onChange(v as 'anomaly' | 'count')} aria-label="Calendar values" className={classes.root}>
-      <ToggleGroup.Item value="anomaly" className={classes.item}>Vs. median</ToggleGroup.Item>
-      <ToggleGroup.Item value="count" className={classes.item}>Fixed-clock count</ToggleGroup.Item>
+      <ToggleGroup.Item value="anomaly" className={classes.item}>{labels.anomaly}</ToggleGroup.Item>
+      <ToggleGroup.Item value="count" className={classes.item}>{labels.count}</ToggleGroup.Item>
     </ToggleGroup.Root>
   )
 }

@@ -55,26 +55,28 @@ export function StickyScroll({ steps, panel, initial = 0, onActive, top = '6rem'
   const pick = React.useCallback((i: number) => { setActive(i); onActive?.(i) }, [onActive])
   const ref = React.useRef<HTMLDivElement>(null)
   const stepRefs = React.useRef<(HTMLLIElement | null)[]>([])
-  // the step nearest the middle of the screen is the active one, as in the original's breakpoints
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start center', 'end center'] })
-  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+  // the original split the scroll into equal breakpoints; here the active step is the last one whose top has passed a
+  // reading line 45% down the screen, so the lit step is always the one being read
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
+  useMotionValueEvent(scrollYProgress, 'change', () => {
     if (!wide) return
-    const n = steps.length
-    const i = Math.max(0, Math.min(n - 1, Math.floor(p * n)))
+    const line = window.innerHeight * 0.45
+    let i = 0
+    stepRefs.current.forEach((el, k) => { if (el && el.getBoundingClientRect().top <= line) i = k })
     if (i !== active) pick(i)
   })
   const go = (i: number) => {
     pick(i)
     if (!wide) return
     const el = stepRefs.current[i]
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.38, behavior: still ? 'auto' : 'smooth' })
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.4, behavior: still ? 'auto' : 'smooth' })
   }
   const list = (
     <ol aria-label={label} className={cn('flex flex-col', wide ? 'gap-0' : 'gap-2')}>
       {steps.map((s, i) => {
         const on = i === active
         return (
-          <li key={s.title} ref={(el) => { stepRefs.current[i] = el }} className={cn(wide && 'flex min-h-[48svh] items-center')}>
+          <li key={s.title} ref={(el) => { stepRefs.current[i] = el }} className={cn(wide && 'min-h-[44svh]')}>
             <button
               type="button"
               aria-pressed={on}
@@ -110,7 +112,7 @@ export function StickyScroll({ steps, panel, initial = 0, onActive, top = '6rem'
   }
   return (
     <div ref={ref} className={cn('grid grid-cols-12 gap-x-6', className)}>
-      <div className="col-span-5 py-[8svh]">{list}</div>
+      <div className="col-span-5 pb-[24svh]">{list}</div>
       <div className="col-span-7">
         <div className="sticky" style={{ top }}>{panel(active)}</div>
       </div>

@@ -55,11 +55,11 @@ export function describeCell(cell: CalendarCell | null, month: number, year: num
   const when = `${MONTHS[month]} ${year}`
   if (cell?.outside) return `${when}: outside the chosen range`
   if (!cell || cell.fixed == null) return `${when}: no data`
-  const parts = [`${when}: ${fmtInt(cell.fixed)} hotspots on the fixed clock`]
-  if (cell.lo != null && cell.hi != null) parts.push(`range ${fmtInt(cell.lo)}–${fmtInt(cell.hi)}`)
-  if (cell.median != null) parts.push(`median ${fmtInt(cell.median)}`)
-  if (cell.anomaly != null) parts.push(`${signed0(cell.anomaly)} vs. median`)
-  if (cell.flags.length) parts.push(cell.flags.join(', '))
+  const parts = [`${when}: ${fmtInt(cell.fixed)} fires we’d expect`]
+  if (cell.lo != null && cell.hi != null) parts.push(`how sure we are ${fmtInt(cell.lo)}–${fmtInt(cell.hi)}`)
+  if (cell.median != null) parts.push(`normal ${fmtInt(cell.median)}`)
+  if (cell.anomaly != null) parts.push(`${signed0(cell.anomaly)} vs. normal`)
+  if (cell.flags.length) parts.push(cell.flags.map((f) => (f === 'provisional' ? 'not final yet' : f)).join(', '))
   return parts.join(', ')
 }
 
@@ -183,35 +183,35 @@ export function CalendarLegend({ mode, render = 'fill', className }: { mode: Cal
     <div className={cn('flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px]', className)} style={{ color: 'var(--cal-muted)' }}>
       {render === 'fill' && mode === 'anomaly' ? (
         <span className="flex items-center gap-2">
-          <span>Below median</span>
+          <span>Below normal</span>
           <span className="flex gap-[2px]" aria-hidden>
             {[5, 4, 3, 2, 1].map((s) => <span key={`d${s}`} className={sw} style={{ background: `var(--cal-down-${s})` }} />)}
             <span className={sw} style={{ background: 'var(--cal-mid)' }} />
             {[1, 2, 3, 4, 5].map((s) => <span key={`u${s}`} className={sw} style={{ background: `var(--cal-up-${s})` }} />)}
           </span>
-          <span>Above median</span>
+          <span>Above normal</span>
         </span>
       ) : null}
       {render === 'fill' && mode === 'count' ? (
         <span className="flex items-center gap-2">
           <span>Fewer</span>
           <span className="flex gap-[2px]" aria-hidden>{[1, 2, 3, 4, 5, 6].map((s) => <span key={s} className={sw} style={{ background: `var(--cal-seq-${s})` }} />)}</span>
-          <span>More hotspots</span>
+          <span>More fires</span>
         </span>
       ) : null}
       {render === 'squares' ? (
         <span className="flex items-center gap-3">
           {mode === 'anomaly' ? (
             <>
-              <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: 'var(--cal-sq-up)' }} />Above median</span>
-              <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: 'var(--cal-sq-down)' }} />Below median</span>
-              <span>Larger square, further from the median</span>
+              <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: 'var(--cal-sq-up)' }} />Above normal</span>
+              <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: 'var(--cal-sq-down)' }} />Below normal</span>
+              <span>Larger square, further from normal</span>
             </>
-          ) : <span>Larger square, more hotspots</span>}
+          ) : <span>Larger square, more fires</span>}
         </span>
       ) : null}
-      <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-4" style={{ backgroundColor: 'var(--cal-cell)', backgroundImage: 'repeating-linear-gradient(135deg, var(--cal-hatch) 0 1px, transparent 1px 4px)' }} />Provisional</span>
-      <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-[7px] w-[7px] rounded-full" style={{ boxShadow: 'inset 0 0 0 1.5px var(--cal-fg)' }} />Sensor outage</span>
+      <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-4" style={{ backgroundColor: 'var(--cal-cell)', backgroundImage: 'repeating-linear-gradient(135deg, var(--cal-hatch) 0 1px, transparent 1px 4px)' }} />Not final yet</span>
+      <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-[7px] w-[7px] rounded-full" style={{ boxShadow: 'inset 0 0 0 1.5px var(--cal-fg)' }} />Satellite outage</span>
       <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-px w-3" style={{ background: 'var(--cal-muted)' }} />No data</span>
     </div>
   )
