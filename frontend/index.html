@@ -11,7 +11,19 @@
   <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <!-- font stylesheet loads without blocking first paint; text shows in the fallback until it arrives -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500&display=swap" rel="stylesheet"></noscript>
+  <!-- each page's first picture (FEATURED in FieldFilm.tsx) starts downloading before the script runs -->
+  <script>(() => {
+    const u = location.search + location.hash
+    if (/[?&#](region|round)=/.test(u)) return
+    const l = document.createElement('link'); l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high'
+    if (/[?&#]page=app/.test(u)) { l.href = 'img/regions/br-amazon.jpg'; l.imageSrcset = 'img/regions/br-amazon-sm.jpg 720w, img/regions/br-amazon.jpg 1920w'; l.imageSizes = '100vw' }
+    else if (/[?&#]page=/.test(u)) return
+    else l.href = 'video/regions/br-amazon-poster.jpg'
+    document.head.appendChild(l)
+  })()</script>
   <style>html, body { background: #0B0D0B; color: #ECE9E1; color-scheme: dark; }</style>
 </head>
 <body>
