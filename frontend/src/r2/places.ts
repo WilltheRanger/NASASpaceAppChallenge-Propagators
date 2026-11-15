@@ -84,7 +84,7 @@ export function searchPlaces(q: string, limit = 9): Place[] {
     else if (key.startsWith(f)) s = 1
     else if (key.split(/[\s-]+/).some((w) => w.startsWith(f))) s = 2
     else if (f.length > 2 && key.includes(f)) s = 3
-    else if (f.length > 2 && subsequence(key, f)) s = 4
+    else if (f.length > 3 && subsequence(key, f)) s = 4
     if (s < 0 || seen.has(place.id)) continue
     seen.add(place.id)
     scored.push({ p: place, s: s * 10 + rank })

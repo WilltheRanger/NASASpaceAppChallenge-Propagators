@@ -36,6 +36,8 @@ export interface EarthGlobeProps {
   pinContent?: React.ReactNode
   /** fire points as [lon*100, lat*100, day(1)/night(0), ...] */
   fires: number[] | null
+  /** the selected region's own week of fire detections, as [lon*100, lat*100, ...], drawn as rings */
+  weekFires?: number[] | null
   /** where the panels sit, so a place lands in the clear middle */
   padding: EarthPadding
   /** the Blue Marble image the comment page cuts into tiles */
@@ -52,13 +54,44 @@ export interface EarthGlobeProps {
 }
 
 const GIBS_BM = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg'
+/** close-up imagery on the live site: Sentinel-2 cloudless 2016 by EOX (s2maps.eu), CC BY 4.0 */
+const S2 = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg'
 const ACCENT = '#C8801F'
 const BONE = '#ECE9E1'
 const FIRE = '#FF5A36'
 const NONE = { type: 'FeatureCollection', features: [] } as GeoJSON.FeatureCollection
 
+/** a faint graticule every 15 degrees */
+const GRID: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [
+    ...Array.from({ length: 24 }, (_, i) => -180 + i * 15).map((lon) => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'LineString' as const, coordinates: Array.from({ length: 35 }, (_, k) => [lon, -85 + k * 5]) } })),
+    ...Array.from({ length: 11 }, (_, i) => -75 + i * 15).map((lat) => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'LineString' as const, coordinates: Array.from({ length: 73 }, (_, k) => [-180 + k * 5, lat]) } })),
+  ],
+}
+
+/** the half of the Earth in night now, as a polygon (sun position to within about a degree) */
+function nightSide(now: Date): GeoJSON.FeatureCollection {
+  const rad = Math.PI / 180
+  const start = Date.UTC(now.getUTCFullYear(), 0, 0)
+  const n = (now.getTime() - start) / 86400000
+  const g = (2 * Math.PI / 365) * (n - 1)
+  const dec = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g)
+  const eot = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g))
+  const utcMin = now.getUTCHours() * 60 + now.getUTCMinutes() + now.getUTCSeconds() / 60
+  const sunLon = -(utcMin + eot - 720) / 4
+  const line: [number, number][] = []
+  for (let lon = -180; lon <= 180; lon += 2) {
+    const lat = Math.atan(-Math.cos((lon - sunLon) * rad) / Math.tan(dec || 1e-6)) / rad
+    line.push([lon, Math.max(-85, Math.min(85, lat))])
+  }
+  const pole = dec > 0 ? -85 : 85
+  const ring = [...line, [180, pole], [-180, pole], line[0]]
+  return { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } }] }
+}
+
 /** the zoom at which the whole Earth fits the stage */
-const homeZoom = (w: number, h: number) => Math.log2((Math.min(w, h) * 0.8 * Math.PI) / 512)
+const homeZoom = (w: number, h: number) => Math.log2((Math.min(w, h) * 0.92 * Math.PI) / 512)
 /** the band over which the globe flattens: globe below z0, a flat map above z1 */
 const band = (z0: number, z1: number) =>
   ['interpolate', ['linear'], ['zoom'], z0, 'vertical-perspective', z1, 'mercator'] as unknown as string
@@ -142,7 +175,7 @@ function useImageLayer(mapRef: React.MutableRefObject<MLMap | null>, ready: bool
 }
 
 export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(function EarthGlobe(props, handle) {
-  const { regions, selected, target, overlay, context, pin, pinContent, fires, padding, baseSrc, live, motion, className } = props
+  const { regions, selected, target, overlay, context, pin, pinContent, fires, weekFires, padding, baseSrc, live, motion, className } = props
   const boxRef = React.useRef<HTMLDivElement | null>(null)
   const mapRef = React.useRef<MLMap | null>(null)
   const [ready, setReady] = React.useState(false)
@@ -165,7 +198,13 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
       sky: { 'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 4, 0.8, 6, 0] },
       sources: {
         base: { type: 'raster', tiles: ['anchor-earth://{z}/{x}/{y}'], tileSize: 256, maxzoom: 4 },
-        ...(live ? { gibs: { type: 'raster' as const, tiles: [GIBS_BM], tileSize: 256, maxzoom: 8, attribution: 'NASA GIBS' } } : {}),
+        ...(live ? {
+          gibs: { type: 'raster' as const, tiles: [GIBS_BM], tileSize: 256, maxzoom: 8 },
+          s2: { type: 'raster' as const, tiles: [S2], tileSize: 256, maxzoom: 14 },
+        } : {}),
+        grid: { type: 'geojson', data: GRID },
+        night: { type: 'geojson', data: nightSide(new Date()) },
+        week: { type: 'geojson', data: NONE },
         regions: { type: 'geojson', data: NONE },
         frames: { type: 'geojson', data: NONE },
         fires: { type: 'geojson', data: NONE },
@@ -175,15 +214,27 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } },
         ...(live ? [{ id: 'gibs', type: 'raster' as const, source: 'gibs', minzoom: 3, paint: { 'raster-fade-duration': 250 } }] : []),
         { id: 'region-img-slot', type: 'background', layout: { visibility: 'none' } },
+        ...(live ? [{ id: 's2', type: 'raster' as const, source: 's2', minzoom: 4.5, paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 4.5, 0, 6, 1], 'raster-fade-duration': 250 } }] : []) as never[],
+        { id: 'night', type: 'fill', source: 'night', paint: { 'fill-color': '#000', 'fill-opacity': ['interpolate', ['linear'], ['zoom'], 0, 0.42, 3.5, 0.3, 5, 0] } },
+        { id: 'grid', type: 'line', source: 'grid', paint: { 'line-color': BONE, 'line-width': 0.6, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 0, 0.09, 6, 0.05] } },
         { id: 'region-hit', type: 'fill', source: 'regions', paint: { 'fill-color': '#000', 'fill-opacity': 0 } },
         {
           id: 'region-edge', type: 'line', source: 'regions',
-          paint: { 'line-color': ['case', ['get', 'on'], BONE, ACCENT], 'line-opacity': ['case', ['get', 'on'], 0.5, 0.28], 'line-width': 1, 'line-dasharray': [2, 3] },
+          paint: { 'line-color': ACCENT, 'line-opacity': ['case', ['get', 'on'], 0.7, 0.25], 'line-width': 1, 'line-dasharray': [2, 3] },
         },
         {
           id: 'frames', type: 'line', source: 'frames',
           layout: { 'line-cap': 'square', 'line-join': 'miter' },
-          paint: { 'line-color': ['case', ['get', 'on'], BONE, ACCENT], 'line-width': ['case', ['get', 'on'], 2, 1.5], 'line-opacity': ['case', ['get', 'on'], 1, ['get', 'dim']] },
+          paint: { 'line-color': ACCENT, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, ['get', 'dim']] },
+        },
+        {
+          id: 'week', type: 'circle', source: 'week',
+          paint: {
+            'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': '#FF6B3D', 'circle-stroke-opacity': 0.9,
+            'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 3, 0.8, 7, 1.4],
+            'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 3, 1.2, 6, 2.6, 9, 5],
+            'circle-pitch-alignment': 'map',
+          },
         },
         {
           id: 'fires-glow', type: 'circle', source: 'fires',
@@ -213,7 +264,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         center: [-40, 8],
         zoom: homeZoom(w, h),
         minZoom: 0.4,
-        maxZoom: live ? 10 : 8.5,
+        maxZoom: live ? 11 : 8.5,
         attributionControl: false,
         maplibreLogo: false,
         dragRotate: false,
@@ -262,7 +313,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     })
     ;(map.getSource('frames') as GeoJSONSource | undefined)?.setData({
       type: 'FeatureCollection',
-      features: regions.map((r) => ({ type: 'Feature', properties: { id: r.id, on: r.id === selected, dim: overlay ? 0.3 : 1 }, geometry: { type: 'MultiLineString', coordinates: brackets(r.bbox) } })),
+      features: regions.map((r) => ({ type: 'Feature', properties: { id: r.id, on: r.id === selected, dim: overlay ? 0.3 : 0.8 }, geometry: { type: 'MultiLineString', coordinates: brackets(r.bbox) } })),
     })
     // fires inside the selected region give way to its own map
     const sel = regions.find((r) => r.id === selected)
@@ -322,6 +373,23 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     requestAnimationFrame(declutter)
     return () => { tags.forEach((t) => t.m.remove()); tagsRef.current = [] }
   }, [ready, regions, selected, declutter])
+
+  // the night side moves with the clock
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const t = window.setInterval(() => (map.getSource('night') as GeoJSONSource | undefined)?.setData(nightSide(new Date())), 300000)
+    return () => window.clearInterval(t)
+  }, [ready])
+
+  // the selected region's week of fires, as rings
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const features: GeoJSON.Feature[] = []
+    if (weekFires) for (let i = 0; i + 1 < weekFires.length; i += 2) features.push({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [weekFires[i] / 100, weekFires[i + 1] / 100] } })
+    ;(map.getSource('week') as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features })
+  }, [ready, weekFires])
 
   // fire points
   React.useEffect(() => {

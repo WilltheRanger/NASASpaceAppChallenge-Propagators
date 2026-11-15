@@ -17,7 +17,7 @@ const images = [
   // the one fire day's image, under the daylight map
   'daylight/br-amazon-2024-09-02.jpg',
   // the simulator's map of each studied region, and its globe (NASA Blue Marble, web mercator)
-  ...regions.flatMap((r) => [`sim/${r}.jpg`, `sim/${r}-context.jpg`]),
+  ...regions.flatMap((r) => [`sim/${r}.webp`, `sim/${r}-context.jpg`]),
   'earth/bluemarble-4096.jpg',
 ]
 mkdirSync(join(out, 'img', 'prints'), { recursive: true })

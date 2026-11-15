@@ -24,6 +24,7 @@ import { REGIONS, daylight, daylightHeadline, daylightYears, fmtHM, fmtInt, hm, 
 import { STUDIED_IN, STUDIED_PLACES, kmBetween, lookUpPlace, placeById, regionAt, searchPlaces, type Place } from '@/r2/places'
 import FIRES from '@/r2/earth/fires-24h.json'
 import CONTEXT from '@/r2/earth/context.json'
+import REGION_MAPS from '@/r2/earth/region-maps.json'
 import { cn } from '@/lib/utils'
 
 type Nav = 'dev' | 'artifact'
@@ -34,16 +35,11 @@ type Delay = 0 | 1.5 | 3
 const IMG = `${import.meta.env.BASE_URL}img/`
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-/** Each studied region's map: NASA VIIRS (S-NPP) true colour on its fire season's middle day of 2025, with every VIIRS
- *  daytime fire detection of that week drawn on it (NASA GIBS), cut to the region's box. */
-const SIM_MAPS: Record<string, { day: string; from: string; to: string }> = {
-  'br-amazon': { day: '2025-09-15', from: '2025-09-12', to: '2025-09-18' },
-  'br-cerrado': { day: '2025-09-15', from: '2025-09-12', to: '2025-09-18' },
-  'br-pantanal': { day: '2025-09-15', from: '2025-09-12', to: '2025-09-18' },
-  'ar-argentina': { day: '2025-08-15', from: '2025-08-12', to: '2025-08-18' },
-  'in-punjab-haryana': { day: '2025-11-08', from: '2025-11-05', to: '2025-11-11' },
-  'us-california': { day: '2025-09-15', from: '2025-09-12', to: '2025-09-18' },
-}
+/** Each studied region's map: NASA VIIRS (S-NPP) true colour on the clearest day of its 2025 fire-season week (edges
+ *  feathered into the map around it), and that week's VIIRS daytime fire detections, drawn as rings (NASA GIBS). */
+const SIM_MAPS = REGION_MAPS as Record<string, { day: string; from: string; to: string }>
+/** each region's week of fires, loaded when the region is picked */
+const WEEK = import.meta.glob<number[]>('../../r2/earth/week-*.json', { import: 'pts' })
 
 const dayText = (s: string) => { const [y, m, d] = s.split('-').map(Number); return `${d} ${MONTHS[m - 1]} ${y}` }
 const shortDay = (s: string) => { const [, m, d] = s.split('-').map(Number); return `${d} ${MONTHS[m - 1]}` }
@@ -160,6 +156,16 @@ function useMedia(q: string) {
   return on
 }
 
+function useViewH() {
+  const [h, setH] = useState(() => (typeof window !== 'undefined' ? window.innerHeight : 800))
+  useEffect(() => {
+    const f = () => setH(window.innerHeight)
+    window.addEventListener('resize', f)
+    return () => window.removeEventListener('resize', f)
+  }, [])
+  return h
+}
+
 /* ---------- shared pieces ---------- */
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]'
@@ -179,6 +185,7 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
   home: string; regionsHref: (id: string) => string; leave: Leave; motion: boolean; setMotion: (on: boolean) => void; nav: Nav
 }) {
   const wide = useMedia('(min-width: 1024px)')
+  const viewH = useViewH()
   const xl = useMedia('(min-width: 1280px)')
   const [place, setPlace] = useState<Place | null>(() => { const id = readParam('place'); return id ? placeById(id) : null })
   const [arrived, setArrived] = useState(false)
@@ -255,11 +262,18 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
 
   const padding: EarthPadding = wide
     ? { top: 32, right: xl ? 408 : 372, bottom: xl && facts ? 176 : 40, left: xl ? 388 : 344 }
-    : { top: 84, right: 24, bottom: sheetH + 16, left: 24 }
+    : { top: 84, right: 24, bottom: (place ? Math.max(sheetH, Math.round(viewH * 0.52)) : sheetH) + 16, left: 24 }
   // the comment page's own world image is soft up close, so places without a region map stop a little further out
   const target: EarthTarget = place ? { key: place.id, bbox: boxFor(place), maxZoom: nav === 'artifact' && !region ? 4.6 : undefined } : null
   const context: EarthOverlay = region ? { src: `${IMG}sim/${region}-context.jpg`, bbox: (CONTEXT as Record<string, number[]>)[region] as unknown as Box } : null
-  const overlay: EarthOverlay = region && arrived ? { src: `${IMG}sim/${region}.jpg`, bbox: BOXES[region] } : null
+  const overlay: EarthOverlay = region && arrived ? { src: `${IMG}sim/${region}.webp`, bbox: BOXES[region] } : null
+  const [week, setWeek] = useState<{ id: string; pts: number[] } | null>(null)
+  useEffect(() => {
+    if (!region) return
+    let gone = false
+    WEEK[`../../r2/earth/week-${region}.json`]?.().then((pts) => { if (!gone) setWeek({ id: region, pts }) })
+    return () => { gone = true }
+  }, [region])
   const fires = useMemo(() => FIRES.pts as number[], [])
   const firesWhen = `${stamp(FIRES.first)} to ${stamp(FIRES.last)} UTC`
 
@@ -301,6 +315,7 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
             pin={place && !region ? { key: place.id, lon: place.lon, lat: place.lat } : null}
             pinContent={place && !region ? <Reticle text={coords(place.lat, place.lon)} motion={motion} /> : null}
             fires={fires}
+            weekFires={region && arrived && week?.id === region ? week.pts : null}
             padding={padding}
             baseSrc={`${IMG}earth/bluemarble-4096.jpg`}
             live={nav !== 'artifact'}
@@ -349,7 +364,7 @@ export default function Simulator({ home, regionsHref, leave, motion, setMotion,
               </div>
             ) : null}
             {wide ? (
-              <MapReadout cursor={cursor} view={view} firesWhen={firesWhen} region={arrived ? region : null} open={sources} setOpen={setSources} motion={motion} setMotion={setMotion} xl={xl} />
+              <MapReadout cursor={cursor} view={view} firesWhen={firesWhen} region={arrived ? region : null} open={sources} setOpen={setSources} motion={motion} setMotion={setMotion} xl={xl} live={nav !== 'artifact'} />
             ) : null}
           </div>
 
@@ -456,7 +471,10 @@ function SearchField({ inputRef, q, setQ, open, setOpen, items, active, setActiv
   busy: boolean; failed: boolean; offline: boolean; typing: boolean; motion: boolean; onSubmit: () => void
 }) {
   const show = open && typing
-  const groups = KINDS.map((k) => ({ ...k, rows: items.filter((p) => p.kind === k.kind) })).filter((g) => g.rows.length)
+  // groups follow the ranking: the group holding the best match comes first
+  const groups = KINDS.map((k) => ({ ...k, rows: items.filter((p) => p.kind === k.kind), best: items.findIndex((p) => p.kind === k.kind) }))
+    .filter((g) => g.rows.length)
+    .sort((a, b) => a.best - b.best)
   const flat = groups.flatMap((g) => g.rows)
   const listRef = useRef<HTMLUListElement | null>(null)
   const [pill, setPill] = useState<{ top: number; height: number } | null>(null)
@@ -728,7 +746,7 @@ function Measure({ name, value, other, format, formatDelta, suffix, motion }: {
       {value == null ? (
         <p className="mt-1 text-lg text-[color:var(--bone3)]">—</p>
       ) : (
-        <DeltaTicker value={value} basis={other} format={format} formatDelta={formatDelta} suffix={suffix} label={name} motion={motion} className="mt-0.5" valueClassName="text-[22px] font-medium leading-[1.25] tracking-[-0.01em] text-[color:var(--bone)]" />
+        <DeltaTicker value={value} basis={other} format={format} formatDelta={formatDelta} suffix={suffix} label={name} motion={motion} ghost={false} className="mt-0.5" valueClassName="text-[22px] font-medium leading-[1.25] tracking-[-0.01em] text-[color:var(--bone)]" />
       )}
     </div>
   )
@@ -766,7 +784,7 @@ function Readout({ f, clock, delay, studyHref, leave, motion }: { f: Facts; cloc
       <div className="flex flex-col gap-2">
         <Measure name="Aqua passes, local solar time" value={pass[clock]} other={pass[other]} format={asTime} formatDelta={deltaMin} suffix={suffix} motion={motion} />
         {count.drifted != null && count.fixed != null ? (
-          <Measure name={`Daytime hotspots counted, ${f.year}`} value={count[clock]} other={count[other]} format={fmtInt} formatDelta={deltaInt} suffix={suffix} motion={motion} />
+          <Measure name={fixed ? `Fixed-clock benchmark, ${f.year} (computed from VIIRS)` : `Daytime hotspots counted, ${f.year}`} value={count[clock]} other={count[other]} format={fmtInt} formatDelta={deltaInt} suffix={suffix} motion={motion} />
         ) : (
           <div className="border-t border-[color:var(--hairline)] pt-2">
             <p className="text-xs text-[color:var(--bone2)]">Daytime hotspots counted, {f.year}</p>
@@ -811,7 +829,7 @@ function Elsewhere({ place, inCountry, onFly, motion }: { place: Place; inCountr
           ))}
         </div>
       ) : (
-        <p className="text-sm text-[color:var(--bone2)]">There’s no study here yet, so there are no counts or daylight figures to quote.</p>
+        <p className="text-sm text-[color:var(--bone2)]">There’s no study here yet, so there are no fire counts or pass-time comparisons to quote.</p>
       )}
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">What can be said about {place.name} without a study</caption>
@@ -882,9 +900,9 @@ function Reticle({ text, motion }: { text: string; motion: boolean }) {
 
 /* ---------- bottom left: where the pointer is, the scale, and the sources ---------- */
 
-function MapReadout({ cursor, view, firesWhen, region, open, setOpen, motion, setMotion, xl }: {
+function MapReadout({ cursor, view, firesWhen, region, open, setOpen, motion, setMotion, xl, live }: {
   cursor: { lon: number; lat: number } | null; view: { zoom: number; lat: number; flat: number }; firesWhen: string; region: string | null
-  open: boolean; setOpen: (v: boolean) => void; motion: boolean; setMotion: (on: boolean) => void; xl: boolean
+  open: boolean; setOpen: (v: boolean) => void; motion: boolean; setMotion: (on: boolean) => void; xl: boolean; live: boolean
 }) {
   // a round scale length that fits about 96 px at the map's middle latitude
   const mpp = (40075016.686 * Math.cos((view.lat * Math.PI) / 180)) / (512 * 2 ** view.zoom)
@@ -906,13 +924,19 @@ function MapReadout({ cursor, view, firesWhen, region, open, setOpen, motion, se
       </div>
       <p className="mt-2 flex items-start gap-2 text-[color:var(--bone2)]">
         <span aria-hidden className="mt-1 size-2 shrink-0 rounded-full bg-[#FF6B3D] shadow-[0_0_6px_rgba(255,90,54,0.8)]" />
-        <span>Fire detections, VIIRS (NOAA-20), {firesWhen}</span>
+        <span>Fires worldwide, past day: VIIRS (NOAA-20), {firesWhen}</span>
       </p>
       {map ? (
-        <p className="mt-1.5 flex items-start gap-2 text-[color:var(--bone2)]">
-          <span aria-hidden className="mt-0.5 size-2.5 shrink-0 border border-[color:var(--bone)]" />
-          <span>Region map: VIIRS (S-NPP) true colour, {dayText(map.day)}, with that week’s daytime fires ({shortDay(map.from)} to {shortDay(map.to)})</span>
-        </p>
+        <>
+          <p className="mt-1.5 flex items-start gap-2 text-[color:var(--bone2)]">
+            <span aria-hidden className="mt-0.5 size-2.5 shrink-0 rounded-full border-[1.5px] border-[#FF6B3D]" />
+            <span>Fires in this region, {shortDay(map.from)} to {dayText(map.to)}: VIIRS (S-NPP) daytime detections</span>
+          </p>
+          <p className="mt-1.5 flex items-start gap-2 text-[color:var(--bone2)]">
+            <span aria-hidden className="mt-0.5 size-2.5 shrink-0 border border-[color:var(--sat-aqua)]" />
+            <span>Region map: VIIRS (S-NPP) true colour on {dayText(map.day)}, the week’s clearest day</span>
+          </p>
+        </>
       ) : null}
       <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className={cn('mt-2 rounded text-[color:var(--bone)]', link, focusRing)}>
         {open ? 'Hide sources' : 'Sources and settings'}
@@ -920,6 +944,7 @@ function MapReadout({ cursor, view, firesWhen, region, open, setOpen, motion, se
       {open ? (
         <div className="mt-2 flex flex-col gap-1.5 border-t border-[color:var(--hairline)] pt-2 text-[color:var(--bone3)]">
           <span>Globe: NASA Blue Marble, shaded relief and bathymetry, through NASA GIBS</span>
+          {live ? <span>Close up: <a className={link} href="https://s2maps.eu" target="_blank" rel="noreferrer">Sentinel-2 cloudless 2016 by EOX</a>, contains modified Copernicus Sentinel data 2016, CC BY 4.0</span> : null}
           <span>Fires: <a className={link} href="https://doi.org/10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002" target="_blank" rel="noreferrer">NASA FIRMS, VIIRS 375 m, NOAA-20</a></span>
           <span>Region maps: <a className={link} href="https://worldview.earthdata.nasa.gov" target="_blank" rel="noreferrer">NASA Worldview / GIBS</a></span>
           <span>Countries: <a className={link} href="https://github.com/mledoze/countries" target="_blank" rel="noreferrer">mledoze/countries</a>, ODbL. Search: Nominatim, <a className={link} href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a></span>

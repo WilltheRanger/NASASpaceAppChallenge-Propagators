@@ -174,11 +174,13 @@ export interface DeltaTickerProps {
   motion?: boolean
   className?: string
   valueClassName?: string
+  /** leave the previous value under the number for a moment ("was 43,002") */
+  ghost?: boolean
   duration?: number
   stagger?: number
 }
 
-export function DeltaTicker({ value, basis, format, formatDelta, suffix, label, motion = true, className, valueClassName, duration = 420, stagger = 20 }: DeltaTickerProps) {
+export function DeltaTicker({ value, basis, format, formatDelta, suffix, label, motion = true, className, valueClassName, ghost: ghostOn = true, duration = 420, stagger = 20 }: DeltaTickerProps) {
   const reduced = usePrefersReduced()
   const still = !motion || reduced
   const layout = React.useMemo(() => layoutOf(format(value)), [value, format])
@@ -222,6 +224,7 @@ export function DeltaTicker({ value, basis, format, formatDelta, suffix, label, 
     setLeaving((list) => [...list.filter((c) => !(c.key in layout.byKey) && !gone.some((o) => o.key === c.key)), ...(still ? [] : gone)])
     const c = chipFor(true)
     setChips((list) => [...list.filter((o) => !o.leaving).map((o) => ({ ...o, leaving: true })), ...(c ? [c] : [])])
+    if (!ghostOn) return
     const id = ids.current + 1000
     setGhost({ id, text: format(from), out: false })
     window.clearTimeout(ghostTimer.current)
