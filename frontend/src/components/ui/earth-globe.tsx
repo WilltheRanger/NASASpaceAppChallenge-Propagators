@@ -297,6 +297,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     }
     map.touchZoomRotate.disableRotation()
     mapRef.current = map
+    // development only: a handle for scripted checks of the camera (stripped from production builds)
+    if (import.meta.env.DEV) (window as unknown as { __anchorMap?: MLMap }).__anchorMap = map
     map.on('error', () => { /* a tile that fails stays blank; the base below shows through */ })
     map.on('load', () => {
       const mark = diamond(32, VIIRS, GROUND)
@@ -459,18 +461,13 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
   // sharper Blue Marble around the selected region, from the moment it is picked
   useImageLayer(mapRef, ready, 'region-ctx', context ?? null, 'ctx-slot', motion)
 
-  /** set the flatten band without a jump: if the globe's shape at this zoom would change, zoom out to the globe first */
-  const withBand = (next: [number, number], then: () => void) => {
-    const map = mapRef.current!
-    const z = map.getZoom()
-    const apply = () => { bandRef.current = next; map.setProjection({ type: band(next[0], next[1]) }); then() }
-    if (Math.abs(flatAt(z, bandRef.current) - flatAt(z, next)) < 0.01) { apply(); return }
-    const id = flight.current
-    map.once('moveend', () => { if (id === flight.current) apply() })
-    map.easeTo({ zoom: Math.min(next[0], bandRef.current[0]) - 0.15, duration: motionRef.current ? 900 : 0, padding: cb.current.padding, essential: true })
-  }
-
-  // a new target: fly there and flatten on the way down; no target: back out to the whole globe
+  // A flight in three legs, so the globe never snaps flat. MapLibre's flyTo keeps most of its zooming for the last
+  // moment, which crossed the flatten band in a fraction of a second; here each leg is a plain ease and the band always
+  // spans the whole leg that changes the shape:
+  //   rise: a flat map curls back into the globe on the way out (only when it isn't a globe already);
+  //   turn: the globe rotates to the place, at globe height;
+  //   dive: the globe unrolls into a map across the whole descent.
+  // A band is only ever swapped where it gives the same shape at the current zoom, so nothing jumps between legs.
   React.useEffect(() => {
     const map = mapRef.current
     const el = boxRef.current
@@ -478,28 +475,58 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     const id = ++flight.current
     const w = el.clientWidth, h = el.clientHeight
     const home = homeZoom(w, h)
+    const globeZ = home + 0.1
+    const NO_PAD = { top: 0, right: 0, bottom: 0, left: 0 }
     map.stop()
-    if (!target) {
-      withBand([Math.max(home + 0.2, 4), Math.max(home + 1.7, 5.5)], () => {
-        map.flyTo({ center: map.getCenter(), zoom: home, padding: { top: 0, right: 0, bottom: 0, left: 0 }, duration: motionRef.current ? 1600 : 0, essential: true })
+    const setBand = (b: [number, number]) => { bandRef.current = b; map.setProjection({ type: band(b[0], b[1]) }) }
+    // a reader who drags or scrolls mid-flight takes the camera; the flight stops where they are
+    let taken = false
+    const take = () => { taken = true }
+    map.once('dragstart', take)
+    map.once('wheel', take)
+    const live = () => id === flight.current && !taken
+    /** one leg; resolves when it stops, or at once without motion */
+    const leg = (o: { center?: [number, number]; zoom: number; padding: EarthPadding; duration: number }) =>
+      new Promise<boolean>((done) => {
+        if (!live()) { done(false); return }
+        if (!motionRef.current || o.duration <= 0) { map.jumpTo({ center: o.center, zoom: o.zoom, padding: o.padding }); done(live()); return }
+        let settled = false
+        const finish = () => { if (!settled) { settled = true; done(live()) } }
+        map.once('moveend', finish)
+        window.setTimeout(finish, o.duration + 400)
+        map.easeTo({ ...o, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true })
       })
-      return
+    const z = map.getZoom()
+    const flat = flatAt(z, bandRef.current)
+    /** rise to globe height, keeping the shape the map has now at this zoom */
+    const rise = async () => {
+      if (flat < 0.02 || z <= globeZ + 0.05) return true
+      setBand([globeZ, globeZ + (z - globeZ) / flat])
+      return leg({ zoom: globeZ, padding: cb.current.padding, duration: 900 + (z - globeZ) * 120 })
     }
-    const cam = fit(target.bbox, w, h, cb.current.padding)
-    if (target.maxZoom != null) cam.zoom = Math.min(cam.zoom, target.maxZoom)
-    const z1 = cam.zoom - 0.35
-    const z0 = Math.max(home + 0.15, cam.zoom - 2)
-    const next: [number, number] = z1 - z0 < 0.4 ? [cam.zoom + 1, cam.zoom + 2] : [z0, z1] // very large places stay a globe
-    withBand(next, () => {
-      if (id !== flight.current) return
-      map.once('moveend', () => { if (id === flight.current) cb.current.onArrive?.(target.key) })
-      // a duration from the distance: long flights take longer, but never more than about four and a half seconds
+    const run = async () => {
+      if (!target) {
+        if (!(await rise())) return
+        return leg({ center: [-40, 8], zoom: home, padding: NO_PAD, duration: 1100 })
+      }
+      const cam = fit(target.bbox, w, h, cb.current.padding)
+      if (target.maxZoom != null) cam.zoom = Math.min(cam.zoom, target.maxZoom)
       const c = map.getCenter()
       const km = 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(Math.sin(((cam.center[1] - c.lat) * Math.PI) / 360) ** 2 + Math.cos((c.lat * Math.PI) / 180) * Math.cos((cam.center[1] * Math.PI) / 180) * Math.sin(((cam.center[0] - c.lng) * Math.PI) / 360) ** 2)))
-      const duration = Math.round(1500 + Math.min(2600, km / 5) + Math.abs(cam.zoom - map.getZoom()) * 120)
-      if (motionRef.current) map.flyTo({ center: cam.center, zoom: cam.zoom, padding: cb.current.padding, duration, curve: 1.5, essential: true })
-      else map.jumpTo({ center: cam.center, zoom: cam.zoom, padding: cb.current.padding })
-    })
+      const bigPlace = cam.zoom - globeZ < 0.4 // so large it reads best as a globe
+      if (km < 700 && flat > 0.98 && !bigPlace) {
+        // a short hop on a flat map stays flat
+        setBand([globeZ, Math.max(globeZ + 0.3, Math.min(z, cam.zoom) - 0.02)])
+      } else {
+        if (!(await rise())) return
+        if (km > 150 && !(await leg({ center: cam.center, zoom: Math.min(map.getZoom(), globeZ), padding: cb.current.padding, duration: Math.round(Math.min(2400, 800 + km / 7)) }))) return
+        const from = map.getZoom()
+        setBand(bigPlace ? [cam.zoom + 1, cam.zoom + 2] : [from + 0.02, Math.max(from + 0.3, cam.zoom - 0.05)])
+      }
+      const ok = await leg({ center: cam.center, zoom: cam.zoom, padding: cb.current.padding, duration: Math.round(1300 + Math.abs(cam.zoom - map.getZoom()) * 260) })
+      if (ok || id === flight.current) cb.current.onArrive?.(target.key)
+    }
+    void run().finally(() => { map.off('dragstart', take); map.off('wheel', take) })
   }, [ready, target?.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // callouts: React content rendered into map markers (the fire card, a searched place's reticle)
