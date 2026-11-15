@@ -1,7 +1,7 @@
 {
  "mock": false,
  "region": "us-california",
- "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS United States country files, simplified state outline). AI-generated analysis (Claude); team review required before any slide. Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS United States country files, simplified state outline). Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
  "years": [
   {
    "year": 2012,

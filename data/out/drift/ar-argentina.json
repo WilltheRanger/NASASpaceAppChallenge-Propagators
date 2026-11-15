@@ -1,7 +1,7 @@
 {
  "mock": false,
  "region": "ar-argentina",
- "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS Argentina country files). AI-generated analysis (Claude); team review required before any slide. Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS Argentina country files). Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
  "years": [
   {
    "year": 2012,

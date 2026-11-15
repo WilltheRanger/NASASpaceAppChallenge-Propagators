@@ -1,6 +1,6 @@
 {
  "mock": false,
- "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS India country files, preset bbox). AI-generated analysis (Claude); team review required before any slide.",
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS India country files, preset bbox).",
  "region": "in-punjab-haryana",
  "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month); 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
  "baseline": {

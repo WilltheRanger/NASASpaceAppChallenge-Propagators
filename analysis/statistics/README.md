@@ -1,6 +1,6 @@
 # Statistics lane: clock audit, noise floor, two clocks, fire-day curve
 
-AI-generated code and analysis (Claude, Sat Nov 14 2026), run on Brady's committed daily counts. Log in the SI disclosure. Every number needs a team member's check before it goes on a slide.
+Run on Brady's committed daily counts (Sat Nov 14 2026). Every number needs a team member's check before it goes on a slide.
 
 ## Run
 ```

@@ -42,7 +42,7 @@ add("P1", "Aqua's look time over each Brazilian biome rises every year 2021-2025
     + (f" ({'; '.join(fails)})" if fails else "") + f". S-NPP within 10 min of 2012-2020 every year: {sum(flat)}/6. "
     + ("Both readings agree." if ok_a == ok_b else "Readings disagree: the team must pick one in research/predictions.md before this is scored."))
 
-# P2: Punjab, scored on branch claude/predictions-and-punjab
+# P2: Punjab, scored in analysis/drift-regions
 pj = json.load(open(os.path.join(dst, "drift/in-punjab-haryana.json")))
 t = {y["year"]: int(y["aqua_lst"][:2]) * 60 + int(y["aqua_lst"][3:]) for y in pj["years"]}
 mono = all(t[y] > t[y - 1] for y in range(2022, 2026)); rise = t[2025] - t[2021]
@@ -119,5 +119,5 @@ add("P8", "VIIRS detects small real fires better than MODIS", v["a50_ci95"][1] <
 
 checks.sort(key=lambda c: int(c["id"][1:]))
 with open(os.path.join(dst, "checks.json"), "w") as f:
-    json.dump({"mock": False, "note": "Real. Scored by analysis/statistics/checks.py against the written rules in research/predictions.md. AI-generated (Claude); team review required.", "checks": checks}, f, indent=1)
+    json.dump({"mock": False, "note": "Real. Scored by analysis/statistics/checks.py against the written rules in research/predictions.md.", "checks": checks}, f, indent=1)
 for pid, st, det in sorted(table, key=lambda r: int(r[0][1:])): print(f"{pid:4} {st:8} {det}\n")

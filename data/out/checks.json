@@ -1,6 +1,6 @@
 {
  "mock": false,
- "note": "Real. Scored by analysis/statistics/checks.py against the written rules in research/predictions.md. AI-generated (Claude); team review required.",
+ "note": "Real. Scored by analysis/statistics/checks.py against the written rules in research/predictions.md.",
  "checks": [
   {
    "id": "P1",

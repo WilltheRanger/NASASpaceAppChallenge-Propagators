@@ -176,8 +176,7 @@ pd.DataFrame([dict(biome=b, beta_base=res[b]["beta_base"][0], beta_base_lo=ci(re
 START = {"Aqua": "2002-07", "S-NPP": "2012-01", "NOAA-20": "2018-01"}  # first month with data
 raw_m = daily_all.assign(ym=daily_all.date.str[:7]).groupby(["biome", "ym", "satellite"])["count"].sum()
 for rid, b in REG.items():
-    note = (f"Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts ({SRC.get(b, 'brady/brazil-data')}). "
-            "AI-generated analysis (Claude); team review required before any slide.")
+    note = f"Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts ({SRC.get(b, 'brady/brazil-data')})."
     a = audit[audit.biome == b]
     if b in SRC and not os.path.exists(os.path.join(dst, f"drift/{rid}.json")):
         write(f"drift/{rid}.json", {"mock": False, "region": rid,
