@@ -844,7 +844,7 @@ function PassReel({ d, year, onYear }: { d: RegionData; year: number; onYear: (y
         variant="ruler"
         still={!motion.on}
         playheadClassName="sm:bottom-5"
-        previewClassName="mt-4 h-26 sm:h-30"
+        previewClassName="mt-4 h-28 sm:h-32"
         stripClassName="mt-4 h-8 sm:h-12"
       />
       <div aria-hidden className="mt-2 flex justify-between text-xs tabular-nums text-[color:var(--bone3)] sm:hidden">
@@ -854,6 +854,10 @@ function PassReel({ d, year, onYear }: { d: RegionData; year: number; onYear: (y
   )
 }
 
+/** When each satellite looked in one year, as an instrument line on a 06:00 to 18:00 axis. Each satellite has its own
+ *  marker and pin: Aqua, the one that drifts, a filled dot under a solid flag carrying its time and the minutes it added;
+ *  the fixed clock a sage diamond; Terra a hollow ring. The drift itself is a bar on the axis from the fixed clock to Aqua.
+ *  Colours come from the page tokens, so the figure works on black and, re-inked, on the bone band. */
 function PassFigure({ dr, year }: { dr: Drift; year: number }) {
   const shift = minutesBetween(dr.aqua_lst, dr.viirs_lst)
   const later = shift >= 0
@@ -868,58 +872,75 @@ function PassFigure({ dr, year }: { dr: Drift; year: number }) {
     '--bar-k': `${Math.abs(xa - xf) / 100}`,
   } as CSSProperties
   const description = `When each satellite looked in ${year}: Terra ${dr.terra_lst}, fixed clock ${dr.viirs_lst}, Aqua ${dr.aqua_lst}, ${Math.abs(shift)} minutes ${later ? 'after' : 'before'} the fixed clock`
-  // each mark rides a full-width layer moved with translateX, so a change of year slides it (instant under reduced motion)
+  // each satellite rides a full-width layer moved with translateX, so a change of year slides it (instant without motion)
   const layer = cn('absolute inset-x-0 top-0 h-full', slideEase)
-  const tick = 'absolute left-0 w-0.5 -translate-x-1/2'
+  const axis = 'top-20 sm:top-24' // 80 px, 96 px
+  const marker = cn('absolute left-0 -translate-x-1/2 -translate-y-1/2', axis)
   const label = 'absolute whitespace-nowrap text-xs leading-4 sm:text-sm sm:leading-5'
+  // Aqua's flag hangs centred over its pin, and turns to hang leftwards near the right edge
+  const flagSide = xa > 84 ? '-translate-x-full left-px' : xa < 12 ? '-left-px' : '-translate-x-1/2'
 
   return (
-    <div role="img" aria-label={description} style={vars} className="relative h-26 overflow-hidden sm:h-30">
-      {/* three label heights, Aqua highest; each label sits 8 px beside the top of its own tick */}
-      <div aria-hidden className={cn(layer, 'translate-x-[var(--xa)]')}>
-        <span className={cn(tick, 'top-1 h-19 bg-[color:var(--bone)] sm:h-23')} />
-        <span className={cn(label, 'top-0 text-[color:var(--bone)]', xa > 80 ? '-left-2 -translate-x-full' : 'left-2')}>Aqua {dr.aqua_lst}</span>
-      </div>
-      <div aria-hidden className={cn(layer, 'translate-x-[var(--xf)]')}>
-        <span className={cn(tick, 'top-6 h-14 bg-[color:var(--sage)] sm:top-7 sm:h-17')} />
-        {/* the fixed clock's label sits on the side away from Aqua, so the two never touch */}
-        <span className={cn(label, 'top-5 text-[color:var(--sage)] sm:top-6', later ? '-left-2 -translate-x-full' : 'left-2')}>Fixed clock {dr.viirs_lst}</span>
-      </div>
-      <div aria-hidden className={cn(layer, 'translate-x-[var(--xt)]')}>
-        <span className={cn(tick, 'top-11 h-9 bg-[color:var(--bone3)] sm:top-13 sm:h-11')} />
-        <span className={cn(label, '-left-2 top-10 -translate-x-full text-[color:var(--bone3)] sm:top-12')}>Terra {dr.terra_lst}</span>
-      </div>
-
-      <span aria-hidden className="absolute inset-x-0 top-20 h-px bg-[color:var(--bone-30)] sm:top-24" />
+    <div role="img" aria-label={description} style={vars} className="relative h-28 overflow-hidden sm:h-32">
+      {/* the day, 06:00 to 18:00 */}
+      <span aria-hidden className={cn('absolute inset-x-0 h-px bg-[color:var(--bone-30)]', axis)} />
       {HOURS.map((h) => (
         <span
           key={h}
           aria-hidden
           style={{ '--xh': `${at(h)}%` } as CSSProperties}
-          className="absolute left-[var(--xh)] top-20 h-1 w-px bg-[color:var(--bone-30)] sm:top-24"
+          className={cn('absolute left-[var(--xh)] h-1.5 w-px -translate-y-1/2 bg-[color:var(--bone-30)]', axis)}
         />
       ))}
-      {/* the minutes Aqua's later look added, on the axis between the fixed clock and Aqua */}
-      <span
-        aria-hidden
-        className={cn(
-          'absolute inset-x-0 top-20 h-0.5 origin-left -translate-y-1/2 translate-x-[var(--bar-x)] scale-x-[var(--bar-k)] bg-[color:var(--bone)] sm:top-24',
-          slideEase,
-        )}
-      />
       {LABELLED.map((h, i) => (
         <span
           key={h}
           aria-hidden
           style={{ '--xh': `${at(h)}%` } as CSSProperties}
           className={cn(
-            'absolute left-[var(--xh)] top-22 text-xs leading-4 text-[color:var(--bone3)] sm:top-26',
+            'absolute left-[var(--xh)] top-23 text-xs leading-4 text-[color:var(--bone3)] sm:top-27',
             i === 0 ? '' : i === LABELLED.length - 1 ? '-translate-x-full' : '-translate-x-1/2',
           )}
         >
           {hourLabel(h)}
         </span>
       ))}
+      {/* the minutes the later look added: a bar along the axis from the fixed clock to Aqua */}
+      <span
+        aria-hidden
+        className={cn('absolute inset-x-0 h-1 origin-left -translate-y-1/2 translate-x-[var(--bar-x)] scale-x-[var(--bar-k)] bg-[color:var(--bone-80)]', axis, slideEase)}
+      />
+
+      {/* Terra: a hollow ring, the lowest label, set to the left of its pin */}
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xt)]')}>
+        <span className="absolute left-0 top-[62px] h-[18px] w-px -translate-x-1/2 bg-[color:var(--bone3)] sm:top-[74px] sm:h-[22px]" />
+        <span className={cn(marker, 'size-2.5 rounded-full border-2 border-[color:var(--bone3)] bg-[color:var(--figure-bg,var(--surface))]')} />
+        <span className={cn(label, '-left-2 top-[46px] -translate-x-full text-[color:var(--bone3)] sm:top-[54px]')}>Terra {dr.terra_lst}</span>
+      </div>
+
+      {/* the fixed clock: a sage diamond; its label sits on the side away from Aqua, so the two never touch */}
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xf)]')}>
+        <span className="absolute left-0 top-[42px] h-[38px] w-px -translate-x-1/2 bg-[color:var(--sage)] sm:top-[50px] sm:h-[46px]" />
+        <span className={cn(marker, 'size-2.5 rotate-45 bg-[color:var(--sage)]')} />
+        <span className={cn(label, 'top-[26px] text-[color:var(--sage)] sm:top-[30px]', later ? '-left-2 -translate-x-full' : 'left-2')}>
+          Fixed clock {dr.viirs_lst}
+        </span>
+      </div>
+
+      {/* Aqua: the one that moves; a solid flag with its time and the minutes it added, a filled dot on the axis */}
+      <div aria-hidden className={cn(layer, 'translate-x-[var(--xa)]')}>
+        <span className="absolute left-0 top-5 h-15 w-0.5 -translate-x-1/2 bg-[color:var(--bone)] sm:top-6 sm:h-18" />
+        <span className={cn(marker, 'size-3 rounded-full bg-[color:var(--bone)] ring-2 ring-[color:var(--figure-bg,var(--surface))]')} />
+        <span
+          className={cn(
+            'absolute top-0 flex h-5 items-center gap-1.5 whitespace-nowrap rounded-[3px] bg-[color:var(--bone)] px-1.5 text-xs font-medium text-[color:var(--figure-on,var(--ink))] sm:h-6 sm:px-2 sm:text-sm',
+            flagSide,
+          )}
+        >
+          Aqua {dr.aqua_lst}
+          <span className="font-normal opacity-75">{later ? '+' : '−'}{Math.abs(shift)} min</span>
+        </span>
+      </div>
     </div>
   )
 }
@@ -1034,7 +1055,15 @@ function HowItWorks() {
     { t: 'Anchor holds the clock still', b: 'We recount every month on one fixed clock and report, per region and year, how much of the official change comes from the drift, with a range and a noise floor.' },
   ]
   // the pass figure, re-inked for the bone ground
-  const inked = { '--bone': 'var(--ink)', '--bone3': '#4E514A', '--bone-30': 'rgba(11, 13, 11, 0.3)', '--sage': '#4C5E50' } as CSSProperties
+  const inked = {
+    '--bone': 'var(--ink)',
+    '--bone3': '#4E514A',
+    '--bone-30': 'rgba(11, 13, 11, 0.3)',
+    '--bone-80': 'rgba(11, 13, 11, 0.8)',
+    '--sage': '#4C5E50',
+    '--figure-bg': '#ECE9E1',
+    '--figure-on': '#ECE9E1',
+  } as CSSProperties
   return (
     <section id="how" aria-labelledby="how-h" className="scroll-mt-4 bg-[color:var(--bone)] text-[color:var(--ink)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-24 lg:grid-cols-12 lg:gap-x-6')}>
