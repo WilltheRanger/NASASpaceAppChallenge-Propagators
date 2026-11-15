@@ -1,0 +1,11 @@
+{
+  "name": "propagators-dev-walkthrough",
+  "private": true,
+  "description": "Renders the developer walkthrough video (AI-generated; see ../README.md).",
+  "dependencies": {
+    "@fontsource/inter": "5.0.18",
+    "@fontsource/jetbrains-mono": "5.0.20",
+    "@fontsource/space-grotesk": "5.0.18",
+    "gsap": "3.12.5"
+  }
+}
