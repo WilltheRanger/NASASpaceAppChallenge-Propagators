@@ -10,13 +10,16 @@
 - **Design system:** none yet (locked in Round 4). User chose "design Anchor's own".
 
 ## Current round
-**Round 2 · Directions** (after Round 1 was rejected), three directions, waiting for the user's pick.
+**Round 2 · Directions** (after Round 1 was rejected), five directions (D and E added at the team's request), waiting
+for the user's pick. Overview: `designs/round-2/renders/round2-overview.jpg`.
 
-| | Direction | Source | Idea |
-|---|---|---|---|
-| A | Sundial | grounded candidate 6, assigned by the seed | The fixed clock is a cut line on a limestone dial; Aqua's look is the shadow; cinnabar marks the minutes between |
-| B | Poster series | challenger: Swiss concert-poster wall | Six regions as one poster series; one ring per year fans past the fixed clock in the region's own colour |
-| C | Exposure record | challenger: darkroom exposure record | The audit as a record card on a light table beside three real prints; magenta only where the clock changed the count |
+| | Direction | Source | Idea | Independent review (1–5 per lens: hierarchy, fit, slop, craft, UX, technical, motion) |
+|---|---|---|---|---|
+| A | Sundial | grounded candidate 6, assigned by the seed | The fixed clock is a cut line on a limestone dial; Aqua's look is the shadow; cinnabar marks the minutes between; measured two-clocks ratios as an ochre band on the stone | Final after 2 rounds: 4·4·4·4·4·4·4, about 8.5/10. Open: ochre band outweighs the cinnabar; band vanishes silently in years without two-clocks data; ratio labels touch lines in some years; drag not discoverable |
+| B | Poster series | challenger: Swiss concert-poster wall | Six regions as one poster series; one ring per year, the drift in the region's colour | After 1 round: 4·3·4·4·4·4·3, about 8/10. Final round not applied (usage limit hit). Open: the poster's mass is grey, colour under 1% of the first viewport; thumbnails read alike; calendar's left band empty |
+| C | Exposure record | challenger: darkroom exposure record | The audit as a ruled record card over three real prints on a light table; hatched range bars; magenta only where the clock changed the count | Final after 2 rounds: 4·4·4·4·4·4·3, about 8/10. Open: header text over the see-through sheet needs an opaque band; rebate reads as a black bar; figure responds to row clicks only |
+| D | Field film (Anduril-inspired) | team-pinned reference | The real NASA fire scene full bleed with the verdict on it; three passes as an operable photo figure; range bars on a sage band | First review 3·3·4·3·3·3·2 (about 8 after fixes). Fix batch applied; its verdict is still pending (usage limit) |
+| E | Operating picture (Palantir-inspired) | team-pinned reference | Two-tone sentences, the working clock console in a dark window, the regions as a giant index of findings | After 1 round: 4·4·4·4·4·4·3, about 8/10. Open: phone has no page-level mock label; "Loaded" sits far from its row; no drawn or image moment |
 
 ## Rejected rounds
 **Round 1 · Directions (rejected)**: A Thermal, B Colour of the hour, C Spec sheet, D Systems (Anduril-inspired),
