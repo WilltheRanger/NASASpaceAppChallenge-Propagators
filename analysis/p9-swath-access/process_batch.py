@@ -5,8 +5,8 @@ import argparse,hashlib,json,shutil
 from pathlib import Path
 import numpy as np
 from calibration import extract
-p=argparse.ArgumentParser();p.add_argument('datecode');p.add_argument('sat',choices=['VNP','VJ1']);p.add_argument('--clean-run-geometry',action='store_true');a=p.parse_args()
-root=Path('/Users/brady/Downloads');out=Path('/Users/brady/Code/Anchor-data/p9-calibration');broad=out/'sensitivity85';broad.mkdir(exist_ok=True)
+p=argparse.ArgumentParser();p.add_argument('datecode');p.add_argument('sat',choices=['VNP','VJ1']);p.add_argument('--clean-run-geometry',action='store_true');p.add_argument('--input-root',type=Path,default=Path('/Users/brady/Downloads'));p.add_argument('--output-root',type=Path,default=Path('/Users/brady/Code/Anchor-data/p9-calibration'));a=p.parse_args()
+root=a.input_root;out=a.output_root;broad=out/'sensitivity85';broad.mkdir(exist_ok=True)
 if not (broad/'grid.npz').exists():shutil.copy2(out/'grid.npz',broad/'grid.npz')
 for f in sorted(root.glob(f'{a.sat}14IMG.{a.datecode}.*.nc')):
  t=f.name.split('.')[2];dst=out/f'{a.sat}.{a.datecode}.{t}.npz';bd=broad/dst.name
