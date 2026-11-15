@@ -1,20 +1,27 @@
 # ui-progress.md: Phase 3 · UI (rule of three)
 
-- **Canvas:** https://claude.ai/artifact/55RnYtpPDq8JdZzLAtyVYv ("Anchor", Design type). Screenshots are uploaded as assets; publishing the artboards is waiting on the user's OK because the canvas is shared with anyone who has the link.
-- **Live prototype:** `frontend/` (Vite + React + TypeScript + Tailwind v4). `npm run dev`, then `?d=a` … `?d=e`.
-- **Renders:** `designs/round-1/renders/round1-[a-e].jpg` (desktop + phone, 2×), `round0-drafts.jpg`.
-- **Design system:** none yet (locked in Round 4). User chose "design Anchor's own" over Orbitwatch / Hearth & Crumb.
+- **Canvas:** https://claude.ai/artifact/55RnYtpPDq8JdZzLAtyVYv ("Anchor", Design type). Round 1 screenshots are uploaded
+  as assets; artboards stay unpublished until the team says the canvas (shared by link) may be used.
+- **Live prototype:** `frontend/` (Vite + React + TypeScript + Tailwind v4). `npm run dev`, then `?d=a` … `?d=c`
+  (Round 2). Round 1 stays reachable at `?round=1&d=a` … `?round=1&d=e`.
+- **Renders:** `designs/round-2/renders/` (Round 2), `designs/round-1/renders/` (Round 1, rejected).
+- **Plan for the current round:** `designs/round-2/plan.md` (why Round 1 failed, seed, hierarchy map, manifest,
+  direction lines, colour plans, contracts). Product record: `../PRODUCT.md`.
+- **Design system:** none yet (locked in Round 4). User chose "design Anchor's own".
 
 ## Current round
-**Round 1 · Directions**, five directions, waiting for the user's pick.
+**Round 2 · Directions** (after Round 1 was rejected), three directions, waiting for the user's pick.
 
-| | Direction | Built from | Idea |
+| | Direction | Source | Idea |
 |---|---|---|---|
-| A | Thermal | Flip-Disk Matrix, Circularium Ring, Leaderboard Bars, fire calendar, thermal shader | Infrared night: the real fire scene through an inferno false-colour shader; ember = drifting clock, cyan = fixed clock |
-| B | Colour of the hour | Leaderboard Bars, Circularium Ring (2D), fire calendar, three-clocks wipe shader | Editorial paper article with a night figure band; every time carries its sky colour |
-| C | Spec sheet | COBE Globe, Flip-Disk Matrix, Leaderboard Bars, fire calendar | Cobalt Swiss hero, Apex-style spec cards per satellite, product panel under the headline |
-| D | Systems (Anduril-inspired) | three-clocks wipe as hero film, mosaic of tiles (Flip-Disk, satellite captures, Globe, thermal field, Ring), Leaderboard Bars, fire calendar | Cinematic black, quiet tile labels, grey product rows, cream notes band |
-| E | Operations (Palantir-inspired) | audit board + COBE Globe hero, giant clock-effect figure, Knowledge Graph, Leaderboard Bars, Index List carousel, Flip-Disk | Product UI as hero, metadata strips, bracketed wayfinding, comparison card, indexed contents |
+| A | Sundial | grounded candidate 6, assigned by the seed | The fixed clock is a cut line on a limestone dial; Aqua's look is the shadow; cinnabar marks the minutes between |
+| B | Poster series | challenger: Swiss concert-poster wall | Six regions as one poster series; one ring per year fans past the fixed clock in the region's own colour |
+| C | Exposure record | challenger: darkroom exposure record | The audit as a record card on a light table beside three real prints; magenta only where the clock changed the count |
+
+## Rejected rounds
+**Round 1 · Directions (rejected)**: A Thermal, B Colour of the hour, C Spec sheet, D Systems (Anduril-inspired),
+E Operations (Palantir-inspired). User: "they all look like shit. You didnt follow any of the design rules." Diagnosis
+per direction in `designs/round-2/plan.md`.
 
 ## Picks so far
 | When | Decision | Pick | Why (user) |
@@ -24,6 +31,9 @@
 | Phase 3 | Canvas design system | None (Anchor's own) | Recommended option accepted |
 | Phase 3 | Round 1 rebuild | Real 21st.dev components instead of hand-drawn parts | "the design looks like you mostly made it" |
 | Phase 3 | Extra directions | D (Anduril-inspired), E (Palantir-inspired) | User request, "completely free" |
+| Phase 3 | Round 1 | Rejected all five | "You didnt follow any of the design rules" |
 
 ## History
-- Hand-built HTML drafts of A–C (`designs/round-1/*.html`) were superseded by the component-based rebuild; kept for the record.
+- Hand-built HTML drafts of Round 1 A–C (`designs/round-1/*.html`) were superseded by the component-based rebuild.
+- Round 2 parts parked after the fit test: COBE globe, flip-disk matrix, Circularium ring, knowledge graph, index
+  carousel, thermal and wipe shaders. The ring's idea lives on as the dial; any part can return where it passes.
