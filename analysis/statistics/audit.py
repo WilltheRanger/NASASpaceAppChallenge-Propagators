@@ -10,6 +10,7 @@ Method : research/execution-plan.md section 4.D-4.E; definitions in analysis/sta
 import sys, os, json
 import numpy as np, pandas as pd
 from scipy.optimize import least_squares
+from concurrent.futures import ProcessPoolExecutor
 np.seterr(divide="ignore", invalid="ignore")  # empty bootstrap replicates become nan and are dropped in ci()
 
 src, dst, sdir = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -44,8 +45,9 @@ daily = daily_all[daily_all.date >= "2012-01-01"]
 M_AS = (up["Aqua"] & up["S-NPP"]).values                     # audit L, fire-size check, calendar ratio
 M_ATS = (up["Aqua"] & up["Terra"] & up["S-NPP"]).values      # two clocks, fire-day curve
 M_ASN = (up["Aqua"] & up["S-NPP"] & up["NOAA-20"]).values    # reference check: both VIIRS on the same days
-pd.DataFrame({"ym": dates.str[:7], "days": 1, "aqua_snpp": M_AS, "aqua_terra_snpp": M_ATS,
-              "aqua_snpp_noaa20": M_ASN}).groupby("ym").sum().to_csv(os.path.join(sdir, "retained_days.csv"))
+if __name__ == "__main__":  # spawned workers rerun the setup above but skip writes
+    pd.DataFrame({"ym": dates.str[:7], "days": 1, "aqua_snpp": M_AS, "aqua_terra_snpp": M_ATS,
+                  "aqua_snpp_noaa20": M_ASN}).groupby("ym").sum().to_csv(os.path.join(sdir, "retained_days.csv"))
 
 # Poisson bootstrap over 16-day blocks (the MODIS repeat cycle; counts are autocorrelated); row 0 is the point estimate.
 # Same weights for every biome and satellite.
@@ -104,10 +106,10 @@ def write(rel, obj):
     print("wrote", p)
 
 lst = drift.pivot_table(index=["biome", "year"], columns="satellite", values="lst_median")
-rows, tc_rows, pl_rows, fd_rows, ref_rows = [], [], [], [], []
-res = {}
 
-for biome in BIOMES:
+def run(biome):
+    # one region; returns its rows and summaries (runs in a worker process)
+    rows, tc_rows, pl_rows, fd_rows, ref_rows = [], [], [], [], []
     d = daily[daily.biome == biome]
     c = d.groupby(["date", "satellite"])[COL].sum().unstack().reindex(dates).fillna(0)
     # two clocks and the fire-day curve use near-nadir detections only, whose look time is the satellite's
@@ -188,119 +190,124 @@ for biome in BIOMES:
     for i, y in enumerate(YEARS):
         fd_rows.append(dict(biome=biome, year=y, aqua_lst=t(y, "Aqua"), terra_lst=t(y, "Terra"), gap_h=gap[i],
                             log_aqua_over_terra=Dr[0, i], lo=ci(Dr[:, i])[0], hi=ci(Dr[:, i])[1]))
-    res[biome] = dict(P=P, Kc=Kc, t_obs=(np.nanmin(tTy), np.nanmax(tAy)), beta_base=beta_base, slope=coef[1], intercept=coef[0], tA0=tA0, tT0=tT0, wk=wk, cuts=cuts,
+    return rows, tc_rows, pl_rows, fd_rows, ref_rows, dict(P=P, Kc=Kc, t_obs=(np.nanmin(tTy), np.nanmax(tAy)), beta_base=beta_base, slope=coef[1], intercept=coef[0], tA0=tA0, tT0=tT0, wk=wk, cuts=cuts,
                       R=L(A, V, BASE, 2021)[2], ratio=A[0, bi].sum() / V[0, bi].sum(), c=c)
 
-audit = pd.DataFrame(rows); plac = pd.DataFrame(pl_rows); tc = pd.DataFrame(tc_rows)
-fd = pd.DataFrame(fd_rows); refs = pd.DataFrame(ref_rows)
-nf = plac.groupby("biome").L.agg(lambda s: np.max(np.abs(s - 1))).rename("noise_floor")
-prange = plac.groupby("biome").L.agg(["min", "max"]).rename(columns={"min": "placebo_min", "max": "placebo_max"})
-audit = audit.join(nf, on="biome").join(prange, on="biome")
-audit["outside_placebo"] = (audit.L < audit.placebo_min) | (audit.L > audit.placebo_max)
-audit["status"] = np.where((audit.expected < MIN_EXPECTED) | ((audit.L_hi - audit.L_lo) / 2 / audit.L > MAX_REL_CI),
-                           "insufficient_data", "ok")
-audit["gap_pct"] = (audit.L - 1) * 100
-for b in BIOMES:
-    r = res[b]
-    audit.loc[audit.biome == b, "beta_base"] = r["beta_base"][0]
-    audit.loc[audit.biome == b, "L_pred"] = np.exp(r["beta_base"][0] * (audit.loc[audit.biome == b, "aqua_lst"] - r["tA0"]))
-audit["shift_h"] = audit.aqua_lst - audit.biome.map({b: res[b]["tA0"] for b in BIOMES})
-audit["share_of_observed_pct"] = (1 - 1 / audit.L) * 100  # share of Aqua's count above the benchmark
-fd["K_curve"] = [res[q.biome]["Kc"][0, q.year - 2012] for q in fd.itertuples()]  # descriptive only, not a correction
-audit.to_csv(os.path.join(sdir, "audit_by_biome.csv"), index=False, float_format="%.5g")
-plac.to_csv(os.path.join(sdir, "placebo_by_biome.csv"), index=False, float_format="%.5g")
-tc.to_csv(os.path.join(sdir, "twoclocks_by_biome.csv"), index=False, float_format="%.5g")
-fd.to_csv(os.path.join(sdir, "fireday_by_biome.csv"), index=False, float_format="%.5g")
-refs.to_csv(os.path.join(sdir, "reference_satellite_by_biome.csv"), index=False, float_format="%.5g")
-pd.DataFrame([dict(biome=b, b=np.exp(res[b]["P"][0, 0]), b_lo=ci(np.exp(res[b]["P"][:, 0]))[0], b_hi=ci(np.exp(res[b]["P"][:, 0]))[1],
-                   h=res[b]["P"][0, 1], h_lo=ci(res[b]["P"][:, 1])[0], h_hi=ci(res[b]["P"][:, 1])[1],
-                   sigma=np.exp(res[b]["P"][0, 2]), sigma_lo=ci(np.exp(res[b]["P"][:, 2]))[0],
-                   sigma_hi=ci(np.exp(res[b]["P"][:, 2]))[1], aqua_lst_2012_2020=res[b]["tA0"]) for b in BIOMES]).to_csv(
-    os.path.join(sdir, "fireday_curve.csv"), index=False, float_format="%.5g")
-pd.DataFrame([dict(biome=b, beta_base=res[b]["beta_base"][0], beta_base_lo=ci(res[b]["beta_base"])[0],
-                   beta_base_hi=ci(res[b]["beta_base"])[1], slope_2012_2025=res[b]["slope"][0],
-                   intercept_2012_2025=res[b]["intercept"][0], frp_cut1=res[b]["cuts"][0], frp_cut2=res[b]["cuts"][1],
-                   baseline_ratio=res[b]["ratio"]) for b in BIOMES]).to_csv(
-    os.path.join(sdir, "fireday_slopes.csv"), index=False, float_format="%.5g")
+if __name__ == "__main__":
+    with ProcessPoolExecutor() as ex:
+        out = list(ex.map(run, BIOMES))  # BIOMES order, so rows match a serial run
+    rows, tc_rows, pl_rows, fd_rows, ref_rows = (sum((o[k] for o in out), []) for k in range(5))
+    res = {b: o[5] for b, o in zip(BIOMES, out)}
+    audit = pd.DataFrame(rows); plac = pd.DataFrame(pl_rows); tc = pd.DataFrame(tc_rows)
+    fd = pd.DataFrame(fd_rows); refs = pd.DataFrame(ref_rows)
+    nf = plac.groupby("biome").L.agg(lambda s: np.max(np.abs(s - 1))).rename("noise_floor")
+    prange = plac.groupby("biome").L.agg(["min", "max"]).rename(columns={"min": "placebo_min", "max": "placebo_max"})
+    audit = audit.join(nf, on="biome").join(prange, on="biome")
+    audit["outside_placebo"] = (audit.L < audit.placebo_min) | (audit.L > audit.placebo_max)
+    audit["status"] = np.where((audit.expected < MIN_EXPECTED) | ((audit.L_hi - audit.L_lo) / 2 / audit.L > MAX_REL_CI),
+                               "insufficient_data", "ok")
+    audit["gap_pct"] = (audit.L - 1) * 100
+    for b in BIOMES:
+        r = res[b]
+        audit.loc[audit.biome == b, "beta_base"] = r["beta_base"][0]
+        audit.loc[audit.biome == b, "L_pred"] = np.exp(r["beta_base"][0] * (audit.loc[audit.biome == b, "aqua_lst"] - r["tA0"]))
+    audit["shift_h"] = audit.aqua_lst - audit.biome.map({b: res[b]["tA0"] for b in BIOMES})
+    audit["share_of_observed_pct"] = (1 - 1 / audit.L) * 100  # share of Aqua's count above the benchmark
+    fd["K_curve"] = [res[q.biome]["Kc"][0, q.year - 2012] for q in fd.itertuples()]  # descriptive only, not a correction
+    audit.to_csv(os.path.join(sdir, "audit_by_biome.csv"), index=False, float_format="%.5g")
+    plac.to_csv(os.path.join(sdir, "placebo_by_biome.csv"), index=False, float_format="%.5g")
+    tc.to_csv(os.path.join(sdir, "twoclocks_by_biome.csv"), index=False, float_format="%.5g")
+    fd.to_csv(os.path.join(sdir, "fireday_by_biome.csv"), index=False, float_format="%.5g")
+    refs.to_csv(os.path.join(sdir, "reference_satellite_by_biome.csv"), index=False, float_format="%.5g")
+    pd.DataFrame([dict(biome=b, b=np.exp(res[b]["P"][0, 0]), b_lo=ci(np.exp(res[b]["P"][:, 0]))[0], b_hi=ci(np.exp(res[b]["P"][:, 0]))[1],
+                       h=res[b]["P"][0, 1], h_lo=ci(res[b]["P"][:, 1])[0], h_hi=ci(res[b]["P"][:, 1])[1],
+                       sigma=np.exp(res[b]["P"][0, 2]), sigma_lo=ci(np.exp(res[b]["P"][:, 2]))[0],
+                       sigma_hi=ci(np.exp(res[b]["P"][:, 2]))[1], aqua_lst_2012_2020=res[b]["tA0"]) for b in BIOMES]).to_csv(
+        os.path.join(sdir, "fireday_curve.csv"), index=False, float_format="%.5g")
+    pd.DataFrame([dict(biome=b, beta_base=res[b]["beta_base"][0], beta_base_lo=ci(res[b]["beta_base"])[0],
+                       beta_base_hi=ci(res[b]["beta_base"])[1], slope_2012_2025=res[b]["slope"][0],
+                       intercept_2012_2025=res[b]["intercept"][0], frp_cut1=res[b]["cuts"][0], frp_cut2=res[b]["cuts"][1],
+                       baseline_ratio=res[b]["ratio"]) for b in BIOMES]).to_csv(
+        os.path.join(sdir, "fireday_slopes.csv"), index=False, float_format="%.5g")
 
-START = {"Aqua": "2002-07", "S-NPP": "2012-01", "NOAA-20": "2018-01"}  # first month with data
-raw_m = daily_all.assign(ym=daily_all.date.str[:7]).groupby(["biome", "ym", "satellite"])[COL].sum()
-for rid, b in REG.items():
-    note = f"Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts ({SRC.get(b, 'brady/brazil-data')})."
-    a = audit[audit.biome == b]
-    if b in SRC and not os.path.exists(os.path.join(dst, f"drift/{rid}.json")):
-        write(f"drift/{rid}.json", {"mock": False, "region": rid,
-            "note": note + " Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
+    START = {"Aqua": "2002-07", "S-NPP": "2012-01", "NOAA-20": "2018-01"}  # first month with data
+    raw_m = daily_all.assign(ym=daily_all.date.str[:7]).groupby(["biome", "ym", "satellite"])[COL].sum()
+    for rid, b in REG.items():
+        note = f"Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts ({SRC.get(b, 'brady/brazil-data')})."
+        a = audit[audit.biome == b]
+        if b in SRC and not os.path.exists(os.path.join(dst, f"drift/{rid}.json")):
+            write(f"drift/{rid}.json", {"mock": False, "region": rid,
+                "note": note + " Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
+                "years": [{"year": int(q.year), "aqua_lst": hhmm(q.aqua_lst), "terra_lst": hhmm(q.terra_lst),
+                           "viirs_lst": hhmm(q.viirs_lst)} for q in pd.concat([plac, audit])[lambda x: x.biome == b].sort_values("year").itertuples()]})
+        write(f"audit/{rid}.json", {"mock": False, "note": note, "region": rid,
+            "method": "L = Aqua daytime hotspot detections / (S-NPP detections x 2012-2020 Aqua/S-NPP ratio by calendar month), on days both satellites returned data; 95% 16-day block bootstrap (1000). gap_pct = (L - 1) x 100, Aqua's excess over the benchmark; share_of_observed_pct = (1 - 1/L) x 100, the part of Aqua's own count above the benchmark. Neither attributes the gap to orbit drift alone.",
+            "baseline": {"years": "2012-2020", "ratio": num(res[b]["ratio"]), "noise_floor": num(nf[b]),
+                         "placebo_min": num(prange.at[b, "placebo_min"]), "placebo_max": num(prange.at[b, "placebo_max"]),
+                         "placebo_years": [{"year": int(q.year), "L": num(q.L)} for q in plac[plac.biome == b].itertuples()]},
+            "years": [{"year": int(r.year), "status": r.status,
+                       **({k: num(getattr(r, k)) for k in ["L", "L_lo", "L_hi", "L_strat"]} if r.status == "ok" else
+                          {"L": None, "L_lo": None, "L_hi": None, "L_strat": None}),
+                       "aqua_count": int(r.aqua_count), "fixed_count": int(round(r.expected)),
+                       "gap_pct": num(r.gap_pct, 1) if r.status == "ok" else None,
+                       "share_of_observed_pct": num(r.share_of_observed_pct, 1) if r.status == "ok" else None,
+                       "outside_noise": bool(r.outside_placebo)} for r in a.itertuples()]})
+        write(f"twoclocks/{rid}.json", {"mock": False, "preview": False, "note": note, "region": rid,
+            "fields": "A, T = Aqua/VIIRS and Terra/VIIRS ratios of near-nadir daytime detections vs 2012-2020 by calendar month (1 = no change; 2012-2020 years leave themselves out); clock_diff = log A - log T; sampling_est = (log A + log T) / 2 (log units); 95% 16-day block bootstrap",
+            "years": [{"year": int(r.year), "aqua_lst": hhmm(r.aqua_lst), "terra_lst": hhmm(r.terra_lst),
+                       **{k: num(getattr(r, k)) for k in ["A", "A_lo", "A_hi", "T", "T_lo", "T_hi", "clock_diff",
+                                                         "clock_lo", "clock_hi", "sampling_est"]}}
+                      for r in tc[tc.biome == b].itertuples()]})
+        r = res[b]
+        write(f"fireday/{rid}.json", {"mock": False, "note": note, "region": rid,
+            "fields": "log_aqua_over_terra = log(Aqua/Terra) near-nadir daytime counts on the same days; gap_h = Aqua minus Terra look time (hours); beta = change in log fire count per hour of look time",
+            "beta_baseline": num(r["beta_base"][0]), "beta_baseline_ci95": [num(x) for x in ci(r["beta_base"])],
+            "beta_fit_2012_2025": {"slope": num(r["slope"][0]), "intercept": num(r["intercept"][0]),
+                                   "slope_ci95": [num(x) for x in ci(r["slope"])]},
             "years": [{"year": int(q.year), "aqua_lst": hhmm(q.aqua_lst), "terra_lst": hhmm(q.terra_lst),
-                       "viirs_lst": hhmm(q.viirs_lst)} for q in pd.concat([plac, audit])[lambda x: x.biome == b].sort_values("year").itertuples()]})
-    write(f"audit/{rid}.json", {"mock": False, "note": note, "region": rid,
-        "method": "L = Aqua daytime hotspot detections / (S-NPP detections x 2012-2020 Aqua/S-NPP ratio by calendar month), on days both satellites returned data; 95% 16-day block bootstrap (1000). gap_pct = (L - 1) x 100, Aqua's excess over the benchmark; share_of_observed_pct = (1 - 1/L) x 100, the part of Aqua's own count above the benchmark. Neither attributes the gap to orbit drift alone.",
-        "baseline": {"years": "2012-2020", "ratio": num(res[b]["ratio"]), "noise_floor": num(nf[b]),
-                     "placebo_min": num(prange.at[b, "placebo_min"]), "placebo_max": num(prange.at[b, "placebo_max"]),
-                     "placebo_years": [{"year": int(q.year), "L": num(q.L)} for q in plac[plac.biome == b].itertuples()]},
-        "years": [{"year": int(r.year), "status": r.status,
-                   **({k: num(getattr(r, k)) for k in ["L", "L_lo", "L_hi", "L_strat"]} if r.status == "ok" else
-                      {"L": None, "L_lo": None, "L_hi": None, "L_strat": None}),
-                   "aqua_count": int(r.aqua_count), "fixed_count": int(round(r.expected)),
-                   "gap_pct": num(r.gap_pct, 1) if r.status == "ok" else None,
-                   "share_of_observed_pct": num(r.share_of_observed_pct, 1) if r.status == "ok" else None,
-                   "outside_noise": bool(r.outside_placebo)} for r in a.itertuples()]})
-    write(f"twoclocks/{rid}.json", {"mock": False, "preview": False, "note": note, "region": rid,
-        "fields": "A, T = Aqua/VIIRS and Terra/VIIRS ratios of near-nadir daytime detections vs 2012-2020 by calendar month (1 = no change; 2012-2020 years leave themselves out); clock_diff = log A - log T; sampling_est = (log A + log T) / 2 (log units); 95% 16-day block bootstrap",
-        "years": [{"year": int(r.year), "aqua_lst": hhmm(r.aqua_lst), "terra_lst": hhmm(r.terra_lst),
-                   **{k: num(getattr(r, k)) for k in ["A", "A_lo", "A_hi", "T", "T_lo", "T_hi", "clock_diff",
-                                                     "clock_lo", "clock_hi", "sampling_est"]}}
-                  for r in tc[tc.biome == b].itertuples()]})
-    r = res[b]
-    write(f"fireday/{rid}.json", {"mock": False, "note": note, "region": rid,
-        "fields": "log_aqua_over_terra = log(Aqua/Terra) near-nadir daytime counts on the same days; gap_h = Aqua minus Terra look time (hours); beta = change in log fire count per hour of look time",
-        "beta_baseline": num(r["beta_base"][0]), "beta_baseline_ci95": [num(x) for x in ci(r["beta_base"])],
-        "beta_fit_2012_2025": {"slope": num(r["slope"][0]), "intercept": num(r["intercept"][0]),
-                               "slope_ci95": [num(x) for x in ci(r["slope"])]},
-        "years": [{"year": int(q.year), "aqua_lst": hhmm(q.aqua_lst), "terra_lst": hhmm(q.terra_lst),
-                   "gap_h": num(q.gap_h), "log_aqua_over_terra": num(q.log_aqua_over_terra), "lo": num(q.lo),
-                   "hi": num(q.hi)} for q in fd[fd.biome == b].itertuples()]})
+                       "gap_h": num(q.gap_h), "log_aqua_over_terra": num(q.log_aqua_over_terra), "lo": num(q.lo),
+                       "hi": num(q.hi)} for q in fd[fd.biome == b].itertuples()]})
 
-    # fixed-clock calendar: Aqua before 2012 (its clock had not drifted), then S-NPP x R_m in Aqua units;
-    # S-NPP outage days are filled with NOAA-20 x their 2018-2025 overlap ratio
-    rm = raw_m.loc[b] if b in raw_m.index.get_level_values(0) else pd.Series(dtype=float)
-    def raw(ym, s):
-        if ym < START[s]: return None
-        return int(rm.get((ym, s), 0))
-    cal = {"mock": False, "region": rid, "unit": "fixed-clock Aqua-equivalent hotspots",
-           "months": [{"ym": ym, "fixed": None, "lo": None, "hi": None, "source": None, "aqua": raw(ym, "Aqua"), "snpp": raw(ym, "S-NPP"),
-                       "noaa20": raw(ym, "NOAA-20"), "flags": [], "median_ref": None, "anomaly_pct": None}
-                      for ym in pd.period_range("2002-01", "2025-12", freq="M").astype(str)]}
-    c = r["c"]; both = up["S-NPP"].values & up["NOAA-20"].values & (yr >= 2018)
-    k = c["S-NPP"].values[both].sum() / c["NOAA-20"].values[both].sum()
-    vf = np.where(up["S-NPP"].values, c["S-NPP"].values, np.where(up["NOAA-20"].values, k * c["NOAA-20"].values, np.nan))
-    vm = pd.Series(vf, index=dates).groupby(dates.str[:7]).sum(min_count=1)
-    gaps = pd.Series(np.isnan(vf), index=dates).groupby(dates.str[:7]).sum()  # 2012-01: S-NPP not yet flying
-    vm[gaps[gaps > 0].index] = np.nan
-    filled = pd.Series(~up["S-NPP"].values & up["NOAA-20"].values, index=dates).groupby(dates.str[:7]).sum()
-    R = r["R"]; Rlo, Rhi = np.percentile(R[1:], 2.5, axis=0), np.percentile(R[1:], 97.5, axis=0)
-    for m in cal["months"]:
-        ym = m["ym"]; i = int(ym[5:]) - 1
-        if ym < "2012-01" or (ym < "2021-01" and not np.isfinite(vm.get(ym, np.nan))):
-            m["fixed"] = m["aqua"]; m["source"] = "aqua_observed" if m["aqua"] is not None else None
-        elif ym in vm.index and np.isfinite(vm[ym]):
-            m["fixed"], m["lo"], m["hi"] = (int(round(vm[ym] * x)) for x in (R[0, i], Rlo[i], Rhi[i]))
-            m["source"] = "snpp_scaled_noaa20_filled" if filled.get(ym, 0) > 0 else "snpp_scaled"
-        m["flags"] = ["outage"] if filled.get(ym, 0) >= 3 else []
-    med = pd.DataFrame(cal["months"]).dropna(subset=["fixed"]).assign(mm=lambda x: x.ym.str[5:]).groupby("mm").fixed.median()
-    for m in cal["months"]:
-        mr = med.get(m["ym"][5:])
-        m["median_ref"] = None if mr is None else round(float(mr), 1)
-        m["anomaly_pct"] = None if m["fixed"] is None or not mr else round((m["fixed"] / mr - 1) * 100, 1)
-    cal["note"] = (note + " aqua, snpp, noaa20 = raw monthly counts of all daytime detections. fixed = Aqua count before 2012 (Aqua's clock had not drifted), then S-NPP count x the 2012-2020 "
-                   "Aqua/S-NPP ratio for that calendar month, in Aqua units (a VIIRS-based Aqua-equivalent estimate). lo/hi = uncertainty in the historical conversion ratio only, null for observed Aqua months; it omits outage filling and changes in relative detectability. source = aqua_observed, snpp_scaled or snpp_scaled_noaa20_filled. Full calendar months, not the audit's matched days. "
-                   f"S-NPP outage days filled with NOAA-20 x {k:.3f}. outage flag = 3 or more S-NPP outage days in the month. "
-                   "median_ref = median fixed count for that calendar month, 2002-2025.")
-    write(f"calendar/{rid}.json", cal)
+        # fixed-clock calendar: Aqua before 2012 (its clock had not drifted), then S-NPP x R_m in Aqua units;
+        # S-NPP outage days are filled with NOAA-20 x their 2018-2025 overlap ratio
+        rm = raw_m.loc[b] if b in raw_m.index.get_level_values(0) else pd.Series(dtype=float)
+        def raw(ym, s):
+            if ym < START[s]: return None
+            return int(rm.get((ym, s), 0))
+        cal = {"mock": False, "region": rid, "unit": "fixed-clock Aqua-equivalent hotspots",
+               "months": [{"ym": ym, "fixed": None, "lo": None, "hi": None, "source": None, "aqua": raw(ym, "Aqua"), "snpp": raw(ym, "S-NPP"),
+                           "noaa20": raw(ym, "NOAA-20"), "flags": [], "median_ref": None, "anomaly_pct": None}
+                          for ym in pd.period_range("2002-01", "2025-12", freq="M").astype(str)]}
+        c = r["c"]; both = up["S-NPP"].values & up["NOAA-20"].values & (yr >= 2018)
+        k = c["S-NPP"].values[both].sum() / c["NOAA-20"].values[both].sum()
+        vf = np.where(up["S-NPP"].values, c["S-NPP"].values, np.where(up["NOAA-20"].values, k * c["NOAA-20"].values, np.nan))
+        vm = pd.Series(vf, index=dates).groupby(dates.str[:7]).sum(min_count=1)
+        gaps = pd.Series(np.isnan(vf), index=dates).groupby(dates.str[:7]).sum()  # 2012-01: S-NPP not yet flying
+        vm[gaps[gaps > 0].index] = np.nan
+        filled = pd.Series(~up["S-NPP"].values & up["NOAA-20"].values, index=dates).groupby(dates.str[:7]).sum()
+        R = r["R"]; Rlo, Rhi = np.percentile(R[1:], 2.5, axis=0), np.percentile(R[1:], 97.5, axis=0)
+        for m in cal["months"]:
+            ym = m["ym"]; i = int(ym[5:]) - 1
+            if ym < "2012-01" or (ym < "2021-01" and not np.isfinite(vm.get(ym, np.nan))):
+                m["fixed"] = m["aqua"]; m["source"] = "aqua_observed" if m["aqua"] is not None else None
+            elif ym in vm.index and np.isfinite(vm[ym]):
+                m["fixed"], m["lo"], m["hi"] = (int(round(vm[ym] * x)) for x in (R[0, i], Rlo[i], Rhi[i]))
+                m["source"] = "snpp_scaled_noaa20_filled" if filled.get(ym, 0) > 0 else "snpp_scaled"
+            m["flags"] = ["outage"] if filled.get(ym, 0) >= 3 else []
+        med = pd.DataFrame(cal["months"]).dropna(subset=["fixed"]).assign(mm=lambda x: x.ym.str[5:]).groupby("mm").fixed.median()
+        for m in cal["months"]:
+            mr = med.get(m["ym"][5:])
+            m["median_ref"] = None if mr is None else round(float(mr), 1)
+            m["anomaly_pct"] = None if m["fixed"] is None or not mr else round((m["fixed"] / mr - 1) * 100, 1)
+        cal["note"] = (note + " aqua, snpp, noaa20 = raw monthly counts of all daytime detections. fixed = Aqua count before 2012 (Aqua's clock had not drifted), then S-NPP count x the 2012-2020 "
+                       "Aqua/S-NPP ratio for that calendar month, in Aqua units (a VIIRS-based Aqua-equivalent estimate). lo/hi = uncertainty in the historical conversion ratio only, null for observed Aqua months; it omits outage filling and changes in relative detectability. source = aqua_observed, snpp_scaled or snpp_scaled_noaa20_filled. Full calendar months, not the audit's matched days. "
+                       f"S-NPP outage days filled with NOAA-20 x {k:.3f}. outage flag = 3 or more S-NPP outage days in the month. "
+                       "median_ref = median fixed count for that calendar month, 2002-2025.")
+        write(f"calendar/{rid}.json", cal)
 
-# regions.json: the mock's names and boxes, restricted to regions with real outputs
-regs = json.load(open(os.path.join(os.path.dirname(os.path.abspath(dst)), "mock", "regions.json")))["regions"]
-write("regions.json", {"mock": False, "note": "Regions with real audit, calendar, two-clocks and fire-day files. bbox is for map framing; "
-                       "Brazil biomes use INPE's biome labels, Punjab + Haryana uses this bbox, California a simplified state outline.",
-                       "regions": [g for g in regs if g["id"] in REG]})
-print("done")
+    # regions.json: the mock's names and boxes, restricted to regions with real outputs
+    regs = json.load(open(os.path.join(os.path.dirname(os.path.abspath(dst)), "mock", "regions.json")))["regions"]
+    write("regions.json", {"mock": False, "note": "Regions with real audit, calendar, two-clocks and fire-day files. bbox is for map framing; "
+                           "Brazil biomes use INPE's biome labels, Punjab + Haryana uses this bbox, California a simplified state outline.",
+                           "regions": [g for g in regs if g["id"] in REG]})
+    print("done")
