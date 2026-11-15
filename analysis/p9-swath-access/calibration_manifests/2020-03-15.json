@@ -1,0 +1,402 @@
+{
+  "date": "2020-03-15",
+  "granules": [
+    {
+      "product": "VNP14IMG",
+      "id": "G2915618405-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1518.002.2024060213035",
+      "start": "2020-03-15T15:18:00.000Z",
+      "end": "2020-03-15T15:24:00.000Z",
+      "size_mb": 1.09586334228516,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1518.002.2024060213035/VNP14IMG.A2020075.1518.002.2024060213035.nc"
+      ]
+    },
+    {
+      "product": "VNP14IMG",
+      "id": "G2915616361-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1524.002.2024060213034",
+      "start": "2020-03-15T15:24:00.000Z",
+      "end": "2020-03-15T15:30:00.000Z",
+      "size_mb": 1.30585289001465,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1524.002.2024060213034/VNP14IMG.A2020075.1524.002.2024060213034.nc"
+      ]
+    },
+    {
+      "product": "VNP14IMG",
+      "id": "G2915617345-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1530.002.2024060213035",
+      "start": "2020-03-15T15:30:00.000Z",
+      "end": "2020-03-15T15:36:00.000Z",
+      "size_mb": 1.39691066741943,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1530.002.2024060213035/VNP14IMG.A2020075.1530.002.2024060213035.nc"
+      ]
+    },
+    {
+      "product": "VNP14IMG",
+      "id": "G2915617441-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1700.002.2024060213038",
+      "start": "2020-03-15T17:00:00.000Z",
+      "end": "2020-03-15T17:06:00.000Z",
+      "size_mb": 1.7479829788208,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1700.002.2024060213038/VNP14IMG.A2020075.1700.002.2024060213038.nc"
+      ]
+    },
+    {
+      "product": "VNP14IMG",
+      "id": "G2915617604-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1706.002.2024060213033",
+      "start": "2020-03-15T17:06:00.000Z",
+      "end": "2020-03-15T17:12:00.000Z",
+      "size_mb": 2.09326934814453,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1706.002.2024060213033/VNP14IMG.A2020075.1706.002.2024060213033.nc"
+      ]
+    },
+    {
+      "product": "VNP14IMG",
+      "id": "G2915617040-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1712.002.2024060213032",
+      "start": "2020-03-15T17:12:00.000Z",
+      "end": "2020-03-15T17:18:00.000Z",
+      "size_mb": 1.96298503875732,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1712.002.2024060213032/VNP14IMG.A2020075.1712.002.2024060213032.nc"
+      ]
+    },
+    {
+      "product": "VNP14IMG",
+      "id": "G2915617346-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1842.002.2024060213130",
+      "start": "2020-03-15T18:42:00.000Z",
+      "end": "2020-03-15T18:48:00.000Z",
+      "size_mb": 2.24024868011475,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1842.002.2024060213130/VNP14IMG.A2020075.1842.002.2024060213130.nc"
+      ]
+    },
+    {
+      "product": "VNP14IMG",
+      "id": "G2915617618-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1848.002.2024060213035",
+      "start": "2020-03-15T18:48:00.000Z",
+      "end": "2020-03-15T18:54:00.000Z",
+      "size_mb": 2.19473648071289,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1848.002.2024060213035/VNP14IMG.A2020075.1848.002.2024060213035.nc"
+      ]
+    },
+    {
+      "product": "VNP14IMG",
+      "id": "G2915617060-LPCLOUD",
+      "title": "VNP14IMG.A2020075.1854.002.2024060213037",
+      "start": "2020-03-15T18:54:00.000Z",
+      "end": "2020-03-15T19:00:00.000Z",
+      "size_mb": 2.093430519104,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP14IMG.002/VNP14IMG.A2020075.1854.002.2024060213037/VNP14IMG.A2020075.1854.002.2024060213037.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913750047-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1442.002.2024063094703",
+      "start": "2020-03-15T14:42:00.000Z",
+      "end": "2020-03-15T14:48:00.000Z",
+      "size_mb": 1.34768199920654,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1442.002.2024063094703/VJ114IMG.A2020075.1442.002.2024063094703.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913752367-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1606.002.2024063094708",
+      "start": "2020-03-15T16:06:00.000Z",
+      "end": "2020-03-15T16:12:00.000Z",
+      "size_mb": 1.9321870803833,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1606.002.2024063094708/VJ114IMG.A2020075.1606.002.2024063094708.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913750191-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1612.002.2024063094707",
+      "start": "2020-03-15T16:12:00.000Z",
+      "end": "2020-03-15T16:18:00.000Z",
+      "size_mb": 1.57289695739746,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1612.002.2024063094707/VJ114IMG.A2020075.1612.002.2024063094707.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913752388-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1618.002.2024063094710",
+      "start": "2020-03-15T16:18:00.000Z",
+      "end": "2020-03-15T16:24:00.000Z",
+      "size_mb": 1.66990089416504,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1618.002.2024063094710/VJ114IMG.A2020075.1618.002.2024063094710.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913750186-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1748.002.2024063094707",
+      "start": "2020-03-15T17:48:00.000Z",
+      "end": "2020-03-15T17:54:00.000Z",
+      "size_mb": 1.69797611236572,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1748.002.2024063094707/VJ114IMG.A2020075.1748.002.2024063094707.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913752435-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1754.002.2024063094707",
+      "start": "2020-03-15T17:54:00.000Z",
+      "end": "2020-03-15T18:00:00.000Z",
+      "size_mb": 2.49057388305664,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1754.002.2024063094707/VJ114IMG.A2020075.1754.002.2024063094707.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913752543-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1800.002.2024063094706",
+      "start": "2020-03-15T18:00:00.000Z",
+      "end": "2020-03-15T18:06:00.000Z",
+      "size_mb": 2.98019504547119,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1800.002.2024063094706/VJ114IMG.A2020075.1800.002.2024063094706.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913752624-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1930.002.2024063094706",
+      "start": "2020-03-15T19:30:00.000Z",
+      "end": "2020-03-15T19:36:00.000Z",
+      "size_mb": 2.01498031616211,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1930.002.2024063094706/VJ114IMG.A2020075.1930.002.2024063094706.nc"
+      ]
+    },
+    {
+      "product": "VJ114IMG",
+      "id": "G2913752485-LPCLOUD",
+      "title": "VJ114IMG.A2020075.1936.002.2024063094707",
+      "start": "2020-03-15T19:36:00.000Z",
+      "end": "2020-03-15T19:42:00.000Z",
+      "size_mb": 1.43057250976562,
+      "links": [
+        "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ114IMG.002/VJ114IMG.A2020075.1936.002.2024063094707/VJ114IMG.A2020075.1936.002.2024063094707.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127089962-LAADS",
+      "title": "LAADS:6048920247",
+      "start": "2020-03-15T15:18:00.000Z",
+      "end": "2020-03-15T15:24:00.000Z",
+      "size_mb": 137.462498664856,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1518.002.2021125011553.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127093504-LAADS",
+      "title": "LAADS:6048957448",
+      "start": "2020-03-15T15:24:00.000Z",
+      "end": "2020-03-15T15:30:00.000Z",
+      "size_mb": 150.494836807251,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1524.002.2021125025257.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127090146-LAADS",
+      "title": "LAADS:6048921595",
+      "start": "2020-03-15T15:30:00.000Z",
+      "end": "2020-03-15T15:36:00.000Z",
+      "size_mb": 140.950681686401,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1530.002.2021125011545.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127092034-LAADS",
+      "title": "LAADS:6048938385",
+      "start": "2020-03-15T17:00:00.000Z",
+      "end": "2020-03-15T17:06:00.000Z",
+      "size_mb": 151.091193199158,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1700.002.2021125011619.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127093979-LAADS",
+      "title": "LAADS:6048964228",
+      "start": "2020-03-15T17:06:00.000Z",
+      "end": "2020-03-15T17:12:00.000Z",
+      "size_mb": 180.428332328796,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1706.002.2021125011620.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127089316-LAADS",
+      "title": "LAADS:6048911676",
+      "start": "2020-03-15T17:12:00.000Z",
+      "end": "2020-03-15T17:18:00.000Z",
+      "size_mb": 149.189332962036,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1712.002.2021125011619.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127090955-LAADS",
+      "title": "LAADS:6048931042",
+      "start": "2020-03-15T18:42:00.000Z",
+      "end": "2020-03-15T18:48:00.000Z",
+      "size_mb": 146.952424049377,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1842.002.2021125011646.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127092844-LAADS",
+      "title": "LAADS:6048945193",
+      "start": "2020-03-15T18:48:00.000Z",
+      "end": "2020-03-15T18:54:00.000Z",
+      "size_mb": 158.532565116882,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1848.002.2021125011645.nc"
+      ]
+    },
+    {
+      "product": "VNP03IMG",
+      "id": "G2127090442-LAADS",
+      "title": "LAADS:6048924140",
+      "start": "2020-03-15T18:54:00.000Z",
+      "end": "2020-03-15T19:00:00.000Z",
+      "size_mb": 147.538433074951,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03IMG/VNP03IMG.A2020075.1854.002.2021125011642.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124681482-LAADS",
+      "title": "LAADS:5916871570",
+      "start": "2020-03-15T14:42:00.000Z",
+      "end": "2020-03-15T14:48:00.000Z",
+      "size_mb": 148.443418502808,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1442.021.2021061115415.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124683294-LAADS",
+      "title": "LAADS:5916961037",
+      "start": "2020-03-15T16:06:00.000Z",
+      "end": "2020-03-15T16:12:00.000Z",
+      "size_mb": 134.121550559998,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1606.021.2021061125236.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124688265-LAADS",
+      "title": "LAADS:5917073239",
+      "start": "2020-03-15T16:12:00.000Z",
+      "end": "2020-03-15T16:18:00.000Z",
+      "size_mb": 150.612113952637,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1612.021.2021061143145.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124686114-LAADS",
+      "title": "LAADS:5917032114",
+      "start": "2020-03-15T16:18:00.000Z",
+      "end": "2020-03-15T16:24:00.000Z",
+      "size_mb": 164.099331855774,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1618.021.2021061134542.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124682163-LAADS",
+      "title": "LAADS:5916910097",
+      "start": "2020-03-15T17:48:00.000Z",
+      "end": "2020-03-15T17:54:00.000Z",
+      "size_mb": 146.807606697083,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1748.021.2021061121531.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124679973-LAADS",
+      "title": "LAADS:5916792060",
+      "start": "2020-03-15T17:54:00.000Z",
+      "end": "2020-03-15T18:00:00.000Z",
+      "size_mb": 168.072486877441,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1754.021.2021061111414.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124680209-LAADS",
+      "title": "LAADS:5916805884",
+      "start": "2020-03-15T18:00:00.000Z",
+      "end": "2020-03-15T18:06:00.000Z",
+      "size_mb": 178.249472618103,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1800.021.2021061112012.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124681622-LAADS",
+      "title": "LAADS:5916879961",
+      "start": "2020-03-15T19:30:00.000Z",
+      "end": "2020-03-15T19:36:00.000Z",
+      "size_mb": 136.081301689148,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1930.021.2021061120242.nc"
+      ]
+    },
+    {
+      "product": "VJ103IMG",
+      "id": "G2124681514-LAADS",
+      "title": "LAADS:5916875167",
+      "start": "2020-03-15T19:36:00.000Z",
+      "end": "2020-03-15T19:42:00.000Z",
+      "size_mb": 126.748481750488,
+      "links": [
+        "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103IMG/VJ103IMG.A2020075.1936.021.2021061120327.nc"
+      ]
+    }
+  ],
+  "total_mb": 2749.144307136535
+}
