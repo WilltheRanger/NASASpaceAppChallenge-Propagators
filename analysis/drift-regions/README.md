@@ -1,6 +1,6 @@
 # Drift by region: Punjab + Haryana (P2)
 
-AI-generated (Claude, Sat Nov 14 2026, ~5:40 PM). **Run after `research/predictions.md` was committed (5:31 PM), so P2 is clean.** Needs a team member's check before any slide.
+AI-generated (Claude, Sat Nov 14 2026, run 5:32 PM). **Run after `research/predictions.md` was committed (5:31 PM), so P2 is clean.** Needs a team member's check before any slide.
 
 ## Data
 NASA FIRMS yearly country files for India, 2012 to 2025: MODIS C6.1 (`modis_YYYY_India.csv`) and VIIRS S-NPP 375 m (`viirs-snpp_YYYY_India.csv`). Not committed (size). Download:
