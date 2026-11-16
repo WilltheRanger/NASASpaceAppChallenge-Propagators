@@ -47,7 +47,7 @@ for c in Brazil Argentina India United_States; do mkdir -p RAW/$c
     curl -f -C - -o RAW/$c/${s}_${y}_${c}.csv $B/$s/$y/${s}_${y}_${c}.csv
   done; done; done
 
-python3 analysis/daylight/daylight.py                          # Level 1 only (about 1 s)
+python3 analysis/daylight/daylight.py --json-dir /tmp/dl --aux-dir /tmp/dl   # Level 1 only (about 1 s); not into data/out
 python3 analysis/daylight/daylight.py --level2 RAW             # Level 1 + 2a + 2b (about 30 s on 2 cores)
 python3 analysis/daylight/daylight.py --level2 RAW --bench     # plus analysis/daylight/out/benchmarks.json
 ```

@@ -83,9 +83,15 @@ def mark_isolated(f, km=10.0):
     f["ix"] = np.floor(f.LONGITUDE / 0.1).astype(int)
     f["iy"] = np.floor(f.LATITUDE / 0.1).astype(int)
     base = f[["FOD_ID", "ix", "iy", "LATITUDE", "LONGITUDE", "t0", "t1"]]
+    # Cells far enough out that no pair within km is missed. A 0.1-degree cell is only 8.3-9.1 km wide at 32-42 N,
+    # so a 3x3 block skipped east-west pairs 8.3-10 km apart (22 California fires were wrongly marked isolated).
+    # hav(d/R) >= hav(dlat) and >= cos(lat_max)^2 * hav(dlon), so these bounds hold for every pair within km.
+    phi = math.radians(min(89.9, float(f.LATITUDE.abs().max()))) if len(f) else 0.0
+    ny = math.ceil(math.degrees(km / EARTH_KM) / 0.1)
+    nx = math.ceil(math.degrees(2 * math.asin(min(1.0, math.sin(km / (2 * EARTH_KM)) / math.cos(phi)))) / 0.1)
     pairs = []
-    for dx in (-1, 0, 1):
-        for dy in (-1, 0, 1):
+    for dx in range(-nx, nx + 1):
+        for dy in range(-ny, ny + 1):
             s = base.assign(ix=base.ix + dx, iy=base.iy + dy)
             m = base.merge(s, on=["ix", "iy"], suffixes=("", "_o"))
             m = m[m.FOD_ID != m.FOD_ID_o]
@@ -100,8 +106,10 @@ def mark_isolated(f, km=10.0):
 def load_hotspots(firms_dir, year):
     out = []
     for kind, sat_map in (("modis", {"Aqua": "Aqua", "Terra": "Terra"}), ("viirs-snpp", None)):
-        path = os.path.join(firms_dir, f"{kind}_{year}_United_States.csv.gz")
-        if not os.path.exists(path):
+        # analysis/data-acquisition/get_reference_data.sh saves plain .csv; accept that as well as .csv.gz
+        stem = os.path.join(firms_dir, f"{kind}_{year}_United_States.csv")
+        path = next((p for p in (stem + ".gz", stem) if os.path.exists(p)), None)
+        if path is None:
             continue
         h = pd.read_csv(path, usecols=lambda c: c in {"latitude", "longitude", "acq_date", "acq_time", "satellite",
                                                       "confidence", "type", "scan", "track"})

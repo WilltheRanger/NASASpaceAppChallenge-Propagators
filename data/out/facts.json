@@ -371,7 +371,7 @@
   },
   {
    "id": "predictions",
-   "text": "Pre-registered checks: 6 pass (P2, P3, P4, P5, P6, P8), 3 fail (P7, P9, P10), 1 pending (P1).",
+   "text": "Written checks: 6 pass (P2, P3, P4, P5, P6, P8), 3 fail (P7, P9, P10), 1 pending (P1). Not pre-registered: P1, P3, P8, P9.",
    "value": {
     "pass": [
      "P2",

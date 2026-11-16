@@ -3,6 +3,7 @@
 // Countries: mledoze/countries via the world-countries package (ODbL); coordinates here are for navigation only.
 import countriesJson from './countries.json'
 import { REGIONS } from './data'
+import { inRegion } from './region-shapes'
 
 export type Place = {
   id: string
@@ -137,9 +138,17 @@ async function reverse(lon: number, lat: number, signal?: AbortSignal): Promise<
   } catch { return null }
 }
 
-/** The studied region a point falls in, if any. */
+/** The studied region a point falls in, if any: by the region's own shape where one is kept (its box is for map
+ *  framing; it would put Iquitos, Tocantins, Asunción and Santiago in the Amazon or Argentina). */
 export function regionAt(lon: number, lat: number) {
-  return REGIONS.find((r) => lon >= r.bbox[0] && lon <= r.bbox[2] && lat >= r.bbox[1] && lat <= r.bbox[3])?.id ?? null
+  return REGIONS.find((r) => inRegion(r.id, lon, lat, r.bbox))?.id ?? null
+}
+
+/** A studied region's own shape as a point test, for counting fires in it: its box takes in neighbouring biomes and
+ *  countries (the Cerrado's box holds about 2,700 of the snapshot's fires; the Cerrado itself about 1,000). */
+export function regionInside(id: string) {
+  const r = REGIONS.find((x) => x.id === id)
+  return (lon: number, lat: number) => !!r && inRegion(id, lon, lat, r.bbox)
 }
 
 /** A place from its id (as kept in the URL): a studied region, a fire area, a country, or "xy-lat,lon". */

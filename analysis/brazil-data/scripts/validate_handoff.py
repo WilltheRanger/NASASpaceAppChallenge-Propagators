@@ -29,7 +29,10 @@ def validate(data=DATA, src=SRC):
         real = [m for m in months if m['fixed'] is not None]
         assert real, (rid, 'no fixed series')
         for m in real:
-            assert all(isinstance(m[k], (float, int)) and math.isfinite(m[k]) for k in ('fixed', 'lo', 'hi')), (rid, m)
+            assert isinstance(m['fixed'], (float, int)) and math.isfinite(m['fixed']), (rid, m)
+            if m.get('source') == 'aqua_observed':
+                continue  # pre-VIIRS months are Aqua's own count; analysis/statistics/audit.py gives them no interval
+            assert all(isinstance(m[k], (float, int)) and math.isfinite(m[k]) for k in ('lo', 'hi')), (rid, m)
             assert 0 <= m['lo'] <= m['hi'], (rid, m)
         tc = load(data / 'twoclocks' / f'{rid}.json')
         assert tc.get('preview') is False, rid

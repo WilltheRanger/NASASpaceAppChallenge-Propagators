@@ -104,7 +104,7 @@ export const hm = (s: string) => { const [h, m] = s.split(':').map(Number); retu
 export const fmtHM = (h: number) => { let hh = Math.floor(h); let mm = Math.round((h - hh) * 60); if (mm === 60) { hh += 1; mm = 0 } return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}` }
 export const fmtInt = (v: number) => Math.round(v).toLocaleString('en-US')
 /** Signed percent with a true minus sign: +22.4% / −26.8% */
-export const pct = (v: number, d = 1) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(d)}%`
+export const pct = (v: number, d = 1) => { const s = Math.abs(v).toFixed(d); return `${v >= 0 || Number(s) === 0 ? '+' : '−'}${s}%` } // no "−0.0%"
 export const minutesBetween = (a: string, b: string) => Math.round((hm(a) - hm(b)) * 60)
 export const fmtShift = (min: number) => { const s = min >= 0 ? '+' : '−'; const v = Math.abs(min); const h = Math.floor(v / 60); return h ? `${s}${h} h ${String(v % 60).padStart(2, '0')} min` : `${s}${v} min` }
 
@@ -196,7 +196,8 @@ export function regionData(id: RegionId) {
     if (baseLook == null) return null
     let start: number | null = null
     for (const r of drift) {
-      const later = (hm(r.aqua_lst) - baseLook) * 60 >= 4
+      // whole minutes: an exact 4-minute shift is 3.99999… in floating point (Argentina and Punjab 2022)
+      const later = Math.round((hm(r.aqua_lst) - baseLook) * 60) >= 4
       if (later && start == null) start = r.year
       if (!later) start = null
     }

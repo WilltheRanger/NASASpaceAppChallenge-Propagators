@@ -103,19 +103,23 @@ export function sightings(i: number) {
 }
 
 export type Box = readonly [number, number, number, number]
+/** a finer test than the box, for a studied region's own shape (a region's box is for framing and crosses borders) */
+export type Inside = (lon: number, lat: number) => boolean
 const inBox = (i: number, b: Box) => LON[i] >= b[0] && LON[i] <= b[2] && LAT[i] >= b[1] && LAT[i] <= b[3]
-/** every row inside a box (or every row): a small box walks only its own cells of the coarse grid */
-function each(b: Box | null, f: (i: number) => void) {
+/** every row inside a box (or every row), and inside the shape when one is given: a small box walks only its own cells
+ *  of the coarse grid */
+function each(b: Box | null, f0: (i: number) => void, inside?: Inside) {
+  const f = inside ? (i: number) => { if (inside(LON[i], LAT[i])) f0(i) } : f0
   if (!b) { for (let i = 0; i < N; i++) f(i); return }
   const x0 = Math.floor(b[0] / CELL), x1 = Math.floor(b[2] / CELL), y0 = Math.floor(b[1] / CELL), y1 = Math.floor(b[3] / CELL)
   if ((x1 - x0 + 1) * (y1 - y0 + 1) > 4000) { for (let i = 0; i < N; i++) if (inBox(i, b)) f(i); return }
   for (let gx = x0; gx <= x1; gx++) for (let gy = y0; gy <= y1; gy++) for (const i of GRID.get(`${gx},${gy}`) ?? []) if (inBox(i, b)) f(i)
 }
 
-/** counts and median local solar time per satellite group inside a box (or worldwide) */
-export function summary(b: Box | null) {
+/** counts and median local solar time per satellite group inside a box (or worldwide), and inside a shape if given */
+export function summary(b: Box | null, inside?: Inside) {
   const acc: Record<SatGroup, number[]> = { terra: [], aqua: [], viirs: [] }
-  each(b, (i) => { acc[groupOf(SAT[i])].push(LST[i]) })
+  each(b, (i) => { acc[groupOf(SAT[i])].push(LST[i]) }, inside)
   const med = (v: number[]) => { if (!v.length) return null; const s = [...v].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] }
   return {
     terra: { n: acc.terra.length, lst: med(acc.terra) },
@@ -127,13 +131,13 @@ export function summary(b: Box | null) {
 
 /** local-solar-time histogram per group, in half-hour bins from 06:00 to 19:00, for a box or worldwide */
 export const BIN_FROM = 6, BIN_TO = 19, BIN = 0.5
-export function histogram(b: Box | null) {
+export function histogram(b: Box | null, inside?: Inside) {
   const n = Math.round((BIN_TO - BIN_FROM) / BIN)
   const h: Record<SatGroup, number[]> = { terra: Array(n).fill(0), aqua: Array(n).fill(0), viirs: Array(n).fill(0) }
   each(b, (i) => {
     const k = Math.floor((LST[i] - BIN_FROM) / BIN)
     if (k >= 0 && k < n) h[groupOf(SAT[i])][k]++
-  })
+  }, inside)
   return h
 }
 
@@ -145,10 +149,10 @@ export function dayText(s: string) {
 }
 
 /** the strongest detection (highest FRP) inside a box, or worldwide; only the satellite groups given */
-export function strongest(b: Box | null, groups: Record<SatGroup, boolean> = { terra: true, aqua: true, viirs: true }) {
+export function strongest(b: Box | null, groups: Record<SatGroup, boolean> = { terra: true, aqua: true, viirs: true }, inside?: Inside) {
   let best = -1
   for (let i = 0; i < N; i++) {
-    if ((b && !inBox(i, b)) || !groups[groupOf(SAT[i])]) continue
+    if ((b && !inBox(i, b)) || (inside && !inside(LON[i], LAT[i])) || !groups[groupOf(SAT[i])]) continue
     if (best < 0 || FRP[i] > FRP[best]) best = i
   }
   return best < 0 ? null : best

@@ -25,7 +25,7 @@ import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
 import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, N as DOTS, SAT, SAT_NAMES, SENSOR, TOTALS, WINDOW, edgeLat, groupOf, heatShare, histogram, lstOf, near, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
-import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, nameAt, nameNear, placeById, searchPlaces, type Place } from '@/r2/places'
+import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, nameAt, nameNear, placeById, regionInside, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
 import { BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, PASS_END, SOURCES as DAY_SOURCES, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
 import { DOWN, EXPLORATORY, L_STEPS, NEAR, UP, cellFeatures, cellIdAt, cellName, globalGrid, reading, type GlobalCell, type GlobalGrid } from '@/r2/global'
@@ -49,7 +49,7 @@ const COLOR: Record<SatGroup, string> = { terra: 'var(--sat-terra)', viirs: 'var
 const short = (name: string) => name.replace(/ \(.*\)$/, '')
 /** "4.31° S, 58.50° W" */
 const coords = (lat: number, lon: number) => `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? 'N' : 'S'}, ${Math.abs(lon).toFixed(2)}° ${lon >= 0 ? 'E' : 'W'}`
-const signed = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(Math.round(v))}`
+const signed = (v: number) => { const r = Math.round(v); return `${r >= 0 ? '+' : '−'}${Math.abs(r)}` } // sign of the rounded value: no "−0"
 /** hours as "2 h 50" */
 const dur = (h: number | null | undefined) => {
   if (h == null) return '—'
@@ -114,8 +114,10 @@ const boxFor = (p: Place): Box => {
   const hy = p.span / 2, hx = Math.min(179, p.span / 2 / Math.max(0.2, Math.cos((p.lat * Math.PI) / 180)))
   return [Math.max(-180, p.lon - hx), Math.max(-84, p.lat - hy), Math.min(180, p.lon + hx), Math.min(84, p.lat + hy)]
 }
-/** the studied regions in a country, or whose box holds the place */
-const studiedFor = (p: Place) => (p.iso && STUDIED_IN[p.iso]) || REGIONS.filter((r) => p.lon >= r.bbox[0] && p.lon <= r.bbox[2] && p.lat >= r.bbox[1] && p.lat <= r.bbox[3]).map((r) => r.id)
+/** the studied regions in a country, or whose shape holds the place (a region's box crosses borders) */
+const studiedFor = (p: Place) => (p.iso && STUDIED_IN[p.iso]) || REGIONS.filter((r) => regionInside(r.id)(p.lon, p.lat)).map((r) => r.id)
+/** fires in a place: a studied region counts only inside its own shape, not its whole framing box */
+const insideFor = (p: Place) => (p.region ? regionInside(p.region) : undefined)
 
 /** The place the page opens on. */
 const DEFAULT_PLACE = 'br-amazon'
@@ -376,7 +378,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     }
     requestAnimationFrame(() => earth.current?.reveal(LON[i], LAT[i], below ? { top: 24, side: 164, bottom: CARD_H + 24 } : { top: CARD_H + 24, side: 164 }))
   }
-  const strongestIn = (b: Box | null) => { const i = strongest(b, show); if (i != null) pickFire(i) }
+  const strongestIn = (b: Box | null, inside?: (lon: number, lat: number) => boolean) => { const i = strongest(b, show, inside); if (i != null) pickFire(i) }
 
   // SI: answers come from the page's data; an answer may fly the map, filter it, or pick a fire
   const turnId = useRef(0)
@@ -477,7 +479,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
       }
     }
     if (place) {
-      const s = summary(boxFor(place))
+      const s = summary(boxFor(place), insideFor(place))
       const [yy, mm, dd] = WINDOW.start.split(' ')[0].split('-').map(Number)
       const sun = sunTimes(yy, mm, dd, place.lat)
       return {
@@ -501,10 +503,10 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   ) : !place ? (
     <Idle onPick={pickRegion} onPlayDay={playDay} world={grid != null && layer === 'clock'} live={live} />
   ) : facts ? (
-    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} alert={alertPanel}
+    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id], regionInside(facts.d.id))} studyHref={regionsHref(facts.d.id)} leave={leave} alert={alertPanel}
       onPlay={facts.d.id === 'br-amazon' ? playDay : undefined} onYears={() => setLightOpen(true)} playing={day != null} />
   ) : (
-    <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} alert={alertPanel} cell={placeCell} year={mapYear} onCell={grid ? (id) => pickCell(id) : undefined} />
+    <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place), insideFor(place))} alert={alertPanel} cell={placeCell} year={mapYear} onCell={grid ? (id) => pickCell(id) : undefined} />
   )
   const siteLinks: Links = {
     overview: () => overviewHref ?? home,
@@ -999,7 +1001,7 @@ function PlacePanel({ place, headRef, onBack, onFly, onStrongest, cell, year, on
   place: Place; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onFly: (id: string) => void; onStrongest: () => void
   cell: GlobalCell | null; year: 2024 | 2025; onCell?: (id: string) => void; alert?: ReactNode
 }) {
-  const s = useMemo(() => summary(boxFor(place)), [place])
+  const s = useMemo(() => summary(boxFor(place), insideFor(place)), [place])
   const inside = studiedFor(place)
   return (
     <div className="flex flex-col gap-6 px-5 pb-6 pt-4">
@@ -1343,7 +1345,8 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
   const utc = utcOf(i)
   const sun = sunTimes(utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate(), LAT[i])
   const left = sun.set - lst
-  const frpPercentile = Math.round(heatShare(i) * 100)
+  // floor, as Ask Anchor does: the share counts strictly lower readings, so rounding up claimed "100%" for the top ones
+  const frpPercentile = Math.floor(heatShare(i) * 100)
   // the other satellites that saw this spot (within 3 km) that day, in the order they pass
   const also = [0, 3, 2, 1].map((s) => who[s]).filter((r) => r.i != null && r.i !== i)
   const [where, setWhere] = useState<string | null>(() => nameNear(LON[i], LAT[i]))

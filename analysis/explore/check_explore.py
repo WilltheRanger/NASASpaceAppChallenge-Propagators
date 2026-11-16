@@ -8,7 +8,7 @@ readable and five too thin) show the grid file's numbers; E3 the one fire day sh
 and the fires that pass saw, for all twelve choices; E4 no page says simulat*, helicopter, fleet, crew or made up; E5 no
 page error on any page.
 """
-import asyncio, json, os, random, re, sys
+import asyncio, json, math, os, random, re, sys
 from playwright.async_api import async_playwright
 
 URL = sys.argv[1] if len(sys.argv) > 1 else 'http://localhost:4173/'
@@ -18,9 +18,9 @@ grid = json.load(open(os.path.join(ROOT, 'data/out/global/grid.json')))
 sim = json.load(open(os.path.join(ROOT, 'data/out/sim/amazon-2024-09-02.json')))
 ARGS = ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
 
-def signed(v):  # the page's rounding: Math.round, minus as U+2212
-    r = int((abs(v) + 0.5) // 1)
-    return ('+' if v >= 0 else '−') + str(r)
+def signed(v):  # the page's rounding: Math.round (halves up), minus as U+2212, sign of the rounded value (no "−0")
+    r = math.floor(v + 0.5)
+    return ('+' if r >= 0 else '−') + str(abs(r))
 pct = lambda L: signed((L - 1) * 100) + '%'
 def hhmm(h):
     m = int(h * 60 + 0.5)
@@ -70,6 +70,8 @@ async def main():
                 want = ['Too few fires to read in 2025', f"Aqua {c['n_aqua_2025']:,} · S-NPP {c['n_snpp_2025']:,}"]
             miss = [w for w in want if w not in text]
             if o and not outside and '· unusual for this square' in text: miss.append('says unusual')
+            # 'unusual for this square' is also inside 'not unusual for this square', so check the other way too
+            if o and outside and 'not unusual for this square' in text: miss.append('says not unusual')
             e2.append({'cell': cid, 'readable': o, 'expected': want, 'missing': miss, 'pass': not miss})
         out['checks']['E2_squares'] = {'pass': all(x['pass'] for x in e2), 'rows': e2}
         # E3

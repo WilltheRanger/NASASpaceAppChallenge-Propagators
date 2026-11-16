@@ -69,11 +69,13 @@ add("amazon_decline_2024_2025",
 # checks
 ch = J("checks.json")["checks"]
 st = {s: [c["id"] for c in ch if c["status"] == s] for s in ("pass", "fail", "pending")}
+late = [c["id"] for c in ch if c.get("result_existed_before_commit")]  # research/predictions.md: not pre-registered
 add("predictions",
-    f"Pre-registered checks: {len(st['pass'])} pass ({', '.join(st['pass'])}), {len(st['fail'])} fail "
-    f"({', '.join(st['fail'])}), {len(st['pending'])} pending ({', '.join(st['pending'])}).",
+    f"Written checks: {len(st['pass'])} pass ({', '.join(st['pass'])}), {len(st['fail'])} fail "
+    f"({', '.join(st['fail'])}), {len(st['pending'])} pending ({', '.join(st['pending'])}). "
+    f"Not pre-registered: {', '.join(late)}.",
     st, "data/out/checks.json",
-    "Results for " + ", ".join(c["id"] for c in ch if c.get("result_existed_before_commit")) + " existed before the commit; "
+    "Results for " + ", ".join(late) + " existed before the commit; "
     "P3 and P9 deviate from their written rules (see rule_implemented). Never show a bare pass tally.")
 p3 = next(c for c in ch if c["id"] == "P3")
 add("inpe_match", "Our FIRMS Aqua counts track INPE's reference series: " + p3["detail"].split(" INPE uses")[0], None,

@@ -84,7 +84,7 @@ To try another rule without editing code: `--min-expected N --max-rel-half-width
 
 **Three controls that help read those numbers:**
 
-- **Placebo control.** In the same 721 cells, a 2012 to 2020 year scored against the other eight falls outside the other eight's range 22% of the time. Exchangeable years would give 2 in 9, which is 22%. The 2025 figure is 49%.
+- **Placebo control.** Scored against the other eight, exactly two of the nine 2012 to 2020 years (the lowest and the highest) fall outside the other eight's range in every cell, so `placebo_control.share` is 2 in 9 (22%) by construction and cannot test anything. The chance rate for a new year is 2 in 10: with no clock effect, about 20% of the 721 cells would fall outside their nine-year range. The 2025 figure is 49%.
 - **The fixed clock held still.** S-NPP's look time moved by about 2 minutes per cell, against Aqua's 71.
 - **The whole Earth, scored as one area, does not show a 2025 excess.** L is 1.012 (0.975 to 1.049) in 2025, inside its placebo range (0.955 to 1.033). In 2024 it is 1.059 (1.020 to 1.100), outside it. The cells move in both directions, and in 2025 they largely cancel in the total. The layer is a map of where, not a global percentage.
 
@@ -144,7 +144,7 @@ To try another rule without editing code: `--min-expected N --max-rel-half-width
 - **L is not attribution.** Aqua's later look, its changed sampling geometry and real changes in when fires burn all move L. The map shows where the count and the fixed clock part ways, not why.
 - **The whole-Earth retained-days rule is weaker than the audit's.** A partial outage that loses some orbits still counts as "up" for the whole Earth. On 35 of 5,114 days the two rules disagree. Rebuilding the Amazon by its own rule moves its 2024 L from 1.099 (1.040 to 1.173) on Brazil days to 1.082 (0.982 to 1.179) on whole-Earth days. A sensitivity run with the rule applied per 30-degree longitude band moves 13 of 718 cells by more than 0.05 in 2025 (none by more than 0.10) and flips 29 verdicts; in 2024, 46 of 769 cells and 42 verdicts. The share of cells outside their placebo range barely moves (49.1% to 48.9% in 2025, 42.0% to 39.2% in 2024). `out/cells_all.csv` carries both readings per cell.
 - **Cell-level placebo ranges are wide.** The median noise floor is 0.17, against 0.03 to 0.13 for the presets. About half of the readable cells sit within their own range.
-- **Many readings, so some fall outside by chance.** With nine placebo years, about 22% of cells would fall outside with no clock effect at all. Read the map as a pattern, never one cell at a time.
+- **Many readings, so some fall outside by chance.** With nine placebo years, about 20% of cells (2 in 10) would fall outside with no clock effect at all. Read the map as a pattern, never one cell at a time.
 - **Thin cells are masked, not zero.** 3,751 of 4,472 cells are `too_few_fires` in 2025. They hold 18% of Aqua's 2025 detections.
 - **A 2-degree cell mixes land covers and countries.** It is not a biome, a state or a fire regime.
 - **Detection is uneven.** MODIS leaves gaps between orbits near the equator, and detection probability is low in some equatorial areas. L is a ratio within one place, so part of this cancels. That is unverified outside the presets.

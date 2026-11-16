@@ -81,7 +81,10 @@ export const colorOf = (L: number) => { const s = stepOf(L); return s === 0 ? NE
 const side = (v: number, pos: string, neg: string) => `${Math.abs(v)}°${v === 0 ? '' : v > 0 ? pos : neg}`
 export const cellName = (c: GlobalCell) => `${side(c.lat0, 'N', 'S')} to ${side(c.lat1, 'N', 'S')}, ${side(c.lon0, 'E', 'W')} to ${side(c.lon1, 'E', 'W')}`
 /** the id of the 2-degree square that holds a point (the grid's corners sit on even degrees) */
-export const cellIdAt = (lon: number, lat: number) => `g2_${Math.floor(lon / 2) * 2}_${Math.floor(lat / 2) * 2}`
+export const cellIdAt = (lon: number, lat: number) => {
+  const x = ((((lon + 180) % 360) + 360) % 360) - 180 // 180 is -180: the grid's last column starts at 178
+  return `g2_${Math.floor(x / 2) * 2}_${Math.floor(lat / 2) * 2}`
+}
 
 /** The grid as map polygons: c = fill colour, o = fill strength (0.8 unusual for that square, 0.35 not), ok = readable. */
 export function cellFeatures(grid: GlobalGrid, year: 2024 | 2025): GeoJSON.FeatureCollection {

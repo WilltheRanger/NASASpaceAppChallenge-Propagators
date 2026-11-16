@@ -14,7 +14,7 @@ Level 2b : the same real Aqua detections, each moved back by the measured clock 
            year (that year's aqua_lst minus the 2012 to 2020 median aqua_lst). Only the clock changes.
 
 Usage (from the repo root):
-    python3 analysis/daylight/daylight.py                              # Level 1 only
+    python3 analysis/daylight/daylight.py --json-dir DIR --aux-dir DIR # Level 1 only (never into data/out)
     python3 analysis/daylight/daylight.py --level2 RAW_DIR             # Level 1 + 2a + 2b
     python3 analysis/daylight/daylight.py --level2 RAW_DIR --bench     # plus the benchmark table
     python3 analysis/daylight/daylight.py --audit-picks                # the 5 seeded values for the audit
@@ -833,6 +833,10 @@ def main():
     a = ap.parse_args()
     if a.audit_picks:
         print(json.dumps(audit_picks(a.json_dir), indent=1)); return
+    if not a.level2 and os.path.abspath(a.json_dir) == os.path.abspath(os.path.join(REPO, "data/out/daylight")):
+        # a Level 1 run drops every Level 2 field, and the site quotes Level 2a for Argentina and California
+        ap.error("without --level2 RAW_DIR this would overwrite the published data/out/daylight files with Level 1 only; "
+                 "pass --level2 RAW_DIR, or --json-dir DIR (and --aux-dir DIR) to write a Level 1 run elsewhere")
     generated = a.generated or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     l1 = level1()
     l2 = level2(a.level2, l1) if a.level2 else None

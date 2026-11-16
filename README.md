@@ -111,7 +111,7 @@ $$L = \frac{\text{Aqua count}}{\text{fixed-clock count}}$$
 
 **Amazon 2025:**
 - Aqua counted **43,002** daytime detections, where the fixed clock predicts **33,172**: 29.6% more.
-- The data show the gap and the timing change together. They do not show how much of the gap the timing caused.
+- Nine attribution tests point to Aqua's later look as the main cause. Clouds and changed viewing geometry are ruled out, and a regression across 80 region-years attributes about 90% (43 to 137%) of this excess to the look-time shift. A smaller share is not pinned down ([Limits](#limits)).
 
 **Our data match INPE's:** our FIRMS Aqua counts are within 10% of INPE's reference-satellite counts in **96.6%** of Brazil biome-months, 2012 to 2020.
 
@@ -140,7 +140,7 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
 
 **The same audit on a 2° grid (exploratory).** The six presets are the checked part of this project. The world map repeats their audit on every 2° cell, with the same code and the same rule for "too few fires". It is not checked against a national reference series, and it shows where Aqua's count and the fixed clock part ways, not why.
 - **Cells:** 4,472 cells have a detection; 721 have enough fires to read in 2025 (776 in 2024). The rest are shown as "too few fires", with no value.
-- **2025:** 354 of the 721 cells sit outside their own 2012 to 2020 placebo range, 260 above the fixed clock and 94 below. A 2012 to 2020 year scored the same way falls outside 22% of the time.
+- **2025:** 354 of the 721 cells sit outside their own 2012 to 2020 placebo range, 260 above the fixed clock and 94 below. With no clock effect, a year falls outside the range of nine others about 20% of the time (2 in 10).
 - **Look time:** Aqua's median look moved +71 min per cell in 2025 (+58 to +79 for the middle 80% of cells); S-NPP's moved about 2 min.
 - **The whole Earth as one area:** L is 1.012 (0.975 to 1.049) in 2025, within its placebo range, and 1.059 (1.020 to 1.100) in 2024. The cells move both ways, so this is a map of where, not a global percentage.
 - **Checks:** grid cells over each preset land inside that preset's published interval for 2024 and 2025 (10 of 10), and an independent recompute of 5 seeded cells matches. Method, mask rule, nine benchmarks and limits: [`analysis/global/README.md`](analysis/global/README.md).
@@ -194,7 +194,7 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
     - Inside each view bin the pixel size is fixed. Aqua's median fire power per detection still fell 24% at nadir and 15% at 33° to 43°, while VIIRS's (whose clock did not move) fell 7 to 10%.
     - So at its later look Aqua sees more, smaller fires. MODIS can only detect a small fire near nadir, which is why the excess stops around 33°. That points to a real time-of-day effect, not only a change in viewing geometry. The Cerrado shows the same pattern.
     - Terra, which now looks earlier, loses detections at every view angle (L 0.45 to 0.71 in 2025), and its fires also got smaller.
-    - With NOAA-20 in place of S-NPP as the reference, Amazon 2025 L is 1.34 (1.15 to 1.58), against 1.30 with S-NPP.
+    - With NOAA-20 in place of S-NPP as the reference, Amazon 2025 L is 1.34 (1.15 to 1.59), against 1.33 (1.16 to 1.57) with S-NPP on the same 2018 to 2020 baseline (paired difference −0.01, −0.04 to 0.03; `analysis/statistics/out/reference_satellite_by_biome.csv`).
   - **Attribution tested** ([`analysis/attribution/`](analysis/attribution/README.md), nine tests).
     - Clouds are ruled out (GOES cloud mask).
     - Changed viewing geometry is ruled out: NASA granule footprints show Aqua's near-nadir viewing share flat at about 40% from 2016 to 2025.
@@ -204,7 +204,7 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
     - Still open: the fire-regime test and the off-season months.
 - **The reference clock is ending.** NASA stopped delivering new Suomi NPP data on 2 November 2026, and S-NPP is the fixed clock that L is measured against. MODIS itself is scheduled to stop collecting data on Terra in January 2027 and on Aqua around September 2027 (CAMS, 2026).
   - Any audit after 2026 has to be rebuilt on NOAA-20 and NOAA-21 VIIRS.
-  - **Done:** [`analysis/handover/`](analysis/handover/README.md) chains the 2012–2020 baseline through the 2018–2025 S-NPP/NOAA-20 overlap. Tested out of sample, it reproduces the published L (Amazon 2025: 1.29 vs 1.30), and no 2024–2025 verdict changes. The audit can continue on NOAA-20.
+  - **Done:** [`analysis/handover/`](analysis/handover/README.md) chains the 2012–2020 baseline through the 2018–2025 S-NPP/NOAA-20 overlap. Tested out of sample (rate fitted on 2018–2020, scored on 2021–2025), it reproduces the published L (Amazon 2025: 1.30 vs 1.30). With the rate from the full overlap, the NOAA-20 clock gives 1.29 (1.13 to 1.50), and no 2024–2025 verdict changes. The audit can continue on NOAA-20.
 - **A hotspot is a detection, not a count of fires.** One large fire makes many hotspots; a small one may make none.
 - **Small regions are noisy:** Punjab + Haryana has too few fires after 2022 for an audit.
 - **No 2026 calendar yet:** there are no 2026 yearly FIRMS files; the calendar ends in December 2025.

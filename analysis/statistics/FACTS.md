@@ -50,7 +50,7 @@ From 2024 to 2025, INPE's official Amazon count fell 69.3% (140,346 to 43,131); 
 
 ## Predictions
 
-Pre-registered checks: 6 pass (P2, P3, P4, P5, P6, P8), 3 fail (P7, P9, P10), 1 pending (P1).
+Written checks: 6 pass (P2, P3, P4, P5, P6, P8), 3 fail (P7, P9, P10), 1 pending (P1). Not pre-registered: P1, P3, P8, P9.
 
 - Source: `data/out/checks.json`
 - Caveat: Results for P1, P3, P8, P9 existed before the commit; P3 and P9 deviate from their written rules (see rule_implemented). Never show a bare pass tally.

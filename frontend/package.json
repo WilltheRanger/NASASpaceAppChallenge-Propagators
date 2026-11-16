@@ -10,7 +10,9 @@
     "prebuild": "node scripts/copy-global.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "artifact": "vite build --config vite.artifact.config.ts && node scripts/artifact-page.mjs"
+    "preartifact": "node scripts/copy-global.mjs",
+    "artifact": "vite build --config vite.artifact.config.ts && node scripts/artifact-page.mjs",
+    "test": "tsc src/r2/fire-context.ts --outDir .context-test --target ES2022 --module ES2022 --moduleResolution bundler --skipLibCheck && node --test tests/fire-context.test.mjs && node test-story-limits.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.7",

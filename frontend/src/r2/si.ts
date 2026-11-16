@@ -4,7 +4,7 @@
 // generated, so nothing is invented; a question outside these kinds gets the list of what SI can answer.
 import { REGIONS, daylightHeadline, fireSeason, fmtHM, fmtInt, hm, isValidation, regionData, sunTimes, verdictHeadline } from './data'
 import { GROUP_NAME, SAT_NAMES, TOTALS, WINDOW, dayText, groupOf, heatShare, lstOf, sightings, strongest, summary, utcOf, FRP, LAT, LON, SAT, type Box } from './fires'
-import { nameNear, regionNamed, searchPlaces, type Place } from './places'
+import { nameNear, regionInside, regionNamed, searchPlaces, type Place } from './places'
 
 export type SiSource = { id: string; title: string; domain: string; url?: string }
 export type SiSentence = { text: string; cite?: string[] }
@@ -46,6 +46,8 @@ const hours = (h: number | null) => (h == null ? 'no daytime fires here' : fmtHM
 const short = (name: string) => name.replace(/ \(.*\)$/, '')
 const studiedIn = (q: string) => regionNamed(q) ?? searchPlaces(q, 3).find((x) => x.kind === 'Studied region')?.region ?? null
 const boxOf = (id: string) => REGIONS.find((r) => r.id === id)!.bbox as unknown as Box
+/** counts and "strongest" for a named region also test its own shape: the box alone takes in neighbouring regions */
+const insideOf = regionInside
 /** the Amazon's look times, first and last year in the team's drift file: the glossary's example */
 const AMAZON = (() => { const d = regionData('br-amazon'); return { first: d.drift[0], last: d.lastDrift } })()
 
@@ -86,7 +88,8 @@ const DELIVERY_H = 3
  *  `lead` replaces the opening when the fire wasn't picked by the reader. */
 function fireAnswer(i: number, lead?: string): SiAnswer {
   const who = sightings(i)
-  const seen = who.filter((w) => w.i != null).sort((a, b) => lstOf(a.i!) - lstOf(b.i!))
+  // in real time order: the file spans 31 hours, so by local time of day alone a next-morning pass could come "first"
+  const seen = who.filter((w) => w.i != null).sort((a, b) => utcOf(a.i!).getTime() - utcOf(b.i!).getTime())
   const first = seen[0]?.i ?? i
   const later = seen.filter((w) => w.i !== first)
   const missed = who.filter((w) => w.i == null)
@@ -137,7 +140,7 @@ function fireAnswer(i: number, lead?: string): SiAnswer {
 function whenAnswer(ctx: SiContext, q: string): SiAnswer {
   const region = studiedIn(q) ?? ctx.region
   const box = region ? boxOf(region) : ctx.view
-  const s = summary(box)
+  const s = summary(box, region ? insideOf(region) : undefined)
   const where = region ? regionData(region).phrase.the : ctx.place?.name ?? (box ? 'the map’s view' : 'the whole world')
   const out: SiSentence[] = [
     { text: `Over ${where} on ${SPAN}, the satellites’ typical look times (local solar time): VIIRS ${hours(s.viirs.lst)}, Aqua ${hours(s.aqua.lst)}, Terra ${hours(s.terra.lst)}.`, cite: ['firms'] },
@@ -210,7 +213,7 @@ function daylightAnswer(ctx: SiContext, q: string): SiAnswer {
 
 function countAnswer(ctx: SiContext): SiAnswer {
   const box = ctx.region ? boxOf(ctx.region) : ctx.view
-  const s = summary(box)
+  const s = summary(box, ctx.region ? insideOf(ctx.region) : undefined)
   const where = ctx.region ? regionData(ctx.region).phrase.the : box ? 'the map’s view' : 'the world'
   return {
     sentences: [
@@ -374,7 +377,7 @@ function answer(question: string, ctx: SiContext): SiAnswer {
     const named = world ? null : studiedIn(q)
     const scope = named ?? (world ? null : ctx.region)
     const box = scope ? boxOf(scope) : world ? null : ctx.view
-    const i = strongest(box)
+    const i = strongest(box, undefined, scope ? insideOf(scope) : undefined)
     if (i == null) return { sentences: [{ text: 'No fires in view. Zoom out or pick a region.' }], sources: [] }
     const where = scope ? `in ${regionData(scope).phrase.the}` : box ? 'in view' : 'in the world'
     const asked = has(q, 'strongest', 'biggest', 'hottest', 'largest')
