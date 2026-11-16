@@ -98,7 +98,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   const label = 'text-sm text-[color:var(--bone2)]'
 
   return (
-    <section aria-labelledby="alert-h" className="flex flex-col gap-4">
+    <section aria-labelledby="alert-h" className="flex flex-col gap-5">
       <div>
         <p className="mb-1.5 text-xs text-[color:var(--bone3)]">What-if for responders</p>
         <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance]">
@@ -114,7 +114,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
         </p>
       </div>
 
-      <div data-tour="inputs" className="flex flex-col gap-2">
+      <div data-tour="inputs" className="flex flex-col gap-3 border-t border-[color:var(--hairline)] pt-4">
         {picker ? (
           <div className="flex items-center justify-between gap-3">
             <span className={label}>Place</span>
@@ -179,7 +179,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
 
       {/* what Aqua's drift changed */}
       {later != null && fewer != null && later >= 5 && aquaBefore != null && aqua?.pass != null ? (
-        <div data-tour="then-now" className="flex flex-col gap-2">
+        <div data-tour="then-now" className="flex flex-col gap-2.5 border-t border-[color:var(--hairline)] pt-4">
           <div className="flex items-center justify-between gap-3">
             <span className={label}>Aqua’s time</span>
             {onAquaThen ? (
@@ -197,11 +197,22 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
               />
             ) : null}
           </div>
-          <p className="text-sm leading-6 text-[color:var(--bone)]">
+          {/* the ring is Aqua's 2012-20 time, the dot today's (the Ring Then Dot Rule) */}
+          <p className="flex items-center gap-2 text-sm tabular-nums text-[color:var(--bone2)]">
+            <span className="sr-only">Aqua passed at {fmtHM(aquaBefore)} in 2012 to 2020 and passes at {fmtHM(aqua.pass)} now.</span>
+            <span aria-hidden className="flex items-center gap-1.5">
+              <span className="inline-block size-2.5 rounded-full border-[1.5px] border-[color:var(--sat-aqua)]" />
+              {fmtHM(aquaBefore)}
+              <span className="h-px w-5 bg-[color:var(--sat-aqua)]" />
+              <span className="inline-block size-2.5 rounded-full bg-[color:var(--sat-aqua)]" />
+              <span className="text-[color:var(--bone)]">{fmtHM(aqua.pass)}</span>
+            </span>
+            <span className="ml-auto text-[color:var(--bone)]">+{later} min</span>
+          </p>
+          <p className="text-sm leading-5 text-[color:var(--bone2)]">
             {fewer > 0
-              ? <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, leaving about {fewer} fewer minutes of daylight.</>
-              : <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, after dark either way.</>}
-            <span className="mt-1 block text-xs text-[color:var(--bone3)]">A what-if: real alert delivery wasn’t measured.</span>
+              ? <>Same delay, so the alert comes {later} min later with <span className="text-[color:var(--bone)]">{fewer} min less daylight</span>.</>
+              : <>Same delay, so the alert comes {later} min later; after dark either way.</>}
           </p>
         </div>
       ) : null}
