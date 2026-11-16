@@ -28,7 +28,8 @@ MANIFEST = ROOT / "data" / "metadata" / "download_manifest.json"
 
 
 def file_url(product: str, year: int, country: str) -> str:
-    return f"{FIRMS_COUNTRY_BASE}/{product}/{year}/{product}_{year}_{country}.csv"
+    name = PRODUCTS[product].get("archive_name", product)
+    return f"{FIRMS_COUNTRY_BASE}/{name}/{year}/{name}_{year}_{country}.csv"
 
 
 def sha256(path: Path) -> str:

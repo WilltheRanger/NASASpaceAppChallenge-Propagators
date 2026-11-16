@@ -10,10 +10,12 @@
  */
 import type { ReactNode } from 'react'
 import { SegmentedControl } from '@/components/ui/segmented-control'
+import { DelayRuler } from '@/components/ui/delay-ruler'
 import { fmtHM } from '@/r2/data'
 import { cn } from '@/lib/utils'
 
-export type AlertDelay = 0 | 1.5 | 3
+/** hours between a pass and its alert: 0 to 3 in quarter hours */
+export type AlertDelay = number
 export type AlertRow = {
   key: 'terra' | 'viirs' | 'aqua'
   name: string
@@ -22,11 +24,16 @@ export type AlertRow = {
 }
 
 const COLOR: Record<AlertRow['key'], string> = { terra: 'var(--sat-terra)', viirs: 'var(--sat-viirs)', aqua: 'var(--sat-aqua)' }
-const DELAYS: { value: AlertDelay; name: string; label: string }[] = [
-  { value: 0, name: 'No delay', label: '0 h' },
-  { value: 1.5, name: 'One and a half hours', label: '1.5 h' },
-  { value: 3, name: 'Three hours, NASA’s stated maximum', label: '3 h' },
-]
+/** NASA FIRMS: MODIS alerts typically arrive 60 to 125 minutes after the pass; 3 hours is the stated bound */
+const TYPICAL: [number, number] = [1, 125 / 60]
+
+/** a delay as "0 h", "45 min", "1 h 30" */
+function delayText(h: number) {
+  const m = Math.round(h * 60)
+  if (m === 0) return '0 h'
+  const hh = Math.floor(m / 60)
+  return hh ? (m % 60 ? `${hh} h ${String(m % 60).padStart(2, '0')}` : `${hh} h`) : `${m} min`
+}
 
 /** hours as "2 h 05" or "45 min" */
 function span(h: number) {
@@ -91,7 +98,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   const label = 'text-sm text-[color:var(--bone2)]'
 
   return (
-    <section aria-labelledby="alert-h" className="flex flex-col gap-4">
+    <section aria-labelledby="alert-h" className="flex flex-col gap-5">
       <div>
         <p className="mb-1.5 text-xs text-[color:var(--bone3)]">What-if for responders</p>
         <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance]">
@@ -107,16 +114,23 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
         </p>
       </div>
 
-      <div data-tour="inputs" className="flex flex-col gap-2">
+      <div data-tour="inputs" className="flex flex-col gap-3 border-t border-[color:var(--hairline)] pt-4">
         {picker ? (
           <div className="flex items-center justify-between gap-3">
             <span className={label}>Place</span>
             {picker}
           </div>
         ) : null}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col">
           <span className={label}>Alert delay</span>
-          <SegmentedControl<AlertDelay> label="Alert delay after the pass (assumed)" value={delay} onChange={onDelay} motion={motion} className="w-[150px] shrink-0" segmentClassName="px-1.5 py-1 text-center text-sm" options={DELAYS} />
+          <DelayRuler
+            label="Alert delay after the pass (assumed), 0 to 3 hours"
+            value={delay}
+            onValue={onDelay}
+            band={TYPICAL}
+            bandLabel="typical"
+            format={delayText}
+          />
         </div>
       </div>
 
@@ -165,7 +179,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
 
       {/* what Aqua's drift changed */}
       {later != null && fewer != null && later >= 5 && aquaBefore != null && aqua?.pass != null ? (
-        <div data-tour="then-now" className="flex flex-col gap-2">
+        <div data-tour="then-now" className="flex flex-col gap-2.5 border-t border-[color:var(--hairline)] pt-4">
           <div className="flex items-center justify-between gap-3">
             <span className={label}>Aqua’s time</span>
             {onAquaThen ? (
@@ -183,11 +197,22 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
               />
             ) : null}
           </div>
-          <p className="text-sm leading-6 text-[color:var(--bone)]">
+          {/* the ring is Aqua's 2012-20 time, the dot today's (the Ring Then Dot Rule) */}
+          <p className="flex items-center gap-2 text-sm tabular-nums text-[color:var(--bone2)]">
+            <span className="sr-only">Aqua passed at {fmtHM(aquaBefore)} in 2012 to 2020 and passes at {fmtHM(aqua.pass)} now.</span>
+            <span aria-hidden className="flex items-center gap-1.5">
+              <span className="inline-block size-2.5 rounded-full border-[1.5px] border-[color:var(--sat-aqua)]" />
+              {fmtHM(aquaBefore)}
+              <span className="h-px w-5 bg-[color:var(--sat-aqua)]" />
+              <span className="inline-block size-2.5 rounded-full bg-[color:var(--sat-aqua)]" />
+              <span className="text-[color:var(--bone)]">{fmtHM(aqua.pass)}</span>
+            </span>
+            <span className="ml-auto text-[color:var(--bone)]">+{later} min</span>
+          </p>
+          <p className="text-sm leading-5 text-[color:var(--bone2)]">
             {fewer > 0
-              ? <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, leaving about {fewer} fewer minutes of daylight.</>
-              : <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, after dark either way.</>}
-            <span className="mt-1 block text-xs text-[color:var(--bone3)]">A what-if: real alert delivery wasn’t measured.</span>
+              ? <>Same delay, so the alert comes {later} min later with <span className="text-[color:var(--bone)]">{fewer} min less daylight</span>.</>
+              : <>Same delay, so the alert comes {later} min later; after dark either way.</>}
           </p>
         </div>
       ) : null}
