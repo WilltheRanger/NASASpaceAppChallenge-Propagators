@@ -395,7 +395,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             {y.pointsPast != null ? <span className="text-sm tabular-nums text-[color:var(--bone2)]">{Math.round(y.pointsPast)} points past the usual range</span> : null}
           </p>
           {y.verdict === 'close' ? <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{CLOSE_CALL}</p> : null}
-          <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)] lg:text-lg">{CAVEAT}</p>
+          {y.verdict === 'within' ? null : <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)] lg:text-lg">{CAVEAT}</p>}
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
@@ -806,6 +806,9 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
             Terra and Aqua carry the same kind of camera. Terra drifted earlier in the day and Aqua later, so if the time of day matters, their counts should move apart.
           </p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
+            This is a narrower test than the comparison with the benchmark: it counts only detections near the middle of each satellite’s view, month by month, so its percentages differ.
+          </p>
           {failed.length ? (
             <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone)]">
               {failed.length === 2 ? 'Two tests of this idea weren’t confirmed' : 'A test of this idea wasn’t confirmed'}, so we use it to describe the pattern, not to prove it.
@@ -921,7 +924,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
     'br-pantanal': 'Fire season runs August to October (three-quarters of the year’s hotspots). 2024 was 2.5 times typical; 2025 was 87% below.',
     'ar-argentina': 'Fire season runs July to September (60% of the year’s hotspots). 2024 was 21% below typical; 2025 was 44% below.',
     'in-punjab-haryana': <>Crop-burning season runs October to December (nearly 90% of the year’s hotspots). 2024 and 2025 were far below typical, but burning has shifted later in the day (<a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>), so fewer hotspots may not mean less burning.</>,
-    'us-california': 'Fire season runs August to October (two-thirds of the year’s hotspots). 2020 had the most hotspots since 2002; 2024 and 2025 were 15% and 17% below typical.',
+    'us-california': 'Fire season runs August to October (about half of the year’s hotspots). 2020 had the most hotspots since 2002; 2024 and 2025 were 15% and 17% below typical.',
   }[d.id] ?? `Fire season runs ${seasonMonths(d)}.`
   return (
     <section id="calendar" aria-labelledby="calendar-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
@@ -935,7 +938,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <ModeToggle value={mode} onChange={onMode} classes={modeClasses} labels={{ anomaly: 'Compared with a typical year', count: 'Hotspot counts' }} countFirst />
+            <ModeToggle value={mode} onChange={onMode} classes={modeClasses} labels={{ anomaly: 'Compared with a typical year', count: 'Benchmark hotspots' }} countFirst />
             <span role="group" aria-label="Months shown" className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--bone2)]">
               <MonthField label="From" value={range.from} years={allYears} onChange={setFrom} />
               <span aria-hidden>to</span>
@@ -970,11 +973,13 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            Counts before 2012 are Aqua’s own. From 2012 they come from VIIRS, whose overpass time has stayed constant, scaled to Aqua using the 2012–2020 ratio. Every day of each month, not only the matched days used in the comparison with the benchmark. This is the benchmark series, not an official count.
+          </p>
           <More label="About these numbers" className="mt-4">
           <div className="mt-2 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
             <p>A hotspot is one satellite fire detection; a large fire can produce many.</p>
             <p>Typical = the median for that calendar month, 2002–2025.</p>
-            <p>Counts before 2012 are Aqua’s own. From 2012 they come from VIIRS, whose overpass time has stayed constant, scaled to Aqua using the 2012–2020 ratio.</p>
           </div>
           </More>
           {d.id.startsWith('br-') ? <RecentObservations /> : null}
