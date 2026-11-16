@@ -391,9 +391,8 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
                 Official (INPE): {int(DECLINE.inpe_2024)} to {int(DECLINE.inpe_2025)} detections. Benchmark: {int(DECLINE.fixed_2024)} to {int(DECLINE.fixed_2025)}.
               </p>
             ) : null}
-            <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
             {AMAZON_2025 && AMAZON_2025.aqua != null && AMAZON_2025.fixed != null ? (
-              <p className="mt-3 max-w-[40rem] text-lg text-[color:var(--ink)]">
+              <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">
                 In {AMAZON_2025.year} Aqua recorded about {int(Math.round((AMAZON_2025.aqua - AMAZON_2025.fixed) / 1000) * 1000)} more Amazon detections than the benchmark{' '}
                 <span className="tabular-nums">({int(AMAZON_2025.aqua)} vs {int(AMAZON_2025.fixed)})</span>.
               </p>
@@ -462,7 +461,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
   )
   return (
     <Reveal as="li" delay={i * 80}>
-      <div className={cn('grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
+      <div className={cn('grid grid-cols-2 items-center gap-x-4 gap-y-3 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
         <span className="flex min-w-0 items-center gap-4">
           <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:h-16 md:w-24">
             <img
@@ -477,25 +476,24 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           </span>
           <span className="min-w-0 text-lg font-medium leading-tight text-[color:var(--bone)] md:text-xl">{r.name}</span>
         </span>
-        <span className="md:hidden">{chip}</span>
-        <span className="col-span-2 md:col-span-1">
-          <span className={label}>How much later Aqua looks</span>
+        <span className="justify-self-end md:hidden">{chip}</span>
+        <span>
+          <span className={label}><span className="md:hidden">Aqua looks later</span><span className="max-md:hidden">How much later Aqua looks</span></span>
           <span className="text-lg tabular-nums text-[color:var(--bone)]">+{r.look?.minutes ?? '—'} min</span>
           {r.look ? <span className="sr-only"> (from {r.look.old} to {r.look.now})</span> : null}
-          {r.look ? <MiniShift old={r.look.old} now={r.look.now} /> : null}
+          {r.look ? <span className="max-md:hidden"><MiniShift old={r.look.old} now={r.look.now} /></span> : null}
         </span>
-        <span className="col-span-2 md:col-span-1">
-          <span className={label}>{YEAR} count vs the benchmark</span>
+        <span>
+          <span className={label}><span className="md:hidden">vs benchmark</span><span className="max-md:hidden">{YEAR} count vs the benchmark</span></span>
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
               <RollingDigits text={pct(r.read.gap, 0)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
-              <span className="text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {fmtRange(r.read.lo, r.read.hi, 0)}</span>
+              <span className="text-xs tabular-nums text-[color:var(--bone3)] max-md:hidden">Likely range: {fmtRange(r.read.lo, r.read.hi, 0)}</span>
             </span>
           ) : (
-            <span className="block text-sm text-[color:var(--bone2)]">Too few fires to read in {YEAR}</span>
+            <span className="block text-sm text-[color:var(--bone2)]"><span className="md:hidden">Too few fires</span><span className="max-md:hidden">Too few fires to read in {YEAR}</span></span>
           )}
-          <Strip r={r} />
-          <span className="md:hidden"><StripAxis /></span>
+          <span className="max-md:hidden"><Strip r={r} /></span>
         </span>
         <span className="hidden md:block">{chip}</span>
       </div>

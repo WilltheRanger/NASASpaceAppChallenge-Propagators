@@ -245,7 +245,7 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         <section id="global" aria-labelledby="global-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
           <div className={cn(shell, 'flex flex-wrap items-center gap-x-6 gap-y-4 py-12')}>
             <h2 id="global-h" className="text-lg font-medium text-[color:var(--bone)]">Or pick any area</h2>
-            <p className="max-w-xl text-sm text-[color:var(--bone2)]">The same comparison for any 2° square on the world map. Early exploration: not checked like the six places.</p>
+            <p className="max-w-xl text-sm text-[color:var(--bone2)]">The same comparison for any 2° square. Not checked like the six places.</p>
             <a href={anyArea(links)} onClick={leave} className={secondaryButton}>Open the world map <ArrowRight size={16} aria-hidden /></a>
             <a href="#calendar" className={primaryButton}>Back to the fire calendar <ArrowRight size={16} aria-hidden /></a>
           </div>
@@ -701,8 +701,6 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               ))}
             </tbody>
           </table>
-          </More>
-          <MockTag show={d.mock} className="mt-3 inline-block" />
           {v.whole.length ? (
             <div className="mt-6 text-sm">
               <p className="font-medium text-[color:var(--bone)]">{hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}</p>
@@ -719,6 +717,8 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               {hasOfficialSeries(d.id) ? <p className="mt-3 text-xs text-[color:var(--bone3)]">INPE’s Programa Queimadas is Brazil’s official count; it follows one satellite, Aqua.</p> : null}
             </div>
           ) : null}
+          </More>
+          <MockTag show={d.mock} className="mt-3 inline-block" />
         </div>
       </div>
     </section>
@@ -902,9 +902,8 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-base text-[color:var(--bone)]">Aqua’s own count before 2012, VIIRS matched to Aqua after: one steady record from 2002 to 2025.</p>
-          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Each row is a year and each cell a month. Brighter cells mean more hotspots.</p>
-          <p className="mt-4 text-lg text-[color:var(--bone)]">{headline}</p>
+          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">{headline}</p>
+          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">One row per year, one cell per month. Brighter means more hotspots.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
