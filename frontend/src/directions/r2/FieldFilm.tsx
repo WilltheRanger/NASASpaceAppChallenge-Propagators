@@ -662,6 +662,30 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
     [d],
   )
   const v = verdictLines(d)
+  const official = hasOfficialSeries(d.id)
+  const moved = (c: number) => `${c < 0 ? 'fell' : 'rose'} ${Math.abs(Math.round(c))}%`
+  const apart = v.whole.length === 2 ? Math.abs(Math.round(v.whole[0].change) - Math.round(v.whole[1].change)) : 0
+  const wholeYears = v.whole.length ? (
+            <div className="mt-6 text-sm">
+              <p className="font-medium text-[color:var(--bone)]">{official ? 'Whole years, beside INPE’s official count' : 'Whole years'}</p>
+              {official && v.whole.length === 2 ? (
+                <p className="mt-2 max-w-[44rem] text-lg leading-[1.4] text-[color:var(--bone)]">
+                  INPE’s official count {moved(v.whole[0].change)} from {v.from} to {v.to}; the VIIRS-based benchmark {moved(v.whole[1].change)}.{apart ? ` They differ by ${apart} ${apart === 1 ? 'point' : 'points'}.` : ''}
+                </p>
+              ) : null}
+              <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, every day of all twelve months (the result above uses matched days, so its totals differ slightly)</p>
+              <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
+                {v.whole.map((r) => (
+                  <Fragment key={r.name}>
+                    <dt className="text-[color:var(--bone3)]">{r.name === 'Fixed-clock calendar' ? 'VIIRS-based benchmark' : r.name}</dt>
+                    <dd className="tabular-nums">{pct(r.change)}</dd>
+                    <dd className="tabular-nums text-[color:var(--bone3)]">{fmtInt(r.a)} to {fmtInt(r.b)}</dd>
+                  </Fragment>
+                ))}
+              </dl>
+              {hasOfficialSeries(d.id) ? <p className="mt-3 text-xs text-[color:var(--bone3)]">INPE’s Programa Queimadas is Brazil’s official count; it follows one satellite, Aqua.</p> : null}
+            </div>
+          ) : null
   const chartVars = {
     '--ac-line': 'var(--sat-aqua)', '--ac-fg': 'var(--bone2)', '--ac-surface': 'var(--ground)', '--ac-band': 'rgba(236, 233, 225, 0.08)', '--ac-grid': 'var(--hairline)', '--ac-zero': 'var(--bone-30)',
   } as CSSProperties
@@ -717,23 +741,9 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               ))}
             </tbody>
           </table>
-          {v.whole.length ? (
-            <div className="mt-6 text-sm">
-              <p className="font-medium text-[color:var(--bone)]">{hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}</p>
-              <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, every day of all twelve months (the result above uses matched days, so its totals differ slightly)</p>
-              <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
-                {v.whole.map((r) => (
-                  <Fragment key={r.name}>
-                    <dt className="text-[color:var(--bone3)]">{r.name === 'Fixed-clock calendar' ? 'VIIRS-based benchmark' : r.name}</dt>
-                    <dd className="tabular-nums">{pct(r.change)}</dd>
-                    <dd className="tabular-nums text-[color:var(--bone3)]">{fmtInt(r.a)} to {fmtInt(r.b)}</dd>
-                  </Fragment>
-                ))}
-              </dl>
-              {hasOfficialSeries(d.id) ? <p className="mt-3 text-xs text-[color:var(--bone3)]">INPE’s Programa Queimadas is Brazil’s official count; it follows one satellite, Aqua.</p> : null}
-            </div>
-          ) : null}
+          {!official ? wholeYears : null}
           </More>
+          {official ? wholeYears : null}
           <MockTag show={d.mock} className="mt-3 inline-block" />
         </div>
       </div>

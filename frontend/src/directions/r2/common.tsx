@@ -570,6 +570,7 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
           <nav aria-label="Details" className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <a href={links.method()} onClick={leave} className={link}>How we know</a>
             <a href={links.method('sources')} onClick={leave} className={link}>Data sources</a>
+            {REPO_URL ? <a href={`${REPO_URL}/tree/main/data/out`} target="_blank" rel="noreferrer" className={link}>Use the data</a> : null}
             <a href={links.method('credits')} onClick={leave} className={link}>Picture credits</a>
             {REPO_URL ? <a href={REPO_URL} target="_blank" rel="noreferrer" className={link}>Code</a> : null}
           </nav>

@@ -19,12 +19,12 @@ import { ArrowUpRight } from 'lucide-react'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { StickyScroll, type StickyStep } from '@/components/ui/sticky-scroll-reveal'
-import { LOOK_RANGE, REGIONS, fmtRange, hm, lookChange, phrase, pct, regionData } from '@/r2/data'
+import { CHECKS, LOOK_RANGE, REGIONS, fmtInt, fmtRange, hm, inpeReproduction, lookChange, phrase, pct, regionData } from '@/r2/data'
 import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import factsJson from '../../../../data/out/facts.json'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, Footer, andList, IMG, JETHVA, More, PageNext, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
+  CAVEAT, FEATURED, Footer, andList, capital, IMG, JETHVA, More, PageNext, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
   primaryButton, useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -76,6 +76,15 @@ const along = (v: number) => (v - SCALE.min) / (SCALE.max - SCALE.min)
 /** The day the middle chapter follows: the featured place's look times, and the satellites' pictures of one day. */
 const DAY = regionData(FEATURED)
 const DAY_LOOK = lookChange(DAY)
+/** Aqua's matched-day count against the benchmark in the audit's last readable year, as a whole percent. */
+const HERO_GAP = DAY.latestOk?.gap != null && DAY.latestOk.year === YEAR ? Math.round(DAY.latestOk.gap) : null
+/** The INPE match for the Amazon's last year in the reproduction file: our count of Aqua's fires beside INPE's own. */
+const RECEIPT = (() => {
+  const r = inpeReproduction(FEATURED).filter((x) => x.inpe > 0 && x.firms > 0).sort((a, b) => b.year - a.year)[0]
+  if (!r) return null
+  const off = Math.abs(r.firms - r.inpe) / r.inpe * 100
+  return { ...r, within: off < 0.5 ? '0.5' : off < 1 ? '1' : String(Math.ceil(off)) }
+})()
 /** How many minutes earlier Terra looks over the featured place than its 2012–2020 median (data/out/drift): 75 for the Amazon */
 const TERRA_EARLIER = (() => {
   const v = DAY.drift.filter((r) => r.year <= 2020 && r.terra_lst).map((r) => hm(r.terra_lst)).sort((a, b) => a - b)
@@ -108,8 +117,10 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
       <SiteBar page="overview" links={links} leave={leave} />
       <main>
         <Park links={links} leave={leave} />
+        <WhoFor />
         <Later />
         <OneDay links={links} leave={leave} />
+        <WhatsNew links={links} leave={leave} />
         <Finding links={links} leave={leave} />
       </main>
       <PageNext page="overview" links={links} leave={leave} />
@@ -155,12 +166,58 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
                 Anchor
               </h1>
               <p className="mt-4 max-w-[28rem] text-[24px] leading-[1.25] text-[color:var(--bone)]">A fire calendar for six regions.</p>
+              {HERO_GAP != null && DAY_LOOK ? (
+                <p className="mt-3 max-w-[34rem] text-base leading-[1.5] text-[color:var(--bone2)]">
+                  Aqua, the satellite behind Brazil’s official fire count, now passes {DAY_LOOK.minutes} minutes later. On days both satellites saw the Amazon, its {YEAR} count ran {HERO_GAP}% above our VIIRS-based benchmark.
+                </p>
+              ) : null}
               <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-6')}>
                 Open the fire calendar <ArrowUpRight size={16} aria-hidden />
               </a>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  )
+}
+
+/** Who this is for and what to do with it, in one sentence under the photograph. */
+function WhoFor() {
+  return (
+    <div className={cn(shell, 'pt-8 lg:pt-10')}>
+      <p className="max-w-[46rem] text-lg leading-[1.5] text-[color:var(--bone2)]">
+        <span className="text-[color:var(--bone)]">For anyone comparing fire years in satellite counts</span> (agencies, journalists, researchers): check a record year against a steady reference before calling it a record.
+      </p>
+    </div>
+  )
+}
+
+/** What is new here, as three short claims and one receipt from the data. */
+function WhatsNew({ links, leave }: { links: Links; leave: Leave }) {
+  const items = [
+    'A fire calendar on a steady reference',
+    'A check against VIIRS, a satellite that kept its time',
+    `${capital(numWord(CHECKS.checks.length))} tests written down, failures shown`,
+  ]
+  return (
+    <section aria-labelledby="new-h" className="border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'py-12 lg:py-16')}>
+        <h2 id="new-h" className="text-xs uppercase tracking-[0.1em] text-[color:var(--bone3)]">What’s new</h2>
+        <ol className="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-3">
+          {items.map((t, i) => (
+            <li key={t} className="border-t border-[color:var(--bone-30)] pt-4">
+              <span className="text-xs tabular-nums text-[color:var(--bone3)]">0{i + 1}</span>
+              <p className="mt-1 max-w-[22ch] text-balance text-2xl font-medium leading-[1.15] tracking-[-0.015em] text-[color:var(--bone)]">{t}</p>
+            </li>
+          ))}
+        </ol>
+        {RECEIPT ? (
+          <p className="mt-8 max-w-[46rem] text-base text-[color:var(--bone2)]">
+            Our Aqua count matches INPE’s official Amazon count within {RECEIPT.within}% ({RECEIPT.year}: <span className="tabular-nums">{fmtInt(RECEIPT.firms)}</span> against <span className="tabular-nums">{fmtInt(RECEIPT.inpe)}</span>).{' '}
+            <a href={links.method('inpe')} onClick={leave} className={textLink}>See the match</a>
+          </p>
+        ) : null}
       </div>
     </section>
   )
