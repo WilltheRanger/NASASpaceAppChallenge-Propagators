@@ -1442,7 +1442,7 @@ function FireCard({ i, onClose, square, below = false, docked = false }: { i: nu
         </span>
         <span className="text-[11px] text-[color:var(--bone3)]">Higher FRP than {frpPercentile}% of snapshot detections</span>
       </div>
-      <p className="px-3 pt-1 text-[10px] text-[color:var(--bone3)]">Mixed sensors and observation times; not temperature or a ranking of unique fires.</p>
+      <p className="px-3 pt-1 text-[11px] text-[color:var(--bone3)]">Mixed sensors and observation times; not temperature or a ranking of unique fires.</p>
       {/* the day as a strip: daylight, sunset, and when each satellite saw this spot */}
       <div className="px-3 pt-3" aria-hidden>
         <div className="relative h-5">
