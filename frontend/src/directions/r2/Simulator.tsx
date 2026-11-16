@@ -101,6 +101,7 @@ const LIST = REGIONS.map((r) => ({ id: r.id, name: short(r.name), f: regionFacts
 const SHIFTS = LIST.map((r) => (r.f.look.old && r.f.look.now ? Math.round((hm(r.f.look.now) - hm(r.f.look.old)) * 60) : null)).filter((v): v is number => v != null)
 const SHIFT = SHIFTS.length ? `${Math.min(...SHIFTS)} to ${Math.max(...SHIFTS)} minutes` : 'over an hour'
 /** said next to every finding */
+const CAVEAT = 'Our tests point to Aqua’s later look as the main cause: clouds and changes in viewing angle were checked and don’t explain the gap. A smaller share isn’t pinned down yet.'
 const FOOTER = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 /** Aqua's 2012–2020 look time across the six regions (drift files): the chart's reference when no region is picked */
 const BASES = LIST.map((r) => r.f.look.old).filter((v): v is string => v != null).map(hm)
@@ -226,7 +227,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const [fire, setFire] = useState<number | null>(null)
   const [fireBelow, setFireBelow] = useState(false)
   const [turns, setTurns] = useState<SiTurn[]>([])
-  const [siOpen, setSiOpen] = useState(true)
+  // Ask Anchor starts closed: the page opens on the question, the table and the map, and the chat is one button away
+  const [siOpen, setSiOpen] = useState(false)
   // the timing chart under the map can fold down to a bar, for a clear map
   // the timing chart is extra to the page's question: folded until asked for
   const [chartOpen, setChartOpen] = useState(false)
@@ -470,7 +472,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: facts.d.phrase.the,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: y.look[g] })),
         rise: y.rise, set: y.set, aquaBefore: dl.baseAqua,
-        basis: `Sun time, ${y.mid.day} ${MONTHS[y.mid.m - 1]} (mid fire season).`,
+        when: `${y.mid.day} ${MONTHS[y.mid.m - 1]}`,
+        basis: `Sun time, ${y.mid.day} ${MONTHS[y.mid.m - 1]} (mid fire season), with ${facts.year}’s usual pass times.`,
       }
     }
     if (place) {
@@ -481,6 +484,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: place.name,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: s[g].lst })),
         rise: sun.rise, set: sun.set, aquaBefore: null,
+        when: WHEN,
         basis: `Sun time, ${WHEN}.`,
       }
     }
@@ -504,7 +508,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   )
   const alertPanel = alert ? (
     <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN}
-      calendar={region ? <a href={`${regionsHref(region)}#calendar`} onClick={leave} className="rounded text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-4 hover:text-[color:var(--bone)]">See this place’s fire calendar</a> : null}
+      calendar={null}
       onHelp={() => { setTab('info'); setSnap(1); window.setTimeout(() => startGuide(SHIFT, motion), 80) }}
       aquaThen={clock === 'old'} onAquaThen={(t) => setClock(t ? 'old' : 'new')} />
   ) : null
@@ -608,7 +612,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
 
           {place && !day && !failed ? (
             <p className={cn(glass, 'pointer-events-none absolute z-20 px-2.5 py-1.5 text-xs text-[color:var(--bone)]', wide ? 'left-4 top-4' : 'left-3')} style={wide ? undefined : { bottom: `calc(${(pull != null ? 0 : SHEET[snap]) * 100}% + ${pull ?? 0}px + 8px)` }}>
-              Fires from {WHEN}{clock === 'old' && region ? ', seen by VIIRS near Aqua’s 2012–2020 time' : ''}
+              Fires on the map: {WHEN}, a saved snapshot{clock === 'old' && region ? ', seen by VIIRS near Aqua’s 2012–2020 time' : ''}
             </p>
           ) : null}
           {failed ? <p className={cn(glass, 'absolute left-4 top-4 z-20 px-3 py-2 text-xs text-[color:var(--bone2)]')}>This browser can’t draw the 3D globe. The numbers below are unaffected.</p> : null}
@@ -1124,8 +1128,8 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
           />
         </div>
         <div className="min-w-[200px] flex-[2]">
-          <p className={label}>Delay</p>
-          <DelayRuler label="Delay between the pass and the alert, 0 to 3 hours" value={day.delay} onValue={(delay) => setDay({ ...day, delay })} band={TYPICAL_DELAY} bandLabel="typical" format={formatDelay} />
+          <p className={label}>Delay (assumed)</p>
+          <DelayRuler label="Delay between the pass and the alert (assumed), 0 to 3 hours" value={day.delay} onValue={(delay) => setDay({ ...day, delay })} band={TYPICAL_DELAY} bandLabel="typical" format={formatDelay} />
         </div>
       </div>
     </section>

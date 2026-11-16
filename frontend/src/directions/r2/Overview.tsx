@@ -24,7 +24,7 @@ import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import factsJson from '../../../../data/out/facts.json'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, IMG, JETHVA, More, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
+  CAVEAT, FEATURED, Footer, andList, IMG, JETHVA, More, PageNext, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
   primaryButton, useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -37,7 +37,7 @@ const ROWS = REGIONS.map((r) => {
   const d = regionData(r.id)
   const look = lookChange(d)
   const y = d.years.find((x) => x.year === YEAR) ?? null
-  const read = y && y.verdict !== 'na' && y.gap != null && y.lo != null && y.hi != null ? { gap: y.gap, lo: y.lo, hi: y.hi, unusual: y.verdict === 'outside', close: y.verdict === 'close' } : null
+  const read = y && y.verdict !== 'na' && y.gap != null && y.lo != null && y.hi != null ? { gap: y.gap, lo: y.lo, hi: y.hi, unusual: y.verdict === 'outside', close: y.verdict === 'close', past: y.pointsPast } : null
   return { id: r.id, name: r.name, short: phrase(r.id).short, look, read, band: d.placebo, usual: d.placeboYears, later: !!d.driftStart && (look?.minutes ?? 0) > 0 }
 })
 type Row = (typeof ROWS)[number]
@@ -45,12 +45,14 @@ const UNUSUAL = ROWS.filter((r) => r.read?.unusual)
 const CLOSE = ROWS.filter((r) => r.read?.close)
 const ALL_LATER = ROWS.every((r) => r.later)
 /** The finding, worded from the rows: every place looked later; these were unusual. */
+/** "In 2025, Aqua's count was clearly unusual in two places (Amazon, Cerrado); Argentina is a close call." */
+const closeText = CLOSE.length ? `${andList(CLOSE.map((r) => r.short))} ${CLOSE.length === 1 ? 'is a close call' : 'are close calls'}` : ''
+const UNUSUAL_LINE = UNUSUAL.length
+  ? `In ${YEAR}, Aqua’s count was clearly unusual in ${numWord(UNUSUAL.length)} ${UNUSUAL.length === 1 ? 'place' : 'places'} (${UNUSUAL.map((r) => r.short).join(', ')})${closeText ? `; ${closeText}` : ''}.`
+  : `In ${YEAR}, Aqua’s count was not clearly unusual in any place${closeText ? `; ${closeText}` : ''}.`
 const FINDING = [
   ALL_LATER ? `In all ${numWord(ROWS.length)} places, Aqua started looking later.` : `In ${numWord(ROWS.filter((r) => r.later).length)} of ${numWord(ROWS.length)} places, Aqua started looking later.`,
-  UNUSUAL.length
-    ? `In ${numWord(UNUSUAL.length)} (${UNUSUAL.map((r) => r.short).join(', ')}), its ${YEAR} count was clearly unusual against the benchmark.`
-    : `In none was its ${YEAR} count unusually far from what we’d expect.`,
-  ...(CLOSE.length ? [`${CLOSE.map((r) => r.short).join(', ')} ${CLOSE.length === 1 ? 'is a close call' : 'are close calls'} in ${YEAR}.`] : []),
+  UNUSUAL_LINE,
 ]
 /** INPE's official Amazon count and the VIIRS-based benchmark, 2024 to 2025 (data/out/facts.json, amazon_decline_2024_2025),
  *  and Aqua's 2025 count beside the benchmark (data/out/audit/br-amazon.json) */
@@ -74,6 +76,14 @@ const along = (v: number) => (v - SCALE.min) / (SCALE.max - SCALE.min)
 /** The day the middle chapter follows: the featured place's look times, and the satellites' pictures of one day. */
 const DAY = regionData(FEATURED)
 const DAY_LOOK = lookChange(DAY)
+/** How many minutes earlier Terra looks over the featured place than its 2012–2020 median (data/out/drift): 75 for the Amazon */
+const TERRA_EARLIER = (() => {
+  const v = DAY.drift.filter((r) => r.year <= 2020 && r.terra_lst).map((r) => hm(r.terra_lst)).sort((a, b) => a - b)
+  const last = DAY.lastDrift
+  if (!v.length || !last?.terra_lst) return null
+  const m = Math.round((v[Math.floor(v.length / 2)] - hm(last.terra_lst)) * 60)
+  return m > 0 ? m : null
+})()
 type PassKey = 'terra' | 'viirs' | 'aqua'
 const PASSES: Record<PassKey, { name: string; when: string; alt: string; fit?: string }> = {
   terra: { name: 'Terra', when: 'Morning', alt: 'Terra, morning, 4 Sep 2026: hazy smoke and a few clouds over the forest', fit: 'object-left' },
@@ -99,11 +109,11 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
       <main>
         <Park links={links} leave={leave} />
         <Later />
-        <OneDay />
+        <OneDay links={links} leave={leave} />
         <Finding links={links} leave={leave} />
-        <Doors links={links} leave={leave} />
-        <OverviewNotes links={links} leave={leave} />
       </main>
+      <PageNext page="overview" links={links} leave={leave} />
+      <Footer links={links} leave={leave} />
     </>
   )
 }
@@ -206,20 +216,17 @@ function ParkClock({ moved, big = false }: { moved: boolean; big?: boolean }) {
 
 /* ---------- One day: Aqua's question, one step per scroll ---------- */
 
-function OneDay() {
+function OneDay({ links, leave }: { links: Links; leave: Leave }) {
   const motion = useMotion()
   // wide screens scrub one pinned picture; phones put each step's picture right under it
   const wideScreen = useMedia('(min-width: 1024px)')
   const look = DAY_LOOK
   if (!look) return null
   const steps: StickyStep[] = [
-    { mark: look.old, title: 'Aqua used to look here', description: <>2012–2020.</> },
-    {
-      mark: look.now,
-      title: `In ${look.year} it looked ${look.minutes} minutes later`,
-      description: <>{DAY.driftStart ? <>The move started in {DAY.driftStart}. </> : null}Clouds, smoke and fires change during the day, so a later look can count more fires or fewer.</>,
-    },
-    { mark: look.viirs, title: 'Other satellites kept their time', description: <>{DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
+    { mark: look.old, title: 'Aqua used to look here', description: <>About {look.old}, local sun time, from 2012 to 2020.</> },
+    { mark: look.now, title: `In ${look.year} it looked ${look.minutes} minutes later`, description: <>Across our six places, Aqua now looks {RANGE} later.</> },
+    { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change through the day.' },
+    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}, so we use it as the benchmark.</> },
   ]
   // the panel's pictures: Aqua then, Aqua now, VIIRS (the panel's step 2, all three satellites side by side, is no longer a step)
   const pic = [0, 1, 3]
@@ -231,6 +238,12 @@ function OneDay() {
             Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
           <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official count (INPE) relies on Aqua, which now flies over the Amazon {look.minutes} minutes later than in 2012–2020.</p>
+          {TERRA_EARLIER ? (
+            <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">
+              Terra, Aqua’s morning twin, drifted the other way: about {TERRA_EARLIER} minutes earlier.{' '}
+              <a href={links.method('two-clocks')} onClick={leave} className={textLink}>See both clocks</a>
+            </p>
+          ) : null}
         </div>
         {wideScreen ? (
           <StickyScroll
@@ -307,7 +320,7 @@ function DayPanel({ step, picture = true, caption = true }: { step: number; pict
       <DayLine step={step} />
       {caption ? (
         <figcaption className="mt-3 text-xs text-[color:var(--bone3)]">
-          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026. <a href="#overview-sources" className={textLink}>Image sources ↓</a>
+          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026. Times shown are usual looks in {DAY_LOOK?.year}, not the image-day pass times.
         </figcaption>
       ) : null}
     </figure>
@@ -390,8 +403,12 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
                 ? <>Brazil’s official Amazon count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025; the VIIRS-based benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
                 : FINDING.join(' ')}
             </h2>
-            <a href="#overview-sources" className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>Figures, definitions and sources ↓</a>
+            <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
+            <a href={links.method('overview-figures')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>How we know <ArrowUpRight size={14} aria-hidden /></a>
           </div>
+          <Reveal className="lg:col-span-3 lg:col-start-10 lg:self-start lg:pt-2">
+            <p className="rounded-[4px] border border-[color:var(--ink-20)] p-4 text-base text-[color:var(--ink)] lg:p-5 lg:text-lg">{CAVEAT}</p>
+          </Reveal>
         </div>
       </div>
       <div className={cn(shell, 'pb-16 lg:pb-24')}>
@@ -423,6 +440,11 @@ function Places() {
           <PlaceRow key={r.id} r={r} i={i} />
         ))}
       </ol>
+      <More label="About the range" className="mt-4">
+      <p className="mt-2 max-w-[64rem] text-xs text-[color:var(--bone3)]">
+        Unusual: the likely range is wholly outside the usual range. Close call: just outside the usual range, but the likely range overlaps it.
+      </p>
+      </More>
     </div>
   )
 }
@@ -433,8 +455,11 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
   // the column names show above each value on phones; on wide screens the header row shows them and these stay for screen readers
   const label = 'mb-1.5 block text-xs text-[color:var(--bone3)] md:sr-only'
   const chip = r.read ? (
-    <span className={cn('inline-block rounded px-2 py-0.5 text-sm', r.read.unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone2)]')}>
-      {r.read.unusual ? 'Unusual' : r.read.close ? 'Close call' : 'Not unusual'}
+    <span className="block max-md:text-right">
+      <span className={cn('inline-block rounded px-2 py-0.5 text-sm', r.read.unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : r.read.close ? 'border border-[color:var(--bone-30)] text-[color:var(--bone)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone2)]')}>
+        {r.read.unusual ? 'Unusual' : r.read.close ? 'Close call' : 'Not unusual'}
+      </span>
+      {r.read.past != null ? <span className="mt-1.5 block text-xs tabular-nums text-[color:var(--bone3)]">{Math.round(r.read.past)} points past the usual range</span> : null}
     </span>
   ) : (
     <span className="text-sm text-[color:var(--bone2)]">Our test case</span>
@@ -468,7 +493,6 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
               <RollingDigits text={pct(r.read.gap, 0)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
-              <span className="text-xs tabular-nums text-[color:var(--bone3)] max-md:hidden">Likely range: {fmtRange(r.read.lo, r.read.hi, 0)}</span>
             </span>
           ) : (
             <span className="block text-sm text-[color:var(--bone2)]"><span className="md:hidden">Too few fires</span><span className="max-md:hidden">Too few fires to read in {YEAR}</span></span>
@@ -546,84 +570,17 @@ function StripAxis() {
   )
 }
 
-/* ---------- Three doors on ---------- */
-
-function Doors({ links, leave }: { links: Links; leave: Leave }) {
-  const pic = 'size-full object-cover'
-  return (
-    <section aria-labelledby="doors-h" className="border-t border-[color:var(--hairline)]">
-      <h2 id="doors-h" className="sr-only">Where to go next</h2>
-      <div className={cn(shell, 'grid grid-cols-1 gap-2 py-16 sm:gap-3 lg:grid-cols-12 lg:py-24')}>
-        <Door
-          href={links.regions()}
-          leave={leave}
-          title="Fire calendar"
-          line="Every month, six places."
-          className="min-h-[380px] lg:col-span-7 lg:row-span-2 lg:min-h-[620px]"
-          art={
-            <span className="grid size-full grid-cols-3 grid-rows-2 gap-0.5 bg-[color:var(--ground)]">
-              {REGIONS.map((r) => {
-                const p = photoFor(r.id)
-                return (
-                  <span key={r.id} className="relative block min-h-0 overflow-hidden">
-                    <img src={p.srcSm} alt="" loading="lazy" className={pic} style={{ objectPosition: p.focus }} />
-                    <span className={cn('absolute left-2 top-2', plate)}>{phrase(r.id).short}</span>
-                  </span>
-                )
-              })}
-            </span>
-          }
-        />
-        <Door
-          href={links.sim()}
-          leave={leave}
-          title="What-if for responders"
-          line="When each satellite’s alert could arrive."
-          className="min-h-[280px] lg:col-span-5"
-          art={<img src={`${IMG}sim/${FEATURED}-context.jpg`} alt="" loading="lazy" className={pic} style={{ objectPosition: '30% 62%' }} />}
-        />
-        <Door
-          href={links.method()}
-          leave={leave}
-          title="How we know"
-          line="How far the result goes."
-          className="min-h-[280px] lg:col-span-5"
-          art={<img src={`${IMG}daylight/br-amazon-2024-09-02.jpg`} alt="" loading="lazy" className={pic} />}
-        />
-      </div>
-    </section>
-  )
-}
-
-/** A whole picture as the link: the title and one line at the bottom on a scrim, the arrow in the corner. */
-function Door({ href, leave, title, line, art, className }: { href: string; leave: Leave; title: string; line: string; art: ReactNode; className?: string }) {
-  return (
-    <a href={href} onClick={leave} className={cn('group relative isolate flex flex-col justify-end overflow-hidden rounded-[4px] bg-[color:var(--surface)] p-5 sm:p-8', focusRing, className)}>
-      <span aria-hidden className="absolute inset-0 -z-10 transition-transform duration-700 ease-[var(--ease)] group-hover:scale-[1.03] motion-reduce:transition-none">{art}</span>
-      <span aria-hidden className="absolute inset-0 -z-10" style={{ background: 'linear-gradient(0deg, rgba(11,13,11,0.92) 0%, rgba(11,13,11,0.6) 30%, rgba(11,13,11,0) 62%)' }} />
-      <ArrowUpRight
-        aria-hidden
-        size={22}
-        strokeWidth={1.5}
-        className="absolute right-5 top-5 rounded-full bg-[color:var(--plate)] p-1 text-[color:var(--bone)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:right-6 sm:top-6"
-      />
-      <span className="text-[clamp(28px,3vw,44px)] font-medium leading-[1.05] tracking-[-0.02em] text-[color:var(--bone)]">{title}</span>
-      <span className="mt-2 max-w-[36ch] text-sm text-[color:var(--bone2)] sm:text-base">{line}</span>
-    </a>
-  )
-}
-
 /** Supporting figures stay together without mixing full-year totals with matched-day audit counts. */
-function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) {
+export function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) {
   return (
-    <section id="overview-sources" aria-labelledby="overview-sources-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
+    <section id="overview-figures" aria-labelledby="overview-figures-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="overview-sources-h" className="text-3xl font-medium tracking-[-0.02em]">Sources and notes</h2>
+          <h2 id="overview-figures-h" className="text-3xl font-medium tracking-[-0.02em]">The figures behind the Overview</h2>
+          <p className="mt-4 text-sm text-[color:var(--bone2)]">Full-year totals and matched-day audit counts answer different questions.</p>
           <a href={links.method('sources')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center')}>All product versions and sources <ArrowUpRight size={14} aria-hidden /></a>
         </div>
-        <More label="Show the figures and notes" className="lg:col-span-8 lg:pt-2">
-        <dl className="mt-4 space-y-6 text-sm leading-6 text-[color:var(--bone2)]">
+        <dl className="space-y-6 text-sm leading-6 text-[color:var(--bone2)] lg:col-span-8">
           {DECLINE ? <div>
             <dt className="font-medium text-[color:var(--bone)]">Full-year Amazon totals · 2024 → 2025</dt>
             <dd>Official INPE: {int(DECLINE.inpe_2024)} → {int(DECLINE.inpe_2025)} detections ({Math.abs(Math.round(DECLINE.inpe_pct))}% decline). VIIRS-based annual benchmark: {int(DECLINE.fixed_2024)} → {int(DECLINE.fixed_2025)} ({Math.abs(Math.round(DECLINE.fixed_pct))}% decline). These compare whole calendar years, not just the audit’s matched days. Source: data/out/facts.json, amazon_decline_2024_2025; <a href="https://data.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer" className={textLink}>INPE Programa Queimadas</a>.</dd>
@@ -641,7 +598,6 @@ function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) {
             <dd>Central Amazon, 4 September 2026, with each satellite’s fire detections: <a href="https://worldview.earthdata.nasa.gov" target="_blank" rel="noreferrer" className={textLink}>NASA Worldview / GIBS</a>. The clock diagram uses usual look times in {DAY_LOOK?.year}, not measured pass times for that image date. VIIRS imagery stands for the earlier observation time.</dd>
           </div>
         </dl>
-        </More>
       </div>
     </section>
   )

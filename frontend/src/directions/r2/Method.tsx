@@ -17,8 +17,9 @@ import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { CHECKS, DETECTION, fmtInt, fmtRange, hm, inpeReproduction, pct, phrase, regionData, type Check } from '@/r2/data'
 import { cn } from '@/lib/utils'
 import { TwoClocks } from './FieldFilm'
+import { OverviewNotes } from './Overview'
 import {
-  CREDITS, DetMark, Footer, IMG, MockTag, More, PageNext, REPO_URL, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
+  CAVEAT, CREDITS, DetMark, Footer, IMG, MockTag, More, PageNext, PictureCredits, REPO_URL, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
   type DetShape, type Leave, type Links, type Nav,
 } from './common'
 
@@ -59,6 +60,7 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
         <Detection />
         <InpeMatch />
         <Limits links={links} leave={leave} />
+        <OverviewNotes links={links} leave={leave} />
         <Sources />
       </main>
       <PageNext page="method" links={links} leave={leave} />
@@ -125,7 +127,7 @@ function Steps() {
   // one line per step: what we do, and the Amazon's number for it
   const steps: { title: string; text: string; value: string | null }[] = [
     { title: 'Find when each satellite looked', text: 'The middle time of its fire detections that year.', value: last ? `Aqua ${last.aqua_lst} · VIIRS ${last.viirs_lst}` : null },
-    { title: 'Learn how Aqua and VIIRS compare', text: 'Aqua detections per 100 VIIRS detections, 2012–2020.', value: ratio != null ? `${Math.round(ratio * 100)} per 100` : null },
+    { title: 'Learn how Aqua and VIIRS compare', text: 'Aqua detections for every 100 VIIRS detections, 2012–2020.', value: ratio != null ? `${Math.round(ratio * 100)} per 100` : null },
     { title: 'Work out what we’d expect', text: `VIIRS’s count times that rate: the benchmark${y ? ` for ${y.year}` : ''}.`, value: y && y.fixed != null ? fmtInt(y.fixed) : null },
     { title: 'Compare', text: 'Aqua’s count against the benchmark. Further out than any year from 2012 to 2020 is unusual.', value: y && y.gap != null ? pct(y.gap) : null },
   ]
@@ -448,15 +450,11 @@ function InpeMatch() {
 
 /* ---------- What Anchor can't do ---------- */
 
-/** Flags the team's method notes call weak (analysis/statistics/README.md), named only while the audit file still flags
- *  them and their own range reaches back into the usual range, so the sentence can't outlive the data. */
-const WEAK_FLAG_NOTES = [{ id: 'br-cerrado', year: 2022 }, { id: 'ar-argentina', year: 2022 }]
+/** Every year the pipeline flags whose likely range still overlaps the usual range, grouped by place:
+ *  [{ id, years: [2022, 2025] }], read from the audit files, so the list follows the data. */
+const CLOSE_IDS = ['br-amazon', 'br-cerrado', 'br-pantanal', 'ar-argentina', 'in-punjab-haryana', 'us-california']
 function weakFlags() {
-  return WEAK_FLAG_NOTES.filter(({ id, year }) => {
-    const r = regionData(id)
-    const y = r.years.find((x) => x.year === year)
-    return !!y && y.verdict === 'close' && y.lo != null && y.hi != null && y.lo <= r.placebo[1] && y.hi >= r.placebo[0]
-  })
+  return CLOSE_IDS.map((id) => ({ id, years: regionData(id).years.filter((y) => y.verdict === 'close').map((y) => y.year) })).filter((w) => w.years.length)
 }
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const monthName = (ym: string) => `${MONTH_NAMES[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`
@@ -478,18 +476,21 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   }, [])
   const weak = useMemo(weakFlags, [])
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
-  const items: { t: string; b: ReactNode }[] = [
+  const items: { t: string; b: ReactNode; done?: string; next?: string }[] = [
     {
-      t: 'It measures the gap, not its cause.',
-      b: 'Anchor sets Aqua’s count beside what VIIRS leads us to expect. The timing and the count moved together; counts alone can’t split the timing’s share from real change in fire. The benchmark is an estimate that sits alongside INPE’s official count, not a replacement for it.',
+      t: 'It can’t fully separate the timing from everything else.',
+      b: 'The comparison sets Aqua’s count beside what we’d expect from VIIRS. We then tested the other explanations. Clouds: a geostationary cloud mask shows Aqua’s old and new look times are equally clear. Viewing angle: NASA’s swath outlines show Aqua didn’t look at the Amazon from overhead more often. Fire size: for large fires, the geostationary satellite predicts the change. None of them explains the gap. Across 80 region-years, about 90% of the Amazon’s 2025 gap traces to the later look (likely range 43–137%). Still open: the excess is similar in the deforestation arc and the interior, where timing predicts a difference, and months outside the fire season aren’t tested. The benchmark is an estimate; it does not replace INPE’s official count.',
+      next: 'Tested in nine ways (analysis/attribution in the repository). Next: the fire-regime split, the off-season months, and MODIS per-pixel fire masks.',
     },
     {
       t: '“Unusual” is a screen, not a verdict.',
       b: 'Nine years, 2012 to 2020, set the usual range, so an ordinary year lands outside it about one time in five. A flag marks a year worth a closer look; it isn’t a significance test.',
+      done: 'Addressed: each unusual or close-call year now shows how many points it sits past the usual range.',
     },
     {
-      t: weak.length ? `Close calls are marked: ${andList(weak.map((w) => `${phrase(w.id).the} in ${w.year}`))} ${weak.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is treated as a close call.',
+      t: weak.length ? `Some flags are close calls: ${andList(weak.map((w) => `${phrase(w.id).the} (${w.years.join(', ')})`))} ${weak.length === 1 && weak[0].years.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is a close call.',
       b: 'Close call: just outside the usual range, but the likely range overlaps it. These labels describe uncertainty, not proof of a timing effect.',
+      done: 'Addressed: a year whose likely range overlaps the usual range is now labelled “Close call”, not “Unusual”.',
     },
     {
       t: 'Missing satellite days are handled openly.',
@@ -500,12 +501,18 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           {' '}Aqua went into safe hold on 31 March 2022, and Terra paused its science data in October 2022.
         </>
       ),
+      next: 'Next: check coverage region by region, and tell a missing day apart from a day with no fires.',
     },
     {
       t: 'NASA’s May 2025 VIIRS reprocessing leaves the counts alone.',
       b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation. These input codes are not established collection names. The provisional NRT snapshot remains separate.',
+      done: 'Addressed: Sources list each product’s version by period: VIIRS Collection 2 (standard) for 2012–2025, the MODIS archive’s codes, and 6.1NRT and 2.0NRT for the 2026 snapshot.',
     },
-    { t: 'The calendar runs through 2025; a separate provisional card shows 8–14 Nov 2026.', b: 'The card is separate from the historical calendar: provisional, incomplete coverage, not a full-year trend.' },
+    {
+      t: 'The calendar runs through 2025; a separate provisional card shows 8–14 Nov 2026.',
+      b: 'The card is separate from the historical calendar: provisional, incomplete coverage, not a full-year trend.',
+      done: 'Addressed: the Brazil region pages show the 2026 snapshot on its own card, labelled “Provisional · incomplete coverage”.',
+    },
     {
       t: 'Aqua and Terra are nearing the end of their missions, and the method carries on.',
       b: (
@@ -515,6 +522,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 and NOAA-21 carry the same camera and keep their time, so the benchmark carries on without them.
         </>
       ),
+      next: 'Next: check NOAA-20 and NOAA-21 against S-NPP, so the benchmark can carry on past 2025.',
     },
   ]
   return (
@@ -528,17 +536,9 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           <Accordion type="multiple" motion={motion.on} level={3}>
             {items.map((it, i) => (
               <AccordionItem key={it.t} value={`l${i}`}>
-                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{it.t}</AccordionTrigger>
+                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{it.done ? 'Addressed · ' : ''}{it.t}</AccordionTrigger>
                 <AccordionContent><p className="max-w-[var(--measure)]">{it.b}</p>
-                  <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{[
-                    'Next: independent observations and a design that separates timing from other changes.',
-                    'Addressed: each flagged year now shows its percentage-point distance past the usual-range edge; this is still not a significance test.',
-                    'Addressed: overlapping likely ranges are labeled Close call, not Unusual.',
-                    'Next: verify regional coverage and distinguish missing observations from true zero detections.',
-                    'Next: establish the historical version-code meanings and verify collection consistency; Sources now disclose the varying codes separately from NRT.',
-                    'Addressed: a separate provisional 8–14 Nov 2026 card is visible on Brazil region pages.',
-                    'Next: calibrate and validate a replacement satellite reference before extending the historical series.',
-                  ][i]}</p>
+                  {it.done || it.next ? <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{it.done ?? it.next}</p> : null}
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -553,36 +553,32 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
 
 function Sources() {
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
-  const sourceRow = (c: (typeof CREDITS)[number]) => (
-            <li key={c.name} className="flex flex-col gap-1 border-b border-[color:var(--hairline)] py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
-              <span className="text-base text-[color:var(--bone)]">{c.name}</span>
-              <span className="shrink-0">
-                {c.links.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={cn(link, 'text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}>{l.text}</a>)}
-              </span>
-            </li>
-  )
   return (
     <section id="sources" aria-labelledby="sources-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="sources-h" className={title}>Sources</h2>
+          <p className={lead}>Every number on this site comes from the team’s data files, built from these.</p>
           {REPO_URL ? (
             <p className="mt-6">
               <a href={REPO_URL} target="_blank" rel="noreferrer" className={cn('inline-flex min-h-11 items-center gap-2 text-sm', link)}>The code and the method notes <ArrowRight size={14} strokeWidth={1.5} aria-hidden /></a>
             </p>
           ) : null}
         </div>
-        {/* the four primary data sources open; the rest one click down */}
-        <div className="min-w-0 lg:col-span-8">
-          <ul className="border-t border-[color:var(--hairline)]">
-            {CREDITS.slice(0, 4).map(sourceRow)}
-          </ul>
-          {CREDITS.length > 4 ? (
-            <More label={`${CREDITS.length - 4} more sources`} className="mt-4">
-              <ul className="mt-2 border-t border-[color:var(--hairline)]">{CREDITS.slice(4).map(sourceRow)}</ul>
-            </More>
-          ) : null}
+        <ul className="min-w-0 border-t border-[color:var(--hairline)] lg:col-span-8">
+          {CREDITS.map((c) => (
+            <li key={c.name} className="flex flex-col gap-1 border-b border-[color:var(--hairline)] py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
+              <span className="text-base text-[color:var(--bone)]">{c.name}</span>
+              <span className="flex shrink-0 flex-col gap-1 sm:items-end">
+                {c.links.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={cn(link, 'text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}>{l.text}</a>)}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div id="credits" className="scroll-mt-32 lg:col-span-4">
+          <h3 className="text-base font-medium text-[color:var(--bone)]">Pictures and video</h3>
         </div>
+        <div className="min-w-0 lg:col-span-8"><PictureCredits /></div>
       </div>
     </section>
   )

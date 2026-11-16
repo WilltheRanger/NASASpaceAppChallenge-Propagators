@@ -150,7 +150,9 @@ export const linksFor = (nav: Nav): Links => ({
 /* ---------- Words said the same way on every page ---------- */
 
 /** Said next to every finding. */
-export const CAVEAT = 'Aqua’s later look and its higher count line up. Anchor shows where the official trend deserves a second look; counts alone can’t split out the timing’s exact share.'
+/** The close-call legend, said the same way everywhere */
+export const CLOSE_CALL = 'Close call: just outside the usual range, but the likely range overlaps it.'
+export const CAVEAT = 'Our tests point to Aqua’s later look as the main cause: clouds and changes in viewing angle were checked and don’t explain the gap. A smaller share isn’t pinned down yet.'
 export const FOOTER_LINE = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 export const JETHVA = 'https://doi.org/10.3390/rs18101506'
 /** The code: the Pages deploy sets it from the repository it builds; the comment pages use the same address (the
@@ -172,9 +174,15 @@ export const statementName = (id: string) => {
 
 /** The data the site stands on, with the identifiers to find each one. */
 export const CREDITS: { name: string; links: { text: string; href: string }[] }[] = [
-  { name: 'NASA FIRMS, MODIS active fires (Terra and Aqua)', links: [{ text: 'doi:10.5067/FIRMS/MODIS/MCD14ML', href: 'https://doi.org/10.5067/FIRMS/MODIS/MCD14ML' }] },
-  { name: 'Historical 2012–2025: NASA FIRMS VIIRS Collection 2 standard, S-NPP', links: [{ text: 'NASA FIRMS standard archive', href: 'https://firms.modaps.eosdis.nasa.gov/download/' }] },
-  { name: 'Provisional 2026 snapshot: MODIS 6.1NRT and VIIRS 2.0NRT (NOAA-20/21)', links: [{ text: 'doi:10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002', href: 'https://doi.org/10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002' }] },
+  { name: 'NASA FIRMS, MODIS standard archive (Terra and Aqua), 2002–2025. Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation.', links: [{ text: 'doi:10.5067/FIRMS/MODIS/MCD14ML', href: 'https://doi.org/10.5067/FIRMS/MODIS/MCD14ML' }] },
+  { name: 'NASA FIRMS, VIIRS 375 m Collection 2 (standard), S-NPP: 2012–2025', links: [{ text: 'NASA FIRMS archive download', href: 'https://firms.modaps.eosdis.nasa.gov/download/' }] },
+  {
+    name: 'NASA FIRMS near-real-time, for the 2026 snapshot: MODIS 6.1NRT and VIIRS 2.0NRT',
+    links: [
+      { text: 'doi:10.5067/FIRMS/VIIRS/VNP14IMGT_NRT.002', href: 'https://doi.org/10.5067/FIRMS/VIIRS/VNP14IMGT_NRT.002' },
+      { text: 'doi:10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002', href: 'https://doi.org/10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002' },
+    ],
+  },
   { name: 'INPE Programa Queimadas, Brazil’s official fire series', links: [{ text: 'data.inpe.br/queimadas', href: 'https://data.inpe.br/queimadas/portal/' }] },
   { name: 'USFS fire occurrence database (FPA-FOD), 7th ed., Short 2026', links: [{ text: 'doi:10.2737/RDS-2013-0009.7', href: 'https://doi.org/10.2737/RDS-2013-0009.7' }] },
   { name: 'Punjab burn timing: Jethva 2026, Remote Sensing', links: [{ text: 'doi:10.3390/rs18101506', href: JETHVA }] },
@@ -372,8 +380,8 @@ export const underline = cn(
 export const textLink = cn(underline, 'text-[color:var(--bone)] underline decoration-[color:var(--bone-30)] underline-offset-[3px] hover:decoration-transparent', focusRing)
 
 export const primaryButton = cn(
-  'inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[color:var(--bone)] px-5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--bone-hover)]',
-  ease,
+  'inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[color:var(--bone)] px-5 text-sm font-medium text-[color:var(--ink)] hover:-translate-y-px hover:bg-[color:var(--bone-hover)] active:translate-y-0 motion-reduce:hover:translate-y-0',
+  'transition-[background-color,transform] duration-150 ease-[var(--ease)]',
   focusRing,
 )
 export const secondaryButton = cn(
@@ -435,11 +443,11 @@ export function SatMark({ sat, size = 10 }: { sat: 'terra' | 'viirs' | 'aqua'; s
 
 /* ---------- The bar: the logo and the four pages, on every page but Explore (which has its own) ---------- */
 
-const PAGES: { page: Page; label: string; href: (l: Links) => string }[] = [
-  { page: 'overview', label: 'Overview', href: (l) => l.overview() },
-  { page: 'regions', label: 'Regions', href: (l) => l.regions() },
-  { page: 'sim', label: 'Explore', href: (l) => l.sim() },
-  { page: 'method', label: 'Method', href: (l) => l.method() },
+const PAGES: { page: Page; label: string; line: string; href: (l: Links) => string }[] = [
+  { page: 'overview', label: 'Overview', line: 'The idea in one scroll', href: (l) => l.overview() },
+  { page: 'regions', label: 'Regions', line: 'The fire calendar for six places', href: (l) => l.regions() },
+  { page: 'sim', label: 'Explore', line: 'The map, and when an alert could arrive', href: (l) => l.sim() },
+  { page: 'method', label: 'Method', line: 'How we know, and what we can’t say', href: (l) => l.method() },
 ]
 
 /** Fixed, solid, one row: the logo (the mark alone on phones) and Overview · Regions · Explore · Method. */
@@ -464,7 +472,7 @@ export function SiteBar({ page, links, leave, regionsHref }: { page: Page; links
                       <span className="border-b border-[color:var(--bone)] pb-0.5">{p.label}</span>
                     </span>
                   ) : (
-                    <a href={href} onClick={leave} className={cn('flex h-11 items-center rounded px-2 text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)] sm:px-3', ease, focusRing)}>
+                    <a href={href} onClick={leave} className={cn('flex h-9 items-center rounded px-2 text-sm text-[color:var(--bone2)] hover:bg-[color:var(--surface)] hover:text-[color:var(--bone)] sm:px-3', ease, focusRing)}>
                       {p.label}
                     </a>
                   )}
@@ -480,30 +488,36 @@ export function SiteBar({ page, links, leave, regionsHref }: { page: Page; links
 
 /* ---------- The way on: the page before and the page after, at the foot of every page ---------- */
 
-/** Two large links at the foot of a page: back to the page before, on to the next. */
+/** Two bordered cards at the foot of a page: back to the page before, on to the next, each saying where it leads.
+ *  The way on is the heavier of the two: brighter border, and it fills on hover. */
 export function PageNext({ page, links, leave, regionsHref }: { page: Page; links: Links; leave: Leave; regionsHref?: string }) {
   const i = PAGES.findIndex((p) => p.page === page)
   const prev = i > 0 ? PAGES[i - 1] : null
   const next = i < PAGES.length - 1 ? PAGES[i + 1] : null
   const href = (p: (typeof PAGES)[number]) => (p.page === 'regions' && regionsHref ? regionsHref : p.href(links))
-  const cell = cn('group flex min-h-24 flex-1 flex-col justify-center gap-1 px-4 py-5 hover:bg-[color:var(--surface)] sm:px-8', ease, focusRing)
+  const card = cn(
+    'group flex flex-1 items-center gap-4 rounded-[4px] border px-4 py-3.5 transition-[background-color,border-color,transform] duration-200 ease-[var(--ease)] hover:-translate-y-0.5 active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:px-5 sm:py-4',
+    focusRing,
+  )
+  const disc = 'flex size-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--bone-30)] transition-[background-color,color,border-color,transform] duration-200 ease-[var(--ease)] group-hover:border-[color:var(--bone)] group-hover:bg-[color:var(--bone)] group-hover:text-[color:var(--ink)] motion-reduce:transition-none'
+  const name = 'text-xl font-medium leading-[1.15] tracking-[-0.01em] text-[color:var(--bone)] sm:text-2xl'
   return (
     <nav aria-label="Previous and next page" className="border-t border-[color:var(--hairline)]">
-      <div className="mx-auto flex w-full max-w-[var(--maxw)] divide-x divide-[color:var(--hairline)]">
+      <div className={cn(shell, 'flex flex-col gap-3 py-6 sm:flex-row sm:gap-3 sm:py-8')}>
         {prev ? (
-          <a href={href(prev)} onClick={leave} className={cell}>
-            <span className="text-xs text-[color:var(--bone3)]">Back</span>
-            <span className="flex items-center gap-2 text-xl font-medium tracking-[-0.01em] text-[color:var(--bone)] sm:text-2xl">
-              <ArrowLeft size={18} strokeWidth={1.5} aria-hidden className="transition-transform duration-200 group-hover:-translate-x-1 motion-reduce:transition-none" />{prev.label}
+          <a href={href(prev)} onClick={leave} aria-label={`Back to ${prev.label}`} className={cn(card, 'border-[color:var(--bone)] text-[color:var(--bone)] hover:bg-[color:var(--surface)]')}>
+            <span aria-hidden className={cn(disc, 'group-hover:-translate-x-1')}><ArrowLeft size={16} strokeWidth={1.5} /></span>
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className={name}>{prev.label}</span>
             </span>
           </a>
         ) : null}
         {next ? (
-          <a href={href(next)} onClick={leave} className={cn(cell, 'items-end text-right')}>
-            <span className="text-xs text-[color:var(--bone3)]">Next</span>
-            <span className="flex items-center gap-2 text-xl font-medium tracking-[-0.01em] text-[color:var(--bone)] sm:text-2xl">
-              {next.label}<ArrowRight size={18} strokeWidth={1.5} aria-hidden className="transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none" />
+          <a href={href(next)} onClick={leave} aria-label={`Next: ${next.label}`} className={cn(card, 'justify-between border-[color:var(--bone)] bg-[color:var(--surface)] text-[color:var(--bone)] hover:bg-[color:var(--raised)]', prev ? 'sm:flex-[1.4]' : '')}>
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className={name}>{next.label}</span>
             </span>
+            <span aria-hidden className={cn(disc, 'group-hover:translate-x-1')}><ArrowRight size={16} strokeWidth={1.5} /></span>
           </a>
         ) : null}
       </div>
@@ -511,79 +525,79 @@ export function PageNext({ page, links, leave, regionsHref }: { page: Page; link
   )
 }
 
-/* ---------- Footer: notes for this page, where the data and pictures come from, who made it, the motion switch ---------- */
+/* ---------- Footer: one quiet row. The small print opens on request; sources and picture credits live on the Method page ---------- */
 
-const DATA_LINE = 'NASA FIRMS fire detections from MODIS and VIIRS. INPE Programa Queimadas for Brazil’s official count. US Forest Service fire records for California.'
-
-/** `notes`: the page's own small print (how a number was counted, a picture's date), kept here so the page stays clear. */
-export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leave; notes?: ReactNode[] }) {
-  const m = useMotion()
+/** Who took each photograph and video. Shown once, under Sources on the Method page; the footer links here. */
+export function PictureCredits() {
   const link = cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)
-  const h = 'text-sm font-medium text-[color:var(--bone)]'
   const credit = (by: string | null, url: string | null, site: string) => (
     <>{url ? <a href={url} target="_blank" rel="noreferrer" className={link}>{by ?? site}</a> : <span>{by ?? site}</span>}{by ? <span className="text-[color:var(--bone3)]">, {site}</span> : null}</>
   )
   return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-1.5 text-sm text-[color:var(--bone2)] sm:grid-cols-[auto_1fr_auto_1fr]">
+      {REGIONS.map((r) => {
+        const p = photoFor(r.id)
+        return (
+          <div key={r.id} className="contents">
+            <dt className="text-[color:var(--bone3)]">{phrase(r.id).short}</dt>
+            <dd className="min-w-0">
+              Photo: {credit(p.by, p.url, 'Unsplash')}
+              {p.video ? <><br />Video: {credit(p.video.by, p.video.url, p.video.site)}{p.video.filmed ? <span className="text-[color:var(--bone3)]">, {p.video.filmed}</span> : null}</> : null}
+            </dd>
+          </div>
+        )
+      })}
+      <div className="contents">
+        <dt className="text-[color:var(--bone3)]">Smoke</dt>
+        <dd className="min-w-0">Photo: {credit(OVERVIEW_PHOTO.by, OVERVIEW_PHOTO.url, 'Unsplash')}</dd>
+      </div>
+      <div className="contents">
+        <dt className="text-[color:var(--bone3)]">From space</dt>
+        <dd className="min-w-0">NASA Worldview / GIBS, NASA Blue Marble</dd>
+      </div>
+    </dl>
+  )
+}
+
+/** `notes`: the page's own small print (how a number was counted, a picture's date). Closed until someone asks for it. */
+export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leave; notes?: ReactNode[] }) {
+  const m = useMotion()
+  const link = cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)
+  return (
     <footer className="border-t border-[color:var(--hairline)]">
-      <div className={cn(shell, 'grid grid-cols-1 gap-x-6 gap-y-10 py-12 text-sm text-[color:var(--bone2)] lg:grid-cols-12')}>
-        {notes.length ? (
-          <section aria-labelledby="foot-notes" className="lg:col-span-12">
-            <h2 id="foot-notes" className="sr-only">Notes</h2>
-            <More label="Notes on this page">
-              <ul className="mt-3 grid grid-cols-1 gap-x-10 gap-y-2 md:grid-cols-2">
-                {notes.map((n, i) => <li key={i} className="max-w-[var(--measure)] leading-6">{n}</li>)}
-              </ul>
-            </More>
-          </section>
-        ) : null}
-        <section aria-labelledby="foot-data" className="lg:col-span-4">
-          <h2 id="foot-data" className={h}>Data</h2>
-          <p className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
-            <a href={links.method('sources')} onClick={leave} className={link}>All sources</a>
+      <div className={cn(shell, 'flex flex-col gap-6 py-8 text-sm text-[color:var(--bone2)]')}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <nav aria-label="Details" className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <a href={links.method()} onClick={leave} className={link}>How we know</a>
+            <a href={links.method('sources')} onClick={leave} className={link}>Data sources</a>
+            <a href={links.method('credits')} onClick={leave} className={link}>Picture credits</a>
             {REPO_URL ? <a href={REPO_URL} target="_blank" rel="noreferrer" className={link}>Code</a> : null}
-          </p>
-        </section>
-        <section aria-labelledby="foot-pics" className="lg:col-span-8">
-          <h2 id="foot-pics" className="sr-only">Pictures and video</h2>
-          <More label="Photo and video credits">
-          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-5 gap-y-1.5 sm:grid-cols-[auto_1fr_auto_1fr]">
-            {REGIONS.map((r) => {
-              const p = photoFor(r.id)
-              return (
-                <div key={r.id} className="contents">
-                  <dt className="text-[color:var(--bone3)]">{phrase(r.id).short}</dt>
-                  <dd className="min-w-0">
-                    Photo: {credit(p.by, p.url, 'Unsplash')}
-                    {p.video ? <><br />Video: {credit(p.video.by, p.video.url, p.video.site)}{p.video.filmed ? <span className="text-[color:var(--bone3)]">, {p.video.filmed}</span> : null}</> : null}
-                  </dd>
-                </div>
-              )
-            })}
-            <div className="contents">
-              <dt className="text-[color:var(--bone3)]">Smoke</dt>
-              <dd className="min-w-0">Photo: {credit(OVERVIEW_PHOTO.by, OVERVIEW_PHOTO.url, 'Unsplash')}</dd>
-            </div>
-            <div className="contents">
-              <dt className="text-[color:var(--bone3)]">From space</dt>
-              <dd className="min-w-0">NASA Worldview / GIBS, NASA Blue Marble</dd>
-            </div>
-          </dl>
-          </More>
-        </section>
-        {/* the sponsors and hosts, as the README's acknowledgments name them; words only, no logos */}
-        <section aria-labelledby="foot-thanks" className="lg:col-span-12">
-          <h2 id="foot-thanks" className={h}>Thank you</h2>
-          <div className="mt-3 grid gap-x-6 gap-y-3 lg:grid-cols-2">
+          </nav>
+          <ElasticSwitch checked={m.on} onCheckedChange={m.set} label="Motion" />
+        </div>
+        {notes.length ? (
+          <details className="group border-t border-[color:var(--hairline)] pt-4">
+            <summary className={cn('inline-flex min-h-8 cursor-pointer list-none items-center gap-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)] [&::-webkit-details-marker]:hidden', focusRing)}>
+              <span aria-hidden className="inline-block w-3 text-center group-open:hidden">+</span>
+              <span aria-hidden className="hidden w-3 text-center group-open:inline-block">−</span>
+              Notes on this page
+            </summary>
+            <ul className="mt-3 grid grid-cols-1 gap-x-10 gap-y-2 md:grid-cols-2">
+              {notes.map((n, i) => <li key={i} className="max-w-[var(--measure)] leading-6">{n}</li>)}
+            </ul>
+          </details>
+        ) : null}
+        <div className="border-t border-[color:var(--hairline)] pt-4">
+          <More label="Thank you">
+            <div className="mt-3 grid gap-x-6 gap-y-3 lg:grid-cols-2">
             <p className="max-w-[var(--measure)] leading-6">To NASA and the 2026 NASA International Space Apps Challenge, funded by NASA’s Science Mission Directorate through a contract with Booz Allen Hamilton, Mindgrub and SecondMuse, and to its 17 space agency partners, especially the Brazilian Space Agency (AEB), Argentina’s CONAE and India’s ISRO.</p>
             <p className="max-w-[var(--measure)] leading-6">To Build Future Mind Foundation for hosting the Chino Hills, CA local event on 14–15 November 2026, and to Local Lead Allen West and the organizing team.</p>
-          </div>
-        </section>
-        <div className="flex flex-col gap-4 border-t border-[color:var(--hairline)] pt-8 sm:flex-row sm:items-center sm:justify-between lg:col-span-12">
-          <div className="flex flex-col gap-2">
-            <AnchorLogo height={18} className="text-[color:var(--bone)]" />
-            <p className="text-xs text-[color:var(--bone3)]">Team Propagators. {FOOTER_LINE}{ANY_MOCK ? ' This build uses mock data.' : ''}</p>
-          </div>
-          <ElasticSwitch checked={m.on} onCheckedChange={m.set} label="Motion" />
+            </div>
+          </More>
+        </div>
+        <div className="flex flex-col gap-2 border-t border-[color:var(--hairline)] pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <AnchorLogo height={18} className="text-[color:var(--bone)]" />
+          <p className="text-xs text-[color:var(--bone3)]">Team Propagators. {FOOTER_LINE}{ANY_MOCK ? ' This build uses mock data.' : ''}</p>
         </div>
       </div>
     </footer>

@@ -65,7 +65,7 @@ export function GlobalLayer({ region, small }: { region: string; small: boolean 
           <h2 id="global-h" className={title}>Early exploration: the whole world</h2>
           <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
             The same comparison as the six places, on every 2° square of the map with enough fires: Aqua’s count against what we’d expect. The map shows
-            where the two differ; counts alone can’t split out the timing’s exact share.
+            where the two differ. Tests in the six places point to Aqua’s later look as the main cause; single squares weren’t tested.
           </p>
           <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone)]">{EXPLORATORY}</p>
           <button

@@ -187,7 +187,7 @@ function useBaseProtocol(src: string) {
  *  picture drawn smaller. Pictures load when the map first needs them; the last few stay in memory. */
 const FIRE_PICTURES = new Set<string>(TILES.fire.cells)
 const pictures = new Map<string, Promise<ImageBitmap | HTMLImageElement>>()
-const KEEP_PICTURES = 10
+const KEEP_PICTURES = 40 // ~16 MB each decoded; enough to zoom out and back in without decoding them again
 function picture(url: string) {
   const had = pictures.get(url)
   if (had) { pictures.delete(url); pictures.set(url, had); return had }
@@ -375,6 +375,10 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         container: el, style, center: [-40, 8], zoom: homeZoom(w, h), minZoom: 0.4, maxZoom: live ? 11 : 8.5,
         attributionControl: false, maplibreLogo: false, dragRotate: false, pitchWithRotate: false, touchPitch: false, maxPitch: 0,
         renderWorldCopies: true, fadeDuration: 150, canvasContextAttributes: { antialias: false },
+        // keep tiles across the whole zoom range (0.4 to 11): the default keeps 5 levels, so zooming out to the whole
+        // Earth and back in dropped every close-up tile and re-fetched and re-decoded them (a ~3 s wait). The cache
+        // stays sized by the viewport (levels x tiles in view), so a phone keeps fewer.
+        maxTileCacheZoomLevels: 12,
         pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
       })
     } catch {

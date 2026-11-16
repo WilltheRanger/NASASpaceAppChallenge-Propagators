@@ -38,7 +38,7 @@ function SatMark({ k }: { k: AlertRow['key'] }) {
 }
 
 
-export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, onHelp, calendar, headingLevel = 2 }: {
+export function AlertPanel({ place, when, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, onHelp, calendar, headingLevel = 2 }: {
   /** the place, as it reads in a sentence: "the Amazon", "Kenya" */
   place: string
   rows: AlertRow[]
@@ -54,6 +54,8 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   onAquaThen?: (then: boolean) => void
   /** the place control (step 1) */
   picker?: ReactNode
+  /** the scenario's date, e.g. "15 Sep" (mid fire season) or the fire file's dates */
+  when?: string
   /** the dates of the fires on the map, e.g. "14–15 Nov 2026" */
   fires?: string
   /** where the pass times and the sunset come from, in one or two short sentences */
@@ -90,7 +92,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
     <section aria-labelledby="alert-h" className="flex flex-col gap-5">
       <div>
         <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance]">
-          If a fire starts in {place} today, when could a satellite alert me, and how much daylight would I have left to act?
+          If a fire started in {place}{when ? ` on ${when}` : ''}, when could a satellite alert me, and how much daylight would I have left to act?
         </H>
         <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {onHelp ? (
@@ -199,8 +201,9 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
           </p>
           <p className="text-sm leading-5 text-[color:var(--bone2)]">
             {fewer > 0
-              ? <><span className="text-[color:var(--bone)]">{fewer} min less daylight</span> with the same delay.</>
-              : <>After dark either way.</>}
+              ? <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, leaving <span className="text-[color:var(--bone)]">about {fewer} fewer minutes of daylight</span>.</>
+              : <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, after dark either way.</>}
+            <span className="mt-1 block text-xs text-[color:var(--bone3)]">A what-if: real alert delivery wasn’t measured.</span>
           </p>
         </div>
       ) : null}
