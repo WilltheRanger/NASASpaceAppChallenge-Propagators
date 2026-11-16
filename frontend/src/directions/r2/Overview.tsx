@@ -76,8 +76,6 @@ const along = (v: number) => (v - SCALE.min) / (SCALE.max - SCALE.min)
 /** The day the middle chapter follows: the featured place's look times, and the satellites' pictures of one day. */
 const DAY = regionData(FEATURED)
 const DAY_LOOK = lookChange(DAY)
-/** Aqua's matched-day count against the benchmark in the audit's last readable year, as a whole percent. */
-const HERO_GAP = DAY.latestOk?.gap != null && DAY.latestOk.year === YEAR ? Math.round(DAY.latestOk.gap) : null
 /** The INPE match for the Amazon's last year in the reproduction file: our count of Aqua's fires beside INPE's own. */
 const RECEIPT = (() => {
   const r = inpeReproduction(FEATURED).filter((x) => x.inpe > 0 && x.firms > 0).sort((a, b) => b.year - a.year)[0]
@@ -109,13 +107,12 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
       <SiteBar page="overview" links={links} leave={leave} />
       <main>
         <Park links={links} leave={leave} />
-        <WhoFor />
         <OneDay />
         <WhatsNew links={links} leave={leave} />
         <Finding links={links} leave={leave} />
       </main>
       <PageNext page="overview" links={links} leave={leave} />
-      <Footer links={links} leave={leave} />
+      <Footer links={links} leave={leave} about="For anyone comparing fire years in satellite counts (agencies, journalists, researchers): check a record year against a steady reference before calling it a record." />
     </>
   )
 }
@@ -127,7 +124,7 @@ const LOW_SCRIM = 'linear-gradient(0deg, rgba(11,13,11,0.94) 0%, rgba(11,13,11,0
 /** Wide screens: the scrim deepens the dark sky on the left, where the title sits. */
 const WIDE_SCRIM = 'linear-gradient(90deg, rgba(11,13,11,0.9) 0%, rgba(11,13,11,0.62) 36%, rgba(11,13,11,0) 66%), linear-gradient(0deg, rgba(11,13,11,0.6) 0%, rgba(11,13,11,0) 38%)'
 
-/** The opening: the framed photograph with the question already on it. No scroll effect; it is a little shorter than
+/** The opening: the framed photograph with the name on it. No scroll effect; it is a little shorter than
  *  the screen so the next section shows below it. */
 function Park({ links, leave }: { links: Links; leave: Leave }) {
   const p = OVERVIEW_PHOTO
@@ -157,11 +154,6 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
                 Anchor
               </h1>
               <p className="mt-4 max-w-[28rem] text-[24px] leading-[1.25] text-[color:var(--bone)]">A fire calendar for six regions.</p>
-              {HERO_GAP != null && DAY_LOOK ? (
-                <p className="mt-3 max-w-[34rem] text-base leading-[1.5] text-[color:var(--bone2)]">
-                  Aqua, the satellite behind Brazil’s official fire count, now passes {DAY_LOOK.minutes} minutes later. On days both satellites saw the Amazon, its {YEAR} count ran {HERO_GAP}% above our VIIRS-based benchmark.
-                </p>
-              ) : null}
               <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-6')}>
                 Open the fire calendar <ArrowUpRight size={16} aria-hidden />
               </a>
@@ -170,17 +162,6 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
         </div>
       </div>
     </section>
-  )
-}
-
-/** Who this is for and what to do with it, in one sentence under the photograph. */
-function WhoFor() {
-  return (
-    <div className={cn(shell, 'pt-8 lg:pt-10')}>
-      <p className="max-w-[46rem] text-lg leading-[1.5] text-[color:var(--bone2)]">
-        <span className="text-[color:var(--bone)]">For anyone comparing fire years in satellite counts</span> (agencies, journalists, researchers): check a record year against a steady reference before calling it a record.
-      </p>
-    </div>
   )
 }
 
