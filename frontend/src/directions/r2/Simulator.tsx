@@ -300,6 +300,15 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     const below = !!r && r.above < CARD_H + 24 && r.below > r.above
     setFireBelow(below)
     setFire(i)
+    // phones read the card in the sheet under the map; the map only keeps the fire in view
+    if (!wide) {
+      setTab('info')
+      requestAnimationFrame(() => {
+        sheetRef.current?.querySelector('[data-sheet-scroll]')?.scrollTo({ top: 0, behavior: 'smooth' })
+        earth.current?.reveal(LON[i], LAT[i], { top: 24, side: 24 })
+      })
+      return
+    }
     requestAnimationFrame(() => earth.current?.reveal(LON[i], LAT[i], below ? { top: 24, side: 164, bottom: CARD_H + 24 } : { top: CARD_H + 24, side: 164 }))
   }
   const strongestIn = (b: Box | null) => { const i = strongest(b, show); if (i != null) pickFire(i) }
@@ -359,7 +368,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     const r = reading(c, 2025)
     return { ok: r.ok, gap: r.L != null ? (r.L - 1) * 100 : null, outside: r.outside }
   }, [fire, cellById])
-  if (fire != null) callouts.push({ key: `fire-${fire}-${fireBelow ? 'b' : 'a'}`, lon: LON[fire], lat: LAT[fire], anchor: fireBelow ? 'top' : 'bottom', content: <FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} below={fireBelow} /> })
+  if (fire != null && wide) callouts.push({ key: `fire-${fire}-${fireBelow ? 'b' : 'a'}`, lon: LON[fire], lat: LAT[fire], anchor: fireBelow ? 'top' : 'bottom', content: <FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} below={fireBelow} /> })
   if (place && !region && arrived && !day) callouts.push({ key: `pin-${place.id}`, lon: place.lon, lat: place.lat, anchor: 'center', content: <Reticle text={coords(place.lat, place.lon)} motion={motion} /> })
 
   const search = (
@@ -538,7 +547,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
                 {tab === 'si' ? (
                   si(undefined, 'h-[46svh]')
                 ) : (
-                  <div className="min-h-0 flex-1 overflow-y-auto pb-4">
+                  <div data-sheet-scroll className="min-h-0 flex-1 overflow-y-auto pb-4">
+                    {fire != null ? <div className="px-4 pt-3"><FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} docked /></div> : null}
                     {rail}
                     <div className="px-4">{chart}</div>
                     {footer}
@@ -1238,7 +1248,7 @@ const dayAt = (h: number) => `${((Math.min(DAY_B, Math.max(DAY_A, h)) - DAY_A) /
  *  ranks among the day's detections; the day as a strip (daylight, sunset, and when each satellite saw this spot); who
  *  missed it; then the daylight left, the UTC time, where it is, how wide the pixel is, what else burned nearby, and the
  *  2-degree square's 2025 reading. Every value is real: the day file (NASA FIRMS), NOAA's solar equations, the world map. */
-function FireCard({ i, onClose, square, below = false }: { i: number; onClose: () => void; square: SquareReading | null; below?: boolean }) {
+function FireCard({ i, onClose, square, below = false, docked = false }: { i: number; onClose: () => void; square: SquareReading | null; below?: boolean; docked?: boolean }) {
   const who = sightings(i)
   const rows = [0, 3, 2, 1].map((s) => who[s]) // Terra, NOAA-21, NOAA-20, Aqua: about the order they look
   const g = groupOf(SAT[i])
@@ -1262,7 +1272,7 @@ function FireCard({ i, onClose, square, below = false }: { i: number; onClose: (
     description: square.ok ? `2025, ${square.outside ? 'unusual' : 'not unusual'}` : '2025',
   })
   return (
-    <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className="relative w-[332px] rounded-[4px] border border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)] text-left shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
+    <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)] text-left', docked ? 'w-full' : 'w-[332px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
       <div className="flex items-center gap-2 pl-3 pr-1.5 pt-1.5">
         <Mark g={g} />
         <p className="text-sm font-medium text-[color:var(--bone)]">
@@ -1320,7 +1330,7 @@ function FireCard({ i, onClose, square, below = false }: { i: number; onClose: (
       <div className="mt-2 border-t border-[color:var(--hairline)] px-3 pb-1.5 pt-0.5">
         <KeyValueList items={items} variant="ruled" labelWidth="6.5rem" />
       </div>
-      <span aria-hidden className={cn('absolute left-1/2 size-3 -translate-x-1/2 rotate-45 border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)]', below ? '-top-[7px] border-l border-t' : '-bottom-[7px] border-b border-r')} />
+      {docked ? null : <span aria-hidden className={cn('absolute left-1/2 size-3 -translate-x-1/2 rotate-45 border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)]', below ? '-top-[7px] border-l border-t' : '-bottom-[7px] border-b border-r')} />}
     </div>
   )
 }
