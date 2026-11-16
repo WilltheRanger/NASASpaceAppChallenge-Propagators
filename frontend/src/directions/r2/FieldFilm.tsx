@@ -902,8 +902,9 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
     <section id="calendar" aria-labelledby="calendar-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="calendar-h" className={title}>Fire calendar</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Each row is a year and each cell a month. Brighter cells mean more hotspots.</p>
+          <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-base text-[color:var(--bone)]">Aqua’s own count before 2012, VIIRS matched to Aqua after: one steady record from 2002 to 2025.</p>
+          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Each row is a year and each cell a month. Brighter cells mean more hotspots.</p>
           <p className="mt-4 text-lg text-[color:var(--bone)]">{headline}</p>
         </div>
         <div className="min-w-0 lg:col-span-8">

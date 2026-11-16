@@ -226,7 +226,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const [fire, setFire] = useState<number | null>(null)
   const [fireBelow, setFireBelow] = useState(false)
   const [turns, setTurns] = useState<SiTurn[]>([])
-  const [siOpen, setSiOpen] = useState(false)
+  const [siOpen, setSiOpen] = useState(true)
   // the timing chart under the map can fold down to a bar, for a clear map
   // the timing chart is extra to the page's question: folded until asked for
   const [chartOpen, setChartOpen] = useState(false)
@@ -235,7 +235,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   /** one real fire day: which satellite's pass raises the alert, and the alert's delay (NASA's published range) */
   const [day, setDay] = useState<{ src: DaySource; delay: DayDelay } | null>(null)
   const playDay = () => { setLightOpen(false); setCellOpen(false); setFire(null); setShow({ terra: false, aqua: false, viirs: false }); setDay({ src: 'Aqua', delay: 0 }) }
-  /** the world's 2-degree squares (the live site only: the comment page carries no world file) */
+  /** the world's 2-degree squares (the live site has one file per cell; the comment page packs them) */
   const [grid, setGrid] = useState<GlobalGrid | null>(null)
   const [layer, setLayer] = useState<'clock' | 'fires'>('clock')
   const [mapYear, setMapYear] = useState<2024 | 2025>(2025)
@@ -244,12 +244,13 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const [cellOpen, setCellOpen] = useState(false)
   const [cellZoom, setCellZoom] = useState(false)
   const [zoom, setZoom] = useState(0)
+  // the world map: the live site and the comment page both carry it (the comment page packs the cells); a build
+  // without it still works
   useEffect(() => {
-    if (!live) return
     let on = true
     globalGrid().then((g) => { if (on) setGrid(g) }).catch(() => { /* no world file in this build: the page works without it */ })
     return () => { on = false }
-  }, [live])
+  }, [])
   const cellById = useMemo(() => new Map((grid?.cells ?? []).map((c) => [c.id, c])), [grid])
   const cell = cellId ? cellById.get(cellId) ?? null : null
   const pickCell = (id: string | null) => { setCellId(id); setHoverId(null); setCellZoom(false); setCellOpen(false); if (id) setFire(null); writeParams(nav, { cell: id }) }
@@ -274,7 +275,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   // first visit on a wide screen at the whole globe: the guide opens once the page has settled
   useEffect(() => {
     if (guideSeen()) return
-    const t = window.setTimeout(() => { if (document.getElementById('alert-h')) startGuide(SHIFT, motion) }, 1400)
+    const t = window.setTimeout(() => { if (document.getElementById('alert-h')) startGuide(SHIFT, motion) }, 500)
     return () => window.clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -669,7 +670,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           ) : null}
 
           {wide && !xl && siOpen ? (
-            <div className="absolute inset-y-0 right-0 z-30 flex w-[352px] flex-col border-l border-[color:var(--hairline)] bg-[color:var(--ground)] shadow-[-12px_0_32px_rgba(0,0,0,0.45)]">
+            <div data-tour="ask" className="absolute inset-y-0 right-0 z-30 flex w-[352px] flex-col border-l border-[color:var(--hairline)] bg-[color:var(--ground)] shadow-[-12px_0_32px_rgba(0,0,0,0.45)]">
               {si(() => setSiOpen(false), 'min-h-0 flex-1')}
             </div>
           ) : null}

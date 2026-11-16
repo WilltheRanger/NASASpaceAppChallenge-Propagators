@@ -169,17 +169,14 @@ function Later() {
   }, [seen, motion.on])
   return (
     <section aria-labelledby="later-h">
-      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 pb-16 pt-14 lg:grid-cols-12 lg:gap-x-6 lg:pb-24 lg:pt-20')}>
-        <div className="lg:col-span-8">
-          <h2 id="later-h" className="max-w-[20ch] text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em]">
-            Count people in a park at <span className="tabular-nums">1:30</span>. Years later you count at <span className="tabular-nums">3:00</span> and find more people.
-          </h2>
-          <p className="mt-5 max-w-[28ch] text-balance text-[clamp(22px,2.2vw,32px)] leading-[1.2] tracking-[-0.01em] text-[color:var(--bone2)]">
-            Did more people come, or did you just show up at a busier time?
-          </p>
-        </div>
-        <div ref={ref} className="lg:col-span-4 lg:self-end">
-          <ParkClock moved={moved} big />
+      {/* one pattern for both statements: the headline on the left, its supporting line on the right, bottoms aligned */}
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-6 pb-14 pt-16 lg:grid-cols-12 lg:gap-x-6 lg:pb-16 lg:pt-24')}>
+        <h2 id="later-h" className="max-w-[24ch] text-balance text-[32px] font-medium leading-[1.08] tracking-[-0.02em] lg:col-span-7 lg:text-[40px] lg:leading-[1.02]">
+          Count people in a park at <span className="tabular-nums">1:30</span>. Years later you count at <span className="tabular-nums">3:00</span> and find more people.
+        </h2>
+        <div className="flex flex-col gap-6 lg:col-span-4 lg:col-start-9 lg:self-end">
+          <p className="text-lg leading-[1.56] text-[color:var(--bone2)]">Did more people come, or did you just show up at a busier time?</p>
+          <div ref={ref}><ParkClock moved={moved} /></div>
         </div>
       </div>
     </section>
@@ -225,12 +222,12 @@ function OneDay() {
   ]
   return (
     <section id="day" aria-labelledby="day-h">
-      <div className={cn(shell, 'pb-6 pt-10 lg:pb-12 lg:pt-12')}>
-        <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
-          <h2 id="day-h" className="text-balance text-[clamp(30px,3.6vw,52px)] font-medium leading-[1.05] tracking-[-0.025em] lg:col-span-7">
+      <div className={cn(shell, 'pb-6 lg:pb-12')}>
+        <div className="grid grid-cols-1 gap-y-6 border-t border-[color:var(--hairline)] pt-14 lg:grid-cols-12 lg:gap-x-6 lg:pt-16">
+          <h2 id="day-h" className="max-w-[24ch] text-balance text-[32px] font-medium leading-[1.08] tracking-[-0.02em] lg:col-span-7 lg:text-[40px] lg:leading-[1.02]">
             Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
-          <p className="max-w-[34ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">Brazil relies on it: INPE, Brazil’s space research institute, uses Aqua for the country’s official fire count. But Aqua now flies over the Amazon about {look.minutes} minutes later than it did in 2012–2020.</p>
+          <p className="text-lg leading-[1.56] text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">Brazil relies on it: INPE, Brazil’s space research institute, uses Aqua for the country’s official fire count. But Aqua now flies over the Amazon about {look.minutes} minutes later than it did in 2012–2020.</p>
         </div>
         {wideScreen ? (
           <StickyScroll

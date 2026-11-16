@@ -54,6 +54,14 @@ export function startGuide(shift: string, motion: boolean) {
       },
     },
     {
+      element: '[data-tour="ask"]',
+      popover: {
+        title: 'Ask Anchor',
+        description: 'Ask about the map in plain words, for example “When does Aqua pass here?” Answers come from our data, with sources. Close it any time.',
+        side: 'left', align: 'start',
+      },
+    },
+    {
       element: '[data-tour="map"]',
       popover: {
         title: 'The fires on the map',

@@ -39,8 +39,18 @@ export function globalGrid(): Promise<GlobalGrid> {
   grid ??= read<GlobalGrid>('grid.json').catch((e) => { grid = null; throw e })
   return grid
 }
+/** The comment page can't hold one file per cell, so its build packs the cells into eight bundles by longitude band
+ *  (cells-0.json … cells-7.json, 45° each); the live site keeps one file per cell. */
+const packOf = (id: string) => Math.min(7, Math.max(0, Math.floor((Number(id.split('_')[1]) + 180) / 45)))
+const packs = new Map<number, Promise<Record<string, GlobalCalendar>>>()
 /** One cell's monthly calendar (same shape as data/out/calendar/*.json). Only cells with a readable year have one. */
-export const globalCell = (id: string): Promise<GlobalCalendar> => read<GlobalCalendar>(`cells/${id}.json`)
+export const globalCell = (id: string): Promise<GlobalCalendar> =>
+  read<GlobalCalendar>(`cells/${id}.json`).catch(() => {
+    const k = packOf(id)
+    let p = packs.get(k)
+    if (!p) { p = read<Record<string, GlobalCalendar>>(`cells-${k}.json`); packs.set(k, p); p.catch(() => packs.delete(k)) }
+    return p.then((all) => { const c = all[id]; if (!c) throw new Error(`global/${id}: no calendar`); return c })
+  })
 
 /** The year's reading of a cell, in one shape for both years. */
 export function reading(c: GlobalCell, year: 2024 | 2025) {

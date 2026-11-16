@@ -5,7 +5,7 @@
 // videos are copied as files. app.html, the audit page's old address, is a small redirect to regions.html that keeps
 // the region and the calendar's keys from its hash.
 // Usage: ARTIFACT_OUT=<dir> npm run artifact   (default dir: dist-artifact).
-import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const out = process.env.ARTIFACT_OUT ?? 'dist-artifact'
@@ -31,6 +31,20 @@ for (const f of images) copyFileSync(join('public', 'img', f), join(out, 'img', 
 const tiles = readdirSync(join('public', 'img', 'earth', 'tiles')).filter((f) => f.endsWith('.webp'))
 mkdirSync(join(out, 'img', 'earth', 'tiles'), { recursive: true })
 for (const f of tiles) copyFileSync(join('public', 'img', 'earth', 'tiles', f), join(out, 'img', 'earth', 'tiles', f))
+// the world map (Explore, "Or pick any area"): grid.json as is, and the cells packed into eight bundles by longitude
+// band (45 degrees each), since this page can't hold one file per cell; src/r2/global.ts reads either layout
+const globalDir = join('public', 'global')
+if (existsSync(join(globalDir, 'grid.json'))) {
+  mkdirSync(join(out, 'global'), { recursive: true })
+  copyFileSync(join(globalDir, 'grid.json'), join(out, 'global', 'grid.json'))
+  const packs = Array.from({ length: 8 }, () => ({}))
+  for (const f of readdirSync(join(globalDir, 'cells')).filter((x) => x.endsWith('.json'))) {
+    const id = f.slice(0, -5)
+    const k = Math.min(7, Math.max(0, Math.floor((Number(id.split('_')[1]) + 180) / 45)))
+    packs[k][id] = JSON.parse(readFileSync(join(globalDir, 'cells', f), 'utf8'))
+  }
+  packs.forEach((p, k) => writeFileSync(join(out, 'global', `cells-${k}.json`), JSON.stringify(p)))
+}
 // the drone loops and their posters (the Regions page)
 const videos = regions.flatMap((r) => [`${r}.mp4`, `${r}-poster.jpg`])
 mkdirSync(join(out, 'video', 'regions'), { recursive: true })
