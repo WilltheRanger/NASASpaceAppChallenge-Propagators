@@ -1,0 +1,78 @@
+{
+  "total": {
+    "discordant_grid_centers": 153,
+    "distinct_native_pixel_pairs": 153,
+    "global_native_components": 151,
+    "discordant_only_native_components": 151,
+    "distinct_snpp_fire_pixels": 74,
+    "distinct_noaa20_fire_pixels": 77
+  },
+  "biomes": {
+    "amazon": {
+      "discordant_grid_centers": 24,
+      "distinct_native_pixel_pairs": 24,
+      "global_native_components": 24,
+      "discordant_only_native_components": 24,
+      "distinct_snpp_fire_pixels": 8,
+      "distinct_noaa20_fire_pixels": 16
+    },
+    "cerrado": {
+      "discordant_grid_centers": 60,
+      "distinct_native_pixel_pairs": 60,
+      "global_native_components": 59,
+      "discordant_only_native_components": 59,
+      "distinct_snpp_fire_pixels": 27,
+      "distinct_noaa20_fire_pixels": 32
+    },
+    "caatinga": {
+      "discordant_grid_centers": 0,
+      "distinct_native_pixel_pairs": 0,
+      "global_native_components": 0,
+      "discordant_only_native_components": 0,
+      "distinct_snpp_fire_pixels": 0,
+      "distinct_noaa20_fire_pixels": 0
+    },
+    "mata_atlantica": {
+      "discordant_grid_centers": 55,
+      "distinct_native_pixel_pairs": 55,
+      "global_native_components": 54,
+      "discordant_only_native_components": 54,
+      "distinct_snpp_fire_pixels": 33,
+      "distinct_noaa20_fire_pixels": 21
+    },
+    "pantanal": {
+      "discordant_grid_centers": 5,
+      "distinct_native_pixel_pairs": 5,
+      "global_native_components": 5,
+      "discordant_only_native_components": 5,
+      "distinct_snpp_fire_pixels": 4,
+      "distinct_noaa20_fire_pixels": 1
+    },
+    "pampa": {
+      "discordant_grid_centers": 9,
+      "distinct_native_pixel_pairs": 9,
+      "global_native_components": 9,
+      "discordant_only_native_components": 9,
+      "distinct_snpp_fire_pixels": 2,
+      "distinct_noaa20_fire_pixels": 7
+    }
+  },
+  "descriptive_spatial_center_adjacency_m": {
+    "1000": {
+      "components": 110,
+      "largest_center_cluster": 5,
+      "pairs_within_distance": 50
+    },
+    "2000": {
+      "components": 100,
+      "largest_center_cluster": 9,
+      "pairs_within_distance": 93
+    },
+    "5000": {
+      "components": 98,
+      "largest_center_cluster": 9,
+      "pairs_within_distance": 129
+    }
+  },
+  "interpretation": "Native components track shared observed pixels, not independent fire events. Distance components are descriptive threshold sensitivities, not independence proof or P9 thresholds."
+}

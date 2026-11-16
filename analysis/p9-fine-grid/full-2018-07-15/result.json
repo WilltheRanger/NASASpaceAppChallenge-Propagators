@@ -1,0 +1,88 @@
+{
+  "date": "2018-07-15",
+  "grid_spacing_degrees": 0.005,
+  "grid_centers": 28424955,
+  "eligible_grid_pairs": 2904825,
+  "distinct_native_pixel_pairs": 2904820,
+  "native_dependence_components": 2617000,
+  "primary45_eligible_grid_centers": 0,
+  "status": "posthoc_full_day_sensitivity_not_full_calibration_or_p9",
+  "biomes": {
+    "amazon": {
+      "eligible_centers": 545823,
+      "snpp_fire_centers": 18,
+      "noaa_fire_centers": 26,
+      "discordant_fire_centers": 24,
+      "native_dependence_components": 481443
+    },
+    "cerrado": {
+      "eligible_centers": 1054088,
+      "snpp_fire_centers": 36,
+      "noaa_fire_centers": 40,
+      "discordant_fire_centers": 60,
+      "native_dependence_components": 960643
+    },
+    "caatinga": {
+      "eligible_centers": 109818,
+      "snpp_fire_centers": 0,
+      "noaa_fire_centers": 0,
+      "discordant_fire_centers": 0,
+      "native_dependence_components": 95723
+    },
+    "mata_atlantica": {
+      "eligible_centers": 863366,
+      "snpp_fire_centers": 38,
+      "noaa_fire_centers": 27,
+      "discordant_fire_centers": 55,
+      "native_dependence_components": 770731
+    },
+    "pantanal": {
+      "eligible_centers": 139054,
+      "snpp_fire_centers": 5,
+      "noaa_fire_centers": 2,
+      "discordant_fire_centers": 5,
+      "native_dependence_components": 129085
+    },
+    "pampa": {
+      "eligible_centers": 192676,
+      "snpp_fire_centers": 2,
+      "noaa_fire_centers": 7,
+      "discordant_fire_centers": 9,
+      "native_dependence_components": 180284
+    }
+  },
+  "input_complete": true,
+  "expected_swaths": 19,
+  "native_id_granules": {
+    "snpp": [
+      "VNP14IMG.A2018196.1536.002.2024080230911.nc",
+      "VNP14IMG.A2018196.1542.002.2024080230909.nc",
+      "VNP14IMG.A2018196.1548.002.2024080230911.nc",
+      "VNP14IMG.A2018196.1718.002.2024080230913.nc",
+      "VNP14IMG.A2018196.1724.002.2024080230913.nc",
+      "VNP14IMG.A2018196.1730.002.2024080230911.nc",
+      "VNP14IMG.A2018196.1900.002.2024080230913.nc",
+      "VNP14IMG.A2018196.1906.002.2024080230912.nc",
+      "VNP14IMG.A2018196.1912.002.2024080230912.nc"
+    ],
+    "noaa20": [
+      "VJ114IMG.A2018196.1448.002.2024008080012.nc",
+      "VJ114IMG.A2018196.1454.002.2024008080000.nc",
+      "VJ114IMG.A2018196.1500.002.2024008075948.nc",
+      "VJ114IMG.A2018196.1624.002.2024008075950.nc",
+      "VJ114IMG.A2018196.1630.002.2024008075956.nc",
+      "VJ114IMG.A2018196.1636.002.2024008075956.nc",
+      "VJ114IMG.A2018196.1806.002.2024008075953.nc",
+      "VJ114IMG.A2018196.1812.002.2024008075958.nc",
+      "VJ114IMG.A2018196.1818.002.2024008075956.nc",
+      "VJ114IMG.A2018196.1948.002.2024008075953.nc"
+    ]
+  },
+  "coarse_comparison": {
+    "eligible_centers": 28975,
+    "discordant_grid_centers": 1
+  },
+  "discordant_grid_centers": 153,
+  "interpretation": "Grid-center support, not independent fire events. Native dependence and whole-date uncertainty must be retained; original P9 unchanged.",
+  "grid_sha256": "e214b75eac48234ec36479ef2c52529da79279079b2e5620fb3c4070cc1226e0"
+}
