@@ -69,7 +69,6 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
 }) {
   const H = headingLevel === 1 ? 'h1' : 'h2'
   const day = Math.max(0.1, set - rise)
-  const at = (h: number) => `${Math.max(0, Math.min(100, ((h - rise) / day) * 100))}%`
   const then = aquaThen && aquaBefore != null
   const read = rows.map((r) => {
     const pass = r.key === 'aqua' && then ? aquaBefore : r.pass
@@ -91,16 +90,17 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
 
   return (
     <section aria-labelledby="alert-h" className="flex flex-col gap-4">
-      <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance] sm:text-[20px] sm:leading-[1.25]">
-        If a fire starts in {place} today, when will a satellite tell you, and how much daylight will be left to act?
-      </H>
-      {onHelp ? (
-        <button type="button" onClick={onHelp} className="-mt-2 inline-flex w-fit items-center gap-1.5 rounded text-sm text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-4 hover:text-[color:var(--bone)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]">
-          How it works
-        </button>
-      ) : null}
+      <div>
+        <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance]">
+          If a fire starts in {place} today, when will a satellite tell me, and how much daylight will I have left to act?
+        </H>
+        {onHelp ? (
+          <button type="button" onClick={onHelp} className="mt-1.5 rounded text-sm text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-4 hover:text-[color:var(--bone)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]">
+            How it works
+          </button>
+        ) : null}
+      </div>
 
-      {/* the two inputs */}
       <div data-tour="inputs" className="flex flex-col gap-2">
         {picker ? (
           <div className="flex items-center justify-between gap-3">
@@ -110,91 +110,58 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
         ) : null}
         <div className="flex items-center justify-between gap-3">
           <span className={label}>Alert delay</span>
-          <SegmentedControl<AlertDelay> label="Alert delay after the overpass (assumed)" value={delay} onChange={onDelay} motion={motion} className="w-[150px] shrink-0" segmentClassName="px-1.5 py-1 text-center text-sm" options={DELAYS} />
+          <SegmentedControl<AlertDelay> label="Alert delay after the pass (assumed)" value={delay} onChange={onDelay} motion={motion} className="w-[150px] shrink-0" segmentClassName="px-1.5 py-1 text-center text-sm" options={DELAYS} />
         </div>
       </div>
 
-      {/* the answer: two readouts, the table, the day */}
-      <div className="flex flex-col gap-3 border-t border-[color:var(--hairline)] pt-4">
-        {first && first.alert != null ? (
-          <dl aria-live="polite" data-tour="answer" className="grid grid-cols-2 gap-3">
-            <div>
-              <dt className="text-xs text-[color:var(--bone2)]">First alert</dt>
-              <dd className="mt-0.5 text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{fmtHM(first.alert)}</dd>
-              <dd className="mt-1 flex items-center gap-1.5 text-xs text-[color:var(--bone2)]"><SatMark k={first.key} />{first.name}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-[color:var(--bone2)]">Daylight left to act</dt>
-              <dd className="mt-0.5 text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{firstLight ? span(first.left as number) : 'None'}</dd>
-              <dd className="mt-1 text-xs text-[color:var(--bone2)]">{firstLight ? `until sunset at ${fmtHM(set)}` : 'the alert arrives after dark'}</dd>
-            </div>
-          </dl>
-        ) : (
-          <p className="text-sm text-[color:var(--bone2)]">No satellite detected fires here in the saved data, so there are no times to show.</p>
-        )}
+      {/* the answer: one row per satellite; the first alert, with the most daylight left, is highlighted */}
+      <table data-tour="answer" className="w-full border-separate border-spacing-0 text-sm tabular-nums">
+        <caption className="sr-only">For each satellite: when it passes, when its alert arrives, and the daylight left, in local sun time. The first alert leaves the most daylight.</caption>
+        <thead>
+          <tr className="text-left text-xs text-[color:var(--bone3)]">
+            <th scope="col" className="pb-1.5 pl-2 font-normal">Satellite</th>
+            <th scope="col" className="pb-1.5 font-normal">Passes</th>
+            <th scope="col" className="pb-1.5 font-normal">Alert</th>
+            <th scope="col" className="pb-1.5 pr-2 text-right font-normal">Daylight left</th>
+          </tr>
+        </thead>
+        <tbody>
+          {read.map((r) => {
+            const top = first?.key === r.key && firstLight
+            const dark = r.left != null && Math.round(r.left * 60) <= 0
+            const share = r.left != null ? Math.max(0, Math.min(1, r.left / day)) : 0
+            const cell = cn('py-2.5', top && 'bg-[color:var(--raised)]')
+            return (
+              <tr key={r.key} aria-label={top ? `${r.name}: first alert, most daylight left` : undefined} className={top ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone2)]'}>
+                <th scope="row" className={cn(cell, 'rounded-l-[4px] pl-2 text-left font-normal')}>
+                  <span className={cn('flex items-center gap-2', top && 'font-medium')}>
+                    <SatMark k={r.key} />{r.name}
+                    {r.key === 'aqua' && then ? <span className="text-[11px] text-[color:var(--bone3)]">’12–20</span> : null}
+                  </span>
+                </th>
+                <td className={cell}>{r.pass != null ? fmtHM(r.pass) : '—'}</td>
+                <td className={cell}>{r.alert != null ? fmtHM(r.alert) : '—'}</td>
+                <td className={cn(cell, 'rounded-r-[4px] pr-2 text-right')}>
+                  <span className="flex items-center justify-end gap-2">
+                    {r.left != null && !dark ? (
+                      <span aria-hidden className="relative h-1.5 w-10 overflow-hidden rounded-full bg-[color:var(--hairline)]">
+                        <span className={cn('absolute inset-y-0 left-0 rounded-full', move)} style={{ width: `${share * 100}%`, background: COLOR[r.key] }} />
+                      </span>
+                    ) : null}
+                    <span className={cn(top && 'font-medium')}>{r.left == null ? 'No data' : dark ? 'After dark' : span(r.left)}</span>
+                  </span>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
 
-        <div data-tour="table" className="flex flex-col gap-3">
-        <table className="w-full text-sm tabular-nums">
-          <caption className="sr-only">For each satellite: overpass time, alert time and daylight left, in local solar time</caption>
-          <thead>
-            <tr className="text-left text-xs text-[color:var(--bone3)]">
-              <th scope="col" className="pb-1.5 font-normal">Satellite</th>
-              <th scope="col" className="pb-1.5 font-normal">Overpass</th>
-              <th scope="col" className="pb-1.5 font-normal">Alert</th>
-              <th scope="col" className="pb-1.5 text-right font-normal">Daylight left</th>
-            </tr>
-          </thead>
-          <tbody>
-            {read.map((r) => {
-              const top = first?.key === r.key && firstLight
-              const dark = r.left != null && Math.round(r.left * 60) <= 0
-              return (
-                <tr key={r.key} className={cn('border-t border-[color:var(--hairline)]', top ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone2)]')}>
-                  <th scope="row" className="py-2 text-left font-normal">
-                    <span className={cn('flex items-center gap-2', top && 'font-medium')}>
-                      <SatMark k={r.key} />{r.name}
-                      {r.key === 'aqua' && then ? <span className="text-[11px] text-[color:var(--bone3)]">2012–20</span> : null}
-                    </span>
-                  </th>
-                  <td className="py-2">{r.pass != null ? fmtHM(r.pass) : '—'}</td>
-                  <td className="py-2">{r.alert != null ? fmtHM(r.alert) : '—'}</td>
-                  <td className={cn('py-2 text-right', top && 'font-medium')}>{r.left == null ? 'No detections' : dark ? 'After dark' : span(r.left)}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-
-        {/* the day from sunrise to sunset, one lane per satellite: the pass (tick), the wait (dashed), the daylight left (solid) */}
-        <figure className="m-0">
-          <div aria-hidden className="relative flex flex-col gap-1.5 rounded-[3px] bg-[color:var(--surface)] px-2 py-2">
-            {read.map((r) => (
-              <div key={r.key} className="relative h-2">
-                <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[color:var(--hairline)]" />
-                {r.pass != null && r.alert != null ? (
-                  <>
-                    <span className={cn('absolute top-1/2 h-0 -translate-y-1/2 border-t-2 border-dashed', move)} style={{ left: at(r.pass), width: `calc(${at(r.alert)} - ${at(r.pass)})`, borderColor: COLOR[r.key] }} />
-                    <span className={cn('absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full', move)} style={{ left: at(r.alert), width: `calc(100% - ${at(r.alert)})`, background: COLOR[r.key], opacity: 0.85 }} />
-                    <span className={cn('absolute top-1/2 h-2.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--bone)]', move)} style={{ left: at(r.pass) }} />
-                  </>
-                ) : null}
-              </div>
-            ))}
-          </div>
-          <figcaption className="mt-1 flex justify-between text-[11px] tabular-nums text-[color:var(--bone3)]">
-            <span>Sunrise {fmtHM(rise)}</span>
-            <span>Bar: daylight after the alert</span>
-            <span>Sunset {fmtHM(set)}</span>
-          </figcaption>
-        </figure>
-        </div>
-      </div>
-
-      {/* what Aqua's drift changed: then and now */}
+      {/* what Aqua's drift changed */}
       {later != null && fewer != null && later >= 5 && aquaBefore != null && aqua?.pass != null ? (
-        <div data-tour="then-now" className="flex flex-col gap-2.5 border-t border-[color:var(--hairline)] pt-4">
+        <div data-tour="then-now" className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-[color:var(--bone)]">What Aqua’s drift changed</p>
+            <span className={label}>Aqua’s time</span>
             {onAquaThen ? (
               <SegmentedControl<'then' | 'now'>
                 label="Aqua's pass time: 2012 to 2020, or now"
@@ -211,17 +178,14 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
             ) : null}
           </div>
           <p className="text-sm leading-6 text-[color:var(--bone)]">
-            Aqua now passes {later} minutes later than in 2012–2020 ({fmtHM(aquaBefore)} → {fmtHM(aqua.pass)}), so its alert arrives {later} minutes later
+            Aqua now passes {later} minutes later than in 2012–2020, so its alert arrives {later} minutes later
             {fewer > 0 ? <> and leaves {fewer} fewer minutes of daylight.</> : <>. At this delay it arrives after dark either way.</>}
           </p>
         </div>
       ) : null}
 
       <p className="text-xs leading-5 text-[color:var(--bone3)]">
-        Times are local solar time, not clock time.{' '}
-        <span className="text-[color:var(--bone2)]">Measured:</span> overpasses, sunrise, sunset, fires on the map{fires ? ` (${fires})` : ''}.{' '}
-        <span className="text-[color:var(--bone2)]">Assumed:</span> the alert delay (NASA: within 3 h).{' '}
-        {basis} Cloud or smoke can hide a fire.
+        <span className="text-[color:var(--bone2)]">Real:</span> pass times, sunset{fires ? `, fires (${fires})` : ', fires'}. <span className="text-[color:var(--bone2)]">Assumed:</span> alert delay. {basis}
       </p>
     </section>
   )

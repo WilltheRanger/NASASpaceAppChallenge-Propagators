@@ -1,4 +1,4 @@
-// The Explore page's first-visit guide: six short steps, shown once on the first visit, replayed from "How it works".
+// The Explore page's first-visit guide: five short steps, shown once on the first visit, replayed from "How it works".
 import { driver, type DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
 import './tour.css'
@@ -41,22 +41,14 @@ export function startGuide(shift: string, motion: boolean) {
       element: '[data-tour="answer"]',
       popover: {
         title: '2. Read the answer',
-        description: 'First alert: the earliest time any satellite tells you about the fire. Daylight left: the time from that alert until sunset.',
-        side: side('right'), align: 'start',
-      },
-    },
-    {
-      element: '[data-tour="table"]',
-      popover: {
-        title: '3. Compare the satellites',
-        description: 'One row per satellite: when it passes over, when its alert arrives, and the daylight left. The bars show the same on one line from sunrise to sunset.',
+        description: 'One row per satellite: when it passes over, when its alert reaches you, and how much daylight is left until sunset. The highlighted row alerts you first and leaves the most daylight.',
         side: side('right'), align: 'start',
       },
     },
     {
       element: '[data-tour="then-now"]',
       popover: {
-        title: '4. What changed',
+        title: '3. What changed',
         description: `Aqua, the satellite behind Brazil’s official fire count, now passes ${shift} later than in 2012–2020. Switch to 2012–20 to see how much more daylight its alert used to leave.`,
         side: side('right'), align: 'start',
       },

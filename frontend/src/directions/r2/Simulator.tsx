@@ -476,7 +476,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: facts.d.phrase.the,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: y.look[g] })),
         rise: y.rise, set: y.set, aquaBefore: dl.baseAqua,
-        basis: `Overpasses: ${y.year} average. Sunset: ${y.mid.day} ${MONTHS[y.mid.m - 1]}, mid fire season.`,
+        basis: `Sun time, ${y.mid.day} ${MONTHS[y.mid.m - 1]} (mid fire season).`,
       }
     }
     if (place) {
@@ -487,7 +487,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: place.name,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: s[g].lst })),
         rise: sun.rise, set: sun.set, aquaBefore: null,
-        basis: `Overpasses: each satellite’s detections here, ${WHEN}. Sunset: that day.`,
+        basis: `Sun time, ${WHEN}.`,
       }
     }
     return null
