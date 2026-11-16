@@ -25,7 +25,7 @@ export function startGuide(shift: string, motion: boolean) {
       element: '#alert-h',
       popover: {
         title: 'What this page is for',
-        description: 'Plan around satellite fire alerts. If a fire starts here today, this shows when each satellite will spot it and alert you, and how much daylight you will have left to respond.',
+        description: 'A what-if for responders: if a fire starts here today, when each satellite could alert you and how much daylight would be left. It uses typical pass times, an assumed delay and sunset on a mid-season day; it is not measured alert performance.',
         side: side('right'), align: 'start',
       },
     },
@@ -49,7 +49,7 @@ export function startGuide(shift: string, motion: boolean) {
       element: '[data-tour="then-now"]',
       popover: {
         title: '3. What changed',
-        description: `Aqua, the satellite behind Brazil’s official fire count, now passes ${shift} later than in 2012–2020. Switch to 2012–20 to see how much more daylight its alert used to leave.`,
+        description: `Aqua, the satellite behind Brazil’s official fire count, now passes ${shift} later than in 2012–2020. Switch to 2012–20 to compare its alert in this scenario.`,
         side: side('right'), align: 'start',
       },
     },

@@ -35,7 +35,7 @@ const SRC = {
 } as const
 
 /** The audit question, in plain words (it used to read "What is the fix?", which nobody understood). */
-const OLD_TIME = 'What would Aqua count at its old time?'
+const OLD_TIME = 'What is the benchmark?'
 export const STARTERS = ['What am I looking at?', 'Which satellite saw this fire?', 'When does Aqua pass here?', OLD_TIME]
 
 const has = (q: string, ...words: (string | RegExp)[]) => words.some((w) => (typeof w === 'string' ? q.includes(w) : w.test(q)))
@@ -53,7 +53,7 @@ function orientation(): SiAnswer {
     sentences: [
       { text: `The map shows the daytime fires NASA’s satellites detected from ${dayText(WINDOW.start)} to ${dayText(WINDOW.end)}, ${fmtInt(TOTALS.reduce((a, b) => a + b, 0))} in all, coloured by satellite.`, cite: ['firms'] },
       { text: `Each satellite looks at its own time of day. On those days: Terra about ${hours(s.terra.lst)}, VIIRS about ${hours(s.viirs.lst)}, Aqua about ${hours(s.aqua.lst)}, local solar time.`, cite: ['firms'] },
-      { text: 'INPE’s official fire count for Brazil follows Aqua alone. Aqua now looks later in the day, so we compare its count with what we’d expect at its old time, in six places framed in white.', cite: ['method'] },
+      { text: 'INPE’s official fire count for Brazil follows Aqua alone. Aqua now looks later in the day, so we compare its count with a steady VIIRS-based benchmark (VIIRS’s count scaled by the 2012–2020 Aqua-to-VIIRS rate), in six places framed in white.', cite: ['method'] },
       { text: 'Click any fire to see which satellites saw it.' },
     ],
     sources: [SRC.firms, SRC.method],
@@ -120,8 +120,8 @@ function fireAnswer(i: number, lead?: string): SiAnswer {
   if (unknown.length) out.push({ text: `${listText(unknown)} didn’t see it, and has no detections nearby to show when it passed.` })
   out.push({
     text: alertBy < sunset
-      ? `For a responder: NASA delivers these alerts within ${DELIVERY_H} hours of the pass, so word could come as late as ${fmtHM(alertBy)}, with ${dur(sunset - alertBy)} of daylight left.`
-      : `For a responder: NASA delivers these alerts within ${DELIVERY_H} hours of the pass, so word could come as late as ${fmtHM(alertBy)}, after sunset.`,
+      ? `Scenario: NASA delivers these alerts within ${DELIVERY_H} hours of the pass, so word could come as late as ${fmtHM(alertBy)}, with ${dur(sunset - alertBy)} of daylight left.`
+      : `Scenario: NASA delivers these alerts within ${DELIVERY_H} hours of the pass, so word could come as late as ${fmtHM(alertBy)}, after sunset.`,
   })
   return {
     sentences: out,
@@ -147,7 +147,7 @@ function whenAnswer(ctx: SiContext, q: string): SiAnswer {
     if (first && last) {
       out.push({ text: `In the team’s files, Aqua looked at ${first.aqua_lst} in ${first.year} and ${last.aqua_lst} in ${last.year}; VIIRS stayed near ${last.viirs_lst}.`, cite: [`drift-${region}`] })
       const shift = Math.round((hm(last.aqua_lst) - hm(first.aqua_lst)) * 60)
-      if (shift > 0) out.push({ text: `So an alert from Aqua now comes about ${shift} minutes later in the day than it did in ${first.year}, with about ${shift} fewer minutes of daylight left.`, cite: [`drift-${region}`] })
+      if (shift > 0) out.push({ text: `If the delay after the pass stayed the same, an alert from Aqua’s pass would come about ${shift} minutes later than in ${first.year}, leaving about ${shift} fewer minutes of daylight in this scenario.`, cite: [`drift-${region}`] })
       if (s.aqua.lst != null && s.aqua.lst > hm(last.aqua_lst)) out.push({ text: `On ${SPAN} Aqua looked even later here, about ${fmtHM(s.aqua.lst)}: it is still drifting.`, cite: ['firms'] })
       out.shift()
       sources.push(SRC.drift(region))
@@ -163,7 +163,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
   if (!region) {
     return {
       sentences: [
-        { text: 'Aqua now looks later in the day. The VIIRS satellites kept their time, so they tell us what Aqua would have counted at its old time: what we’d expect.', cite: ['method'] },
+        { text: 'Aqua now looks later in the day. The VIIRS satellites kept their time. The benchmark is VIIRS’s count scaled by the 2012–2020 Aqua-to-VIIRS rate: a steady reference to read Aqua’s count against.', cite: ['method'] },
         { text: 'We compare what Aqua counted with what we’d expect. A gap bigger than any from 2012 to 2020 is unusual.', cite: ['method'] },
         { text: 'Pick a place to see both.' },
       ],
@@ -175,7 +175,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
   const y = d.latestOk
   const out: SiSentence[] = []
   if (y && y.fixed != null && y.verdict !== 'na' && y.gap != null && !isValidation(region)) {
-    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; we’d expect ${fmtInt(y.fixed)} at its old time. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (how sure we are: ${pct(y.lo)} to ${pct(y.hi)})` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
+    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; the VIIRS-based benchmark is ${fmtInt(y.fixed)}. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (likely range: ${pct(y.lo)} to ${pct(y.hi)})` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
     out.push({ text: 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.' })
   } else if (isValidation(region)) {
     out.push({ text: `${verdictHeadline(d)}.`, cite: [`audit-${region}`] })
@@ -197,7 +197,7 @@ function daylightAnswer(ctx: SiContext, q: string): SiAnswer {
   const dur = (v: number | null | undefined) => (v == null ? '—' : `${Math.floor(v)} h ${String(Math.round((v % 1) * 60)).padStart(2, '0')} min`)
   return {
     sentences: [
-      { text: `Example: if the alert comes 1.5 hours after Aqua’s pass, ${d.phrase.the} had ${dur(now)} of daylight left in 2025, against ${dur(fixed)} at Aqua’s old time${lvl2 ? ' (middle value over the year’s fires)' : ' (middle day of the fire season)'}.`, cite: [`daylight-${region}`] },
+      { text: `Scenario: if the alert comes 1.5 hours after Aqua’s pass, ${d.phrase.the} had ${dur(now)} of daylight left in 2025, against ${dur(fixed)} with Aqua’s 2012–2020 pass time${lvl2 ? ' (middle value over the year’s fires)' : ' (middle day of the fire season)'}.`, cite: [`daylight-${region}`] },
       ...(h?.aqua_look_change_min != null ? [{ text: `The pass moved ${Math.round(h.aqua_look_change_min)} minutes later.`, cite: [`daylight-${region}`] }] : []),
     ],
     sources: [SRC.daylight(region)],
@@ -279,7 +279,7 @@ function glossary(q: string): SiAnswer | null {
   const { first, last } = AMAZON
   if (s === 'aqua') return { sentences: [{ text: `Aqua carries a MODIS sensor and looks in the afternoon. Over the Amazon it looked at ${first.aqua_lst} in ${first.year} and ${last.aqua_lst} in ${last.year}.`, cite: ['drift-br-amazon'] }], sources: [SRC.drift('br-amazon')], actions: [{ kind: 'filter', label: 'Show only Aqua', group: 'aqua' }] }
   if (s === 'terra') return { sentences: [{ text: `Terra carries the other MODIS sensor and looks in the morning. Over the Amazon it looked at ${first.terra_lst} in ${first.year} and ${last.terra_lst} in ${last.year}.`, cite: ['drift-br-amazon'] }], sources: [SRC.drift('br-amazon')], actions: [{ kind: 'filter', label: 'Show only Terra', group: 'terra' }] }
-  if (s === 'viirs') return { sentences: [{ text: `VIIRS flies on S-NPP, NOAA-20 and NOAA-21 and sees smaller fires than MODIS. Over the Amazon it stayed near ${last.viirs_lst}, so it tells us what Aqua would have counted at its old time.`, cite: ['drift-br-amazon'] }], sources: [SRC.drift('br-amazon')], actions: [{ kind: 'filter', label: 'Show only VIIRS', group: 'viirs' }] }
+  if (s === 'viirs') return { sentences: [{ text: `VIIRS flies on S-NPP, NOAA-20 and NOAA-21 and sees smaller fires than MODIS. Over the Amazon it stayed near ${last.viirs_lst}, so its count, scaled by the 2012–2020 Aqua-to-VIIRS rate, is our steady benchmark.`, cite: ['drift-br-amazon'] }], sources: [SRC.drift('br-amazon')], actions: [{ kind: 'filter', label: 'Show only VIIRS', group: 'viirs' }] }
   return null
 }
 

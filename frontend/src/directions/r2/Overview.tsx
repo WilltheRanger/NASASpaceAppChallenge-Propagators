@@ -21,6 +21,7 @@ import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { StickyScroll, type StickyStep } from '@/components/ui/sticky-scroll-reveal'
 import { LOOK_RANGE, REGIONS, fmtRange, hm, lookChange, phrase, pct, regionData } from '@/r2/data'
 import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
+import factsJson from '../../../../data/out/facts.json'
 import { cn } from '@/lib/utils'
 import {
   CAVEAT, FEATURED, IMG, JETHVA, More, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
@@ -49,6 +50,12 @@ const FINDING = [
     ? `In ${numWord(UNUSUAL.length)} (${UNUSUAL.map((r) => r.short).join(', ')}), its ${YEAR} count was unusually far from what we’d expect.`
     : `In none was its ${YEAR} count unusually far from what we’d expect.`,
 ]
+/** INPE's official Amazon count and the VIIRS-based benchmark, 2024 to 2025 (data/out/facts.json, amazon_decline_2024_2025),
+ *  and Aqua's 2025 count beside the benchmark (data/out/audit/br-amazon.json) */
+const DECLINE = (factsJson as { facts: { id: string; value: unknown }[] }).facts.find((f) => f.id === 'amazon_decline_2024_2025')?.value as
+  | { inpe_2024: number; inpe_2025: number; fixed_2024: number; fixed_2025: number; inpe_pct: number; fixed_pct: number } | undefined
+const AMAZON_2025 = regionData('br-amazon').latestOk
+const int = (n: number) => Math.round(n).toLocaleString('en-US')
 const RANGE = LOOK_RANGE ? `${LOOK_RANGE.min} to ${LOOK_RANGE.max} minutes` : 'more than an hour'
 
 /** One scale for every row's strip, in whole tens of percent around the widest reading. */
@@ -73,7 +80,7 @@ const PASSES: Record<PassKey, { name: string; when: string; alt: string; fit?: s
 }
 /** What the one big picture says about itself: VIIRS's picture stands for Aqua's old time of day. */
 const PLATE: Record<'viirs' | 'aqua', string> = {
-  viirs: 'Early afternoon, near Aqua’s old time · seen by VIIRS',
+  viirs: 'Early afternoon, near Aqua’s 2012–2020 time · seen by VIIRS',
   aqua: 'Later afternoon, Aqua’s time now · seen by Aqua',
 }
 const wide = (k: PassKey) => `${IMG}amazon-${k}-2026-09-04.jpg`
@@ -88,7 +95,7 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
     <>
       <SiteBar page="overview" links={links} leave={leave} />
       <main>
-        <Park />
+        <Park links={links} leave={leave} />
         <Later />
         <OneDay />
         <Finding links={links} leave={leave} />
@@ -107,7 +114,7 @@ const WIDE_SCRIM = 'linear-gradient(90deg, rgba(11,13,11,0.9) 0%, rgba(11,13,11,
 
 /** The opening: the framed photograph with the question already on it. No scroll effect; it is a little shorter than
  *  the screen so the next section shows below it. */
-function Park() {
+function Park({ links, leave }: { links: Links; leave: Leave }) {
   const p = OVERVIEW_PHOTO
   return (
     <section aria-labelledby="park-h" className="relative pt-14">
@@ -130,9 +137,17 @@ function Park() {
           <div aria-hidden className="absolute inset-0 -z-10 lg:hidden" style={{ background: LOW_SCRIM }} />
           <div aria-hidden className="absolute inset-0 -z-10 hidden lg:block" style={{ background: WIDE_SCRIM }} />
           <div className="relative flex h-full items-end p-5 pb-10 sm:p-10 lg:p-14">
-            <h1 id="park-h" className="max-w-[15ch] text-balance text-[clamp(40px,5.8vw,92px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]">
-              Imagine counting people in a park every day at <span className="tabular-nums">1:30</span>.
-            </h1>
+            <div>
+              <h1 id="park-h" className="max-w-[15ch] text-balance text-[clamp(40px,5.8vw,92px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]">
+                Anchor: a fire calendar on a steady reference.
+              </h1>
+              <p className="mt-5 max-w-[34rem] text-lg text-[color:var(--bone2)]">
+                24 years of satellite fire records for six places, compared against one consistent benchmark. For fire managers, responders, scientists and journalists.
+              </p>
+              <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-6')}>
+                Open the fire calendar <ArrowUpRight size={16} aria-hidden />
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -157,7 +172,7 @@ function Later() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 pb-16 pt-14 lg:grid-cols-12 lg:gap-x-6 lg:pb-24 lg:pt-20')}>
         <div className="lg:col-span-8">
           <h2 id="later-h" className="max-w-[20ch] text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em]">
-            Years later you count at <span className="tabular-nums">3:00</span> and find more people.
+            Count a park at <span className="tabular-nums">1:30</span>. Years later, count at <span className="tabular-nums">3:00</span> and find more people.
           </h2>
           <p className="mt-5 max-w-[28ch] text-balance text-[clamp(22px,2.2vw,32px)] leading-[1.2] tracking-[-0.01em] text-[color:var(--bone2)]">
             Did more people come, or did you just show up at a busier time?
@@ -206,16 +221,16 @@ function OneDay() {
       description: <>{DAY.driftStart ? <>Here the move started in {DAY.driftStart}. </> : null}Across our six places, Aqua now looks {RANGE} later.</>,
     },
     { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change during the day, so a later look can count more fires or fewer.' },
-    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That old match and VIIRS’s count now give what we’d expect from Aqua.</> },
+    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
   ]
   return (
     <section id="day" aria-labelledby="day-h">
       <div className={cn(shell, 'pb-6 pt-10 lg:pb-12 lg:pt-12')}>
         <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
           <h2 id="day-h" className="text-balance text-[clamp(30px,3.6vw,52px)] font-medium leading-[1.05] tracking-[-0.025em] lg:col-span-7">
-            Aqua, a NASA satellite that spots fires from space, faces the same question.
+            Aqua now looks {look.minutes} minutes later over {phrase(FEATURED).the} than in 2012–2020.
           </h2>
-          <p className="max-w-[30ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">INPE’s official fire count for Brazil follows Aqua.</p>
+          <p className="max-w-[30ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">Aqua is the NASA satellite behind Brazil’s official fire count (INPE). Across our six places it now looks {RANGE} later.</p>
         </div>
         {wideScreen ? (
           <StickyScroll
@@ -369,9 +384,25 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
       {/* the page's one change of ground: the finding on bone, the way their key statements sit on a lighter band */}
       <div className="bg-[color:var(--bone)] text-[color:var(--ink)]">
         <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
-          <h2 id="finding-h" tabIndex={-1} className="text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em] outline-none lg:col-span-8">
-            {FINDING.join(' ')}
-          </h2>
+          <div className="lg:col-span-8">
+            <h2 id="finding-h" tabIndex={-1} className="text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em] outline-none">
+              {DECLINE
+                ? <>Brazil’s official Amazon count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025; the VIIRS-based benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
+                : FINDING.join(' ')}
+            </h2>
+            {DECLINE ? (
+              <p className="mt-4 text-sm tabular-nums text-[color:var(--ink)] opacity-70">
+                Official (INPE): {int(DECLINE.inpe_2024)} to {int(DECLINE.inpe_2025)} detections. Benchmark: {int(DECLINE.fixed_2024)} to {int(DECLINE.fixed_2025)}.
+              </p>
+            ) : null}
+            <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
+            {AMAZON_2025 && AMAZON_2025.aqua != null && AMAZON_2025.fixed != null ? (
+              <p className="mt-3 max-w-[40rem] text-lg text-[color:var(--ink)]">
+                In {AMAZON_2025.year} Aqua recorded about {int(Math.round((AMAZON_2025.aqua - AMAZON_2025.fixed) / 1000) * 1000)} more Amazon detections than the benchmark{' '}
+                <span className="tabular-nums">({int(AMAZON_2025.aqua)} vs {int(AMAZON_2025.fixed)})</span>.
+              </p>
+            ) : null}
+          </div>
           <Reveal className="lg:col-span-3 lg:col-start-10 lg:self-start lg:pt-2">
             <p className="rounded-[4px] border border-[color:var(--ink-20)] p-4 text-base text-[color:var(--ink)] lg:p-5 lg:text-lg">{CAVEAT}</p>
           </Reveal>
@@ -379,12 +410,6 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
       </div>
       <div className={cn(shell, 'pb-16 lg:pb-24')}>
         <Places />
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <a href={`${links.regions()}#calendar`} onClick={leave} className={primaryButton}>
-            Open burning calendar <ArrowUpRight size={16} aria-hidden />
-          </a>
-          <p className="max-w-lg text-sm text-[color:var(--bone2)]">Each place’s fires month by month, 2002 to 2025, against a normal month. You can download it.</p>
-        </div>
       </div>
     </section>
   )
@@ -402,7 +427,7 @@ function Places() {
         <span className={th}>Place</span>
         <span className={th}>How much later Aqua looks</span>
         <span className={th}>
-          {YEAR} count vs what we’d expect
+          {YEAR} count vs the benchmark
           <StripAxis />
         </span>
         <span className={th}>Unusual?</span>
@@ -413,10 +438,8 @@ function Places() {
         ))}
       </ol>
       <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
-        Look times are local sun time, 2012–2020 against {YEAR}. Short lines: each year from 2012 to 2020; the shaded band spans them. Unusual: further from what
-        we’d expect than any of those years. How sure we are: the amber line shows how much the number moves when we re-pick the days we compare; it doesn’t say how much the timing caused. Our test case: another study already timed
-        the crop burning in Punjab + Haryana (<a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>), so we check our results
-        against it. Sources: our data files, one per place (see How we know).
+        Look times: local sun time, 2012–2020 against {YEAR}. Unusual: further from the benchmark than any year from 2012 to 2020; the amber line is the likely range.
+        Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.
       </p>
       <More label="About the range" className="mt-2">
         <p className="max-w-[64rem] text-xs text-[color:var(--bone3)]">
@@ -465,11 +488,11 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           {r.look ? <MiniShift old={r.look.old} now={r.look.now} /> : null}
         </span>
         <span className="col-span-2 md:col-span-1">
-          <span className={label}>{YEAR} count vs what we’d expect</span>
+          <span className={label}>{YEAR} count vs the benchmark</span>
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
               <RollingDigits text={pct(r.read.gap)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
-              <span className="text-xs tabular-nums text-[color:var(--bone3)]">How sure we are: {fmtRange(r.read.lo, r.read.hi)}</span>
+              <span className="text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {fmtRange(r.read.lo, r.read.hi)}</span>
             </span>
           ) : (
             <span className="block text-sm text-[color:var(--bone2)]">Too few fires to read in {YEAR}</span>
@@ -540,7 +563,7 @@ function StripAxis() {
       {W > 0
         ? SCALE.ticks.map((v) => (
             <span key={v} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: x(v) }}>
-              {v === 0 ? 'what we’d expect' : `${v > 0 ? '+' : '−'}${Math.abs(v)}%`}
+              {v === 0 ? 'benchmark' : `${v > 0 ? '+' : '−'}${Math.abs(v)}%`}
             </span>
           ))
         : null}
@@ -559,8 +582,8 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
         <Door
           href={links.regions()}
           leave={leave}
-          title="Regions"
-          line="Six places, year by year."
+          title="Fire calendar"
+          line="Every month since 2002, for six places."
           className="min-h-[380px] lg:col-span-7 lg:row-span-2 lg:min-h-[620px]"
           art={
             <span className="grid size-full grid-cols-3 grid-rows-2 gap-0.5 bg-[color:var(--ground)]">
@@ -579,8 +602,8 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
         <Door
           href={links.sim()}
           leave={leave}
-          title="Explore any place"
-          line="If a fire starts today: when each satellite would alert you, and the daylight left to act."
+          title="What-if for responders"
+          line="A what-if: when each satellite’s alert could arrive under an assumed delay."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}sim/${FEATURED}-context.jpg`} alt="" loading="lazy" className={pic} style={{ objectPosition: '30% 62%' }} />}
         />

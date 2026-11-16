@@ -42,7 +42,7 @@ function SatMark({ k }: { k: AlertRow['key'] }) {
 }
 
 
-export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, onHelp, headingLevel = 2 }: {
+export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, onHelp, calendar, headingLevel = 2 }: {
   /** the place, as it reads in a sentence: "the Amazon", "Kenya" */
   place: string
   rows: AlertRow[]
@@ -65,6 +65,8 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   motion: boolean
   /** opens the walkthrough */
   onHelp?: () => void
+  /** a link to this place's fire calendar on the Regions page */
+  calendar?: ReactNode
   headingLevel?: 1 | 2
 }) {
   const H = headingLevel === 1 ? 'h1' : 'h2'
@@ -91,14 +93,18 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   return (
     <section aria-labelledby="alert-h" className="flex flex-col gap-4">
       <div>
+        <p className="mb-1.5 text-xs text-[color:var(--bone3)]">What-if for responders</p>
         <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance]">
-          If a fire starts in {place} today, when will a satellite tell me, and how much daylight will I have left to act?
+          If a fire starts in {place} today, when could a satellite alert me, and how much daylight would I have left to act?
         </H>
-        {onHelp ? (
-          <button type="button" onClick={onHelp} className="mt-1.5 rounded text-sm text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-4 hover:text-[color:var(--bone)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]">
-            How it works
-          </button>
-        ) : null}
+        <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          {onHelp ? (
+            <button type="button" onClick={onHelp} className="rounded text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-4 hover:text-[color:var(--bone)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]">
+              How it works
+            </button>
+          ) : null}
+          {calendar}
+        </p>
       </div>
 
       <div data-tour="inputs" className="flex flex-col gap-2">
@@ -178,13 +184,14 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
             ) : null}
           </div>
           <p className="text-sm leading-6 text-[color:var(--bone)]">
-            Aqua now passes {later} minutes later than in 2012–2020, so its alert arrives {later} minutes later
-            {fewer > 0 ? <> and leaves {fewer} fewer minutes of daylight.</> : <>. At this delay it arrives after dark either way.</>}
+            If the delay after the pass stayed the same, an alert from Aqua’s pass would come about {later} minutes later
+            {fewer > 0 ? <>, leaving about {fewer} fewer minutes of daylight in this scenario.</> : <>; at this delay it would arrive after dark either way.</>}
           </p>
         </div>
       ) : null}
 
       <p className="text-xs leading-5 text-[color:var(--bone3)]">
+        A what-if, not measured alert performance: typical pass times, an assumed delay, sunset on a mid-season day.{' '}
         <span className="text-[color:var(--bone2)]">Real:</span> pass times, sunset{fires ? `, fires (${fires})` : ', fires'}. <span className="text-[color:var(--bone2)]">Assumed:</span> alert delay. {basis}
       </p>
     </section>

@@ -508,7 +508,9 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     </label>
   )
   const alertPanel = alert ? (
-    <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN} onHelp={() => { setTab('info'); setSnap(1); window.setTimeout(() => startGuide(SHIFT, motion), 80) }}
+    <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN}
+      calendar={region ? <a href={`${regionsHref(region)}#calendar`} onClick={leave} className="rounded text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-4 hover:text-[color:var(--bone)]">See this place’s fire calendar</a> : null}
+      onHelp={() => { setTab('info'); setSnap(1); window.setTimeout(() => startGuide(SHIFT, motion), 80) }}
       aquaThen={clock === 'old'} onAquaThen={(t) => setClock(t ? 'old' : 'new')} />
   ) : null
   const rail = cell ? (
@@ -611,7 +613,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
 
           {place && !day && !failed ? (
             <p className={cn(glass, 'pointer-events-none absolute z-20 px-2.5 py-1.5 text-xs text-[color:var(--bone)]', wide ? 'left-4 top-4' : 'left-3')} style={wide ? undefined : { bottom: `calc(${(pull != null ? 0 : SHEET[snap]) * 100}% + ${pull ?? 0}px + 8px)` }}>
-              Fires from {WHEN}{clock === 'old' && region ? ', seen by VIIRS near Aqua’s old time' : ''}
+              Fires from {WHEN}{clock === 'old' && region ? ', seen by VIIRS near Aqua’s 2012–2020 time' : ''}
             </p>
           ) : null}
           {failed ? <p className={cn(glass, 'absolute left-4 top-4 z-20 px-3 py-2 text-xs text-[color:var(--bone2)]')}>This browser can’t draw the 3D globe. The numbers below are unaffected.</p> : null}
@@ -992,7 +994,7 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
           )}
           <Readout name="Daylight left after the alert" note="alert 1.5 h after the pass" value={light[clock]} basis={light[old ? 'new' : 'old']} format={(h) => dur(h)} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
         </dl>
-        <p className="text-sm text-[color:var(--bone3)]">The map shows {old ? 'the fires VIIRS saw, at about Aqua’s old time.' : 'the fires Aqua saw.'}</p>
+        <p className="text-sm text-[color:var(--bone3)]">The map shows {old ? 'the fires VIIRS saw, near Aqua’s 2012–2020 time.' : 'the fires Aqua saw.'}</p>
       </section>
 
       {daylight}
@@ -1177,7 +1179,7 @@ function CellReading({ cell, year, className }: { cell: GlobalCell | null; year:
     <div className={className}>
       <p className="text-[40px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{pctOf(r.L)}</p>
       <p className="mt-2 text-sm text-[color:var(--bone2)]">Aqua’s {year} count vs what we’d expect</p>
-      <p className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">How sure we are: {pctOf(r.lo)} to {pctOf(r.hi)} · {r.outside ? 'unusual' : 'not unusual'} for this square{usual}</p>
+      <p className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {pctOf(r.lo)} to {pctOf(r.hi)} · {r.outside ? 'unusual' : 'not unusual'} for this square{usual}</p>
       {r.shift != null ? <p className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">Aqua’s look time here: {fmtShift(r.shift)} against 2012–2020</p> : null}
     </div>
   )
@@ -1334,7 +1336,7 @@ function LookChart({ box: viewBox, probe, show, setShow, fire, near, oldClock, l
           ) : null}
         </span>
       }
-      bands={oldClock ? [{ from: oldClock.from, to: oldClock.to, label: 'Aqua’s old time', arrowTo: show.aqua && sum.aqua.n ? sum.aqua.lst : null }] : []}
+      bands={oldClock ? [{ from: oldClock.from, to: oldClock.to, label: 'Aqua’s 2012–20 time', arrowTo: show.aqua && sum.aqua.n ? sum.aqua.lst : null }] : []}
       markers={near.map((j) => ({ key: String(j), series: groupOf(SAT[j]), x: lstOf(j), strong: j === fire }))}
       tooltip={(k) => ({
         title: `${fmtHM(BIN_FROM + k * BIN)}–${fmtHM(BIN_FROM + (k + 1) * BIN)}`,
