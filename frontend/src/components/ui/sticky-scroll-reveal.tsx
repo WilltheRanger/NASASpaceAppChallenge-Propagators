@@ -88,11 +88,11 @@ export function StickyScroll({ steps, panel, initial = 0, onActive, top = '6rem'
                 on ? 'border-[color:var(--bone)]' : 'border-[color:var(--hairline)]',
               )}
             >
-              <span className={cn('block text-[length:var(--fs-32,32px)] font-medium leading-tight tracking-[-0.01em]', !still && 'transition-colors duration-500', on ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone3)] group-hover:text-[color:var(--bone2)]')}>
+              <span className={cn('block text-[length:var(--fs-32,32px)] font-medium leading-tight tracking-[-0.01em] xl:text-[40px] xl:tracking-[-0.02em]', !still && 'transition-colors duration-500', on ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone3)] group-hover:text-[color:var(--bone2)]')}>
                 {s.mark ? <span className="tabular-nums">{s.mark} </span> : null}{s.title}
               </span>
               {s.description ? (
-                <span className={cn('mt-2 block max-w-[var(--measure,36rem)] text-base', !still && 'transition-colors duration-500', on ? 'text-[color:var(--bone2)]' : 'text-[color:var(--bone3)]')}>
+                <span className={cn('mt-3 block max-w-[var(--measure,36rem)] text-lg leading-[1.5] xl:text-xl', !still && 'transition-colors duration-500', on ? 'text-[color:var(--bone2)]' : 'text-[color:var(--bone3)]')}>
                   {s.description}
                 </span>
               ) : null}

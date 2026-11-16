@@ -235,7 +235,6 @@ export function DaylightSection({ region, motion = true, nav = 'dev', level = 3,
             Example: the alert comes 1.5 hours after the pass. In {f.year}’s fire season ({f.season}), that leaves {hoursText(leftNow)} of daylight
             {f.median ? ' (the middle value over every real Aqua detection)' : ''}.
           </p>
-          <p className="mt-3 text-sm text-[color:var(--bone)]">One satellite’s alert timing, not a country’s response.</p>
           <dl aria-live="polite" className="mt-5 grid grid-cols-[auto_1fr] gap-x-5 gap-y-1.5 border-t border-[color:var(--hairline)] pt-3 text-sm">
             <dt className="text-[color:var(--bone3)]">Year</dt>
             <dd className="tabular-nums text-[color:var(--bone)]">{shown.year}</dd>
@@ -256,7 +255,7 @@ export function DaylightSection({ region, motion = true, nav = 'dev', level = 3,
           <figure className="m-0">
             <figcaption className="mb-3">
               <span className="block text-base font-medium text-[color:var(--bone)]">Daylight left after each satellite’s alert</span>
-              <span className="mt-1 block text-sm text-[color:var(--bone2)]">Dots: an alert 1.5 hours after the pass. Bars: no delay (top) to 3 hours (bottom). All three delays are examples.</span>
+              <span className="mt-1 block text-sm text-[color:var(--bone2)]">Dot: 1.5 h delay. Bar: no delay to 3 h.</span>
             </figcaption>
             <DaylightChart d={d} year={shown.year} onYear={setYear} height={width && width < 560 ? 220 : 280} />
             <p className="mt-3 text-xs text-[color:var(--bone3)]">
