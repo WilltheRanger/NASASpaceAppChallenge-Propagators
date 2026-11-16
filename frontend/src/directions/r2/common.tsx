@@ -558,8 +558,9 @@ export function PictureCredits() {
   )
 }
 
-/** `notes`: the page's own small print (how a number was counted, a picture's date). Closed until someone asks for it. */
-export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leave; notes?: ReactNode[] }) {
+/** `notes`: the page's own small print (how a number was counted, a picture's date). Closed until someone asks for it.
+ *  `about`: one plain line on who the page is for, shown above the team line. */
+export function Footer({ links, leave, notes = [], about }: { links: Links; leave: Leave; notes?: ReactNode[]; about?: ReactNode }) {
   const m = useMotion()
   const link = cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)
   return (
@@ -595,6 +596,11 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
             </div>
           </More>
         </div>
+        {about ? (
+          <div className="border-t border-[color:var(--hairline)] pt-4">
+            <p className="max-w-[var(--measure)] leading-6">{about}</p>
+          </div>
+        ) : null}
         <div className="flex flex-col gap-2 border-t border-[color:var(--hairline)] pt-6 sm:flex-row sm:items-center sm:justify-between">
           <AnchorLogo height={18} className="text-[color:var(--bone)]" />
           <p className="text-xs text-[color:var(--bone3)]">Team Propagators. {FOOTER_LINE}{ANY_MOCK ? ' This build uses mock data.' : ''}</p>
