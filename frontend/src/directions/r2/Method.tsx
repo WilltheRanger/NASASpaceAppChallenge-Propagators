@@ -194,7 +194,7 @@ function Steps() {
     },
     {
       title: 'Work out what we’d expect',
-      description: 'For each later year, VIIRS’s count and that rate give a benchmark in Aqua’s terms. It doesn’t establish what Aqua would have counted if only its look time had changed.',
+      description: 'For each later year, VIIRS’s count and that rate give what we’d expect from Aqua. It does not show what Aqua would have counted if only its look time had changed.',
       figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}</p> : null,
     },
     {

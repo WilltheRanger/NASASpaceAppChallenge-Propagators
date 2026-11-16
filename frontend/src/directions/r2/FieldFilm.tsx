@@ -20,11 +20,10 @@ import {
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
 import { AnomalyChart, type AnomalyPoint } from '@/components/ui/anomaly-chart'
-import { SeriesChart, type Series } from '@/components/ui/series-chart'
+import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/series-chart'
 import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { ScrollSpy } from '@/components/ui/scroll-spy'
-import { YearRuler } from '@/components/ui/year-ruler'
 import { inRegion } from '@/r2/region-shapes'
 import { photoFor } from '@/r2/photos'
 import {
@@ -415,64 +414,173 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
 
 const GLOBE_INK = { fg: 'var(--bone)', muted: 'var(--bone3)', grid: 'var(--bone-20)', ground: 'var(--ground)', surface: 'var(--surface)', land: 'var(--bone2)' }
 
+type LookKey = 'terra_lst' | 'viirs_lst' | 'aqua_lst'
+const LOOK_SATS: { key: LookKey; id: 'terra' | 'viirs' | 'aqua'; name: string; color: string }[] = [
+  { key: 'aqua_lst', id: 'aqua', name: 'Aqua', color: 'var(--sat-aqua)' },
+  { key: 'viirs_lst', id: 'viirs', name: 'VIIRS', color: 'var(--sat-viirs)' },
+  { key: 'terra_lst', id: 'terra', name: 'Terra', color: 'var(--sat-terra)' },
+]
+/** a satellite's usual look over a place in 2012-2020 (the median year), in hours */
+function usualLook(d: RegionData, key: LookKey) {
+  const v = d.drift.filter((r) => r.year <= 2020).map((r) => hm(r[key])).sort((a, b) => a - b)
+  return v.length ? v[Math.floor(v.length / 2)] : null
+}
+
+/** When each satellite flies over: the globe seen from the Sun on one side, a year-by-year chart on the other, and a
+ *  readout of the chosen year above it. Picking a year on the chart turns the globe to that year. */
 function LookTimes({ d }: { d: RegionData }) {
-  const [year, setYear] = useState(() => d.lastDrift?.year ?? 2025)
+  const last = d.lastDrift
+  const [year, setYear] = useState(() => last?.year ?? 2025)
   const region = REGIONS.find((r) => r.id === d.id)
-  if (!d.drift.length || !region) return null
+  if (!last || !region || !d.baseLook) return null
   const dr = d.driftAt(year)
-  const later = d.baseLook ? minutesBetween(dr.aqua_lst, d.baseLook) : 0
+  const later = minutesBetween(dr.aqua_lst, d.baseLook)
   const orbits: GlobeOrbit[] = [
     { id: 'terra', label: 'Terra', time: hm(dr.terra_lst), timeText: dr.terra_lst, dayPass: 'south', marker: 'hollow', color: 'var(--sat-terra)', altitudeKm: 705, phase: 0.62 },
     { id: 'viirs', label: 'VIIRS', time: hm(dr.viirs_lst), timeText: dr.viirs_lst, dayPass: 'north', marker: 'diamond', color: 'var(--sat-viirs)', altitudeKm: 830, phase: 0.31 },
     { id: 'aqua', label: 'Aqua', time: hm(dr.aqua_lst), timeText: dr.aqua_lst, dayPass: 'north', marker: 'filled', color: 'var(--sat-aqua)', altitudeKm: 705, phase: 0, flag: later >= 2 ? `+${later} min` : undefined },
   ]
-  const description = `${statementName(d.id)} at noon in ${dr.year}, with each satellite’s path: Terra looks at ${dr.terra_lst}, VIIRS at ${dr.viirs_lst} and Aqua at ${dr.aqua_lst}, local sun time.`
-  const row = 'flex items-baseline justify-between gap-4 border-t border-[color:var(--hairline)] py-2.5'
+  const name = statementName(d.id)
+  const description = `${name} at noon in ${dr.year}, with each satellite’s path: Terra looks at ${dr.terra_lst}, VIIRS at ${dr.viirs_lst} and Aqua at ${dr.aqua_lst}, local sun time.`
+  const change = (key: LookKey) => {
+    const u = usualLook(d, key)
+    if (u == null) return ''
+    const m = Math.round((hm(dr[key]) - u) * 60)
+    return Math.abs(m) < 4 ? 'about its usual time' : m > 0 ? `${m} min later than 2012–2020` : `${-m} min earlier than 2012–2020`
+  }
   return (
     <section id="look" aria-labelledby="look-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
-      <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
-        <div className="lg:col-span-4">
-          <h2 id="look-h" className={title}>When each satellite looked</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">Drag the year. Aqua moves later; VIIRS stays put.</p>
-          <dl aria-live="polite" className="mt-8 max-w-sm text-sm">
-            <div className={row}>
-              <dt className="flex items-center gap-2 text-[color:var(--bone2)]"><SatMark sat="aqua" />Aqua in {dr.year}</dt>
-              <dd className="tabular-nums">{dr.aqua_lst}{later >= 2 ? <span className="text-[color:var(--bone3)]"> · {later} min later</span> : null}</dd>
+      <div className={cn(shell, 'pb-16 pt-16')}>
+        <h2 id="look-h" className={title}>When each satellite flies over</h2>
+        <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">
+          Each one crosses {d.phrase.the} at about the same time every day. Aqua’s crossing has moved later; VIIRS’s has not.
+        </p>
+        <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-12">
+          <figure className="m-0 min-w-0 lg:col-span-6">
+            <div className="relative">
+              <OrbitGlobe orbits={orbits} region={{ name, bbox: region.bbox }} inside={(lon, lat) => inRegion(d.id, lon, lat, region.bbox)} running={false} ink={GLOBE_INK} label={description} />
+              <span aria-hidden className="pointer-events-none absolute left-0 top-2 text-xs text-[color:var(--bone3)]">Morning side</span>
+              <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
             </div>
-            <div className={row}>
-              <dt className="flex items-center gap-2 text-[color:var(--bone2)]"><SatMark sat="viirs" />VIIRS</dt>
-              <dd className="tabular-nums">{dr.viirs_lst}</dd>
-            </div>
-            <div className={row}>
-              <dt className="flex items-center gap-2 text-[color:var(--bone2)]"><SatMark sat="terra" />Terra</dt>
-              <dd className="tabular-nums">{dr.terra_lst}</dd>
-            </div>
-          </dl>
+            <figcaption className="mt-3 max-w-[34rem] text-xs text-[color:var(--bone3)]">
+              Seen from the Sun at noon in {dr.year}. Each ring is a satellite’s path; it looks at {name.replace(/^The /, 'the ')} where it crosses the dashed line. Drag to turn the globe.
+            </figcaption>
+          </figure>
+          <div className="min-w-0 lg:col-span-6">
+            <p className="text-sm text-[color:var(--bone2)]">{dr.year === last.year ? `${dr.year}, the latest year` : dr.year}</p>
+            <ul className="mt-2 border-t border-[color:var(--hairline)]">
+              {LOOK_SATS.map((s) => (
+                <li key={s.id} className="grid grid-cols-[1.25rem_4.5rem_4rem_minmax(0,1fr)] items-baseline gap-x-2 border-b border-[color:var(--hairline)] py-2.5">
+                  <span className="self-center"><SatMark sat={s.id} size={11} /></span>
+                  <span className="text-[color:var(--bone)]">{s.name}</span>
+                  <span className="text-xl font-medium tabular-nums text-[color:var(--bone)]">{dr[s.key]}</span>
+                  <span className="text-sm text-[color:var(--bone3)]">{s.id === 'viirs' && Math.abs(Math.round((hm(dr[s.key]) - (usualLook(d, s.key) ?? 0)) * 60)) < 4 ? 'kept its time' : change(s.key)}</span>
+                </li>
+              ))}
+            </ul>
+            <DriftChart d={d} year={dr.year} onYear={setYear} />
+            <p className="mt-2 text-xs text-[color:var(--bone3)]">Local sun time over {d.phrase.the}, by year. Pick a year to turn the globe. Source: drift/{d.id}.json</p>
+          </div>
         </div>
-        <figure className="m-0 mx-auto w-full min-w-0 max-w-[620px] lg:col-span-8">
-          <OrbitGlobe
-            orbits={orbits}
-            region={{ name: statementName(d.id), bbox: region.bbox }}
-            inside={(lon, lat) => inRegion(d.id, lon, lat, region.bbox)}
-            running={false}
-            ink={GLOBE_INK}
-            label={description}
-          />
-          <YearRuler
-            className="mt-2"
-            years={d.drift.map((r) => r.year)}
-            year={dr.year}
-            onYear={setYear}
-            marks={d.driftStart ? [d.driftStart] : []}
-            label={`Year shown for ${d.phrase.the}`}
-            valueText={(y) => { const r = d.driftAt(y); return `${y}: Aqua ${r.aqua_lst}, VIIRS ${r.viirs_lst}, Terra ${r.terra_lst}` }}
-          />
-          <figcaption className="mt-2 text-xs text-[color:var(--bone3)]">
-            Each ring is a satellite’s path over {d.phrase.the} at noon. Drag the globe to turn it.{d.driftStart ? ' The amber dot on the ruler is the year Aqua’s look started to move.' : ''}
-          </figcaption>
-        </figure>
       </div>
     </section>
+  )
+}
+
+/** Look time by year, one line per satellite: later in the day is higher, so Aqua's line rises where its clock moved.
+ *  A dashed line holds Aqua's 2012-2020 time for reference; the chosen year is marked and can be picked by pointer or
+ *  arrow keys. */
+function DriftChart({ d, year, onYear }: { d: RegionData; year: number; onYear: (y: number) => void }) {
+  const ref = useRef<HTMLDivElement | null>(null)
+  const W = useMeasuredWidth(ref)
+  const rows = d.drift
+  const H = 260
+  const padL = 46, padR = 92, padT = 14, padB = 26
+  const all = rows.flatMap((r) => LOOK_SATS.map((s) => hm(r[s.key])))
+  const lo = Math.floor(Math.min(...all) - 0.3), hi = Math.ceil(Math.max(...all) + 0.3)
+  const y0 = rows[0].year, y1 = rows[rows.length - 1].year
+  const x = (yr: number) => padL + ((yr - y0) / Math.max(1, y1 - y0)) * Math.max(0, W - padL - padR)
+  const y = (h: number) => padT + (1 - (h - lo) / (hi - lo)) * (H - padT - padB)
+  // where Aqua's look first moved and stayed later (four minutes or more past its 2012-2020 time)
+  const start = d.driftStart ? rows.find((r) => r.year === d.driftStart) ?? null : null
+  const hours: number[] = []
+  for (let h = Math.ceil(lo); h <= Math.floor(hi); h++) if (h % 3 === 0 || hi - lo <= 4) hours.push(h)
+  const yearTicks = [...new Set([y0, y0 + Math.round((y1 - y0) / 3), y0 + Math.round((2 * (y1 - y0)) / 3), y1])]
+  const pick = (clientX: number) => {
+    const el = ref.current
+    if (!el || W <= 0) return
+    const px = clientX - el.getBoundingClientRect().left
+    const yr = Math.round(y0 + ((px - padL) / Math.max(1, W - padL - padR)) * (y1 - y0))
+    const c = Math.max(y0, Math.min(y1, yr))
+    if (c !== year) onYear(c)
+  }
+  const cur = rows.find((r) => r.year === year) ?? rows[rows.length - 1]
+  const lastRow = rows[rows.length - 1]
+  // end labels, nudged apart when two lines finish close together
+  const ends = LOOK_SATS.map((s) => ({ s, y: y(hm(lastRow[s.key])) })).sort((a, b) => a.y - b.y)
+  for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 16) ends[k].y = ends[k - 1].y + 16
+  return (
+    <div
+      ref={ref}
+      role="slider"
+      tabIndex={0}
+      aria-label={`Look times by year over ${d.phrase.the}`}
+      aria-valuemin={y0}
+      aria-valuemax={y1}
+      aria-valuenow={year}
+      aria-valuetext={`${year}: Aqua ${cur.aqua_lst}, VIIRS ${cur.viirs_lst}, Terra ${cur.terra_lst}`}
+      className={cn('relative mt-6 w-full cursor-pointer touch-pan-y select-none rounded outline-offset-4', focusRing)}
+      style={{ height: H }}
+      onPointerDown={(e) => { if (e.button !== 0) return; e.currentTarget.setPointerCapture(e.pointerId); pick(e.clientX) }}
+      onPointerMove={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) pick(e.clientX) }}
+      onKeyDown={(e) => {
+        const step: Record<string, number> = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }
+        let v = year
+        if (e.key in step) v += step[e.key]
+        else if (e.key === 'Home') v = y0
+        else if (e.key === 'End') v = y1
+        else return
+        e.preventDefault()
+        onYear(Math.max(y0, Math.min(y1, v)))
+      }}
+    >
+      {W > 0 ? (
+        <svg width={W} height={H} aria-hidden className="block overflow-visible" fontSize={11}>
+          {hours.map((h) => (
+            <g key={h}>
+              <line x1={padL} x2={W - padR} y1={y(h)} y2={y(h)} stroke="var(--hairline)" />
+              <text x={padL - 8} y={y(h)} textAnchor="end" dominantBaseline="central" fill="var(--bone3)" className="tabular-nums">{String(h).padStart(2, '0')}:00</text>
+            </g>
+          ))}
+          {yearTicks.map((yr) => (
+            <text key={yr} x={x(yr)} y={H - 6} textAnchor="middle" fill="var(--bone3)" className="tabular-nums">{yr}</text>
+          ))}
+          {start ? (
+            <g>
+              <line x1={x(start.year)} x2={x(start.year)} y1={y(hm(start.aqua_lst)) - 6} y2={y(hm(start.aqua_lst)) - 22} stroke="var(--bone-30)" />
+              <text x={x(start.year)} y={y(hm(start.aqua_lst)) - 28} textAnchor="end" fill="var(--bone2)">Aqua starts looking later, {start.year}</text>
+            </g>
+          ) : null}
+          <line x1={x(year)} x2={x(year)} y1={padT - 6} y2={H - padB + 4} stroke="var(--bone-30)" />
+          {LOOK_SATS.map((s) => (
+            <g key={s.id}>
+              <polyline points={rows.map((r) => `${x(r.year).toFixed(1)},${y(hm(r[s.key])).toFixed(1)}`).join(' ')} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+              {(() => {
+                const cx = x(cur.year), cy = y(hm(cur[s.key]))
+                if (s.id === 'terra') return <circle cx={cx} cy={cy} r={4.5} fill="var(--ground)" stroke={s.color} strokeWidth={2} />
+                if (s.id === 'viirs') return <rect x={cx - 4} y={cy - 4} width={8} height={8} transform={`rotate(45 ${cx} ${cy})`} fill={s.color} stroke="var(--ground)" />
+                return <circle cx={cx} cy={cy} r={5} fill={s.color} stroke="var(--ground)" strokeWidth={2} />
+              })()}
+            </g>
+          ))}
+          {ends.map(({ s, y: ly }) => (
+            <text key={s.id} x={W - padR + 10} y={ly} dominantBaseline="central" fill="var(--bone)" fontSize={12}>
+              {s.name} <tspan fill="var(--bone3)" className="tabular-nums">{lastRow[s.key]}</tspan>
+            </text>
+          ))}
+        </svg>
+      ) : null}
+    </div>
   )
 }
 

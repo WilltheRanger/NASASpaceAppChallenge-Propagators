@@ -25,7 +25,10 @@ export interface ChartLineProps {
   domain: [number, number]
   ticks: { x: number; label: string }[]
   hidden: Set<string>
-  onToggle: (key: string) => void
+  /** shows a legend of toggles when given; without it the series are named at their peaks only */
+  onToggle?: (key: string) => void
+  /** something small at the header's right, e.g. a "Show all" button */
+  action?: React.ReactNode
   bands?: ChartBand[]
   markers?: ChartMarker[]
   tooltip: (i: number) => ChartTip
@@ -86,7 +89,7 @@ function useWidth(ref: React.RefObject<HTMLElement>) {
   return width
 }
 
-export function ChartLine({ title, description, data, series, domain, ticks, hidden, onToggle, bands = [], markers = [], tooltip, height = 104, motion: moving = true, summary, footer, empty, className }: ChartLineProps) {
+export function ChartLine({ title, description, data, series, domain, ticks, hidden, onToggle, action, bands = [], markers = [], tooltip, height = 104, motion: moving = true, summary, footer, empty, className }: ChartLineProps) {
   const reduce = useReducedMotion()
   const still = !moving || !!reduce
   const box = React.useRef<HTMLDivElement>(null)
@@ -159,8 +162,9 @@ export function ChartLine({ title, description, data, series, domain, ticks, hid
           <h2 className="text-sm font-medium text-[color:var(--bone)]">{title}</h2>
           {description ? <p className="mt-0.5 text-xs text-[color:var(--bone3)]">{description}</p> : null}
         </div>
-        {/* the legend: each series toggles */}
-        <div role="group" aria-label="Show or hide" className="flex flex-wrap items-center gap-1">
+        {action}
+        {/* the legend: each series toggles (only when the caller wants toggles) */}
+        {onToggle ? <div role="group" aria-label="Show or hide" className="flex flex-wrap items-center gap-1">
           {series.map((s) => {
             const on = !hidden.has(s.key)
             return (
@@ -178,7 +182,7 @@ export function ChartLine({ title, description, data, series, domain, ticks, hid
               </button>
             )
           })}
-        </div>
+        </div> : null}
       </div>
 
       {n === 0 || visible.length === 0 && empty ? (
@@ -197,12 +201,6 @@ export function ChartLine({ title, description, data, series, domain, ticks, hid
           {width > 0 ? (
             <svg width={width} height={svgH} className="block overflow-visible" onPointerMove={(e) => pick(e.clientX)} onPointerLeave={() => setActive(null)} aria-hidden>
               <defs>
-                {series.map((s, si) => (
-                  <pattern key={s.key} id={`${uid}-f${si}`} width="5" height="5" patternUnits="userSpaceOnUse">
-                    <circle cx="1.25" cy="1.25" r="1.1" fill={s.color} />
-                    <circle cx="3.75" cy="3.75" r="1.1" fill={s.color} />
-                  </pattern>
-                ))}
                 <marker id={`${uid}-arrow`} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                   <path d="M0,0 L8,4 L0,8 z" fill="#B4B1AA" />
                 </marker>
@@ -237,12 +235,12 @@ export function ChartLine({ title, description, data, series, domain, ticks, hid
                 )
               })}
 
-              {/* areas: halftone dots */}
-              <g opacity={0.6}>
+              {/* areas: a flat tint of each satellite's colour */}
+              <g opacity={0.2}>
                 {paths.map((p) => (
                   <motion.path
                     key={p.s.key}
-                    fill={`url(#${uid}-f${p.si})`}
+                    fill={p.s.color}
                     initial={still ? false : { d: p.area, opacity: 0 }}
                     animate={{ d: p.area, opacity: p.off ? 0 : 1 }}
                     transition={{ d: morph, opacity: t(0.5, { delay: 0.2 }) }}

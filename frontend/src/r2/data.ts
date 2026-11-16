@@ -471,7 +471,7 @@ export const fmtRange = (lo: number, hi: number, d = 1) => `${pct(lo, d).replace
  *  checks and limits on the Method page. */
 export const SECTIONS = [
   { id: 'verdict', label: 'Result', inComp: true },
-  { id: 'look', label: 'When it looked', inComp: true },
+  { id: 'look', label: 'When it flies over', inComp: true },
   { id: 'years', label: 'Year by year', inComp: true },
   { id: 'two-clocks', label: 'Two clocks', inComp: true },
   { id: 'calendar', label: 'Calendar', inComp: true },
