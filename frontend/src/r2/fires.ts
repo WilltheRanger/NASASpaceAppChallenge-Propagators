@@ -14,7 +14,13 @@ export const SENSOR: Record<number, string> = { 0: 'MODIS', 1: 'MODIS', 2: 'VIIR
 const START = Date.parse(`${DAY.start.replace(' ', 'T')}:00Z`)
 const pts = DAY.pts as number[]
 export const N = pts.length / 5
-export const LON = new Float32Array(N), LAT = new Float32Array(N), SAT = new Uint8Array(N), MIN = new Uint16Array(N), FRP = new Float32Array(N)
+/** Two spare rows after the day's dots hold a detection picked from the close-up squares, as the squares file gives it
+ *  (every detection, to 0.0001 degrees; the dots are thinned and rounded to 0.01). Two, so that picking a second square
+ *  is a change. Counts, charts and searches stop at N and never include them. */
+const SPARE = 2
+export const LON = new Float32Array(N + SPARE), LAT = new Float32Array(N + SPARE), SAT = new Uint8Array(N + SPARE), MIN = new Uint16Array(N + SPARE), FRP = new Float32Array(N + SPARE)
+/** half the north-south side of a spare row's square, in degrees (0 for a dot) */
+const HALF = new Float32Array(N + SPARE)
 for (let i = 0; i < N; i++) {
   LON[i] = pts[i * 5] / 100
   LAT[i] = pts[i * 5 + 1] / 100
@@ -39,16 +45,24 @@ export function heatShare(i: number) {
   return N ? lo / N : 0
 }
 /** local solar time in hours (0-24), worked out once for every row: the UTC minute of the day plus 4 minutes a degree */
-const LST = new Float32Array(N)
-{
-  const t0 = new Date(START)
-  const startMin = t0.getUTCHours() * 60 + t0.getUTCMinutes()
-  for (let i = 0; i < N; i++) {
-    const m = startMin + MIN[i] + LON[i] * 4
-    LST[i] = (((m % 1440) + 1440) % 1440) / 60
-  }
-}
+const LST = new Float32Array(N + SPARE)
+const START_MIN = new Date(START).getUTCHours() * 60 + new Date(START).getUTCMinutes()
+const setLst = (i: number) => { const m = START_MIN + MIN[i] + LON[i] * 4; LST[i] = (((m % 1440) + 1440) % 1440) / 60 }
+for (let i = 0; i < N; i++) setLst(i)
 export const lstOf = (i: number) => LST[i]
+
+/** One square's detection, kept in a spare row so the fire card can tell it exactly; returns its row. `half` is half
+ *  the square's north-south side, in degrees, so a card can sit on the square's edge. */
+let spare = 0
+export function holdDetection(d: { lon: number; lat: number; sat: number; min: number; frp: number; half: number }) {
+  const i = N + spare
+  spare = (spare + 1) % SPARE
+  LON[i] = d.lon; LAT[i] = d.lat; SAT[i] = d.sat; MIN[i] = d.min; FRP[i] = d.frp; HALF[i] = d.half
+  setLst(i)
+  return i
+}
+/** where a card about detection i points: the top (or bottom) edge of a picked square, or a dot's own spot */
+export const edgeLat = (i: number, below: boolean) => LAT[i] + (below ? -HALF[i] : HALF[i])
 
 /** a coarse grid of the rows, for finding what lies near a point */
 const CELL = 0.25
@@ -83,6 +97,8 @@ export function sightings(i: number) {
     const prev = best.get(SAT[j])
     if (prev == null || MIN[j] < MIN[prev]) best.set(SAT[j], j)
   }
+  // a picked square is its own satellite's sighting
+  if (i >= N) best.set(SAT[i], i)
   return [0, 1, 2, 3].map((s) => ({ sat: s as Sat, i: best.get(s) ?? null }))
 }
 
