@@ -248,11 +248,13 @@ function useTilesProtocol(dir: string) {
  *  solid at 150 MW or more. Size never carries heat: far out it is fixed, up close it is the ground covered. */
 export const HEAT_FAINT = 3, HEAT_SOLID = 150
 const BRIGHT = ['interpolate', ['linear'], ['sqrt', ['get', 'f']], Math.sqrt(HEAT_FAINT), 0.45, Math.sqrt(30), 0.8, Math.sqrt(HEAT_SOLID), 1]
-/** the zooms over which the fixed dots hand over to true-size squares, once the squares have loaded: about where a
- *  375 m square is as wide as a dot */
-const HAND0 = 9.2, HAND1 = 10
-/** a dot's size in px, the same for every detection: `far` out to zoom 6, easing to `near` at the handover */
-const fixed = (far: number, near: number) => ['interpolate', ['linear'], ['zoom'], 6, far, HAND1, near] as never
+/** the zooms over which the true-size squares fade in beneath the dots, once the squares have loaded: past about zoom
+ *  11 a 375 m VIIRS square is wider than a dot, so the footprint shows around it. The dots stay on top at every zoom,
+ *  so zooming in never makes a fire smaller or makes it disappear. */
+const HAND0 = 11, HAND1 = 12
+/** a dot's size in px, the same for every detection: `far` out to zoom 6, `near` by zoom 10, then a little larger
+ *  close in so a dot stays easy to see and to click over sharp imagery */
+const fixed = (far: number, near: number) => ['interpolate', ['linear'], ['zoom'], 6, far, 10, near, 14, near * 1.6] as never
 
 /** Every detection as the rectangle of ground it covers: FIRMS's scan (across the satellite's path, drawn east-west)
  *  and track (along it, drawn north-south). The real pixel is tilted a few degrees along the orbit; FIRMS's file
@@ -373,7 +375,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'region-edge', type: 'line', source: 'regions', paint: { 'line-color': BONE, 'line-opacity': ['case', ['get', 'on'], 0.6, 0.22], 'line-width': 1, 'line-dasharray': [2, 3] } },
         { id: 'frames', type: 'line', source: 'frames', layout: { 'line-cap': 'square', 'line-join': 'miter' }, paint: { 'line-color': BONE, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, 0.7] } },
         // up close: every detection at the size of the ground it covers, in its satellite's colour; overlaps show through
-        { id: 'squares', type: 'fill', source: 'squares', minzoom: HAND0 - 0.6, paint: { 'fill-color': ['match', ['get', 'g'], 0, TERRA, 1, AQUA, VIIRS], 'fill-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, ['*', 0.92, BRIGHT]], 'fill-antialias': true } as never },
+        { id: 'squares', type: 'fill', source: 'squares', minzoom: HAND0 - 0.6, paint: { 'fill-color': ['match', ['get', 'g'], 0, TERRA, 1, AQUA, VIIRS], 'fill-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, ['*', 0.6, BRIGHT]], 'fill-antialias': true } as never },
         { id: 'squares-edge', type: 'line', source: 'squares', minzoom: HAND0 - 0.6, paint: { 'line-color': ['match', ['get', 'g'], 0, TERRA, 1, AQUA, VIIRS], 'line-width': 1, 'line-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, 0.9] } as never },
         // VIIRS beneath (the most numerous), then Terra's rings, then Aqua on top: Aqua is the satellite the audit is about
         { id: 'fire-viirs-dot', type: 'circle', source: 'fires', maxzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2], paint: dot(VIIRS, 2, 2) as never },
@@ -526,14 +528,13 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     ;(map.getSource('scene-fires') as GeoJSONSource | undefined)?.setData(props.scene ?? NONE)
   }, [ready, props.scene])
 
-  // How solid the dots draw: by heat; fading in as the 2-degree squares fade out (while those show); fading out as the
-  // true-size squares take over up close (once those have loaded).
+  // How solid the dots draw: by heat; fading in as the 2-degree squares fade out (while those show). Up close they stay,
+  // drawn over the true-size squares.
   const paintFires = React.useCallback(() => {
     const map = mapRef.current
     if (!map) return
     const stops: unknown[] = []
     if (cellsOn.current) stops.push(4.5, 0, CELLS_GONE - 0.5, BRIGHT)
-    if (squaresReady.current) stops.push(HAND0, BRIGHT, HAND1, 0)
     const op = (stops.length ? ['interpolate', ['linear'], ['zoom'], ...stops] : BRIGHT) as never
     map.setPaintProperty('fire-viirs', 'icon-opacity', op)
     map.setPaintProperty('fire-viirs-dot', 'circle-opacity', op)
