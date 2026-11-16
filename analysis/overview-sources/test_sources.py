@@ -4,8 +4,10 @@ ROOT=Path(__file__).resolve().parents[2]
 class SourcesTests(unittest.TestCase):
  def test_scopes_and_anchor(self):
   s=(ROOT/'frontend/src/directions/r2/Overview.tsx').read_text()
-  self.assertLess(s.index('<Doors links='),s.index('<OverviewNotes links='))
-  self.assertIn('id="overview-sources"',s)
+  m=(ROOT/'frontend/src/directions/r2/Method.tsx').read_text()
+  # the Overview's supporting figures and citations now sit on the Method page, before its sources
+  self.assertIn('export function OverviewNotes',s)
+  self.assertLess(m.index('<OverviewNotes links='),m.index('id="sources"'))
   self.assertIn('Full-year Amazon totals',s)
   self.assertIn('Matched-day Amazon audit',s)
   self.assertIn('These are not the full-year totals above',s)
