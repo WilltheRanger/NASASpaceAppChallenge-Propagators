@@ -200,7 +200,7 @@ function Steps() {
     },
     {
       title: 'Compare',
-      description: y && y.gap != null ? `Aqua recorded ${fmtInt(y.aqua)} detections, which is ${pct(y.gap)} against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.',
+      description: y && y.gap != null ? `Aqua recorded ${fmtInt(y.aqua)} detections, which is ${pct(y.gap)} against what we’d expect. Further out than any year from 2012 to 2020 is unusual, or a close call if its likely range overlaps that range.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 is unusual, or a close call if its likely range overlaps that range.',
       figure: y && y.gap != null && y.lo != null && y.hi != null ? <RangeStrip gap={y.gap} lo={y.lo} hi={y.hi} band={d.placebo} /> : null,
     },
   ]
@@ -519,15 +519,11 @@ function InpeMatch() {
 
 /* ---------- What Anchor can't do ---------- */
 
-/** Flags the team's method notes call weak (analysis/statistics/README.md), named only while the audit file still flags
- *  them and their own range reaches back into the usual range, so the sentence can't outlive the data. */
-const WEAK_FLAG_NOTES = [{ id: 'br-cerrado', year: 2022 }, { id: 'ar-argentina', year: 2022 }]
+/** Every year the pipeline flags whose likely range still overlaps the usual range, grouped by place:
+ *  [{ id, years: [2022, 2025] }], read from the audit files, so the list follows the data. */
+const CLOSE_IDS = ['br-amazon', 'br-cerrado', 'br-pantanal', 'ar-argentina', 'in-punjab-haryana', 'us-california']
 function weakFlags() {
-  return WEAK_FLAG_NOTES.filter(({ id, year }) => {
-    const r = regionData(id)
-    const y = r.years.find((x) => x.year === year)
-    return !!y && y.verdict === 'close' && y.lo != null && y.hi != null && y.lo <= r.placebo[1] && y.hi >= r.placebo[0]
-  })
+  return CLOSE_IDS.map((id) => ({ id, years: regionData(id).years.filter((y) => y.verdict === 'close').map((y) => y.year) })).filter((w) => w.years.length)
 }
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const monthName = (ym: string) => `${MONTH_NAMES[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`
@@ -549,18 +545,21 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   }, [])
   const weak = useMemo(weakFlags, [])
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
-  const items: { t: string; b: ReactNode }[] = [
+  const items: { t: string; b: ReactNode; done?: string; next?: string }[] = [
     {
       t: 'It can’t say how much of a difference the timing caused.',
       b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together, and the data don’t separate the timing’s share. The benchmark is an estimate; it does not replace INPE’s official count.',
+      next: 'Next: separate the timing’s share from other changes, using observations that don’t depend on Aqua’s pass time.',
     },
     {
       t: '“Unusual” is a rough threshold. It is not proof.',
       b: 'Nine years set the usual range, so a tenth ordinary year would fall outside it about one time in five. A flag describes a year. It isn’t a significance test.',
+      done: 'Addressed: each unusual or close-call year now shows how many points it sits past the usual range.',
     },
     {
-      t: weak.length ? `Some flags are close calls: ${andList(weak.map((w) => `${phrase(w.id).the} in ${w.year}`))} ${weak.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is a close call.',
-      b: 'Close call: just outside the usual range, but the likely range overlaps it. These labels describe uncertainty, not proof of a timing effect.',
+      t: weak.length ? `Some flags are close calls: ${andList(weak.map((w) => `${phrase(w.id).the} (${w.years.join(', ')})`))} ${weak.length === 1 && weak[0].years.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is a close call.',
+      b: 'Close call: just outside the usual range, but the likely range overlaps it. The label describes uncertainty, not proof of a timing effect.',
+      done: 'Addressed: a year whose likely range overlaps the usual range is now labelled “Close call”, not “Unusual”.',
     },
     {
       t: 'Some satellite days are missing or filled in.',
@@ -571,12 +570,18 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           {' '}Aqua went into safe hold on 31 March 2022, and Terra paused its science data in October 2022.
         </>
       ),
+      next: 'Next: check coverage region by region, and tell a missing day apart from a day with no fires.',
     },
     {
       t: 'NASA reprocessed VIIRS files in May 2025.',
-      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Sources now distinguish MODIS Collection 6.1 and VIIRS Collection 2 standard products from the provisional NRT snapshot. This identifies the product families, not proof that reprocessing has no effect.',
+      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses.',
+      done: 'Addressed: Sources list the versions: MODIS Collection 6.1 and VIIRS Collection 2 (standard) for 2012–2025; 6.1NRT and 2.0NRT for the 2026 snapshot.',
     },
-    { t: 'The calendar ends in 2025; a separate provisional card shows 8–14 Nov 2026.', b: 'The card is separate from the historical calendar: provisional, incomplete coverage, not a full-year trend.' },
+    {
+      t: 'The calendar ends in 2025; a separate provisional card shows 8–14 Nov 2026.',
+      b: 'The card is separate from the historical calendar: provisional, incomplete coverage, not a full-year trend.',
+      done: 'Addressed: the Brazil region pages show the 2026 snapshot on its own card, labelled “Provisional · incomplete coverage”.',
+    },
     {
       t: 'Aqua and Terra are near the end of their missions.',
       b: (
@@ -586,6 +591,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 and NOAA-21 carry the same camera and keep their time, so what we’d expect can still be worked out.
         </>
       ),
+      next: 'Next: check NOAA-20 and NOAA-21 against S-NPP, so the benchmark can carry on past 2025.',
     },
   ]
   return (
@@ -600,17 +606,9 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           <Accordion type="multiple" motion={motion.on} level={3}>
             {items.map((it, i) => (
               <AccordionItem key={it.t} value={`l${i}`}>
-                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{[1, 2, 4, 5].includes(i) ? 'Addressed · ' : ''}{it.t}</AccordionTrigger>
+                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{it.done ? 'Addressed · ' : ''}{it.t}</AccordionTrigger>
                 <AccordionContent><p className="max-w-[var(--measure)]">{it.b}</p>
-                  <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{[
-                    'Next: independent observations and a design that separates timing from other changes.',
-                    'Addressed: each flagged year now shows its percentage-point distance past the usual-range edge; this is still not a significance test.',
-                    'Addressed: overlapping likely ranges are labeled Close call, not Unusual.',
-                    'Next: verify regional coverage and distinguish missing observations from true zero detections.',
-                    'Addressed: Sources label standard and NRT product versions separately.',
-                    'Addressed: a separate provisional 8–14 Nov 2026 card is visible on Brazil region pages.',
-                    'Next: calibrate and validate a replacement satellite reference before extending the historical series.',
-                  ][i]}</p>
+                  {it.done || it.next ? <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{it.done ?? it.next}</p> : null}
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -641,7 +639,7 @@ function Sources() {
           {CREDITS.map((c) => (
             <li key={c.name} className="flex flex-col gap-1 border-b border-[color:var(--hairline)] py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
               <span className="text-base text-[color:var(--bone)]">{c.name}</span>
-              <span className="shrink-0">
+              <span className="flex shrink-0 flex-col gap-1 sm:items-end">
                 {c.links.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={cn(link, 'text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}>{l.text}</a>)}
               </span>
             </li>
