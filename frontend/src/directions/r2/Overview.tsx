@@ -235,7 +235,7 @@ function OneDay() {
   // the claim, then the park analogy, beside the first picture
   const intro = (
     <div className="pb-14 lg:pb-16">
-      <h2 id="day-h" className="text-balance text-[32px] font-medium leading-[1.04] tracking-[-0.02em] sm:text-[40px]">
+      <h2 id="day-h" className="text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.03em]">
         Brazil’s official fire count is now taken about {look.minutes} minutes later in the day
       </h2>
       <p className="mt-5 max-w-[30rem] text-lg leading-[1.56] text-[color:var(--bone2)]"><span className="font-medium text-[color:var(--bone)]">Analogy:</span> Imagine counting people in a park at 3:00 instead of 1:30. You’d see a different crowd.</p>
