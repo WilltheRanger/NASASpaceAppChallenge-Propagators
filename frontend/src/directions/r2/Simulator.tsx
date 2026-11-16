@@ -1430,17 +1430,17 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
         </div>
         {/* the reported fire power, placed among today's detections: a strip from weakest to strongest with this fire's notch */}
         <div className="flex gap-2">
-          <dt className={dt}>Heat</dt>
+          <dt className={dt}>Power</dt>
           <dd className="flex min-w-0 flex-1 flex-col gap-1.5 text-[color:var(--bone)]">
             <span className="flex items-baseline justify-between gap-2 tabular-nums">
               <span className="font-medium">{fmtMW(FRP[i])} MW</span>
-              <span className="text-xs text-[color:var(--bone2)]">stronger than {Math.min(99, frpPercentile)}%</span>
+              <span className="text-xs text-[color:var(--bone2)]">fire radiative power</span>
             </span>
             <span aria-hidden className="relative block h-1.5 w-full rounded-full bg-[color:var(--hairline)]">
               <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--bone2)]" style={{ width: `${frpPercentile}%` }} />
               <span className="absolute -top-[4px] h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-[color:var(--bone)]" style={{ left: `${frpPercentile}%` }} />
             </span>
-            <span className="text-[11px] leading-4 text-[color:var(--bone3)]">Of today’s detections. Sensors differ, so compare loosely.</span>
+            <span className="text-[11px] leading-4 text-[color:var(--bone3)]"><span>Higher FRP than {frpPercentile}% of snapshot detections</span>. Mixed sensors and observation times; not temperature or a ranking of unique fires.</span>
           </dd>
         </div>
       </dl>

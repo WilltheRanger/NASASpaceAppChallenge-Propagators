@@ -642,7 +642,7 @@ function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) {
           </div> : null}
           <div>
             <dt className="font-medium text-[color:var(--bone)]">Six-place comparison and uncertainty</dt>
-            <dd>Look times are local sun time, 2012–2020 against {YEAR}. The usual range comes from nine 2012–2020 years. The amber line is a 95% interval obtained by resampling days, not a probability that a causal timing effect lies within it. Unusual means the likely interval does not overlap the usual range; close calls overlap it. Sources: data/out/drift and data/out/audit. Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.</dd>
+            <dd>Look times are local sun time, 2012–2020 against {YEAR}. The usual range comes from nine 2012–2020 years. The amber line is a 95% bootstrap interval (the days are resampled), not a probability that a causal timing effect lies within it. Unusual means the likely interval does not overlap the usual range; close calls overlap it. Sources: data/out/drift and data/out/audit. Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.</dd>
           </div>
           <div>
             <dt className="font-medium text-[color:var(--bone)]">Satellite images and illustrated times</dt>
