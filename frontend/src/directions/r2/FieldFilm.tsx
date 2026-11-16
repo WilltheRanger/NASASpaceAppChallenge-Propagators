@@ -478,7 +478,7 @@ function LookTimes({ d }: { d: RegionData }) {
     if (u == null) return { text: '', moved: false }
     const m = Math.round((hm(dr[key]) - u) * 60)
     if (Math.abs(m) < 4) return { text: key === 'viirs_lst' ? 'kept its time' : 'about its usual time', moved: false }
-    return { text: m > 0 ? `${m} min later than 2012–2020` : `${-m} min earlier than 2012–2020`, moved: true }
+    return { text: m > 0 ? `${m} min later` : `${-m} min earlier`, moved: true }
   }
   return (
     <section id="look" aria-labelledby="look-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
@@ -487,18 +487,14 @@ function LookTimes({ d }: { d: RegionData }) {
         <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-12">
           <figure className="m-0 min-w-0 lg:col-span-6">
             <div className="relative">
-              <OrbitGlobe orbits={orbits} region={{ name, bbox: region.bbox }} inside={(lon, lat) => inRegion(d.id, lon, lat, region.bbox)} running={false} ink={GLOBE_INK} label={description} />
-              <span aria-hidden className="pointer-events-none absolute left-0 top-2 text-xs text-[color:var(--bone3)]">Morning side</span>
-              <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
+              <OrbitGlobe orbits={orbits} region={{ name, bbox: region.bbox }} inside={(lon, lat) => inRegion(d.id, lon, lat, region.bbox)} running={false} ink={GLOBE_INK} label={description} timeLine={false} />
             </div>
-            <figcaption className="mt-3 max-w-[34rem] text-sm text-[color:var(--bone2)]">
-              Each ring is one satellite’s path. Its mark sits where it passes over {d.phrase.the}, and the line below gives the time. <span className="text-[color:var(--bone3)]">Drag to turn the globe.</span>
-            </figcaption>
+            <figcaption className="mt-3 text-sm text-[color:var(--bone3)]">Drag to turn the globe.</figcaption>
           </figure>
           <div className="min-w-0 lg:col-span-6">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <p className="text-xl font-medium tabular-nums text-[color:var(--bone)]">In {dr.year}</p>
-              <p className="text-sm text-[color:var(--bone3)]">Pass times, local sun time</p>
+              <p className="text-sm text-[color:var(--bone3)]">Local sun time, vs 2012–2020</p>
             </div>
             <ul className="mt-3 border-t border-[color:var(--hairline)]">
               {LOOK_SATS.map((s) => {
@@ -514,7 +510,7 @@ function LookTimes({ d }: { d: RegionData }) {
               })}
             </ul>
             <DriftChart d={d} year={dr.year} onYear={setYear} />
-            <p className="mt-2 text-sm text-[color:var(--bone3)]">Drag along the chart to change the year. The table and the globe follow.</p>
+            <p className="mt-2 text-sm text-[color:var(--bone3)]">Drag along the chart to pick a year.</p>
           </div>
         </div>
       </div>

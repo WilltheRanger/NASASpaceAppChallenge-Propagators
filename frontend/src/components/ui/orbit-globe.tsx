@@ -72,6 +72,8 @@ export interface OrbitGlobeProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   /** every year's look times (hours, by orbit id), drawn under the globe as one row a year in place of the single time
    *  line; the chosen year is bright, and picking a row (pointer or arrow keys) chooses it */
   years?: { year: number; times: Record<string, number> }[]
+  /** false leaves out the time line under the globe (when a table beside it already gives the times) */
+  timeLine?: boolean
   year?: number
   onYear?: (year: number) => void
 }
@@ -152,14 +154,14 @@ const DOTS = (() => {
 
 interface Layout { W: number; H: number; cx: number; cy: number; R: number; Ro: number; axisY: number; compact: boolean }
 
-function layoutFor(W: number): Layout {
+function layoutFor(W: number, line = true): Layout {
   const compact = W < 560
   const R = Math.max(96, Math.min(compact ? 150 : 232, W * (compact ? 0.36 : 0.3)))
   const Ro = R * 1.11 // 705 km over a 6,371 km Earth: to scale; the day path and time line use it
   const top = R * 1.14 // room for the higher VIIRS orbit (830 km)
   const cy = 14 + top
   const axisY = cy + top + 24
-  return { W, H: Math.round(axisY + (compact ? 50 : 54)), cx: W / 2, cy, R, Ro, axisY, compact }
+  return { W, H: Math.round(line ? axisY + (compact ? 50 : 54) : cy + top + 6), cx: W / 2, cy, R, Ro, axisY, compact }
 }
 
 /** Labels under the time line: centred on their marks; a pair too close to sit side by side splits, the earlier one
@@ -195,13 +197,13 @@ function placeLabels(items: { id: string; x: number; w: number }[], W: number) {
   return out
 }
 
-export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, day, years, year, onYear, className, style, ...props }: OrbitGlobeProps) {
+export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, day, years, year, onYear, timeLine = true, className, style, ...props }: OrbitGlobeProps) {
   const insideRef = React.useRef(inside)
   insideRef.current = inside
   const boxRef = React.useRef<HTMLDivElement>(null)
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const W = useMeasuredWidth(boxRef)
-  const L = React.useMemo(() => layoutFor(W || 360), [W])
+  const L = React.useMemo(() => layoutFor(W || 360, timeLine), [W, timeLine])
   const [inView, setInView] = React.useState(false)
   const live = running && inView
   const inkKey = JSON.stringify(ink)
@@ -558,7 +560,7 @@ export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, 
   const lTop = axisY - 26
   const oy = 26
   const ladderH = ladder ? ladder.length * rowH : 0
-  const height = ladder ? lTop + oy + ladderH + 28 : H + 20 * rows
+  const height = ladder ? lTop + oy + ladderH + 28 : timeLine ? H + 20 * rows : H
   const yearIndex = ladder ? Math.max(0, ladder.findIndex((r) => r.year === year)) : 0
   const pickRow = (clientY: number, el: HTMLElement) => {
     if (!ladder) return
@@ -588,7 +590,7 @@ export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, 
       onPointerCancel={onPointerUp}
     >
       <canvas ref={canvasRef} aria-hidden className="absolute inset-x-0 top-0 block" style={{ width: L.W, height: L.H }} />
-      {W > 0 && !ladder ? (
+      {W > 0 && !ladder && timeLine ? (
         <svg aria-hidden width={L.W} height={H + 20 * rows} className="pointer-events-none absolute inset-x-0 top-0 block overflow-visible" fontSize={fontSize}>
           <line x1={xAt(6)} x2={xAt(18)} y1={axisY} y2={axisY} stroke={ink.grid} strokeWidth={1} />
           {HOURS.map((h) => (
