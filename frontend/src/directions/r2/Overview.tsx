@@ -13,7 +13,7 @@
  */
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { motion as m, useScroll, useSpring, useTransform } from 'framer-motion'
-import { ArrowDown, ArrowRight, ArrowUpRight } from 'lucide-react'
+import { ArrowDown, ArrowUpRight } from 'lucide-react'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { YearRuler } from '@/components/ui/year-ruler'
@@ -327,16 +327,16 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
         </div>
       </div>
       <div className={cn(shell, 'pb-16 lg:pb-24')}>
-        <Places links={links} leave={leave} />
+        <Places />
       </div>
     </section>
   )
 }
 
-const COLS = 'md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,1.8fr)_minmax(0,0.7fr)_20px]'
+const COLS = 'md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,1.8fr)_minmax(0,0.7fr)]'
 
 /** The six places on one scale; each row opens that place's page. */
-function Places({ links, leave }: { links: Links; leave: Leave }) {
+function Places() {
   const th = 'text-xs text-[color:var(--bone3)]'
   const key = 'inline-flex items-center gap-2'
   return (
@@ -350,11 +350,10 @@ function Places({ links, leave }: { links: Links; leave: Leave }) {
           <StripAxis />
         </span>
         <span className={th}>Unusual?</span>
-        <span />
       </div>
       <ol className="mt-3 border-t border-[color:var(--hairline)]">
         {ROWS.map((r, i) => (
-          <PlaceRow key={r.id} r={r} i={i} href={links.regions(r.id)} leave={leave} />
+          <PlaceRow key={r.id} r={r} i={i} />
         ))}
       </ol>
       <p aria-hidden className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[color:var(--bone2)]">
@@ -372,7 +371,8 @@ function Places({ links, leave }: { links: Links; leave: Leave }) {
   )
 }
 
-function PlaceRow({ r, i, href, leave }: { r: Row; i: number; href: string; leave: Leave }) {
+// rows are read, not clicked: the Regions door below the table opens the places
+function PlaceRow({ r, i }: { r: Row; i: number }) {
   const motion = useMotion()
   const photo = photoFor(r.id)
   // the column names show above each value on phones; on wide screens the header row shows them and these stay for screen readers
@@ -386,7 +386,7 @@ function PlaceRow({ r, i, href, leave }: { r: Row; i: number; href: string; leav
   )
   return (
     <Reveal as="li" delay={i * 60}>
-      <a href={href} onClick={leave} className={cn('group grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 border-b border-[color:var(--hairline)] py-5 hover:bg-[color:var(--surface)] md:gap-x-6 md:py-4', COLS, focusRing)}>
+      <div className={cn('grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
         <span className="flex min-w-0 items-center gap-4">
           <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:h-16 md:w-24">
             <img src={photo.srcSm} alt="" width={720} height={480} loading="lazy" style={{ objectPosition: photo.focus }} className="size-full object-cover" />
@@ -413,8 +413,7 @@ function PlaceRow({ r, i, href, leave }: { r: Row; i: number; href: string; leav
           <span className="md:hidden"><StripAxis /></span>
         </span>
         <span className="hidden md:block">{chip}</span>
-        <ArrowRight size={16} strokeWidth={1.5} aria-hidden className="hidden text-[color:var(--bone3)] transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[color:var(--bone)] motion-reduce:transition-none md:block" />
-      </a>
+      </div>
     </Reveal>
   )
 }
