@@ -915,7 +915,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
     'br-pantanal': 'Fire season runs August to October (three-quarters of the year’s hotspots). 2024 was 2.5 times typical; 2025 was 87% below.',
     'ar-argentina': 'Fire season runs July to September (60% of the year’s hotspots). 2024 was 21% below typical; 2025 was 44% below.',
     'in-punjab-haryana': <>Crop-burning season runs October to December (nearly 90% of the year’s hotspots). 2024 and 2025 were far below typical, but burning has shifted later in the day (<a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>), so fewer hotspots may not mean less burning.</>,
-    'us-california': 'Fire season runs August to October (two-thirds of the year’s hotspots). 2020 had the most hotspots since 2002; 2024 and 2025 were 15% and 17% below typical.',
+    'us-california': 'Fire season runs August to October (about half of the year’s hotspots). 2020 had the most hotspots since 2002; 2024 and 2025 were 15% and 17% below typical.',
   }[d.id] ?? `Fire season runs ${seasonMonths(d)}.`
   return (
     <section id="calendar" aria-labelledby="calendar-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
