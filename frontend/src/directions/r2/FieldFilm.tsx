@@ -247,7 +247,6 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         <section id="global" aria-labelledby="global-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
           <div className={cn(shell, 'flex flex-wrap items-center gap-x-6 gap-y-4 py-12')}>
             <h2 id="global-h" className="text-lg font-medium text-[color:var(--bone)]">Or pick any area</h2>
-            <p className="max-w-xl text-sm text-[color:var(--bone2)]">The same comparison for any 2° square. Not checked like the six places.</p>
             <a href={anyArea(links)} onClick={leave} className={secondaryButton}>Open the world map <ArrowRight size={16} aria-hidden /></a>
             <a href="#calendar" className={primaryButton}>Back to the fire calendar <ArrowRight size={16} aria-hidden /></a>
           </div>
@@ -475,7 +474,7 @@ function LookTimes({ d }: { d: RegionData }) {
       <div className={cn(shell, 'pb-16 pt-16')}>
         <h2 id="look-h" className={title}>When each satellite flies over</h2>
         <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">
-          Each crosses {d.phrase.the} at about the same time every day. Aqua’s crossing has moved later. VIIRS’s has stayed put.
+          Aqua’s crossing has moved later. VIIRS’s has stayed put.
         </p>
         <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-12">
           <figure className="m-0 min-w-0 lg:col-span-6">
@@ -485,7 +484,7 @@ function LookTimes({ d }: { d: RegionData }) {
               <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
             </div>
             <figcaption className="mt-3 max-w-[34rem] text-xs text-[color:var(--bone3)]">
-              Seen from the Sun at noon in {dr.year}. Each ring is a satellite’s path; it looks at {name.replace(/^The /, 'the ')} where it crosses the dashed line. Drag to turn the globe.
+              Each ring is a satellite’s path, seen at noon in {dr.year}. Drag to turn the globe.
             </figcaption>
           </figure>
           <div className="min-w-0 lg:col-span-6">
@@ -501,7 +500,7 @@ function LookTimes({ d }: { d: RegionData }) {
               ))}
             </ul>
             <DriftChart d={d} year={dr.year} onYear={setYear} />
-            <p className="mt-2 text-xs text-[color:var(--bone3)]">Local sun time over {d.phrase.the}, by year. Pick a year to turn the globe. Source: drift/{d.id}.json</p>
+            <p className="mt-2 text-xs text-[color:var(--bone3)]">Local sun time. Pick a year to turn the globe.</p>
           </div>
         </div>
       </div>
@@ -660,7 +659,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
         <div className="lg:col-span-4">
           <h3 id="years-h" className={title}>{yearsHeading(d)}</h3>
           <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
-            Each year since 2021: Aqua’s count against the benchmark. The line is the likely range; the grey band is the usual range, from 2012 to 2020.
+            Each year since 2021, against the benchmark.
           </p>
         </div>
         <div className="min-w-0 lg:col-span-8">
@@ -804,7 +803,7 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           <figure className="m-0">
             <figcaption className="mb-4">
               <span className="block text-lg font-medium">Aqua and Terra, each compared with VIIRS</span>
-              <span className="mt-1 block max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">Change since 2012–2020; 0 means no change. The lines are the likely range.</span>
+              <span className="mt-1 block max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">Change since 2012–2020.</span>
             </figcaption>
             <SeriesChart
               labels={two.map((x) => String(x.year))}
@@ -906,7 +905,6 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-base text-[color:var(--bone)]">Aqua’s own count before 2012, VIIRS matched to Aqua after: one steady record from 2002 to 2025.</p>
           <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)] sm:text-base">
             Each row is a year and each cell a month. {mode === 'count' ? 'Brighter cells mean more hotspots.' : 'Gold cells had more hotspots than a typical year, blue cells fewer.'}
           </p>

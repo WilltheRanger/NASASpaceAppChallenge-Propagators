@@ -886,7 +886,6 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
         <h1 className="text-[22px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
           If a fire started here, when would a satellite’s alert arrive, and how much daylight would be left?
         </h1>
-        <p className="mt-3 text-base text-[color:var(--bone2)]">Search a place, or pick one of the six below, to see it for each satellite.</p>
         <p className="mt-3 text-sm text-[color:var(--bone2)]">
           INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </p>
@@ -1072,7 +1071,7 @@ function PlacePanel({ place, headRef, onBack, onFly, onStrongest, cell, year, on
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-xs text-[color:var(--bone3)]">The middle of each satellite’s looks, in local sun time. Real detections; not part of the audit.</p>
+        <p className="mt-2 text-xs text-[color:var(--bone3)]">Local sun time.</p>
       </div>
       {s.total ? <button type="button" onClick={onStrongest} className={cn(secondary, 'w-fit')}><Flame size={15} strokeWidth={1.75} aria-hidden /> Strongest fire</button> : null}
     </div>

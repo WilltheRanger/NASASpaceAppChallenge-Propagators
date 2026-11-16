@@ -450,7 +450,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
     <Reveal as="li" delay={i * 80}>
       <div className={cn('grid grid-cols-2 items-center gap-x-4 gap-y-3 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
         <span className="flex min-w-0 items-center gap-4">
-          <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:h-16 md:w-24">
+          <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:max-lg:hidden lg:h-16 lg:w-24">
             <img
               src={photo.srcSm}
               alt=""
@@ -463,7 +463,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           </span>
           <span className="min-w-0 text-lg font-medium leading-tight text-[color:var(--bone)] md:text-xl">{r.name}</span>
         </span>
-        <span className="justify-self-end md:hidden">{chip}</span>
+        <span className="justify-self-start md:hidden">{chip}</span>
         <span>
           <span className={label}><span className="md:hidden">Aqua looks later</span><span className="max-md:hidden">How much later Aqua looks</span></span>
           <span className="text-lg tabular-nums text-[color:var(--bone)]">+{r.look?.minutes ?? '—'} min</span>
@@ -627,7 +627,7 @@ function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="overview-sources-h" className="text-3xl font-medium tracking-[-0.02em]">Sources and notes</h2>
-          <p className="mt-4 text-sm text-[color:var(--bone2)]">The figures behind the Overview. Full-year totals and matched-day audit counts answer different questions.</p>
+          <p className="mt-4 text-sm text-[color:var(--bone2)]">Full-year totals and matched-day audit counts answer different questions.</p>
           <a href={links.method('sources')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center')}>All product versions and sources <ArrowUpRight size={14} aria-hidden /></a>
         </div>
         <dl className="space-y-6 text-sm leading-6 text-[color:var(--bone2)] lg:col-span-8">
