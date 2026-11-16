@@ -587,14 +587,6 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
             <p className="max-w-[var(--measure)] leading-6">To Build Future Mind Foundation for hosting the Chino Hills, CA local event on 14–15 November 2026, and to Local Lead Allen West and the organizing team.</p>
           </div>
         </section>
-        {/* the sponsors and hosts, as the README's acknowledgments name them; words only, no logos */}
-        <section aria-labelledby="foot-thanks" className="lg:col-span-12">
-          <h2 id="foot-thanks" className={h}>Thank you</h2>
-          <div className="mt-3 grid gap-x-6 gap-y-3 lg:grid-cols-2">
-            <p className="max-w-[var(--measure)] leading-6">To NASA and the 2026 NASA International Space Apps Challenge, funded by NASA’s Science Mission Directorate through a contract with Booz Allen Hamilton, Mindgrub and SecondMuse, and to its 17 space agency partners, especially the Brazilian Space Agency (AEB), Argentina’s CONAE and India’s ISRO.</p>
-            <p className="max-w-[var(--measure)] leading-6">To Build Future Mind Foundation for hosting the Chino Hills, CA local event on 14–15 November 2026, and to Local Lead Allen West and the organizing team.</p>
-          </div>
-        </section>
         <div className="flex flex-col gap-4 border-t border-[color:var(--hairline)] pt-8 sm:flex-row sm:items-center sm:justify-between lg:col-span-12">
           <div className="flex flex-col gap-2">
             <AnchorLogo height={18} className="text-[color:var(--bone)]" />
