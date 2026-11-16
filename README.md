@@ -89,7 +89,7 @@ Every number below needs the team's final check before the submission freeze.
 | Satellite | Fire size detected half the time (a50) |
 |---|---|
 | VIIRS (S-NPP) | **319 acres** (95%: 271 to 375) |
-| Aqua (MODIS) | **947 acres** (95%: 777 to 1,168) |
+| Aqua (MODIS) | **946 acres** (95%: 777 to 1,168) |
 | Terra (MODIS) | **1,262 acres** (95%: 1,021 to 1,539) |
 
 Of 358 agency-recorded fires within 25 km of Chino Hills, CA (2012 to 2024), **338 were seen by no satellite**.

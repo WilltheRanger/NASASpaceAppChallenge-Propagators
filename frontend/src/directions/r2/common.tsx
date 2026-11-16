@@ -2,7 +2,7 @@
 // tokens, the motion switch and its hooks, eased scrolling, the page classes, the bar with the four-page menu, the
 // footer, the sources, the plain-words constants, and the satellite marks. Every number still comes from src/r2/data.ts.
 import { createContext, useContext, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import Lenis from 'lenis'
 import 'lenis/dist/lenis.css'
 import { AnchorLogo, AnchorMark } from '@/components/brand/anchor-logo'
@@ -34,7 +34,7 @@ export const BASE_TOKENS = {
   '--shadow-menu': '0 8px 24px rgba(0, 0, 0, 0.5)',
   '--ring-in': 'inset 0 0 0 2px #ECE9E1',
   '--ring-in-on': 'inset 0 0 0 2px #0B0D0B',
-  '--f-ui': "'Albert Sans', ui-sans-serif, system-ui, sans-serif",
+  '--f-ui': "'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif",
   '--ease': 'cubic-bezier(0.22, 1, 0.36, 1)',
 } as const
 
@@ -251,8 +251,8 @@ export function Rule({ className }: { className?: string }) {
   )
 }
 
-/** Their page change, halved for static pages: this page fades and grows to 1.02 about the middle of the screen, then
- *  the link is followed; the next page arrives from 0.98 (in FieldFilm). Plain navigation without motion. */
+/** The page change: this page fades quickly (150 ms, so a click feels immediate), then the link is followed; the next
+ *  page fades in (in FieldFilm). Plain navigation without motion. */
 export function useLeave(motion: boolean): Leave {
   return (e) => {
     if (!motion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
@@ -261,8 +261,8 @@ export function useLeave(motion: boolean): Leave {
     if (!href || href.startsWith('#') || !root?.animate) return
     e.preventDefault()
     root.style.transformOrigin = `50% ${window.scrollY + window.innerHeight / 2}px`
-    root.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.02)' }], { duration: 350, easing: EASE, fill: 'forwards' })
-    window.setTimeout(() => { window.location.href = href }, 340)
+    root.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.01)' }], { duration: 160, easing: EASE, fill: 'forwards' })
+    window.setTimeout(() => { window.location.href = href }, 150)
   }
 }
 
@@ -278,13 +278,50 @@ const GLIDE_STOPS = ['wheel', 'touchstart', 'keydown', 'mousedown'] as const
 export function useEasedScroll(on: boolean) {
   useEffect(() => {
     if (!on) return
-    const l = new Lenis({ autoRaf: true, lerp: 0.085, smoothWheel: true, syncTouch: false })
+    const l = new Lenis({ autoRaf: true, lerp: 0.11, wheelMultiplier: 0.9, smoothWheel: true, syncTouch: false })
     lenis = l
     // an open menu locks the page (body[data-scroll-locked]); the eased scroll pauses with it
     const lock = new MutationObserver(() => (document.body.hasAttribute('data-scroll-locked') ? l.stop() : l.start()))
     lock.observe(document.body, { attributes: true, attributeFilter: ['data-scroll-locked'] })
     return () => { lock.disconnect(); l.destroy(); if (lenis === l) lenis = null }
   }, [on])
+}
+
+/** A page opens at its top: a browser, or a frame that holds the page, can carry the last page's scroll position
+ *  over. Going back or forward returns to where the reader was on that page (kept for the session, and applied once
+ *  the page is tall enough, since its sections load after it opens). A link to a section (#checks) is left alone. */
+export function useStartAtTop() {
+  useEffect(() => {
+    const key = `anchor-scroll:${window.location.pathname}${window.location.search}`
+    const save = () => { try { window.sessionStorage.setItem(key, String(Math.round(window.scrollY))) } catch { /* storage can be blocked */ } }
+    window.addEventListener('pagehide', save)
+    const jump = (y: number) => { if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else window.scrollTo(0, y) }
+    const nav = performance.getEntriesByType?.('navigation')[0] as PerformanceNavigationTiming | undefined
+    const hash = decodeURIComponent(window.location.hash.slice(1))
+    let timer = 0, raf = 0
+    if (nav?.type === 'back_forward') {
+      let y = 0
+      try { y = Number(window.sessionStorage.getItem(key)) || 0 } catch { /* storage can be blocked */ }
+      let tries = 0
+      const go = () => {
+        if (document.documentElement.scrollHeight - window.innerHeight >= y || tries++ > 40) jump(y)
+        else timer = window.setTimeout(go, 50)
+      }
+      if (y > 0) go()
+    } else if (!hash || hash.includes('=')) {
+      // never against the reader: once they have scrolled, tapped or pressed a key, the page is theirs
+      let theirs = false
+      const mine = () => { theirs = true }
+      const EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
+      for (const ev of EVENTS) window.addEventListener(ev, mine, { passive: true, once: true })
+      const top = () => { if (!theirs && window.scrollY > 0) jump(0) }
+      top()
+      // once more after the first paint, when a late restore would have landed
+      raf = requestAnimationFrame(top)
+      return () => { window.removeEventListener('pagehide', save); cancelAnimationFrame(raf); for (const ev of EVENTS) window.removeEventListener(ev, mine) }
+    }
+    return () => { window.removeEventListener('pagehide', save); window.clearTimeout(timer); cancelAnimationFrame(raf) }
+  }, [])
 }
 
 /** Scroll the page to an element (or the top), honouring its scroll margin. With motion on it glides in 0.4 to 0.7 s,
@@ -434,50 +471,101 @@ export function SiteBar({ page, links, leave, regionsHref }: { page: Page; links
   )
 }
 
-/* ---------- Footer: who made it, the motion switch, and the picture credits ---------- */
+/* ---------- The way on: the page before and the page after, at the foot of every page ---------- */
 
-export function Footer({ links, leave }: { links: Links; leave: Leave }) {
+/** Two large links at the foot of a page: back to the page before, on to the next. */
+export function PageNext({ page, links, leave, regionsHref }: { page: Page; links: Links; leave: Leave; regionsHref?: string }) {
+  const i = PAGES.findIndex((p) => p.page === page)
+  const prev = i > 0 ? PAGES[i - 1] : null
+  const next = i < PAGES.length - 1 ? PAGES[i + 1] : null
+  const href = (p: (typeof PAGES)[number]) => (p.page === 'regions' && regionsHref ? regionsHref : p.href(links))
+  const cell = cn('group flex min-h-24 flex-1 flex-col justify-center gap-1 px-4 py-5 hover:bg-[color:var(--surface)] sm:px-8', ease, focusRing)
+  return (
+    <nav aria-label="Previous and next page" className="border-t border-[color:var(--hairline)]">
+      <div className="mx-auto flex w-full max-w-[var(--maxw)] divide-x divide-[color:var(--hairline)]">
+        {prev ? (
+          <a href={href(prev)} onClick={leave} className={cell}>
+            <span className="text-xs text-[color:var(--bone3)]">Back</span>
+            <span className="flex items-center gap-2 text-xl font-medium tracking-[-0.01em] text-[color:var(--bone)] sm:text-2xl">
+              <ArrowLeft size={18} strokeWidth={1.5} aria-hidden className="transition-transform duration-200 group-hover:-translate-x-1 motion-reduce:transition-none" />{prev.label}
+            </span>
+          </a>
+        ) : null}
+        {next ? (
+          <a href={href(next)} onClick={leave} className={cn(cell, 'items-end text-right')}>
+            <span className="text-xs text-[color:var(--bone3)]">Next</span>
+            <span className="flex items-center gap-2 text-xl font-medium tracking-[-0.01em] text-[color:var(--bone)] sm:text-2xl">
+              {next.label}<ArrowRight size={18} strokeWidth={1.5} aria-hidden className="transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none" />
+            </span>
+          </a>
+        ) : null}
+      </div>
+    </nav>
+  )
+}
+
+/* ---------- Footer: notes for this page, where the data and pictures come from, who made it, the motion switch ---------- */
+
+const DATA_LINE = 'NASA FIRMS fire detections from MODIS and VIIRS. INPE Programa Queimadas for Brazil’s official count. US Forest Service fire records for California.'
+
+/** `notes`: the page's own small print (how a number was counted, a picture's date), kept here so the page stays clear. */
+export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leave; notes?: ReactNode[] }) {
   const m = useMotion()
   const link = cn(underline, 'text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)
+  const h = 'text-sm font-medium text-[color:var(--bone)]'
+  const credit = (by: string | null, url: string | null, site: string) => (
+    <>{url ? <a href={url} target="_blank" rel="noreferrer" className={link}>{by ?? site}</a> : <span>{by ?? site}</span>}{by ? <span className="text-[color:var(--bone3)]">, {site}</span> : null}</>
+  )
   return (
     <footer className="border-t border-[color:var(--hairline)]">
-      <div className={cn(shell, 'grid grid-cols-1 gap-8 py-12 text-xs text-[color:var(--bone3)] lg:grid-cols-12 lg:gap-x-6')}>
-        <div className="flex flex-col items-start gap-3 lg:col-span-5">
-          <AnchorLogo height={18} className="text-[color:var(--bone)]" />
-          <p className="max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Team Propagators. {FOOTER_LINE}</p>
-          <p>
-            Every number comes from the team’s data files.{ANY_MOCK ? ' This build uses mock data.' : ''}{' '}
-            <a href={links.method('sources')} onClick={leave} className={link}>Sources</a>
-            {REPO_URL ? <>{' · '}<a href={REPO_URL} target="_blank" rel="noreferrer" className={link}>Code</a></> : null}
+      <div className={cn(shell, 'grid grid-cols-1 gap-x-6 gap-y-10 py-12 text-sm text-[color:var(--bone2)] lg:grid-cols-12')}>
+        {notes.length ? (
+          <section aria-labelledby="foot-notes" className="lg:col-span-12">
+            <h2 id="foot-notes" className={h}>Notes</h2>
+            <ul className="mt-3 grid grid-cols-1 gap-x-10 gap-y-2 md:grid-cols-2">
+              {notes.map((n, i) => <li key={i} className="max-w-[var(--measure)] leading-6">{n}</li>)}
+            </ul>
+          </section>
+        ) : null}
+        <section aria-labelledby="foot-data" className="lg:col-span-4">
+          <h2 id="foot-data" className={h}>Data</h2>
+          <p className="mt-3 max-w-[var(--measure)] leading-6">{DATA_LINE}</p>
+          <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
+            <a href={links.method('sources')} onClick={leave} className={link}>All sources</a>
+            {REPO_URL ? <a href={REPO_URL} target="_blank" rel="noreferrer" className={link}>Code</a> : null}
           </p>
-          <ElasticSwitch checked={m.on} onCheckedChange={m.set} label="Motion" />
-        </div>
-        <div className="lg:col-span-7">
-          <p className="text-[color:var(--bone2)]">Photographs and video</p>
-          <ul className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
+        </section>
+        <section aria-labelledby="foot-pics" className="lg:col-span-8">
+          <h2 id="foot-pics" className={h}>Pictures and video</h2>
+          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-5 gap-y-1.5 sm:grid-cols-[auto_1fr_auto_1fr]">
             {REGIONS.map((r) => {
               const p = photoFor(r.id)
               return (
-                <li key={r.id}>
-                  {r.name}: <a href={p.url} target="_blank" rel="noreferrer" className={link}>{p.by}</a> on Unsplash
-                </li>
+                <div key={r.id} className="contents">
+                  <dt className="text-[color:var(--bone3)]">{phrase(r.id).short}</dt>
+                  <dd className="min-w-0">
+                    Photo: {credit(p.by, p.url, 'Unsplash')}
+                    {p.video ? <><br />Video: {credit(p.video.by, p.video.url, p.video.site)}{p.video.filmed ? <span className="text-[color:var(--bone3)]">, {p.video.filmed}</span> : null}</> : null}
+                  </dd>
+                </div>
               )
             })}
-            {REGIONS.filter((r) => photoFor(r.id).video).map((r) => {
-              const v = photoFor(r.id).video!
-              return (
-                <li key={`v-${r.id}`}>
-                  {r.name}, video:{' '}
-                  {v.url ? <a href={v.url} target="_blank" rel="noreferrer" className={link}>{v.by ?? 'a contributor'}</a> : <span className="text-[color:var(--bone2)]">{v.by ?? 'a contributor'}</span>}{' '}
-                  on {v.site}{v.filmed ? `, ${v.filmed}` : ''}
-                </li>
-              )
-            })}
-            <li>Overview, wildfire smoke at dusk: <a href={OVERVIEW_PHOTO.url} target="_blank" rel="noreferrer" className={link}>{OVERVIEW_PHOTO.by}</a> on Unsplash</li>
-            <li>Three looks at one Amazon day: NASA Worldview / GIBS, public domain</li>
-            <li>One fire day in Pará, 2 Sep 2024: NASA Worldview / GIBS, VIIRS true colour</li>
-            <li>Explore maps: NASA Worldview / GIBS and NASA Blue Marble</li>
-          </ul>
+            <div className="contents">
+              <dt className="text-[color:var(--bone3)]">Smoke</dt>
+              <dd className="min-w-0">Photo: {credit(OVERVIEW_PHOTO.by, OVERVIEW_PHOTO.url, 'Unsplash')}</dd>
+            </div>
+            <div className="contents">
+              <dt className="text-[color:var(--bone3)]">From space</dt>
+              <dd className="min-w-0">NASA Worldview / GIBS, NASA Blue Marble</dd>
+            </div>
+          </dl>
+        </section>
+        <div className="flex flex-col gap-4 border-t border-[color:var(--hairline)] pt-8 sm:flex-row sm:items-center sm:justify-between lg:col-span-12">
+          <div className="flex flex-col gap-2">
+            <AnchorLogo height={18} className="text-[color:var(--bone)]" />
+            <p className="text-xs text-[color:var(--bone3)]">Team Propagators. {FOOTER_LINE}{ANY_MOCK ? ' This build uses mock data.' : ''}</p>
+          </div>
+          <ElasticSwitch checked={m.on} onCheckedChange={m.set} label="Motion" />
         </div>
       </div>
     </footer>

@@ -3,8 +3,8 @@
 // to one of a few kinds, and the answer's sentences carry the sources their numbers come from. Nothing is generated, so
 // nothing is invented; a question outside these kinds gets the list of what SI can answer.
 import { REGIONS, daylightHeadline, fmtHM, fmtInt, hm, isValidation, regionData, verdictHeadline } from './data'
-import { GROUP_NAME, SAT_NAMES, SENSOR, TOTALS, WINDOW, dayText, groupOf, lstOf, sightings, strongest, summary, utcOf, FRP, SAT, type Box } from './fires'
-import { searchPlaces, type Place } from './places'
+import { GROUP_NAME, SAT_NAMES, TOTALS, WINDOW, dayText, groupOf, lstOf, sightings, strongest, summary, utcOf, FRP, LAT, LON, SAT, type Box } from './fires'
+import { nameNear, regionNamed, searchPlaces, type Place } from './places'
 
 export type SiSource = { id: string; title: string; domain: string; url?: string }
 export type SiSentence = { text: string; cite?: string[] }
@@ -14,7 +14,8 @@ export type SiAction =
   | { kind: 'fire'; label: string; i: number }
   | { kind: 'day'; label: string }
 /** `select`: a detection the page should select and show as the answer arrives */
-export type SiAnswer = { sentences: SiSentence[]; sources: SiSource[]; actions?: SiAction[]; followUps?: string[]; select?: number }
+/** `locate`: a point whose name the page may look up online; it replaces `label` in the sentences when it arrives */
+export type SiAnswer = { sentences: SiSentence[]; sources: SiSource[]; actions?: SiAction[]; followUps?: string[]; select?: number; locate?: { lon: number; lat: number; label: string } }
 export type SiContext = { region: string | null; place: Place | null; view: Box | null; fire: number | null }
 
 const SRC = {
@@ -31,7 +32,7 @@ const has = (q: string, ...words: (string | RegExp)[]) => words.some((w) => (typ
 const sat = (q: string): 'terra' | 'aqua' | 'viirs' | null => (has(q, 'aqua') ? 'aqua' : has(q, 'terra') ? 'terra' : has(q, 'viirs', 'noaa', 'suomi', 's-npp') ? 'viirs' : null)
 const hours = (h: number | null) => (h == null ? 'no daytime fires here' : fmtHM(h))
 const short = (name: string) => name.replace(/ \(.*\)$/, '')
-const studiedIn = (q: string) => searchPlaces(q, 3).find((x) => x.kind === 'Studied region')?.region ?? null
+const studiedIn = (q: string) => regionNamed(q) ?? searchPlaces(q, 3).find((x) => x.kind === 'Studied region')?.region ?? null
 const boxOf = (id: string) => REGIONS.find((r) => r.id === id)!.bbox as unknown as Box
 /** the Amazon's look times, first and last year in the team's drift file: the glossary's example */
 const AMAZON = (() => { const d = regionData('br-amazon'); return { first: d.drift[0], last: d.lastDrift } })()
@@ -50,20 +51,29 @@ function orientation(): SiAnswer {
   }
 }
 
-function fireAnswer(i: number): SiAnswer {
+const coordText = (lon: number, lat: number) => `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'}, ${Math.abs(lon).toFixed(2)}° ${lon < 0 ? 'W' : 'E'}`
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const listText = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
+
+/** One fire: where, how hot, who saw it and when. `lead` opens the first sentence ("Strongest fire in view"). */
+function fireAnswer(i: number, lead = 'This fire'): SiAnswer {
   const who = sightings(i)
-  const seen = who.filter((w) => w.i != null).sort((a, b) => lstOf(a.i!) - lstOf(b.i!))
+  const others = who.filter((w) => w.i != null && w.i !== i).sort((a, b) => lstOf(a.i!) - lstOf(b.i!))
   const missed = who.filter((w) => w.i == null).map((w) => SAT_NAMES[w.sat])
   const t = utcOf(i)
-  const utc = `${String(t.getUTCHours()).padStart(2, '0')}:${String(t.getUTCMinutes()).padStart(2, '0')} UTC`
+  const utc = `${String(t.getUTCHours()).padStart(2, '0')}:${String(t.getUTCMinutes()).padStart(2, '0')} UTC, ${t.getUTCDate()} ${MONTHS[t.getUTCMonth()]}`
+  const coords = coordText(LON[i], LAT[i])
+  const near = nameNear(LON[i], LAT[i])
+  const label = near ? `${near} (${coords})` : coords
   return {
     sentences: [
-      { text: `${SAT_NAMES[SAT[i]]} saw this fire at ${fmtHM(lstOf(i))}, local sun time (${utc}). Its heat: ${fmtInt(FRP[i])} megawatts.`, cite: ['firms'] },
-      { text: `Within 3 km that day: ${seen.map((w) => `${SAT_NAMES[w.sat]} ${fmtHM(lstOf(w.i!))}`).join(', ')}.`, cite: ['firms'] },
-      ...(missed.length ? [{ text: `No daytime detection here from ${missed.join(' or ')}: passed at another time, at a swath edge, or under cloud.`, cite: ['firms'] }] : []),
+      { text: `${lead}: ${label}. ${fmtInt(FRP[i])} MW, detected by ${SAT_NAMES[SAT[i]]} at ${fmtHM(lstOf(i))} local solar time (${utc}).` },
+      ...(others.length ? [{ text: `Also detected within 3 km by ${listText(others.map((w) => `${SAT_NAMES[w.sat]} at ${fmtHM(lstOf(w.i!))}`))}.` }] : []),
+      ...(missed.length ? [{ text: `${listText(missed)} did not detect it that day: a different pass time, the swath edge or cloud.` }] : []),
     ],
     sources: [SRC.firms],
     select: i,
+    locate: { lon: LON[i], lat: LAT[i], label },
     followUps: ['When does Aqua pass here?', 'What is the fix?'],
   }
 }
@@ -180,8 +190,15 @@ function glossary(q: string): SiAnswer | null {
   return null
 }
 
-/** Answer a question from the page's data. */
+/** Answer a question from the page's data. With one source, it is marked once, at the end, rather than on every sentence. */
 export function ask(question: string, ctx: SiContext): SiAnswer {
+  const a = answer(question, ctx)
+  if (a.sources.length !== 1 || !a.sentences.length) return a
+  const last = a.sentences.length - 1
+  return { ...a, sentences: a.sentences.map((x, k) => ({ text: x.text, cite: k === last ? [a.sources[0].id] : undefined })) }
+}
+
+function answer(question: string, ctx: SiContext): SiAnswer {
   const q = question.toLowerCase().trim()
   // map actions first: "show only Aqua", "fly to Kenya"
   const only = /\b(show|only|just|filter)\b/.test(q) ? sat(q) : null
@@ -194,14 +211,17 @@ export function ask(question: string, ctx: SiContext): SiAnswer {
     if (p) return { sentences: [{ text: `Flying to ${p.name}.` }], sources: [], actions: [{ kind: 'fly', label: `Fly to ${p.name}`, place: p }] }
   }
   if (has(q, 'what am i', 'how do i', 'how to', 'help', 'what is this', 'explain', 'start')) return orientation()
-  if (has(q, 'which satellite', 'who saw', 'who spotted', 'spotted', 'detected', 'this fire', 'strongest', 'biggest')) {
-    if (ctx.fire != null && !has(q, 'strongest', 'biggest')) return fireAnswer(ctx.fire)
-    // nothing picked yet: show the strongest fire in view
-    const box = ctx.region ? boxOf(ctx.region) : ctx.view
+  if (has(q, 'which satellite', 'who saw', 'who spotted', 'spotted', 'detected', 'this fire', 'strongest', 'biggest', 'hottest', 'largest')) {
+    if (ctx.fire != null && !has(q, 'strongest', 'biggest', 'hottest', 'largest')) return fireAnswer(ctx.fire)
+    // nothing picked yet: the strongest fire in the scope the question names (the world, a studied region, or the view)
+    const world = has(q, 'world', 'earth', 'globe', 'anywhere', 'everywhere', 'planet')
+    const named = world ? null : studiedIn(q)
+    const scope = named ?? (world ? null : ctx.region)
+    const box = scope ? boxOf(scope) : world ? null : ctx.view
     const i = strongest(box)
     if (i == null) return { sentences: [{ text: 'No fires in view. Zoom out or pick a region.' }], sources: [] }
-    const a = fireAnswer(i)
-    return { ...a, sentences: [{ text: 'The strongest fire in view:' }, ...a.sentences] }
+    const where = scope ? `in ${regionData(scope).phrase.the}` : box ? 'in view' : 'in the world'
+    return fireAnswer(i, `Strongest fire ${where}, past day`)
   }
   if (has(q, 'fix', 'fixed clock', 'old clock', 'benchmark', 'counterfactual')) return fixAnswer(ctx, q)
   if (has(q, 'daylight', 'dark', 'sunset', 'alert')) return daylightAnswer(ctx, q)
@@ -218,6 +238,6 @@ export function ask(question: string, ctx: SiContext): SiAnswer {
 }
 
 export const firstRun = orientation
-export const fireDetail = fireAnswer
+export const fireDetail = (i: number) => ask('which satellite saw this fire', { region: null, place: null, view: null, fire: i })
 export { groupOf }
 export const lstHours = (h: string) => hm(h)

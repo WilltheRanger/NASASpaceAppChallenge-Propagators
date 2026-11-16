@@ -71,6 +71,9 @@ export interface EarthGlobeProps {
   onCellHover?: (id: string | null) => void
   /** the map's view, when it comes to rest: [west, south, east, north], and its zoom */
   onRest?: (b: Box, zoom: number) => void
+  /** the patch of map under the pointer (a square `r` px either side of it, as a box, with where it is on the stage),
+   *  or null when the pointer leaves or the map is being dragged. Called at most once a frame. */
+  onProbe?: (p: { box: Box; x: number; y: number; r: number } | null) => void
   onFail?: () => void
   className?: string
 }
@@ -81,7 +84,12 @@ const S2 = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/
 /** the satellite colours, as the site's tokens set them (MapLibre paint needs literal colours) */
 const AQUA = '#C8801F', TERRA = '#448BCB', VIIRS = '#49A46E', BONE = '#ECE9E1', GROUND = '#0B0D0B'
 const NONE = { type: 'FeatureCollection', features: [] } as GeoJSON.FeatureCollection
-const FIRE_LAYERS = ['fire-viirs', 'fire-terra', 'fire-aqua'] as const
+const FIRE_LAYERS = ['fire-viirs-dot', 'fire-viirs', 'fire-terra', 'fire-aqua'] as const
+/** VIIRS draws as plain dots below this zoom and as its diamond above it. Symbols are placed on the screen a few times
+ *  a second, so on a turning globe they lag behind it and show through its edge; dots are drawn on the globe itself. */
+const VIIRS_MARK_FROM = 5.2
+/** half the side of the square the pointer reads, in px */
+const PROBE = 64
 /** the squares show below this zoom; the fires take over above it */
 const CELLS_GONE = 6.5
 
@@ -239,7 +247,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         grid: { type: 'geojson', data: GRID },
         regions: { type: 'geojson', data: NONE },
         frames: { type: 'geojson', data: NONE },
-        fires: { type: 'geojson', data: NONE },
+        fires: { type: 'geojson', data: NONE, buffer: 16, tolerance: 0 },
         'scene-fires': { type: 'geojson', data: NONE },
         cells: { type: 'geojson', data: NONE },
       },
@@ -259,8 +267,9 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'region-edge', type: 'line', source: 'regions', paint: { 'line-color': BONE, 'line-opacity': ['case', ['get', 'on'], 0.6, 0.22], 'line-width': 1, 'line-dasharray': [2, 3] } },
         { id: 'frames', type: 'line', source: 'frames', layout: { 'line-cap': 'square', 'line-join': 'miter' }, paint: { 'line-color': BONE, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, 0.7] } },
         // VIIRS beneath (the most numerous), then Terra's rings, then Aqua on top: Aqua is the satellite the audit is about
+        { id: 'fire-viirs-dot', type: 'circle', source: 'fires', maxzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2], paint: dot(VIIRS, [1, 1.1, 4, 1.9, 6, 2.6]) as never },
         {
-          id: 'fire-viirs', type: 'symbol', source: 'fires', filter: ['==', ['get', 'g'], 2],
+          id: 'fire-viirs', type: 'symbol', source: 'fires', minzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2],
           layout: { 'icon-image': 'viirs-mark', 'icon-size': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 0.3, 4, 0.45, 8, 0.8, 11, 1.05], 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-padding': 0 },
         },
         {
@@ -293,7 +302,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
       map = new MLMap({
         container: el, style, center: [-40, 8], zoom: homeZoom(w, h), minZoom: 0.4, maxZoom: live ? 11 : 8.5,
         attributionControl: false, maplibreLogo: false, dragRotate: false, pitchWithRotate: false, touchPitch: false, maxPitch: 0,
-        renderWorldCopies: true, fadeDuration: 150, canvasContextAttributes: { antialias: true },
+        renderWorldCopies: true, fadeDuration: 150, canvasContextAttributes: { antialias: false },
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
       })
     } catch {
       cb.current.onFail?.()
@@ -345,13 +355,32 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     const hover = (id: string | null) => { if (id !== hovered) { hovered = id; cb.current.onCellHover?.(id) } }
     map.on('mousemove', 'cell-hit', (e) => { hover(cellsOn.current && map.getZoom() < CELLS_GONE ? String(e.features?.[0]?.properties?.id ?? '') || null : null) })
     map.on('mouseleave', 'cell-hit', () => hover(null))
+    // what lies under the pointer, for the chart: a square around it, read once a frame; not while the map is dragged
+    let probeFrame = 0, probeAt: { x: number; y: number } | null = null, dragging = false
+    const probe = () => {
+      probeFrame = 0
+      const at = probeAt
+      if (!at || dragging) { cb.current.onProbe?.(null); return }
+      const c = map.unproject([at.x, at.y]), e = map.unproject([at.x + PROBE, at.y]), n = map.unproject([at.x, at.y - PROBE])
+      let dLon = Math.abs(e.lng - c.lng)
+      if (dLon > 180) dLon = 360 - dLon
+      const dLat = Math.abs(n.lat - c.lat)
+      if (![c.lng, c.lat, dLon, dLat].every(Number.isFinite) || dLon <= 0 || dLat <= 0 || dLon > 60 || dLat > 60) { cb.current.onProbe?.(null); return }
+      cb.current.onProbe?.({ box: [c.lng - dLon, c.lat - dLat, c.lng + dLon, c.lat + dLat], x: at.x, y: at.y, r: PROBE })
+    }
+    const askProbe = () => { if (!probeFrame) probeFrame = requestAnimationFrame(probe) }
+    map.on('mousemove', (e) => { probeAt = { x: e.point.x, y: e.point.y }; askProbe() })
+    map.on('mouseout', () => { probeAt = null; askProbe() })
+    map.on('dragstart', () => { dragging = true; askProbe() })
+    map.on('dragend', () => { dragging = false; askProbe() })
+    map.on('zoom', askProbe)
     for (const l of [...FIRE_LAYERS, 'region-hit', 'cell-hit']) {
       map.on('mouseenter', l, () => { map.getCanvas().style.cursor = 'pointer' })
       map.on('mouseleave', l, () => { map.getCanvas().style.cursor = '' })
     }
     const ro = new ResizeObserver(() => map.resize())
     ro.observe(el)
-    return () => { ro.disconnect(); map.remove(); mapRef.current = null }
+    return () => { cancelAnimationFrame(probeFrame); ro.disconnect(); map.remove(); mapRef.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -385,6 +414,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     const on = (props.cells?.features.length ?? 0) > 1
     const fade = (to: number) => (on ? ['interpolate', ['linear'], ['zoom'], 4.5, 0, CELLS_GONE - 0.5, to] : to) as never
     map.setPaintProperty('fire-viirs', 'icon-opacity', fade(1))
+    map.setPaintProperty('fire-viirs-dot', 'circle-opacity', fade(1))
+    map.setPaintProperty('fire-viirs-dot', 'circle-stroke-opacity', fade(1))
     map.setPaintProperty('fire-terra', 'circle-stroke-opacity', fade(1))
     map.setPaintProperty('fire-aqua', 'circle-opacity', fade(1))
     map.setPaintProperty('fire-aqua', 'circle-stroke-opacity', fade(1))
@@ -402,6 +433,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     map.setLayoutProperty('fire-terra', 'visibility', show.terra ? 'visible' : 'none')
     map.setLayoutProperty('fire-aqua', 'visibility', show.aqua ? 'visible' : 'none')
     map.setLayoutProperty('fire-viirs', 'visibility', show.viirs ? 'visible' : 'none')
+    map.setLayoutProperty('fire-viirs-dot', 'visibility', show.viirs ? 'visible' : 'none')
   }, [ready, show.terra, show.aqua, show.viirs])
 
   // the clicked fire and its other sightings

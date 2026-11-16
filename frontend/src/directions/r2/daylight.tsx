@@ -220,7 +220,7 @@ export function DaylightSection({ region, motion = true, nav = 'dev', level = 3,
     d.id.startsWith('br-')
       ? 'INPE also watches with weather satellites that take a picture several times an hour; Aqua is its reference for yearly numbers, one alert source among many.'
       : 'Fire services also watch with weather satellites that take a picture several times an hour.',
-    'Sunset isn’t a hard stop: crews work at night too.',
+    'Crews also work after sunset.',
     'The delays (none, 1.5 and 3 hours) are examples, not measured. NASA FIRMS says its near-real-time data arrive within 3 hours of a pass.',
     'One date and place stand for the whole region: the middle day of its fire season, at the centre of its box. Fires elsewhere see other sunsets.',
     ...(f.median ? ['Here real fires burn on other dates and places than that day, so the heading uses the middle value over every real Aqua detection; the chart keeps the one-day figure.'] : []),

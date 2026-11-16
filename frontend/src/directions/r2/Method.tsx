@@ -1,34 +1,32 @@
-import p9Followup from '../../../../data/out/p9-followup.json'
 /*
- * THESIS: How we know, in plain steps, with every technical detail one click deeper.
- * OWN-WORLD: Anchor dark, bone text, Albert Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
- * STORY: one Amazon day seen three times; the comparison in four steps; the ten checks, failures and all; the
- *   California real-fires test; how closely we match INPE; what Anchor can't do; sources, the AI disclosure, the code.
- * FIRST VIEWPORT: the page's question, its section bar, and the three looks at one day.
- * FORM: a long reference page with a section bar that follows the reader (21st.dev scroll spy).
- * Moved here from the Region page: the three passes, how we read a count, the checks, detection, limits and about.
+ * THESIS: How we know, in plain steps: what we compare, how we tested it, what it can't tell you.
+ * OWN-WORLD: Anchor dark, bone text, IBM Plex Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
+ * STORY: one Amazon afternoon seen twice (a slider); the comparison in four steps; the ten tests, failures and all; the
+ *   California small-fires test; how closely we match INPE; what Anchor can't tell you; sources.
+ * FORM: a reference page with a section bar that follows the reader; one control per figure; small print in the footer.
  * Every number comes from src/r2/data.ts (data/out); dates and outages in the limits are the team's method notes
  * (analysis/statistics/README.md).
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import p9Followup from '../../../../data/out/p9-followup.json'
 import { ArrowRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion-ghost'
 import { CompareSlider, CompareSliderAfter, CompareSliderBefore, CompareSliderHandle } from '@/components/ui/compare-slider'
 import { HowItWorks } from '@/components/ui/how-it-works'
 import { ScrollSpy } from '@/components/ui/scroll-spy'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
-import { CHECKS, DETECTION, PROOF, SEEN, fmtInt, fmtRange, hm, inpeReproduction, pct, phrase, regionData, type Check } from '@/r2/data'
+import { CHECKS, DETECTION, fmtInt, fmtRange, hm, inpeReproduction, pct, phrase, regionData, type Check } from '@/r2/data'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, CREDITS, DetMark, IMG, More, REPO_URL, Reveal, SatMark, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
+  CAVEAT, CREDITS, DetMark, Footer, IMG, MockTag, More, PageNext, REPO_URL, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
   type DetShape, type Leave, type Links, type Nav,
 } from './common'
 
 const SECTIONS = [
-  { id: 'day', label: 'One day' },
-  { id: 'steps', label: 'How it works' },
-  { id: 'checks', label: 'Checks' },
-  { id: 'detection', label: 'Real-fires test' },
+  { id: 'day', label: 'One afternoon' },
+  { id: 'steps', label: 'What we compare' },
+  { id: 'checks', label: 'Tests' },
+  { id: 'detection', label: 'Small fires' },
   { id: 'inpe', label: 'Matching INPE' },
   { id: 'limits', label: 'Limits' },
   { id: 'sources', label: 'Sources' },
@@ -49,7 +47,7 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
       <main className="pt-14">
         <div className={cn(shell, 'pb-8 pt-14 sm:pt-20')}>
           <h1 className="max-w-[18ch] text-balance text-[clamp(40px,5.4vw,80px)] font-medium leading-[1] tracking-[-0.035em]">How we know</h1>
-          <p className="mt-5 max-w-[34rem] text-lg text-[color:var(--bone2)]">How Anchor compares Aqua with what we’d expect, how we checked it, and what it can’t tell you.</p>
+          <p className="mt-5 max-w-[34rem] text-lg text-[color:var(--bone2)]">What we compare, how we tested it, and what it can’t tell you.</p>
         </div>
         <div className="sticky top-14 z-30 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
           <div className={cn(shell, 'py-1')}>
@@ -64,6 +62,17 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
         <Limits links={links} leave={leave} />
         <Sources />
       </main>
+      <PageNext page="method" links={links} leave={leave} />
+      <Footer
+        links={links}
+        leave={leave}
+        notes={[
+          <>The two pictures of the Amazon were taken on 4 September 2026, with each satellite’s fire detections drawn on them.</>,
+          <>The steps are shown for the Amazon; every place is worked out the same way.</>,
+          <>The small-fires test uses the US Forest Service’s record of California fires, 2012–2020.</>,
+          <>Several tests are scored on all six of Brazil’s biomes, including three that aren’t among our six places.{CHECKS.mock ? ' The test results shown are mock data.' : ''}</>,
+        ]}
+      />
     </>
   )
 }
@@ -73,68 +82,36 @@ const lead = 'mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]'
 
 /* ---------- One Amazon day, three looks ---------- */
 
-type PassKey = 'terra' | 'viirs' | 'aqua'
-const PASSES: { key: PassKey; name: string; when: string; alt: string; fit?: string }[] = [
-  { key: 'terra', name: 'Terra', when: 'Morning', alt: 'Terra, morning, 4 Sep 2026: hazy smoke and a few clouds over the forest', fit: 'object-left' },
-  { key: 'viirs', name: 'VIIRS', when: 'Early afternoon', alt: 'VIIRS, early afternoon, 4 Sep 2026: small clouds spread across the same forest' },
-  { key: 'aqua', name: 'Aqua', when: 'Later afternoon', alt: 'Aqua, later afternoon, 4 Sep 2026: towering clouds over the same forest' },
-]
-const wide = (k: PassKey) => `${IMG}amazon-${k}-2026-09-04.jpg`
-const square = (k: PassKey) => `${IMG}prints/amazon-${k}-sq.jpg`
+const wide = (k: 'viirs' | 'aqua') => `${IMG}amazon-${k}-2026-09-04.jpg`
 
 function OneDay() {
-  const amazon = regionData('br-amazon')
-  const last = amazon.lastDrift
-  const lookOf: Record<PassKey, string | undefined> = { terra: last?.terra_lst, viirs: last?.viirs_lst, aqua: last?.aqua_lst }
   const [value, setValue] = useState(50)
   return (
     <section id="day" aria-labelledby="day-h" className={section}>
-      <div className={cn(shell, 'py-16 lg:py-24')}>
-        <h2 id="day-h" className={title}>One day, three looks at the same forest</h2>
-        <p className={lead}>The central Amazon on 4 September 2026, seen by three satellites at three times. Clouds, smoke and fires change between looks.</p>
-        {/* phones swipe through the three looks at a readable size; wider screens show them side by side */}
-        <ul aria-label="Three looks, morning to later afternoon" className="-mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0">
-          {PASSES.map((p, i) => (
-            <Reveal as="li" key={p.key} delay={i * 100} className="w-[78%] min-w-0 shrink-0 snap-start sm:w-auto">
-              <figure className="m-0">
-                <div className="relative aspect-square overflow-hidden rounded-[4px] bg-[color:var(--surface)]">
-                  <img src={square(p.key)} alt={p.alt} width={720} height={720} loading="lazy" className={cn('size-full object-cover', p.fit)} />
-                </div>
-                <figcaption className="mt-3">
-                  <span className="flex items-center gap-2 text-sm font-medium text-[color:var(--bone)] sm:text-base"><SatMark sat={p.key} size={11} />{p.name}</span>
-                  <span className="mt-0.5 block text-xs text-[color:var(--bone2)] sm:text-sm">{p.when}</span>
-                  {lookOf[p.key] ? <span className="mt-0.5 block text-xs tabular-nums text-[color:var(--bone3)]">Usual look in {last!.year}: {lookOf[p.key]}</span> : null}
-                </figcaption>
-              </figure>
-            </Reveal>
-          ))}
-        </ul>
-        <div className="mt-14 grid grid-cols-1 gap-y-6 lg:grid-cols-12 lg:gap-x-6">
-          <div className="lg:col-span-4">
-            <h3 className="text-2xl font-medium leading-tight tracking-[-0.01em]">Slide between the two afternoon looks</h3>
-            <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-              VIIRS looks near Aqua’s old time; Aqua now looks later. Same place, same day, a different afternoon. One day doesn’t measure anything: the yearly counts do.
-            </p>
-          </div>
-          <figure className="m-0 lg:col-span-8">
-            <CompareSlider
-              value={value}
-              onValueChange={setValue}
-              label="Compare VIIRS’s early-afternoon look with Aqua’s later look"
-              valueText={(v) => `${Math.round(v)}% VIIRS, ${100 - Math.round(v)}% Aqua`}
-              className="aspect-[13/10] rounded-[4px] bg-[color:var(--surface)]"
-            >
-              <CompareSliderBefore label={<>Aqua · later afternoon</>}>
-                <img src={wide('aqua')} alt="" className="size-full object-cover" draggable={false} />
-              </CompareSliderBefore>
-              <CompareSliderAfter label={<>VIIRS · early afternoon</>}>
-                <img src={wide('viirs')} alt="" className="size-full object-cover" draggable={false} />
-              </CompareSliderAfter>
-              <CompareSliderHandle />
-            </CompareSlider>
-            <figcaption className="mt-3 text-xs text-[color:var(--bone3)]">Drag the handle, or use the arrow keys. NASA Worldview / GIBS true colour, with each satellite’s fire detections.</figcaption>
-          </figure>
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
+        <div className="lg:col-span-4">
+          <h2 id="day-h" className={title}>One afternoon, two looks at the same forest</h2>
+          <p className={lead}>VIIRS looked early in the afternoon. Aqua looked later. The clouds, the smoke and the fires had changed.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">A single day measures nothing on its own. The yearly counts are the measurement.</p>
         </div>
+        <figure className="m-0 lg:col-span-8">
+          <CompareSlider
+            value={value}
+            onValueChange={setValue}
+            label="Compare VIIRS’s early-afternoon look with Aqua’s later look"
+            valueText={(v) => `${Math.round(v)}% VIIRS, ${100 - Math.round(v)}% Aqua`}
+            className="aspect-[13/10] rounded-[4px] bg-[color:var(--surface)]"
+          >
+            <CompareSliderBefore label={<>Aqua · later</>}>
+              <img src={wide('aqua')} alt="" className="size-full object-cover" draggable={false} />
+            </CompareSliderBefore>
+            <CompareSliderAfter label={<>VIIRS · early afternoon</>}>
+              <img src={wide('viirs')} alt="" className="size-full object-cover" draggable={false} />
+            </CompareSliderAfter>
+            <CompareSliderHandle />
+          </CompareSlider>
+          <figcaption className="mt-3 text-sm text-[color:var(--bone2)]"><span className="text-[color:var(--bone)]">Drag the handle.</span> The dots on the pictures are the fires each satellite detected.</figcaption>
+        </figure>
       </div>
     </section>
   )
@@ -203,62 +180,55 @@ function Steps() {
   const d = regionData('br-amazon')
   const y = d.latestOk
   const ratio = d.ratio
-  const detail = (label: string, body: ReactNode) => (
-    <Accordion motion={motion.on} level={4} className="border-t-0">
-      <AccordionItem value="d" className="border-b-0">
-        <AccordionTrigger className="py-2 text-[color:var(--bone2)]">{label}</AccordionTrigger>
-        <AccordionContent className="pl-0 pr-0 text-xs">{body}</AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  )
+  const big = 'block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]'
   const steps = [
     {
       title: 'Find when each satellite looked',
-      description: 'We read the time of day from each satellite’s own fire detections, year by year.',
+      description: 'Every fire detection carries its time of day. The middle of those times is the satellite’s look time for the year.',
       figure: <LookLines />,
-      details: detail('Details', <p>Median local solar time (UTC + longitude ÷ 15) of near-nadir daytime vegetation-fire detections in NASA FIRMS’s yearly files; VIIRS here is S-NPP. Source: drift files, one per place.</p>),
     },
     {
-      title: 'Learn the old relationship',
-      description: 'From 2012 to 2020 Aqua and VIIRS looked at about the same time. That tells us how many daytime detections Aqua records for every 100 VIIRS detections on matched days.',
-      figure: ratio != null ? <p className="text-sm text-[color:var(--bone2)]"><span className="block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]">{Math.round(ratio * 100)}</span>Aqua detections for every 100 VIIRS detections over the Amazon, 2012–2020</p> : null,
-      details: detail('Details', <p>The exchange rate is Aqua’s daytime detections divided by S-NPP’s on matched days, 2012–2020 (audit file, baseline ratio). VIIRS sees more small fires than Aqua (see the real-fires test), so the rate is below 1.</p>),
+      title: 'Learn how Aqua and VIIRS compare',
+      description: 'From 2012 to 2020 they looked at about the same time. That tells us how many daytime detections Aqua records for every 100 by VIIRS on the same days.',
+      figure: ratio != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{Math.round(ratio * 100)}</span>Aqua detections for every 100 VIIRS detections</p> : null,
     },
     {
-      title: 'Estimate what we’d expect',
-      description: 'For each later year, VIIRS’s count and that earlier relationship give what we’d expect from Aqua. It does not show what Aqua would have counted if only its look time had changed.',
-      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className="block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]">{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua over the Amazon in {y.year}</p> : null,
-      details: detail('Details', <p>The fixed-clock benchmark: S-NPP’s count times the 2012–2020 exchange rate, on the same days, in Aqua-equivalent units. A day when either satellite returned no data is dropped. The monthly calendar uses the same rate, filled from NOAA-20 where S-NPP is missing.</p>),
+      title: 'Work out what we’d expect',
+      description: 'For each later year, VIIRS’s count and that rate give what we’d expect from Aqua. It does not show what Aqua would have counted if only its look time had changed.',
+      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}</p> : null,
     },
     {
-      title: 'Compare, and say how sure we are',
-      description: y && y.gap != null ? `Aqua counted ${fmtInt(y.aqua)}: ${pct(y.gap)} against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.',
+      title: 'Compare',
+      description: y && y.gap != null ? `Aqua recorded ${fmtInt(y.aqua)} detections, which is ${pct(y.gap)} against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.',
       figure: y && y.gap != null && y.lo != null && y.hi != null ? <RangeStrip gap={y.gap} lo={y.lo} hi={y.hi} band={d.placebo} /> : null,
-      details: detail('Details', (
-        <div className="flex flex-col gap-2">
-          <p>L = Aqua’s count ÷ the benchmark (1 = no change). “How sure we are” is the 95% interval from resampling days (bootstrap). The usual range is the nine placebo years 2012–2020, each scored against the other eight; a year outside it is flagged. A flag describes; it isn’t a significance test.</p>
-          <p className="text-[color:var(--bone)]">{CAVEAT}</p>
-        </div>
-      )),
     },
   ]
   return (
     <section id="steps" aria-labelledby="steps-h" className={section}>
       <div className={cn(shell, 'py-16 lg:py-24')}>
-        <h2 id="steps-h" className={title}>How the comparison works</h2>
-        <p className={lead}>Four steps, shown for the Amazon. Each opens one click deeper.</p>
+        <h2 id="steps-h" className={title}>What we compare, in four steps</h2>
+        <p className={lead}>Shown for the Amazon.</p>
         <HowItWorks steps={steps} motion={motion.on} className="mt-10" />
-        <p className="mt-10 max-w-[var(--measure)] rounded-md border border-[color:var(--bone-20)] px-4 py-3 text-base text-[color:var(--bone)]">{CAVEAT}</p>
+        <p className="mt-8 max-w-[var(--measure)] text-base text-[color:var(--bone)]">{CAVEAT}</p>
+        <More label="Technical notes" className="mt-4">
+          <ul className="mt-2 flex max-w-[44rem] list-disc flex-col gap-2 pl-5 text-sm text-[color:var(--bone2)]">
+            <li>Look time: the median local solar time of daytime vegetation-fire detections near the middle of the satellite’s view, from NASA FIRMS’s yearly files. VIIRS here is the S-NPP satellite.</li>
+            <li>The rate: Aqua’s daytime detections divided by VIIRS’s on the same days, 2012–2020.</li>
+            <li>What we’d expect: VIIRS’s count times that rate, on the same days. A day when either satellite sent no data is dropped. The calendar uses the same rate, filled from NOAA-20 where S-NPP is missing.</li>
+            <li>How sure we are: a 95% interval from resampling days. The usual range is the nine years 2012–2020, each scored against the other eight. A year outside it is flagged; a flag describes, it isn’t a significance test.</li>
+          </ul>
+        </More>
       </div>
     </section>
   )
 }
+
 /* ---------- The ten checks ---------- */
 
-/** What each check asks, in plain words; its rule, the way it was scored and its result come from checks.json. */
+/** What each test asks, in plain words; whether it passed comes from checks.json. */
 const PLAIN: Record<string, string> = {
   P1: 'Aqua should look later every year over Brazil’s biomes, while VIIRS stays put.',
-  P2: 'Over Punjab, Aqua should look later each year, about as Jethva and colleagues measured.',
+  P2: 'Over Punjab, Aqua should look later each year, about as another study measured.',
   P3: 'Our copy of the data should match INPE’s official counts.',
   P4: 'Before the drift, the yearly wobble should be no bigger than day-to-day chance.',
   P5: 'A change in the size of fires shouldn’t explain the result.',
@@ -266,17 +236,9 @@ const PLAIN: Record<string, string> = {
   P7: 'The old link between look time and count should predict the result.',
   P8: 'VIIRS should catch small real fires more often than Aqua.',
   P9: 'Where fires grow through the afternoon, Aqua’s count should rise and Terra’s fall.',
-  P10: 'The two-clocks difference should agree with the result.',
+  P10: 'Terra and Aqua moving apart should agree with the result.',
 }
 const STATUS: Record<Check['status'], string> = { pass: 'Passed', fail: 'Failed', pending: 'Pending' }
-const BIOME: Record<string, string> = { amazon: 'Amazon', cerrado: 'Cerrado', pantanal: 'Pantanal', caatinga: 'Caatinga', mata_atlantica: 'Atlantic Forest', pampa: 'Pampa' }
-const BIOME_RE = /\b(amazon|cerrado|pantanal|caatinga|mata_atlantica|pampa)\b/g
-/** The file's result line, for readers: biome names written out, the team's internal to-dos taken out. */
-const checkDetail = (c: Check) => c.detail
-  .replace(/Readings disagree:.*$/, 'The two readings disagree, so this check stays pending.')
-  .replace(/;\s*time convention not yet checked/, '')
-  .replace(BIOME_RE, (b) => BIOME[b] ?? b)
-const cleanRule = (s?: string) => (s ?? '').replace(/\*\*|`/g, '').replace(BIOME_RE, (b) => BIOME[b] ?? b)
 
 function StatusChip({ status }: { status: Check['status'] }) {
   return (
@@ -288,58 +250,47 @@ function StatusChip({ status }: { status: Check['status'] }) {
 }
 
 function Checks() {
-  const motion = useMotion()
-  const { checks, mock } = CHECKS
+  const { checks } = CHECKS
   const count = (s: Check['status']) => checks.filter((c) => c.status === s).length
   const pass = count('pass'), fail = count('fail'), pending = count('pending')
-  const before = checks.filter((c) => c.result_existed_before_commit).map((c) => c.id)
+  const before = checks.filter((c) => c.result_existed_before_commit).length
   if (!checks.length) return null
-  const heading = `We wrote down ${numWord(checks.length)} checks. ${capital(numWord(pass))} passed, ${numWord(fail)} failed${pending ? ` and ${numWord(pending)} ${pending === 1 ? 'is' : 'are'} pending` : ''}.`
+  const heading = `We wrote down ${numWord(checks.length)} tests. ${capital(numWord(pass))} passed, ${numWord(fail)} failed${pending ? ` and ${numWord(pending)} ${pending === 1 ? 'is' : 'are'} pending` : ''}.`
   return (
     <section id="checks" aria-labelledby="checks-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="checks-h" className={title}>{heading}</h2>
-          {before.length ? (
-            <p className={lead}>For {numWord(before.length)} of them ({andList(before)}) we had seen the result before writing the rule, so they aren’t true predictions.</p>
+          <p className={lead}>Each one says what should be true if the timing matters. The failures stay on the page.</p>
+          {before ? (
+            <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">For {numWord(before)} of them we had already seen the result when we wrote the rule. Those are marked, because they aren’t true predictions.</p>
+          ) : null}
+          {REPO_URL ? (
+            <p className="mt-4 text-sm"><a href={REPO_URL} target="_blank" rel="noreferrer" className={textLink}>The rules and full results are in the code</a></p>
           ) : null}
         </div>
-        <div className="min-w-0 lg:col-span-8">
-          <Accordion type="multiple" motion={motion.on} level={3}>
-            {checks.map((c) => (
-              <AccordionItem key={c.id} value={c.id}>
-                <AccordionTrigger
-                  number={c.id}
-                  after={<span className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-2">{c.result_existed_before_commit ? <span className="whitespace-nowrap text-xs text-[color:var(--bone2)]">Seen before the rule</span> : null}<StatusChip status={c.status} /></span>}
-                >
-                  {PLAIN[c.id] ?? c.name}
-                </AccordionTrigger>
-                <AccordionContent>
-                  {c.detail ? <p className="max-w-[var(--measure)]">{checkDetail(c)}</p> : null}
-                  {c.rule_written || c.rule_implemented ? (
-                    <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
-                      <dt className="text-[color:var(--bone3)]">The check</dt>
-                      <dd>{c.name.replace(BIOME_RE, (b) => BIOME[b] ?? b)}</dd>
-                      {c.rule_written ? (<><dt className="text-[color:var(--bone3)]">Rule as written</dt><dd>{cleanRule(c.rule_written)}</dd></>) : null}
-                      {c.rule_implemented ? (<><dt className="text-[color:var(--bone3)]">As scored</dt><dd>{cleanRule(c.rule_implemented)}</dd></>) : null}
-                    </dl>
-                  ) : null}
-                  {c.id === 'P9' ? (
-                    <aside className="mt-4 border-l-2 border-[color:var(--hairline)] pl-4" aria-label="P9 follow-up, separate from original test">
-                      <h4 className="font-medium">Completed VIIRS follow-up, not a new pass</h4>
-                      <p className="mt-2">All {p9Followup.complete_dates} fixed dates (2018–2020), {p9Followup.expected_swaths} swaths, were acquired. Under the original 45° view limit there were {p9Followup.primary_eligible} eligible afternoon center-date observations. The separate 85° sensitivity found {fmtInt(p9Followup.sensitivity_eligible)} center-date observations and {p9Followup.discordant_fires} discordant fires. Repeated centers across dates are not independent observations.</p>
-                      <p className="mt-2">All six biomes remain insufficiently identified: no beta or confidence interval can be estimated under the unchanged gates. This does not turn the original MODIS-surrogate test above into a pass or validate a causal timing correction.</p>
-                      <a href={p9Followup.report_url} target="_blank" rel="noreferrer" className={textLink}>Final acquisition and identification report</a>
-                    </aside>
-                  ) : null}
-                  {c.id === 'P8' ? <p className="mt-3 text-xs"><a href="#detection" className={textLink}>The real-fires test</a></p> : null}
-                  {c.id === 'P3' ? <p className="mt-3 text-xs"><a href="#inpe" className={textLink}>How well we match INPE</a></p> : null}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-          <p className="mt-4 text-xs text-[color:var(--bone3)]">Several checks are scored on all six of Brazil’s biomes, including three that aren’t among our six places. Source: checks.json{mock ? ' · MOCK' : ''}</p>
-        </div>
+        <ol className="min-w-0 border-t border-[color:var(--hairline)] lg:col-span-8">
+          {checks.map((c, i) => (
+            <li key={c.id} className="flex items-start gap-4 border-b border-[color:var(--hairline)] py-4">
+              <span aria-hidden className="w-6 shrink-0 pt-0.5 text-sm tabular-nums text-[color:var(--bone3)]">{String(i + 1).padStart(2, '0')}</span>
+              <span className="min-w-0 flex-1 text-base text-[color:var(--bone)]">
+                {PLAIN[c.id] ?? c.name}
+                {c.result_existed_before_commit ? <span className="mt-1 block text-xs text-[color:var(--bone3)]">Result seen before the rule was written</span> : null}
+                {c.id === 'P9' ? (
+                  <More label="A follow-up to this test" className="mt-1">
+                    <div aria-label="Follow-up, separate from the original test" className="mt-2 flex max-w-[var(--measure)] flex-col gap-2 border-l-2 border-[color:var(--hairline)] pl-4 text-sm text-[color:var(--bone2)]">
+                      <p className="font-medium text-[color:var(--bone)]">Completed VIIRS follow-up, not a new pass</p>
+                      <p>All {p9Followup.complete_dates} fixed dates (2018–2020), {p9Followup.expected_swaths} swaths, were acquired. Under the original 45° view limit there were {p9Followup.primary_eligible} eligible afternoon center-date observations. The separate 85° sensitivity found {fmtInt(p9Followup.sensitivity_eligible)} center-date observations and {p9Followup.discordant_fires} discordant fires. Repeated centers across dates are not independent observations.</p>
+                      <p>All six biomes remain insufficiently identified: no beta or confidence interval can be estimated under the unchanged gates. This does not turn the original MODIS-surrogate test above into a pass or validate a causal timing correction.</p>
+                      <a href={p9Followup.report_url} target="_blank" rel="noreferrer" className={cn(textLink, 'w-fit')}>Final acquisition and identification report</a>
+                    </div>
+                  </More>
+                ) : null}
+              </span>
+              <StatusChip status={c.status} />
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )
@@ -352,7 +303,8 @@ const DET_SATS = [
   { key: 'Aqua', label: 'Aqua', color: 'var(--sat-aqua)', shape: 'filled' as DetShape },
   { key: 'Terra', label: 'Terra', color: 'var(--sat-terra)', shape: 'hollow' as DetShape },
 ]
-const sizeLabel = (s: string) => s.replace(/\s+acres$/i, '').replace(/^>\s*(\d+)/, (_, n) => `Over ${fmtInt(Number(n))}`).replace(/(\d+)-(\d+)/, (_, a, b) => `${fmtInt(Number(a))}–${fmtInt(Number(b))}`)
+/** "10-100 acres" as "10–100", "> 1000 acres" as "Over 1,000": the unit is added where the label is used */
+const sizeLabel = (s: string) => s.replace(/\s*acres?\s*$/i, '').replace(/^>\s*(\d+)/, (_, n) => `Over ${fmtInt(Number(n))}`).replace(/(\d+)-(\d+)/, (_, a, b) => `${fmtInt(Number(a))}–${fmtInt(Number(b))}`)
 const share = (v: number) => `${(v * 100).toFixed(0)}%`
 /** Whole acres, rounded half to even as the team's pipeline (Python) rounds, so 946.5 reads 946 here and in the checks. */
 const acres = (v: number) => { const f = Math.floor(v); const r = v - f === 0.5 ? (f % 2 === 0 ? f : f + 1) : Math.round(v); return fmtInt(r) }
@@ -432,64 +384,43 @@ function Detection() {
   const small = useMedia('(max-width: 639px)')
   const sats = DET_SATS.filter((s) => DETECTION?.satellites[s.key])
   const a50 = sats.map((s) => ({ ...s, v: DETECTION?.satellites[s.key]?.a50_acres, ci: DETECTION?.satellites[s.key]?.a50_ci95 })).filter((s) => s.v != null)
-  const proofYears = PROOF ? [...new Set(PROOF.years.map((y) => y.year))] : []
-  const smallest = PROOF?.size_classes[0]
-  const viirsAhead = proofYears.filter((yr) => { const r = PROOF!.years.find((y) => y.year === yr && y.size_class === smallest); return r && r.viirs_pod > r.aqua_pod }).length
-  const seen = SEEN?.fires ?? []
-  const caught = (k: 'viirs' | 'aqua' | 'terra', fs = seen) => fs.filter((f) => f[k]).length
-  const tiny = seen.filter((f) => f.acres < 10)
-  const span = seen.length ? [Math.min(...seen.map((f) => f.year)), Math.max(...seen.map((f) => f.year))] : null
   if (!DETECTION) return null
   return (
     <section id="detection" aria-labelledby="detection-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="detection-h" className={title}>The real-fires test: VIIRS catches more small fires</h2>
-          <p className={lead}>We matched California’s recorded fires to each satellite’s detections. This is why VIIRS sets what we’d expect.</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">These numbers describe one way of matching isolated, recorded fires in California, not the cameras’ limits everywhere.</p>
+          <h2 id="detection-h" className={title}>VIIRS picks up small fires that Aqua misses</h2>
+          <p className={lead}>California keeps a record of its fires. We checked which of them each satellite picked up. VIIRS found more of the small ones, so we use it as the yardstick.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">This is one way of matching fires in one state. It doesn’t give the cameras’ limits everywhere.</p>
           <More label="How we matched" className="mt-3">
-            <p className="mt-1 max-w-[var(--measure)] text-xs text-[color:var(--bone2)]">
-              Each fire in the US Forest Service’s fire occurrence database (FPA-FOD) was matched to the satellites’ detections. {matchingRule(DETECTION.rule)}
+            <p className="mt-1 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+              Each fire in the US Forest Service’s record was matched to the satellites’ detections. {matchingRule(DETECTION.rule)}
             </p>
           </More>
+          <MockTag show={!!DETECTION.mock} className="mt-3 inline-block" />
         </div>
         <div className="flex min-w-0 flex-col gap-12 lg:col-span-8">
           <figure className="m-0">
             <figcaption className="mb-4">
-              <span className="block text-lg font-medium">Share of real fires caught, by fire size</span>
-              <span className="mt-1 block text-sm text-[color:var(--bone2)]">Point at a row, or tab through them.</span>
+              <span className="block text-lg font-medium">Share of real fires each satellite picked up, by fire size</span>
+              <span className="mt-1 block text-sm text-[color:var(--bone2)]">Point at a row to read it.</span>
             </figcaption>
             <DetectionChart small={small} />
           </figure>
           {a50.length ? (
             <div>
-              <p className="text-lg font-medium">Fire size each satellite caught half the time, 2012–2020</p>
+              <p className="text-lg font-medium">The fire size each satellite picks up half the time</p>
               <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 border-t border-[color:var(--hairline)] pt-4 sm:grid-cols-3">
                 {a50.map((s) => (
                   <div key={s.key}>
                     <dt className="inline-flex items-center gap-2 text-xs text-[color:var(--bone2)]"><svg width={14} height={14} aria-hidden><DetMark shape={s.shape} color={s.color} x={7} y={7} r={4.5} /></svg>{s.label}</dt>
                     <dd className="mt-1 text-[length:var(--fs-40)] font-medium leading-none tabular-nums">{acres(s.v!)} <span className="text-sm font-normal">acres</span></dd>
-                    {s.ci ? <dd className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">How sure we are: {acres(s.ci[0])}–{acres(s.ci[1])}</dd> : null}
+                    {s.ci ? <dd className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">How sure we are: {acres(s.ci[0])} to {acres(s.ci[1])}</dd> : null}
                   </div>
                 ))}
               </dl>
-              {proofYears.length && smallest ? (
-                <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-                  VIIRS caught a larger share of fires of {sizeLabel(smallest)} acres than Aqua in {numWord(viirsAhead)} of {numWord(proofYears.length)} years, {Math.min(...proofYears)} to {Math.max(...proofYears)}.
-                </p>
-              ) : null}
             </div>
           ) : null}
-          {seen.length && span && SEEN ? (
-            <div className="border-t border-[color:var(--hairline)] pt-6">
-              <p className="text-lg font-medium">Close up: one {SEEN.radius_km} km circle in Southern California</p>
-              <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-                Of {fmtInt(seen.length)} fires recorded there, {span[0]} to {span[1]}, VIIRS caught {fmtInt(caught('viirs'))}, Aqua {fmtInt(caught('aqua'))} and Terra {fmtInt(caught('terra'))}; of the{' '}
-                {fmtInt(tiny.length)} under 10 acres, VIIRS caught {fmtInt(caught('viirs', tiny))}{caught('aqua', tiny) + caught('terra', tiny) === 0 ? ' and Aqua and Terra none' : `, Aqua ${fmtInt(caught('aqua', tiny))} and Terra ${fmtInt(caught('terra', tiny))}`}.
-              </p>
-            </div>
-          ) : null}
-          <p className="text-xs text-[color:var(--bone3)]">Sources: detection_limits_california.json · proof_california.json · socal_seen_missed.json{DETECTION.mock || SEEN?.mock ? ' · MOCK' : ''}</p>
         </div>
       </div>
     </section>
@@ -538,7 +469,7 @@ function InpeChart() {
         ) : null}
       </div>
       <div aria-hidden className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[color:var(--bone2)]">
-        <span className="inline-flex items-center gap-2"><span className="inline-block h-3 w-2.5 bg-[color:var(--sat-aqua)] opacity-70" />INPE’s official count (it follows Aqua)</span>
+        <span className="inline-flex items-center gap-2"><span className="inline-block h-3 w-2.5 bg-[color:var(--sat-aqua)] opacity-70" />INPE’s official count</span>
         <span className="inline-flex items-center gap-2"><span className="inline-block h-0.5 w-4 bg-[color:var(--bone)]" />Our count of Aqua’s detections, NASA FIRMS</span>
       </div>
       <More label="Show the numbers" className="mt-2">
@@ -559,20 +490,17 @@ function InpeMatch() {
     <section id="inpe" aria-labelledby="inpe-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="inpe-h" className={title}>Our copy of Aqua’s count matches INPE’s</h2>
+          <h2 id="inpe-h" className={title}>Our count of Aqua’s fires matches INPE’s</h2>
           {all ? (
             <p className={lead}>
-              From 2012 to 2020, our count was within 10% of INPE’s official count in {all}% of months, across Brazil’s six biomes
-              {study ? `; from 2021 to 2025, in ${study[1]} of ${study[2]} (${study[3]}%)` : ''}.
+              From 2012 to 2020 our monthly count was within 10% of INPE’s official count {all}% of the time{study ? `, and ${study[3]}% of the time from 2021 to 2025` : ''}.
             </p>
           ) : null}
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">INPE uses the same NASA fire algorithm, so this shows we follow the same series. It isn’t an independent test.</p>
-          {p3 ? <p className="mt-4 text-sm text-[color:var(--bone2)]">Check P3: <StatusChip status={p3.status} /></p> : null}
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">INPE uses the same NASA fire data, so this shows we follow the same series. It isn’t an independent test.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <p className="mb-4 text-lg font-medium">The Amazon’s hotspot detections by year</p>
           <InpeChart />
-          <p className="mt-3 text-xs text-[color:var(--bone3)]">Sources: INPE Programa Queimadas; the team’s reproduction table (analysis/brazil-data); checks.json, P3.</p>
         </div>
       </div>
     </section>
@@ -614,41 +542,38 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   const items: { t: string; b: ReactNode }[] = [
     {
       t: 'It can’t say how much of a difference the timing caused.',
-      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together; the data don’t separate the timing’s share. What we’d expect is an estimate, not a corrected version of INPE’s official count.',
+      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together, and the data don’t separate the timing’s share. What we’d expect is an estimate, not a corrected version of INPE’s official count.',
     },
     {
-      t: '“Unusual” is a rough line, not a proof.',
-      b: 'Nine years, 2012 to 2020, set the usual range; a tenth ordinary year would fall outside it about one time in five. “How sure we are” resamples days, not years, so year-to-year weather shows only in the usual range. A flag describes; it isn’t a significance test.',
+      t: '“Unusual” is a rough threshold. It is not proof.',
+      b: 'Nine years set the usual range, so a tenth ordinary year would fall outside it about one time in five. A flag describes a year. It isn’t a significance test.',
     },
     {
       t: weak.length ? `Some flags are close calls: ${andList(weak.map((w) => `${phrase(w.id).the} in ${w.year}`))} ${weak.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is a close call.',
-      b: 'Close to no change: a year just outside a narrow range is not a finding. Argentina’s 2025 range takes in no change when days are resampled in 32-day blocks.',
+      b: 'A year just outside a narrow range is not a finding. Argentina’s 2025 range takes in no change when days are resampled in 32-day blocks.',
     },
     {
-      t: 'Missing satellite days are inferred.',
-      b: 'A satellite counts as down on a day with no daytime detection anywhere in Brazil, and those days are dropped for every region; a partial loss over one region on an otherwise normal day isn’t caught. S-NPP events still to check: an anomaly in July 2022, location problems in 2024 and a partial data receipt in July 2025.',
-    },
-    ...(filled.length ? [{
-      t: `${capital(numWord(filled.length))} calendar months show Aqua’s own count.`,
-      b: `They had an S-NPP outage day and no NOAA-20 data to fill it, so they show Aqua’s count from before its look drifted: ${andList(filled.map(monthName))}.`,
-    }] : []),
-    {
-      t: 'Aqua and Terra have their own outages and calibrations.',
-      b: 'Aqua lost recorder data in early 2022 and went into safe hold on 31 March 2022; Terra paused its science data in October 2022 as it left its constellation. The two are calibrated separately.',
+      t: 'Some satellite days are missing or filled in.',
+      b: (
+        <>
+          A day with no daytime detection anywhere in Brazil counts as an outage and is dropped for every region. A partial loss over one region isn’t caught.
+          {filled.length ? ` ${capital(numWord(filled.length))} calendar months had a VIIRS outage day with nothing to fill it, so they show Aqua’s own count: ${andList(filled.map(monthName))}.` : ''}
+          {' '}Aqua went into safe hold on 31 March 2022, and Terra paused its science data in October 2022.
+        </>
+      ),
     },
     {
       t: 'NASA reprocessed VIIRS files in May 2025.',
-      b: 'The fix, for still heat sources labelled as vegetation fires, touches the timing and fire-size inputs, which filter by fire type, not the all-types counts the comparison uses. Product versions aren’t yet recorded per file.',
+      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Product versions aren’t yet recorded per file.',
     },
-    { t: `The historical calendar ends in ${lastYear}.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files. A separate rolling seven-day 2026 NRT snapshot has been acquired, but it cannot complete the year and is not part of this calibrated calendar.` },
+    { t: `The historical calendar ends in ${lastYear}.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files. A separate rolling seven-day 2026 snapshot has been acquired, but it cannot complete the year and is not part of this calendar.` },
     {
       t: 'Aqua and Terra are near the end of their missions.',
       b: (
         <>
           NASA has planned <a href={NASA_TERRA} target="_blank" rel="noreferrer" className={link}>Terra’s last operations</a> and{' '}
           <a href={NASA_AQUA_LIFE} target="_blank" rel="noreferrer" className={link}>Aqua’s end of life</a>, so counts that follow Aqua, as INPE’s does, will need a new reference.{' '}
-          <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned; NOAA-20 and NOAA-21 carry the same camera on
-          afternoon orbits that keep their time, so what we’d expect can still be worked out. The same test can vet any new reference satellite.
+          <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 and NOAA-21 carry the same camera and keep their time, so what we’d expect can still be worked out.
         </>
       ),
     },
@@ -657,13 +582,9 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
     <section id="limits" aria-labelledby="limits-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="limits-h" className={title}>What Anchor can’t do</h2>
-          <p className="mt-4 max-w-[var(--measure)] rounded-md border border-[color:var(--bone-20)] px-4 py-3 text-base text-[color:var(--bone)]">{CAVEAT}</p>
-          <p className={lead}>One line each; open a line for the detail.</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Who it’s for: anyone quoting a fire count from one year to the next. Check how far Aqua sat from what we’d expect in both years first.{' '}
-            <a href={links.regions()} onClick={leave} className={textLink}>The six places</a>
-          </p>
+          <h2 id="limits-h" className={title}>What Anchor can’t tell you</h2>
+          <p className={lead}>Comparing one year’s fire count with another’s? Check how far Aqua sat from what we’d expect in both years before you do.</p>
+          <p className="mt-4 text-sm"><a href={links.regions()} onClick={leave} className={textLink}>The six places</a></p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <Accordion type="multiple" motion={motion.on} level={3}>
@@ -680,13 +601,13 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   )
 }
 
-/* ---------- Sources, the AI disclosure, the code ---------- */
+/* ---------- Sources and the code ---------- */
 
 function Sources() {
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
   return (
     <section id="sources" aria-labelledby="sources-h" className={section}>
-      <div className={cn(shell, 'grid grid-cols-1 gap-y-12 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="sources-h" className={title}>Sources</h2>
           <p className={lead}>Every number on this site comes from the team’s data files, built from these.</p>
@@ -696,38 +617,17 @@ function Sources() {
             </p>
           ) : null}
         </div>
-        <div className="min-w-0 lg:col-span-8">
-          <ul className="border-t border-[color:var(--hairline)]">
-            {CREDITS.map((c) => (
-              <li key={c.name} className="flex flex-col gap-1 border-b border-[color:var(--hairline)] py-3 text-sm sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-                <span className="text-[color:var(--bone)]">{c.name}</span>
-                <span className="shrink-0">
-                  {c.links.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={cn(link, 'text-xs text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}>{l.text}</a>)}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div id="ai" className="mt-12 scroll-mt-32">
-            <h3 className="text-2xl font-medium leading-tight tracking-[-0.01em]">Use of AI (disclosure)</h3>
-            <div className="mt-4 flex max-w-[var(--measure)] flex-col gap-3 text-sm text-[color:var(--bone2)]">
-              <p>The 2026 Space Apps rules ask teams to disclose AI use. AI assistants (large language model chat and coding tools) were used throughout this project. Team members directed the work, made the decisions and reviewed the results. AI assistance was used for:</p>
-              <More label="What AI helped with">
-                <ul className="flex list-disc flex-col gap-1.5 pl-5">
-                  <li><strong className="font-medium text-[color:var(--bone)]">research:</strong> finding and reading sources, checking facts, and reviewing and stress-testing the plan;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">the data pipelines</strong> in <code>analysis/</code> (downloads, region assignment, counts, look times, the INPE comparison), and therefore the data they write to <code>data/out/</code>;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">the statistics:</strong> clock audit, bootstrap intervals, noise floor, two clocks and prediction checks;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">the California detection limits, the daylight analysis and the exploratory world map,</strong> including their independent checks;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">the web app</strong> in <code>frontend/</code>: code, layout and on-page text;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">documentation,</strong> including this README.</li>
-                </ul>
-              </More>
-              <p>The app’s photographs, video and satellite images are not AI-generated; their sources are credited below.</p>
-            </div>
-            <p className="mt-3 text-xs text-[color:var(--bone3)]">The team’s words, from the project README.</p>
-          </div>
-        </div>
+        <ul className="min-w-0 border-t border-[color:var(--hairline)] lg:col-span-8">
+          {CREDITS.map((c) => (
+            <li key={c.name} className="flex flex-col gap-1 border-b border-[color:var(--hairline)] py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
+              <span className="text-base text-[color:var(--bone)]">{c.name}</span>
+              <span className="shrink-0">
+                {c.links.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={cn(link, 'text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}>{l.text}</a>)}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
 }
-

@@ -24,10 +24,11 @@ import { SeriesChart, useMeasuredWidth, type Series } from '@/components/ui/seri
 import { OrbitGlobe, type GlobeOrbit } from '@/components/ui/orbit-globe'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { ScrollSpy } from '@/components/ui/scroll-spy'
+import { inRegion } from '@/r2/region-shapes'
 import { photoFor } from '@/r2/photos'
 import {
-  CAVEAT, FEATURED, Footer, JETHVA, MockTag, More, MotionContext, SatMark, SiteBar, TOKENS, andList, ease, focusRing, glideTo, linksFor, primaryButton, readMotion, secondaryButton,
-  shell, statement, statementName, storeMotion, textLink, title, useEasedScroll, useLeave, useMedia, useMotion, usePortalTokens,
+  CAVEAT, FEATURED, Footer, JETHVA, MockTag, More, MotionContext, PageNext, SatMark, SiteBar, TOKENS, andList, ease, focusRing, glideTo, linksFor, primaryButton, readMotion, secondaryButton,
+  shell, statement, statementName, storeMotion, textLink, title, useEasedScroll, useLeave, useStartAtTop, useMedia, useMotion, usePortalTokens,
   type Leave, type Links, type Nav, type Page,
 } from './common'
 
@@ -103,6 +104,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
 
   // wheel and trackpad scrolling eases toward its target; not on the Simulator, whose page doesn't scroll
   useEasedScroll(motion && which !== 'sim')
+  useStartAtTop()
 
   // links to a section (#calendar…) glide there instead of jumping; keyboard users land on the section's heading
   useEffect(() => {
@@ -129,7 +131,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
   useEffect(() => {
     const root = rootRef.current
     if (!root?.animate) return
-    if (motion) root.animate([{ opacity: 0, transform: 'scale(0.98)' }, { opacity: 1, transform: 'none' }], { duration: 350, easing: EASE })
+    if (motion) root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: EASE })
     // coming back through history must not land on a faded page
     const back = (e: PageTransitionEvent) => { if (e.persisted) root.getAnimations().forEach((a) => a.cancel()) }
     window.addEventListener('pageshow', back)
@@ -161,7 +163,6 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
             ) : (
               <RegionsPage region={region} onRegion={(id) => { setRegion(id); writeParams(nav, { region: id }) }} nav={nav} links={links} leave={leave} />
             )}
-            <Footer links={links} leave={leave} />
           </Suspense>
         )}
       </div>
@@ -240,6 +241,18 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         {/* the world map's data is fetched from the site; the comment artifact doesn't carry it, so it is left out there */}
         {live ? <GlobalLayer region={d.id} small={small} /> : null}
       </main>
+      <PageNext page="regions" links={links} leave={leave} regionsHref={links.regions(region)} />
+      <Footer
+        links={links}
+        leave={leave}
+        notes={[
+          <>Fires are counted on the days both satellites sent data.</>,
+          <>Unusual means further from what we’d expect than any year from 2012 to 2020. For {d.phrase.the} that usual range is {usualText(d)}.</>,
+          <>Look times are local sun time: the middle of each satellite’s fire detections that year.</>,
+          <>Calendar: normal is the middle value for that month, 2002–2025, counted by VIIRS and scaled to Aqua’s count.</>,
+          <>Files for {d.phrase.the}: drift, audit, twoclocks and calendar, in the team’s data/out folder.{d.mock || d.twoMock ? ' Some of these are mock data.' : ''}</>,
+        ]}
+      />
     </>
   )
 }
@@ -319,13 +332,6 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
       Open in Explore <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
     </a>
   )
-  const lookLine = look ? (
-    <p className="text-sm text-[color:var(--bone2)]">
-      Aqua looked at <span className="tabular-nums text-[color:var(--bone)]">{look.old}</span> in 2012–2020 and at{' '}
-      <span className="tabular-nums text-[color:var(--bone)]">{look.now}</span> in {look.year}: {look.minutes} minutes later. VIIRS kept its time
-      (<span className="tabular-nums">{look.viirs}</span>).
-    </p>
-  ) : null
   if (validation) {
     const nov = novemberRatio(d)
     const a = nov.find((r) => r.year === 2016), b = nov[nov.length - 1]
@@ -342,7 +348,6 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             </div>
             <div className="mt-8 flex flex-wrap gap-3">{sim}</div>
           </div>
-          <Aside>{lookLine}</Aside>
         </div>
       </section>
     )
@@ -369,17 +374,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             <RollingDigits text={pct(y.gap)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
           </p>
-          <dl className="mt-6 grid max-w-[var(--measure)] grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
-            <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
-            <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
-            <dt className="text-[color:var(--bone3)]">What we’d expect</dt>
-            <dd className="tabular-nums">{y.fixed != null ? fmtInt(y.fixed) : '—'}</dd>
-            <dt className="text-[color:var(--bone3)]">How sure we are</dt>
-            <dd className="tabular-nums">{rangeText(y)}</dd>
-            <dt className="text-[color:var(--bone3)]">Usual range</dt>
-            <dd className="tabular-nums">{usualText(d)} <span className="text-[color:var(--bone3)]">in 2012–2020</span></dd>
-          </dl>
-          <p className="mt-3 max-w-[var(--measure)] text-xs text-[color:var(--bone3)]">Counted on the days both satellites sent data. Unusual means further from what we’d expect than any year from 2012 to 2020.</p>
+          <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{CAVEAT}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
@@ -387,26 +382,31 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             </button>
           </div>
         </div>
-        <Aside>
-          {lookLine}
+        <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
+          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
+            <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
+            <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
+            <dt className="text-[color:var(--bone3)]">What we’d expect</dt>
+            <dd className="tabular-nums">{y.fixed != null ? fmtInt(y.fixed) : '—'}</dd>
+            <dt className="text-[color:var(--bone3)]">How sure we are</dt>
+            <dd className="tabular-nums">{rangeText(y)}</dd>
+            <dt className="text-[color:var(--bone3)]">Usual range</dt>
+            <dd className="tabular-nums">{usualText(d)}</dd>
+            {look ? (
+              <>
+                <dt className="text-[color:var(--bone3)]">Aqua looks</dt>
+                <dd className="tabular-nums">{look.minutes} min later</dd>
+              </>
+            ) : null}
+          </dl>
           {d.id === 'us-california' ? (
-            <p className="text-sm text-[color:var(--bone2)]">
-              How well does each satellite see small fires? <a href={links.method('detection')} onClick={leave} className={textLink}>See the real-fires test</a>.
+            <p className="mt-4 text-sm text-[color:var(--bone2)]">
+              <a href={links.method('detection')} onClick={leave} className={textLink}>How well each satellite sees small fires</a>
             </p>
           ) : null}
-        </Aside>
+        </div>
       </div>
     </section>
-  )
-}
-
-/** The caveat beside every finding, and the place's look times under it. */
-function Aside({ children }: { children?: ReactNode }) {
-  return (
-    <aside aria-label="Read this with the result" className="flex flex-col gap-5 lg:col-span-4 lg:col-start-9 lg:pt-2">
-      <p className="rounded-[4px] border border-[color:var(--bone-30)] p-4 text-base text-[color:var(--bone)]">{CAVEAT}</p>
-      {children}
-    </aside>
   )
 }
 
@@ -453,12 +453,12 @@ function LookTimes({ d }: { d: RegionData }) {
       <div className={cn(shell, 'pb-16 pt-16')}>
         <h2 id="look-h" className={title}>When each satellite flies over</h2>
         <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">
-          Each one crosses {d.phrase.the} at about the same time every day. Aqua’s crossing has moved later; VIIRS’s has not.
+          Each crosses {d.phrase.the} at about the same time every day. Aqua’s crossing has moved later. VIIRS’s has stayed put.
         </p>
         <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-12">
           <figure className="m-0 min-w-0 lg:col-span-6">
             <div className="relative">
-              <OrbitGlobe orbits={orbits} region={{ name, bbox: region.bbox }} running={false} ink={GLOBE_INK} label={description} />
+              <OrbitGlobe orbits={orbits} region={{ name, bbox: region.bbox }} inside={(lon, lat) => inRegion(d.id, lon, lat, region.bbox)} running={false} ink={GLOBE_INK} label={description} />
               <span aria-hidden className="pointer-events-none absolute left-0 top-2 text-xs text-[color:var(--bone3)]">Morning side</span>
               <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
             </div>
@@ -654,7 +654,8 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
             formatTick={tickText}
             legend={{ outside: 'Unusual', inside: 'Not unusual', range: 'How sure we are' }}
           />
-          <table className="mt-8 w-full border-collapse text-sm tabular-nums">
+          <More label="Show the numbers" className="mt-4">
+          <table className="mt-2 w-full border-collapse text-sm tabular-nums">
             <caption className="sr-only">Aqua’s count against what we’d expect, by year, for {d.name}</caption>
             <thead>
               <tr className="border-b border-[color:var(--hairline)]">
@@ -682,10 +683,12 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               ))}
             </tbody>
           </table>
-          <p className="mt-3 text-xs text-[color:var(--bone3)]">Counted on the days both satellites sent data. Usual range {usualText(d)}. Source: audit/{d.id}.json{d.mock ? ' · MOCK' : ''}</p>
+          </More>
+          <MockTag show={d.mock} className="mt-3 inline-block" />
           {v.whole.length ? (
-            <div className="mt-10 border-t border-[color:var(--hairline)] pt-4 text-sm">
-              <p className="text-[color:var(--bone2)]">Whole years, {v.from} to {v.to}, all twelve months</p>
+            <More label={hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}>
+            <div className="mt-2 text-sm">
+              <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, all twelve months</p>
               <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
                 {v.whole.map((r) => (
                   <Fragment key={r.name}>
@@ -697,6 +700,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               </dl>
               {hasOfficialSeries(d.id) ? <p className="mt-3 text-xs text-[color:var(--bone3)]">INPE’s Programa Queimadas is Brazil’s official count; it follows one satellite, Aqua.</p> : null}
             </div>
+            </More>
           ) : null}
         </div>
       </div>
@@ -761,8 +765,8 @@ function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; ye
           </p>
           {failed.length ? (
             <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
-              {failed.length === 2 ? 'Both checks' : 'A check'} of this idea failed ({andList(failed)}), so read it as a description, not proof.{' '}
-              <a href={links.method('checks')} onClick={leave} className={textLink}>See the checks</a>
+              {failed.length === 2 ? 'Two tests of this idea didn’t hold up' : 'A test of this idea didn’t hold up'}, so read it as a description, not proof.{' '}
+              <a href={links.method('checks')} onClick={leave} className={textLink}>See the tests</a>
             </p>
           ) : null}
           {t ? (
@@ -796,7 +800,7 @@ function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; ye
               formatTick={tickText}
               ink={{ fg: 'var(--bone2)', grid: 'var(--hairline)', surface: 'var(--ground)', guide: 'var(--bone)' }}
             />
-            <p className="mt-3 text-xs text-[color:var(--bone3)]">Source: twoclocks/{d.id}.json{d.twoMock ? ' · MOCK' : ''}</p>
+            <MockTag show={d.twoMock} className="mt-3 inline-block" />
           </figure>
           <More label="More detail: Aqua’s change minus Terra’s">
             <figure className="m-0 mt-3" style={diffVars}>
@@ -908,9 +912,6 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
-          <p className="mt-4 text-xs text-[color:var(--bone3)]">
-            Normal: the middle value for that month, 2002–2025. Counted by the VIIRS satellites, scaled to Aqua’s count. Source: calendar/{d.id}.json{d.mock ? ' · MOCK' : ''}
-          </p>
           <a href={`#top`} className={cn('mt-6 inline-flex min-h-11 items-center gap-1 text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
             Pick another place <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />
           </a>

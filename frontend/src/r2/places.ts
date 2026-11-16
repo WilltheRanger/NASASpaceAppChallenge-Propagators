@@ -28,6 +28,12 @@ const STUDIED_ALIASES: Record<string, string[]> = {
   'us-california': ['California'],
 }
 
+/** The studied region a sentence names ("strongest fire in the amazon"), by its names and aliases. */
+export function regionNamed(q: string) {
+  const t = ` ${fold(q).replace(/[^a-z+ ]/g, ' ')} `
+  return Object.entries(STUDIED_ALIASES).find(([, names]) => names.some((n) => t.includes(` ${fold(n)} `)))?.[0] ?? null
+}
+
 /** Big fire areas outside the studied regions, for flying to (centres approximate). */
 const FIRE_AREAS: [string, number, number, number][] = [
   ['Southern Africa savanna', 24, -12, 22], ['Northern Africa savanna', 22, 8, 26], ['Congo Basin', 22, -1, 14],
@@ -101,6 +107,34 @@ export async function lookUpPlace(q: string, signal?: AbortSignal): Promise<Plac
     const span = bb && bb.length === 4 ? Math.max(1, Math.min(40, Math.max(bb[1] - bb[0], bb[3] - bb[2]) * 1.6)) : 4
     return { id: `osm-${x.place_id}`, name: x.display_name.split(',').slice(0, 2).join(','), kind: 'Place', lat: Number(x.lat), lon: Number(x.lon), span }
   })
+}
+
+/** A name for a point without the network: the studied region, else a fire area it falls in, else nothing. */
+export function nameNear(lon: number, lat: number) {
+  const r = regionAt(lon, lat)
+  if (r) return studied.find((p) => p.region === r)?.name ?? null
+  const f = fireAreas.find((p) => Math.abs(p.lon - lon) <= (p.span ?? 0) / 2 && Math.abs(p.lat - lat) <= (p.span ?? 0) / 2)
+  return f?.name ?? null
+}
+
+/** "Town, state, country" for a point, from OpenStreetMap's Nominatim (live site only; null when it can't be reached). */
+const NAMES = new Map<string, Promise<string | null>>()
+export function nameAt(lon: number, lat: number): Promise<string | null> {
+  // one request per spot (Nominatim allows one a second; the card and SI ask about the same fire)
+  const key = `${lat.toFixed(2)},${lon.toFixed(2)}`
+  if (!NAMES.has(key)) NAMES.set(key, reverse(lon, lat))
+  return NAMES.get(key)!
+}
+async function reverse(lon: number, lat: number, signal?: AbortSignal): Promise<string | null> {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&lat=${lat.toFixed(3)}&lon=${lon.toFixed(3)}`, { signal, headers: { Accept: 'application/json' } })
+    if (!r.ok) return null
+    const a = ((await r.json()) as { address?: Record<string, string> }).address
+    if (!a) return null
+    const town = a.city ?? a.town ?? a.village ?? a.municipality ?? a.county
+    const parts = [town, a.state ?? a.region, a.country].filter((x, k, all): x is string => !!x && all.indexOf(x) === k)
+    return parts.length ? parts.join(', ') : null
+  } catch { return null }
 }
 
 /** The studied region a point falls in, if any. */

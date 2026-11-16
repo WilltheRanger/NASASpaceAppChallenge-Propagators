@@ -57,6 +57,8 @@ export interface OrbitGlobeProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   orbits: GlobeOrbit[]
   /** the region the view holds on, lit on the globe: [west, south, east, north] in degrees */
   region: { name: string; bbox: readonly [number, number, number, number] }
+  /** the region's own shape: which points of land to light. Without it, everything inside the box is lit */
+  inside?: (lon: number, lat: number) => boolean
   /** a bar on the time line between two orbits' times, e.g. the minutes Aqua has added to the fixed clock */
   span?: { from: string; to: string }
   /** fly the satellites along their orbits; false holds each one where it crosses the region's day path */
@@ -193,7 +195,9 @@ function placeLabels(items: { id: string; x: number; w: number }[], W: number) {
   return out
 }
 
-export function OrbitGlobe({ orbits, region, span, running, ink, label, day, years, year, onYear, className, style, ...props }: OrbitGlobeProps) {
+export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, day, years, year, onYear, className, style, ...props }: OrbitGlobeProps) {
+  const insideRef = React.useRef(inside)
+  insideRef.current = inside
   const boxRef = React.useRef<HTMLDivElement>(null)
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const W = useMeasuredWidth(boxRef)
@@ -320,7 +324,7 @@ export function OrbitGlobe({ orbits, region, span, running, ink, label, day, yea
     for (let k = 0; k < DOTS.n; k++) {
       const p = geo(DOTS.lon[k], DOTS.lat[k])
       if (p[2] <= 0.02) continue
-      const mine = DOTS.lon[k] >= w0 && DOTS.lon[k] <= e0 && DOTS.lat[k] >= s0 && DOTS.lat[k] <= n0
+      const mine = insideRef.current ? insideRef.current(DOTS.lon[k], DOTS.lat[k]) : DOTS.lon[k] >= w0 && DOTS.lon[k] <= e0 && DOTS.lat[k] >= s0 && DOTS.lat[k] <= n0
       const [x, y] = S(p, R)
       buckets[Math.min(BUCKETS - 1, Math.floor(p[2] * BUCKETS)) + (mine ? BUCKETS : 0)].push(x, y)
     }
