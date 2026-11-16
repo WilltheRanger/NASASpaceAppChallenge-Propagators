@@ -12,7 +12,7 @@
  * FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Play, Plus, Search, X } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, CircleHelp, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Play, Plus, Search, X } from 'lucide-react'
 import { AnchorLogo, AnchorMark } from '@/components/brand/anchor-logo'
 import { DecipherText } from '@/components/ui/decipher-text'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -21,6 +21,7 @@ import { SiChat, type SiTurn } from '@/components/ui/si-chat'
 import { ChartLine } from '@/components/ui/chart-line'
 import { ChartKpi } from '@/components/ui/chart-kpi'
 import { DaylightSection } from './daylight'
+import { guideSeen, startGuide } from './tour'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
@@ -249,6 +250,13 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const chartRef = useRef<HTMLDivElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   const chartH = useHeight(chartRef, 170)
+  // first visit on a wide screen at the whole globe: the guide opens once the page has settled
+  useEffect(() => {
+    if (place || !wide || guideSeen()) return
+    const t = window.setTimeout(() => startGuide(SHIFT, motion), 1200)
+    return () => window.clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const sheetH = useHeight(sheetRef, 260)
   const fireRef = useRef(fire)
   fireRef.current = fire
@@ -401,6 +409,11 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
               <span aria-current="page" className="border-b border-[color:var(--bone)] py-2 text-[color:var(--bone)]">Explore</span>
               <a href={methodHref ?? (nav === 'artifact' ? 'method.html' : '?page=method')} onClick={leave} className={cn('rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>Method</a>
             </nav>
+            {wide ? (
+              <button type="button" onClick={() => { if (place) back(); setChartOpen(true); window.setTimeout(() => startGuide(SHIFT, motion), place ? 600 : 0) }} className={cn('flex items-center gap-1.5 rounded py-2 text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
+                <CircleHelp size={15} strokeWidth={1.75} aria-hidden /> Guide
+              </button>
+            ) : null}
             <ElasticSwitch checked={motion} onCheckedChange={setMotion} label="Motion" />
           </div>
         </div>
@@ -415,7 +428,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           </aside>
         ) : null}
 
-        <section aria-label="Map" className="relative min-w-0 flex-1 overflow-hidden">
+        <section data-tour="map" aria-label="Map" className="relative min-w-0 flex-1 overflow-hidden">
           <div aria-hidden className={cn('absolute inset-0', STARS)} />
           {failed ? (
             <img src={`${IMG}earth/bluemarble-4096.jpg`} alt="" className="absolute inset-0 size-full object-cover opacity-80" />
@@ -483,7 +496,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           ) : null}
 
           {wide ? (
-            <div ref={chartRef} className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2">
+            <div ref={chartRef} data-tour="chart" className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2">
               {chartOpen || day ? chart : (
                 <button type="button" onClick={() => setChartOpen(true)} className={cn(glass, 'mx-auto flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
                   <ChevronDown size={15} strokeWidth={1.75} aria-hidden className="rotate-180" /> When each satellite saw fires
@@ -720,13 +733,13 @@ const Key = ({ children }: { children: ReactNode }) => (
 function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPlayDay: () => void; world: boolean }) {
   return (
     <div className="flex flex-col gap-7 px-5 pb-6 pt-6">
-      <div>
+      <div data-tour="intro">
         <h1 className="text-[22px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
           INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </h1>
         <p className="mt-3 text-sm text-[color:var(--bone2)]">{world ? 'Search or turn the globe to any place. Far out, each square shows Aqua’s 2025 count against what we’d expect; click one for its numbers. Close in, click any fire to see which satellite saw it, and when.' : 'Click any fire to see which satellite saw it, and when.'}</p>
       </div>
-      <div>
+      <div data-tour="places">
         <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--hairline)] pb-2">
           <h2 className="text-sm font-medium text-[color:var(--bone)]">Six places</h2>
           <span className="text-xs text-[color:var(--bone3)]">2025 count vs what we’d expect</span>
