@@ -1090,7 +1090,7 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
       {/* the answer first (the Verdict First Rule): daylight left, big; the alert, sunset and what this pass saw, one quiet line */}
       <div className="mt-3">
         <p className="flex flex-wrap items-baseline gap-x-2.5">
-          <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[48px] font-medium leading-none tracking-[-0.035em] text-[color:var(--bone)]" />
+          <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[40px] font-medium leading-none tracking-[-0.03em] text-[color:var(--bone)]" />
           <span className="text-lg text-[color:var(--bone2)]">of daylight left</span>
         </p>
         <p className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] tabular-nums text-[color:var(--bone2)]">
@@ -1360,7 +1360,7 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
     <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[color:var(--ground)] text-left', docked ? 'w-full' : 'w-[300px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
       <div className="flex items-center gap-2 pl-3 pr-1.5 pt-1.5">
         <Mark g={g} size={12} />
-        <p className="text-[15px] font-medium text-[color:var(--bone)]">
+        <p className="text-sm font-medium text-[color:var(--bone)]">
           {SAT_NAMES[SAT[i]]}<span className="text-sm font-normal text-[color:var(--bone3)]"> · {SENSOR[SAT[i]]}</span>
         </p>
         <button type="button" aria-label="Close" onClick={onClose} className={cn('ml-auto grid size-8 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
@@ -1373,7 +1373,7 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
           <span className="text-xs text-[color:var(--bone3)]">Daylight left</span>
           <span className="text-xs tabular-nums text-[color:var(--bone3)]">seen <span className="font-medium text-[color:var(--bone)]">{fmtHM(lst)}</span> local sun time</span>
         </p>
-        <p className="mt-1 text-[28px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{left > 0 ? fmtLeft(left) : 'None'}</p>
+        <p className="mt-1 text-[22px] font-medium leading-[1.25] tracking-[-0.01em] tabular-nums text-[color:var(--bone)]">{left > 0 ? fmtLeft(left) : 'None'}</p>
         <span aria-hidden className="relative mt-3 block h-1.5 w-full rounded-full bg-[color:var(--hairline)]">
           <span className="absolute inset-y-0 right-0 rounded-full" style={{ left: `${seenAt * 100}%`, background: COLOR[g] }} />
           <span className="absolute -top-[4px] h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-[color:var(--bone)]" style={{ left: `${seenAt * 100}%` }} />
