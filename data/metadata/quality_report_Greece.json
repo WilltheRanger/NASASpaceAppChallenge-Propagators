@@ -1,5 +1,5 @@
 {
-  "rows_raw": 136946,
+  "rows_raw": 186509,
   "rejected_by_reason": {
     "latitude_invalid": 0,
     "longitude_invalid": 0,
@@ -35,9 +35,9 @@
   "exact_duplicates_removed": 0,
   "cross_file_duplicates_removed": 0,
   "detection_id_collisions": 0,
-  "possible_overlap_duplicates_flagged": 94,
-  "rows_clean": 136946,
-  "generated_at_utc": "2026-11-16T03:23:14+00:00",
+  "possible_overlap_duplicates_flagged": 145,
+  "rows_clean": 186509,
+  "generated_at_utc": "2026-11-16T04:42:44+00:00",
   "by_product": [
     {
       "product": "modis",
@@ -66,14 +66,14 @@
     {
       "product": "viirs-noaa20",
       "satellite": "NOAA-20",
-      "rows": 101,
-      "first": "2026-11-08",
+      "rows": 49664,
+      "first": "2018-04-01",
       "last": "2026-11-15",
-      "pct_low_conf": 0.0099009901,
-      "pct_presumed_veg": null,
+      "pct_low_conf": 0.0493919137,
+      "pct_presumed_veg": 0.8552549281,
       "frp_missing": 0,
-      "versions": "2.0NRT",
-      "processing": "NRT"
+      "versions": "2, 2.0NRT",
+      "processing": "NRT, standard"
     },
     {
       "product": "viirs-noaa21",

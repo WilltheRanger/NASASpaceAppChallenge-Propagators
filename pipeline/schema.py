@@ -8,8 +8,8 @@ apart.
 FIRMS_COUNTRY_BASE = "https://firms.modaps.eosdis.nasa.gov/data/country"
 
 # Products available as public yearly-per-country CSVs (no MAP_KEY needed).
-# NOAA-20 / NOAA-21 VIIRS are NOT published in this per-country archive
-# (checked 2026-11-15: 404), only through the MAP_KEY API / archive request.
+# NOAA-20 is in this archive as "viirs-jpss1" (2018+). NOAA-21 is not (checked 2026-11-15:
+# viirs-noaa21 and viirs-jpss2 both 404); use the MAP_KEY API or NRT feeds for it.
 PRODUCTS = {
     "modis": {
         "label": "MODIS Collection 6.1 (Terra + Aqua) active fire, 1 km",
@@ -37,7 +37,8 @@ PRODUCTS = {
         "instrument": "VIIRS",
         "nominal_resolution_m": 375,
         "first_year": 2018,
-        "in_country_archive": False,  # only via MAP_KEY API or NRT feeds
+        "in_country_archive": True,
+        "archive_name": "viirs-jpss1",  # the country archive files NOAA-20 under its JPSS-1 name
         "doc_url": "https://earthdata.nasa.gov/data/instruments/viirs/viirs-i-band-375-m-active-fire-data",
         "doi_standard": "see FIRMS (VJ114IMG)",
         "doi_nrt": "10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002",

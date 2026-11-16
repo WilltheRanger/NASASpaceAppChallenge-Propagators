@@ -69,7 +69,7 @@ are from the Greece 2001–2025 run (`quality_report_Greece.md`).
 
 | `source_kind` | What | Boundary | Processing |
 |---|---|---|---|
-| `country_archive` | FIRMS yearly country CSV (MODIS, S-NPP), 2001–2025 | FIRMS' own | standard |
+| `country_archive` | FIRMS yearly country CSV (MODIS, S-NPP; NOAA-20 as `viirs-jpss1` from 2018), 2001–2025 | FIRMS' own | standard |
 | `api_sp` / `api_nrt` | FIRMS area API with MAP_KEY, any date range, all 4 sensors | ours (below) | standard / NRT |
 | `nrt_global_7d` | Keyless global last-7-days feeds (MODIS, NOAA-20, NOAA-21) | ours (below) | NRT |
 
