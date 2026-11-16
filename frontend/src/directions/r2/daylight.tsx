@@ -214,7 +214,7 @@ export function DaylightSection({ region, motion = true, nav = 'dev', level = 3,
   const H = `h${level}` as 'h3'
   const heading = lost == null
     ? `How much daylight an alert from each pass leaves in ${d.phrase.the}`
-    : `In ${f.year}, an alert from Aqua left ${Math.abs(lost)} ${lost >= 0 ? 'fewer' : 'more'} minutes of daylight in ${d.phrase.the} than in 2012–2020`
+    : `Scenario: with the same delay, an alert from Aqua’s ${f.year} pass leaves ${Math.abs(lost)} ${lost >= 0 ? 'fewer' : 'more'} minutes of daylight in ${d.phrase.the} than with its 2012–2020 pass`
   const limits = [
     'With sunset fixed, a later look leaves less daylight, minute for minute.',
     d.id.startsWith('br-')

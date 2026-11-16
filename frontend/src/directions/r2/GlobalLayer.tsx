@@ -329,7 +329,7 @@ export function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 
             />
           </div>
           <CalendarLegend mode="anomaly" render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
-          <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: global/cells/{cell.id}.json · counted by VIIRS, scaled to Aqua’s count · {EXPLORATORY}</p>
+          <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: global/cells/{cell.id}.json · VIIRS’s count, scaled to Aqua’s 2012–2020 rate · {EXPLORATORY}</p>
         </>
       )}
     </div>

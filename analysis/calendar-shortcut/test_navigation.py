@@ -14,7 +14,7 @@ class CalendarNavigation(unittest.TestCase):
         self.assertIn("if (el) glideTo(el, false)", s)
     def test_heading_and_limits(self):
         s = (ROOT/'frontend/src/directions/r2/FieldFilm.tsx').read_text()
-        self.assertIn('id="calendar-h" className={title}>Every month since 2002, VIIRS-based, in Aqua-equivalent units', s)
+        self.assertIn('id="calendar-h" className={title}>Every month since 2002, in Aqua-equivalent units', s)
         self.assertIn('not a forecast, a count of unique fires', s)
         self.assertNotIn('Each square is a month: the fires we’d expect Aqua to count at its old time.', s)
 if __name__ == '__main__': unittest.main()

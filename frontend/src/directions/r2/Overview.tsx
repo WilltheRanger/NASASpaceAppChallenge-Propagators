@@ -491,7 +491,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           <span className={label}>{YEAR} count vs the benchmark</span>
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
-              <RollingDigits text={pct(r.read.gap)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
+              <RollingDigits text={pct(r.read.gap, 0)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
               <span className="text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {fmtRange(r.read.lo, r.read.hi)}</span>
             </span>
           ) : (

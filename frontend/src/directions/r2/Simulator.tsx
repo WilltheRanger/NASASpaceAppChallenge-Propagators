@@ -988,7 +988,10 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
         <dl className="flex flex-col">
           <Readout name="Aqua looks at" value={look[clock]} basis={look[old ? 'new' : 'old']} format={fmtHM} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
           {count ? (
-            <Readout name={old ? 'Fires we’d expect Aqua to count' : 'Fires Aqua counted'} note={old ? `${f.count?.year}, estimated` : `${f.count?.year}, counted`} value={count[clock]} basis={count[old ? 'new' : 'old']} format={fmtInt} formatDelta={(d) => `${d > 0 ? '+' : '−'}${fmtInt(Math.abs(d))}`} motion={motion} />
+            <div className="border-t border-[color:var(--hairline)] py-2.5">
+              <dt className="text-xs text-[color:var(--bone2)]">{f.count?.year}: Aqua’s count and the VIIRS-based benchmark</dt>
+              <dd className="mt-0.5 text-sm tabular-nums text-[color:var(--bone)]">Aqua {fmtInt(count.new)} · benchmark {fmtInt(count.old)}</dd>
+            </div>
           ) : (
             <div className="border-t border-[color:var(--hairline)] py-2.5"><dt className="text-xs text-[color:var(--bone2)]">Fires counted</dt><dd className="mt-0.5 text-sm text-[color:var(--bone3)]">Too few to read in 2025</dd></div>
           )}

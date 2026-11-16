@@ -390,7 +390,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
           <h2 id="verdict-h" className={title}>Aqua against the benchmark</h2>
           <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">In {y.year}, Aqua counted {moreFewer(y.gap)} fires over {d.phrase.the} than the VIIRS-based benchmark.</p>
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
-            <RollingDigits text={pct(y.gap)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
+            <RollingDigits text={pct(y.gap, 0)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
           </p>
           <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{CAVEAT}</p>
@@ -893,16 +893,16 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
   const highlight = f ? { year: Number(yr), month: MONTHS.indexOf(mon) } : null
   const heading = f ? `${MONTH_LONG[MONTHS.indexOf(mon)]} ${yr} was the furthest above normal for its month: ${pct(f.anomaly, 0)}` : 'Every month in this range sits near normal'
   const sentence = mode === 'anomaly'
-    ? 'VIIRS-based benchmark: VIIRS’s count scaled to Aqua’s 2012–2020 rate. Sand: more than normal for this month. Slate: fewer than normal.'
-    : 'VIIRS-based benchmark: VIIRS’s count scaled to Aqua’s 2012–2020 rate. Brighter: more detections.'
+    ? '2002–2011: Aqua’s own count. From 2012: the VIIRS-based benchmark, VIIRS’s count scaled to Aqua’s 2012–2020 rate. Sand: more than normal for this month. Slate: fewer than normal.'
+    : '2002–2011: Aqua’s own count. From 2012: the VIIRS-based benchmark, VIIRS’s count scaled to Aqua’s 2012–2020 rate. Brighter: more detections.'
   return (
     <section id="calendar" aria-labelledby="calendar-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="calendar-h" className={title}>Every month since 2002, VIIRS-based, in Aqua-equivalent units</h2>
+          <h2 id="calendar-h" className={title}>Every month since 2002, in Aqua-equivalent units</h2>
           <p className="mt-4 text-lg text-[color:var(--bone)]">{heading}</p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{sentence}</p>
-          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Fire season, {seasonMonths(d)}: the underlined months. This is a historical comparison, not a forecast, a count of unique fires, or a measurement of Aqua at another time of day.</p>
+          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Fire season, {seasonMonths(d)}: the underlined months. This is a historical comparison, not a forecast, a count of unique fires, or a measure of burned area.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">

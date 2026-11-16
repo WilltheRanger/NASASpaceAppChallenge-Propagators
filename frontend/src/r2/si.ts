@@ -188,7 +188,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
 
 function daylightAnswer(ctx: SiContext, q: string): SiAnswer {
   const region = studiedIn(q) ?? ctx.region
-  if (!region) return { sentences: [{ text: 'Daylight after the alert is measured for the six places. Pick one, or play one real fire day in the Amazon.' }], sources: [], actions: [{ kind: 'day', label: 'Play one fire day' }], followUps: ['What am I looking at?'] }
+  if (!region) return { sentences: [{ text: 'Scenario: daylight after the alert is worked out for the six places. Pick one, or play one real fire day in the Amazon.' }], sources: [], actions: [{ kind: 'day', label: 'Play one fire day' }], followUps: ['What am I looking at?'] }
   const h = daylightHeadline(region)
   const d = regionData(region)
   const lvl2 = h?.quote === 'level2a'

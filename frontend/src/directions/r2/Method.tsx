@@ -197,7 +197,7 @@ function Steps() {
     },
     {
       title: 'Work out what we’d expect',
-      description: 'For each later year, VIIRS’s count and that rate give what we’d expect from Aqua. It is an estimate, not a measurement of Aqua at another time of day.',
+      description: 'For each later year, VIIRS’s count times that rate is the benchmark. It is an estimate.',
       figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}</p> : null,
     },
     {
@@ -293,7 +293,7 @@ function Checks() {
                     <div aria-label="Follow-up, separate from the original test" className="mt-2 flex max-w-[var(--measure)] flex-col gap-2 border-l-2 border-[color:var(--hairline)] pl-4 text-sm text-[color:var(--bone2)]">
                       <p className="font-medium text-[color:var(--bone)]">Completed VIIRS follow-up, not a new pass</p>
                       <p>All {p9Followup.complete_dates} fixed dates (2018–2020), {p9Followup.expected_swaths} swaths, were acquired. Under the original 45° view limit there were {p9Followup.primary_eligible} eligible afternoon center-date observations. The separate 85° sensitivity found {fmtInt(p9Followup.sensitivity_eligible)} center-date observations and {p9Followup.discordant_fires} discordant fires. Repeated centers across dates are not independent observations.</p>
-                      <p>All six biomes remain insufficiently identified: no beta or confidence interval can be estimated under the unchanged gates. This does not turn the original MODIS-surrogate test above into a pass or validate a causal timing correction.</p>
+                      <p>All six biomes remain insufficiently identified: no beta or confidence interval can be estimated under the unchanged gates. This does not turn the original MODIS-surrogate test above into a pass.</p>
                       <a href={p9Followup.report_url} target="_blank" rel="noreferrer" className={cn(textLink, 'w-fit')}>Final acquisition and identification report</a>
                     </div>
                   </More>
