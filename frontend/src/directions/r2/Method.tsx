@@ -574,7 +574,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
     },
     {
       t: 'NASA reprocessed VIIRS files in May 2025.',
-      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Sources now distinguish MODIS Collection 6.1 and VIIRS Collection 2 standard products from the provisional NRT snapshot. This identifies the product families, not proof that reprocessing has no effect.',
+      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation. These input codes are not established collection names. The provisional NRT snapshot remains separate.',
     },
     { t: 'The calendar ends in 2025; a separate provisional card shows 8–14 Nov 2026.', b: 'The card is separate from the historical calendar: provisional, incomplete coverage, not a full-year trend.' },
     {
@@ -600,14 +600,14 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           <Accordion type="multiple" motion={motion.on} level={3}>
             {items.map((it, i) => (
               <AccordionItem key={it.t} value={`l${i}`}>
-                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{[1, 2, 4, 5].includes(i) ? 'Addressed · ' : ''}{it.t}</AccordionTrigger>
+                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{[1, 2, 5].includes(i) ? 'Addressed · ' : ''}{it.t}</AccordionTrigger>
                 <AccordionContent><p className="max-w-[var(--measure)]">{it.b}</p>
                   <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{[
                     'Next: independent observations and a design that separates timing from other changes.',
                     'Addressed: each flagged year now shows its percentage-point distance past the usual-range edge; this is still not a significance test.',
                     'Addressed: overlapping likely ranges are labeled Close call, not Unusual.',
                     'Next: verify regional coverage and distinguish missing observations from true zero detections.',
-                    'Addressed: Sources label standard and NRT product versions separately.',
+                    'Next: establish the historical version-code meanings and verify collection consistency; Sources now disclose the varying codes separately from NRT.',
                     'Addressed: a separate provisional 8–14 Nov 2026 card is visible on Brazil region pages.',
                     'Next: calibrate and validate a replacement satellite reference before extending the historical series.',
                   ][i]}</p>

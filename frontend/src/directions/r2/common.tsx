@@ -172,7 +172,7 @@ export const statementName = (id: string) => {
 
 /** The data the site stands on, with the identifiers to find each one. */
 export const CREDITS: { name: string; links: { text: string; href: string }[] }[] = [
-  { name: 'Historical 2012–2025: NASA FIRMS MODIS Collection 6.1 standard (Terra and Aqua)', links: [{ text: 'doi:10.5067/FIRMS/MODIS/MCD14ML', href: 'https://doi.org/10.5067/FIRMS/MODIS/MCD14ML' }] },
+  { name: 'Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation.', links: [{ text: 'doi:10.5067/FIRMS/MODIS/MCD14ML', href: 'https://doi.org/10.5067/FIRMS/MODIS/MCD14ML' }] },
   { name: 'Historical 2012–2025: NASA FIRMS VIIRS Collection 2 standard, S-NPP', links: [{ text: 'NASA FIRMS standard archive', href: 'https://firms.modaps.eosdis.nasa.gov/download/' }] },
   { name: 'Provisional 2026 snapshot: MODIS 6.1NRT and VIIRS 2.0NRT (NOAA-20/21)', links: [{ text: 'doi:10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002', href: 'https://doi.org/10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002' }] },
   { name: 'INPE Programa Queimadas, Brazil’s official fire series', links: [{ text: 'data.inpe.br/queimadas', href: 'https://data.inpe.br/queimadas/portal/' }] },
