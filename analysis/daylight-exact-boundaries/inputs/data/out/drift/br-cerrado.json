@@ -1,0 +1,92 @@
+{
+ "mock": false,
+ "note": "Real. Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections, NASA FIRMS yearly files. viirs_lst is S-NPP. No 2026 yet.",
+ "region": "br-cerrado",
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:23",
+   "viirs_lst": "13:31"
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:23",
+   "viirs_lst": "13:33"
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:23",
+   "viirs_lst": "13:41"
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "viirs_lst": "13:36"
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "viirs_lst": "13:34"
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:23",
+   "viirs_lst": "13:33"
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:24",
+   "viirs_lst": "13:33"
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:23",
+   "viirs_lst": "13:33"
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:23",
+   "viirs_lst": "13:34"
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:20",
+   "viirs_lst": "13:33"
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:46",
+   "terra_lst": "10:11",
+   "viirs_lst": "13:34"
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "13:58",
+   "terra_lst": "09:56",
+   "viirs_lst": "13:34"
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "14:23",
+   "terra_lst": "09:37",
+   "viirs_lst": "13:33"
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "14:58",
+   "terra_lst": "09:10",
+   "viirs_lst": "13:36"
+  }
+ ],
+ "validation_variant": "Historical IBGE exact-coordinate classification; isolated candidate, not production"
+}

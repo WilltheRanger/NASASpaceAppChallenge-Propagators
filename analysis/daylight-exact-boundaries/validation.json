@@ -1,0 +1,41 @@
+{
+  "near_nadir_counts_exact": "126/126",
+  "look_times_exact": "126/126",
+  "look_times_within_1minute": "126/126",
+  "noaa_manaus_within_1minute": true,
+  "comparisons_2025": [
+    {
+      "region": "br-amazon",
+      "old_n": 27575,
+      "exact_n": 27313,
+      "old_daylight_1_5h": 1.471,
+      "exact_daylight_1_5h": 1.471,
+      "old_after_dark_3h": 0.5631,
+      "exact_after_dark_3h": 0.5628
+    },
+    {
+      "region": "br-cerrado",
+      "old_n": 31093,
+      "exact_n": 31069,
+      "old_daylight_1_5h": 1.454,
+      "exact_daylight_1_5h": 1.454,
+      "old_after_dark_3h": 0.5932,
+      "exact_after_dark_3h": 0.5937
+    },
+    {
+      "region": "br-pantanal",
+      "old_n": 405,
+      "exact_n": 402,
+      "old_daylight_1_5h": 1.406,
+      "exact_daylight_1_5h": 1.399,
+      "old_after_dark_3h": 0.6074,
+      "exact_after_dark_3h": 0.6169
+    }
+  ],
+  "scope": "Brazil only; original six-region benchmark suite not claimed",
+  "deterministic_json_repeat": {
+    "br-cerrado.json": true,
+    "br-amazon.json": true,
+    "br-pantanal.json": true
+  }
+}
