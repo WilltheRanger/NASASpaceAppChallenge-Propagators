@@ -782,8 +782,7 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           </p>
           {failed.length ? (
             <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
-              {failed.length === 2 ? 'Two tests of this idea didn’t hold up' : 'A test of this idea didn’t hold up'}, so read it as a description, not proof.{' '}
-              <a href={links.method('checks')} onClick={leave} className={textLink}>See the tests</a>
+              {failed.length === 2 ? 'Two tests of this idea didn’t hold up' : 'A test of this idea didn’t hold up'}, so read it as a description, not proof.
             </p>
           ) : null}
           {t ? (

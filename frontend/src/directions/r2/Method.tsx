@@ -26,7 +26,6 @@ import {
 const SECTIONS = [
   { id: 'day', label: 'One afternoon' },
   { id: 'steps', label: 'What we compare' },
-  { id: 'checks', label: 'Tests' },
   { id: 'two-clocks', label: 'Two clocks' },
   { id: 'detection', label: 'Small fires' },
   { id: 'inpe', label: 'Matching INPE' },
@@ -58,7 +57,6 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
         </div>
         <OneDay />
         <Steps />
-        <Checks />
         <TwoClocksHere links={links} leave={leave} />
         <Detection />
         <InpeMatch />

@@ -607,7 +607,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
           href={links.method()}
           leave={leave}
           title="How we know"
-          line="The checks we set ourselves, the ones that failed, and the limits."
+          line="How the comparison works, and what it can’t tell you."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}daylight/br-amazon-2024-09-02.jpg`} alt="" loading="lazy" className={pic} />}
         />
