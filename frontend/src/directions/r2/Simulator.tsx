@@ -1373,7 +1373,7 @@ function FireCard({ i, onClose, square, below = false, docked = false }: { i: nu
   const utc = utcOf(i)
   const sun = sunTimes(utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate(), LAT[i])
   const left = sun.set - lst
-  const hotter = Math.round(heatShare(i) * 100)
+  const hotter = Math.floor(heatShare(i) * 100)
   const others = Math.max(0, near(LON[i], LAT[i], 3).length - 1)
   const modis = SAT[i] <= 1
   const [where, setWhere] = useState<string | null>(() => nameNear(LON[i], LAT[i]))
@@ -1423,7 +1423,7 @@ function FireCard({ i, onClose, square, below = false, docked = false }: { i: nu
         <span aria-hidden className="relative block h-1 flex-1 rounded-full bg-[color:var(--bone-20)]">
           <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--bone2)]" style={{ width: `${Math.max(2, hotter)}%` }} />
         </span>
-        <span className="shrink-0 text-[11px] text-[color:var(--bone3)]">Hotter than {hotter}% of the day’s fires</span>
+        <span className="shrink-0 text-[11px] text-[color:var(--bone3)]">{hotter >= 99 ? 'Among the hottest 1% of fires on the map' : `Hotter than ${hotter}% of fires on the map`}</span>
       </div>
       {/* the day as a strip: daylight, sunset, and when each satellite saw this spot */}
       <div className="px-3 pt-3" aria-hidden>
