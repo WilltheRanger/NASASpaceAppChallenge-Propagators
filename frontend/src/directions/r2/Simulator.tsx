@@ -425,6 +425,12 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
 
   // without the globe, a restored place shows its panel at once
   useEffect(() => { if (failed && place) setArrived(true) }, [failed, place])
+  // a place the map opens on, with no flight to make, still counts as arrived: the "on its way" label must not stay
+  useEffect(() => {
+    if (!place) return
+    const t = window.setTimeout(() => setArrived(true), 3500)
+    return () => window.clearTimeout(t)
+  }, [place])
 
   const padding: EarthPadding = useMemo(() => (wide
     ? { top: 24, left: 24, right: 72 + (siOpen && !xl ? 352 : 0), bottom: chartH + 28 }
@@ -470,7 +476,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: facts.d.phrase.the,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: y.look[g] })),
         rise: y.rise, set: y.set, aquaBefore: dl.baseAqua,
-        basis: `Pass times: each satellite’s usual time here in ${y.year}. Sunset: ${y.mid.day} ${MONTHS[y.mid.m - 1]}, the middle of the fire season.`,
+        basis: `Overpasses: ${y.year} average. Sunset: ${y.mid.day} ${MONTHS[y.mid.m - 1]}, mid fire season.`,
       }
     }
     if (place) {
@@ -481,25 +487,26 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: place.name,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: s[g].lst })),
         rise: sun.rise, set: sun.set, aquaBefore: null,
-        basis: `Pass times: the middle of each satellite’s fire detections here on ${WHEN}. Sunset: that day, at this latitude.`,
+        basis: `Overpasses: each satellite’s detections here, ${WHEN}. Sunset: that day.`,
       }
     }
     return null
   }, [facts, place])
-  // the six studied places under the question; the whole globe is one more click
+  // step 1, the place: the six studied places in a native list (phones open their own picker); search stays at the top
   const picker = (
-    <div role="group" aria-label="Studied places" data-tour="places" className="-mx-4 -mt-1 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-      {STUDIED_PLACES.map((p) => {
-        const on = region === p.id
-        return (
-          <button key={p.id} type="button" aria-pressed={on} onClick={() => pickRegion(p.id)}
-            className={cn('h-8 shrink-0 rounded px-2.5 text-xs transition-colors', on ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--hairline)] text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
-            {short(p.name)}
-          </button>
-        )
-      })}
-      {place && !region ? <span className="flex h-8 items-center rounded bg-[color:var(--bone)] px-2.5 text-xs text-[color:var(--ink)]">{short(place.name)}</span> : null}
-    </div>
+    <label data-tour="places" className="relative block">
+      <span className="sr-only">Place</span>
+      <select
+        value={region ?? (place ? '__here' : '')}
+        onChange={(e) => { const v = e.target.value; if (v === '__globe') back(); else if (v !== '__here') pickRegion(v) }}
+        className={cn('h-8 w-[150px] appearance-none truncate rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] pl-2.5 pr-7 text-sm text-[color:var(--bone)] hover:border-[color:var(--bone-30)]', focusRing)}
+      >
+        {place && !region ? <option value="__here">{short(place.name)}</option> : null}
+        {STUDIED_PLACES.map((p) => <option key={p.id} value={p.id}>{short(p.name)}</option>)}
+        <option value="__globe">Whole globe…</option>
+      </select>
+      <ChevronDown size={14} strokeWidth={1.75} aria-hidden className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[color:var(--bone2)]" />
+    </label>
   )
   const alertPanel = alert ? (
     <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN}
