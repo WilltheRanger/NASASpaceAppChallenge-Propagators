@@ -274,8 +274,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const chartH = useHeight(chartRef, 170)
   // first visit on a wide screen at the whole globe: the guide opens once the page has settled
   useEffect(() => {
-    if (place || !wide || guideSeen()) return
-    const t = window.setTimeout(() => startGuide(SHIFT, motion), 1200)
+    if (guideSeen()) return
+    const t = window.setTimeout(() => { if (document.getElementById('alert-h')) startGuide(SHIFT, motion) }, 1400)
     return () => window.clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -509,7 +509,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     </label>
   )
   const alertPanel = alert ? (
-    <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN}
+    <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN} onHelp={() => { setTab('info'); setSnap(1); window.setTimeout(() => startGuide(SHIFT, motion), 80) }}
       aquaThen={clock === 'old'} onAquaThen={(t) => setClock(t ? 'old' : 'new')} />
   ) : null
   const rail = cell ? (
@@ -625,9 +625,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
                 </button>
               ) : null}
               {/* the guide: back to the whole globe, the chart open, then the four steps */}
-              <button type="button" onClick={() => startGuide(SHIFT, motion)} className={cn(glass, 'flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
-                <CircleHelp size={15} strokeWidth={1.75} aria-hidden /> Guide
-              </button>
+              {/* the walkthrough opens from "How it works" under the question */}
               <div role="group" aria-label="Map view" className={cn(glass, 'flex w-10 flex-col divide-y divide-[color:var(--hairline)] overflow-hidden')}>
                 <button type="button" aria-label="Zoom in" title="Zoom in" onClick={() => earth.current?.zoomBy(1)} className={iconButton}><Plus size={16} strokeWidth={1.75} aria-hidden /></button>
                 <button type="button" aria-label="Zoom out" title="Zoom out" onClick={() => earth.current?.zoomBy(-1)} className={iconButton}><Minus size={16} strokeWidth={1.75} aria-hidden /></button>

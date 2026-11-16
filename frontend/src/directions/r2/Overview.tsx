@@ -15,8 +15,7 @@
  * read only where the year's status is ok. The satellite pictures are NASA Worldview / GIBS (credited in the footer).
  */
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { motion as m, useMotionTemplate, useScroll, useTransform } from 'framer-motion'
-import { ArrowDown, ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { StickyScroll, type StickyStep } from '@/components/ui/sticky-scroll-reveal'
@@ -99,65 +98,42 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
   )
 }
 
-/* ---------- The park: the fire first; scrolling brings up the question ---------- */
+/* ---------- The park: the photograph and the question, together from the first frame ---------- */
 
 /** Phones and tablets: the scrim rises from the bottom, under the title. */
 const LOW_SCRIM = 'linear-gradient(0deg, rgba(11,13,11,0.94) 0%, rgba(11,13,11,0.74) 32%, rgba(11,13,11,0.36) 62%, rgba(11,13,11,0.12) 100%)'
 /** Wide screens: the scrim deepens the dark sky on the left, where the title sits. */
 const WIDE_SCRIM = 'linear-gradient(90deg, rgba(11,13,11,0.9) 0%, rgba(11,13,11,0.62) 36%, rgba(11,13,11,0) 66%), linear-gradient(0deg, rgba(11,13,11,0.6) 0%, rgba(11,13,11,0) 38%)'
-const BOB = '@keyframes anchor-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}'
 
-/** A tall section whose framed photograph sticks under the bar. The page opens on the fire alone; scrolling darkens the
- *  picture, pushes in a little and brings up the question, then the page moves on. With motion off it is one still
- *  screen with the question already on it. */
+/** The opening: the framed photograph with the question already on it. No scroll effect; it is a little shorter than
+ *  the screen so the next section shows below it. */
 function Park() {
-  const motion = useMotion()
-  const on = motion.on
-  const ref = useRef<HTMLElement | null>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const scrim = useTransform(scrollYProgress, [0.04, 0.45], [0, 1])
-  const show = useTransform(scrollYProgress, [0.1, 0.42], [0, 1])
-  const rise = useTransform(scrollYProgress, [0.1, 0.5], [48, 0])
-  const blurPx = useTransform(scrollYProgress, [0.1, 0.42], [12, 0])
-  const blur = useMotionTemplate`blur(${blurPx}px)`
-  const grow = useTransform(scrollYProgress, [0, 1], [1, 1.08])
-  const cue = useTransform(scrollYProgress, [0, 0.06], [1, 0])
   const p = OVERVIEW_PHOTO
   return (
-    <section ref={ref} aria-labelledby="park-h" className={cn('relative pt-14', on && 'h-[175svh]')}>
-      <div className={cn('px-2 pt-2 sm:px-4 sm:pt-4', on && 'sticky top-14')}>
+    <section aria-labelledby="park-h" className="relative pt-14">
+      <div className="px-2 pt-2 sm:px-4 sm:pt-4">
         {/* their framed film: the picture inside a thin ground frame */}
         <div
           style={{ '--focus': p.focus, '--focus-phone': p.focusPhone } as CSSProperties}
-          className="relative isolate h-[calc(100svh-72px)] min-h-[480px] overflow-hidden rounded-[4px] bg-[color:var(--surface)] sm:h-[calc(100svh-88px)]"
+          className="relative isolate h-[min(78svh,760px)] min-h-[440px] overflow-hidden rounded-[4px] bg-[color:var(--surface)]"
         >
-          <m.img
+          <img
             src={p.src(1600)}
             srcSet={`${p.src(960)} 960w, ${p.src(1600)} 1600w, ${p.src(2400)} 2400w`}
             sizes="100vw"
             alt={p.alt}
             width={p.width}
             height={p.height}
-            style={{ scale: on ? grow : 1 }}
+            fetchPriority="high"
             className="absolute inset-0 -z-10 size-full object-cover object-[var(--focus-phone)] sm:object-[var(--focus)]"
           />
-          <m.div aria-hidden className="absolute inset-0 -z-10 lg:hidden" style={{ background: LOW_SCRIM, opacity: on ? scrim : 1 }} />
-          <m.div aria-hidden className="absolute inset-0 -z-10 hidden lg:block" style={{ background: WIDE_SCRIM, opacity: on ? scrim : 1 }} />
+          <div aria-hidden className="absolute inset-0 -z-10 lg:hidden" style={{ background: LOW_SCRIM }} />
+          <div aria-hidden className="absolute inset-0 -z-10 hidden lg:block" style={{ background: WIDE_SCRIM }} />
           <div className="relative flex h-full items-end p-5 pb-10 sm:p-10 lg:p-14">
-            <m.h1
-              id="park-h"
-              style={on ? { opacity: show, y: rise, filter: blur } : undefined}
-              className="max-w-[15ch] text-balance text-[clamp(40px,5.8vw,92px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]"
-            >
+            <h1 id="park-h" className="max-w-[15ch] text-balance text-[clamp(40px,5.8vw,92px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]">
               Imagine counting people in a park every day at <span className="tabular-nums">1:30</span>.
-            </m.h1>
+            </h1>
           </div>
-          {on ? (
-            <m.span aria-hidden style={{ opacity: cue }} className="pointer-events-none absolute bottom-5 left-1/2 -ml-[18px] flex size-9 items-center justify-center rounded-full bg-[color:var(--plate)] text-[color:var(--bone)]">
-              <style>{BOB}</style>
-              <ArrowDown size={18} strokeWidth={1.5} style={{ animation: 'anchor-bob 1.8s ease-in-out infinite' }} />
-            </m.span>
-          ) : null}
         </div>
       </div>
     </section>
@@ -598,7 +574,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
           href={links.sim()}
           leave={leave}
           title="Explore any place"
-          line="Search the globe for any 2° square's count. Switch Aqua between its two times. Play one real fire day."
+          line="If a fire starts today: when each satellite would alert you, and the daylight left to act."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}sim/${FEATURED}-context.jpg`} alt="" loading="lazy" className={pic} style={{ objectPosition: '30% 62%' }} />}
         />

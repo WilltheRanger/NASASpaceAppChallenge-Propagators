@@ -42,7 +42,7 @@ function SatMark({ k }: { k: AlertRow['key'] }) {
 }
 
 
-export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, headingLevel = 2 }: {
+export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, onHelp, headingLevel = 2 }: {
   /** the place, as it reads in a sentence: "the Amazon", "Kenya" */
   place: string
   rows: AlertRow[]
@@ -63,6 +63,8 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   /** where the pass times and the sunset come from, in one or two short sentences */
   basis: ReactNode
   motion: boolean
+  /** opens the walkthrough */
+  onHelp?: () => void
   headingLevel?: 1 | 2
 }) {
   const H = headingLevel === 1 ? 'h1' : 'h2'
@@ -92,9 +94,14 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
       <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance] sm:text-[20px] sm:leading-[1.25]">
         If a fire starts in {place} today, when will a satellite tell you, and how much daylight will be left to act?
       </H>
+      {onHelp ? (
+        <button type="button" onClick={onHelp} className="-mt-2 inline-flex w-fit items-center gap-1.5 rounded text-sm text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-4 hover:text-[color:var(--bone)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]">
+          How it works
+        </button>
+      ) : null}
 
       {/* the two inputs */}
-      <div className="flex flex-col gap-2">
+      <div data-tour="inputs" className="flex flex-col gap-2">
         {picker ? (
           <div className="flex items-center justify-between gap-3">
             <span className={label}>Place</span>
@@ -110,7 +117,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
       {/* the answer: two readouts, the table, the day */}
       <div className="flex flex-col gap-3 border-t border-[color:var(--hairline)] pt-4">
         {first && first.alert != null ? (
-          <dl aria-live="polite" className="grid grid-cols-2 gap-3">
+          <dl aria-live="polite" data-tour="answer" className="grid grid-cols-2 gap-3">
             <div>
               <dt className="text-xs text-[color:var(--bone2)]">First alert</dt>
               <dd className="mt-0.5 text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{fmtHM(first.alert)}</dd>
@@ -126,6 +133,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
           <p className="text-sm text-[color:var(--bone2)]">No satellite detected fires here in the saved data, so there are no times to show.</p>
         )}
 
+        <div data-tour="table" className="flex flex-col gap-3">
         <table className="w-full text-sm tabular-nums">
           <caption className="sr-only">For each satellite: overpass time, alert time and daylight left, in local solar time</caption>
           <thead>
@@ -179,6 +187,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
             <span>Sunset {fmtHM(set)}</span>
           </figcaption>
         </figure>
+        </div>
       </div>
 
       {/* what Aqua's drift changed: then and now */}

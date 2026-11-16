@@ -1,4 +1,4 @@
-// The Explore page's first-visit guide: four short steps, shown once, replayed from the header's Guide button.
+// The Explore page's first-visit guide: six short steps, shown once on the first visit, replayed from "How it works".
 import { driver, type DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
 import './tour.css'
@@ -17,37 +17,56 @@ const visible = (sel: string) => {
 }
 
 export function startGuide(shift: string, motion: boolean) {
+  // wide screens: the card beside the left panel; phones: above or below what it points at
+  const wide = window.matchMedia('(min-width: 1024px)').matches
+  const side = (w: 'right' | 'left') => (wide ? w : 'top') as 'right' | 'left' | 'top'
   const steps: DriveStep[] = [
     {
       element: '#alert-h',
       popover: {
-        title: 'The question this page answers',
-        description: 'If a fire starts here today: when does each satellite pass, when would its alert reach you, and how much daylight is left to act. Pass times and sunset are real; the alert delay is your choice.',
-        side: 'right', align: 'start',
+        title: 'What this page is for',
+        description: 'Plan around satellite fire alerts. If a fire starts here today, this shows when each satellite will spot it and alert you, and how much daylight you will have left to respond.',
+        side: side('right'), align: 'start',
+      },
+    },
+    {
+      element: '[data-tour="inputs"]',
+      popover: {
+        title: '1. Set it up',
+        description: 'Choose a place, or search any place on the map. Then set the alert delay: the time between a satellite passing over and its alert reaching you. NASA delivers within 3 hours.',
+        side: side('right'), align: 'start',
+      },
+    },
+    {
+      element: '[data-tour="answer"]',
+      popover: {
+        title: '2. Read the answer',
+        description: 'First alert: the earliest time any satellite tells you about the fire. Daylight left: the time from that alert until sunset.',
+        side: side('right'), align: 'start',
+      },
+    },
+    {
+      element: '[data-tour="table"]',
+      popover: {
+        title: '3. Compare the satellites',
+        description: 'One row per satellite: when it passes over, when its alert arrives, and the daylight left. The bars show the same on one line from sunrise to sunset.',
+        side: side('right'), align: 'start',
       },
     },
     {
       element: '[data-tour="then-now"]',
       popover: {
-        title: 'What Aqua’s drift changed',
-        description: `Aqua now passes ${shift} later than in 2012–2020. Switch between then and now to see its alert and daylight change.`,
-        side: 'right', align: 'start',
-      },
-    },
-    {
-      element: '[data-tour="places"]',
-      popover: {
-        title: 'Six studied places',
-        description: 'Pick one to see its own pass times and sunset. Or search any place at the top.',
-        side: 'right', align: 'start',
+        title: '4. What changed',
+        description: `Aqua, the satellite behind Brazil’s official fire count, now passes ${shift} later than in 2012–2020. Switch to 2012–20 to see how much more daylight its alert used to leave.`,
+        side: side('right'), align: 'start',
       },
     },
     {
       element: '[data-tour="map"]',
       popover: {
         title: 'The fires on the map',
-        description: 'Real fires from the saved file, with their dates in the corner. Click one to see which satellite saw it, and when.',
-        side: 'left', align: 'center',
+        description: 'Real fires from the saved data, with their dates in the corner. Click or tap a fire to see which satellite saw it, and when. Replay this guide from “How it works”.',
+        side: wide ? 'left' : 'bottom', align: 'center',
       },
     },
   ].filter((s) => visible(s.element as string)) as DriveStep[]
