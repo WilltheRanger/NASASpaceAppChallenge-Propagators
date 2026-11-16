@@ -213,13 +213,13 @@ function OneDay() {
   const look = DAY_LOOK
   if (!look) return null
   const steps: StickyStep[] = [
-    { mark: look.old, title: 'Aqua used to look here', description: <>From 2012 to 2020 it passed over {phrase(FEATURED).the} at about {look.old}, local sun time.</> },
+    { mark: look.old, title: 'Aqua used to look here', description: <>2012–2020, local sun time.</> },
     {
       mark: look.now,
       title: `In ${look.year} it looked ${look.minutes} minutes later`,
       description: <>{DAY.driftStart ? <>The move started in {DAY.driftStart}. </> : null}Clouds, smoke and fires change during the day, so a later look can count more fires or fewer.</>,
     },
-    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
+    { mark: look.viirs, title: 'Other satellites kept their time', description: <>{DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
   ]
   // the panel's pictures: Aqua then, Aqua now, VIIRS (the panel's step 2, all three satellites side by side, is no longer a step)
   const pic = [0, 1, 3]
@@ -230,7 +230,7 @@ function OneDay() {
           <h2 id="day-h" className="max-w-[22ch] text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.02em]">
             Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
-          <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official fire count (INPE) relies on Aqua. But Aqua now flies over the Amazon about {look.minutes} minutes later than it did in 2012–2020.</p>
+          <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official count (INPE) relies on Aqua, which now flies over the Amazon {look.minutes} minutes later than in 2012–2020.</p>
         </div>
         {wideScreen ? (
           <StickyScroll

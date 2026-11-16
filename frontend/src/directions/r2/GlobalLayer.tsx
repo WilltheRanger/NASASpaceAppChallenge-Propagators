@@ -315,7 +315,7 @@ export function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 
         <p className="mt-5 text-sm text-[color:var(--bone2)]" role="status">Loading the calendar…</p>
       ) : (
         <>
-          <p className="mt-8 text-sm text-[color:var(--bone2)]">Each month: what we’d expect Aqua to count, against normal for that month (2002–2025). Sand above, slate below.</p>
+          <p className="mt-8 text-sm text-[color:var(--bone2)]">Sand: above normal. Slate: below.</p>
           <div className="mt-4 border-y border-[color:var(--hairline)] py-6">
             <FireCalendar
               years={table.years}
@@ -329,7 +329,7 @@ export function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 
             />
           </div>
           <CalendarLegend mode="anomaly" render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
-          <p className="mt-4 text-xs text-[color:var(--bone3)]">Source: global/cells/{cell.id}.json · VIIRS’s count, scaled to Aqua’s 2012–2020 rate · {EXPLORATORY}</p>
+          <p className="mt-4 text-xs text-[color:var(--bone3)]">{EXPLORATORY}</p>
         </>
       )}
     </div>

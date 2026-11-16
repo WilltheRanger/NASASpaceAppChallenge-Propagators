@@ -388,14 +388,13 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
     <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
         <div className="lg:col-span-8">
-          <h2 id="verdict-h" className={title}>Aqua against the benchmark</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">In {y.year}, Aqua counted {moreFewer(y.gap)} fires over {d.phrase.the} than the VIIRS-based benchmark.</p>
+          <h2 id="verdict-h" className={title}>Aqua against the benchmark, {y.year}</h2>
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
             <RollingDigits text={pct(y.gap, 0)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
           </p>
           <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)] lg:text-lg">{CAVEAT}</p>
-          {y.pointsPast != null ? <p className="mt-3 text-sm tabular-nums text-[color:var(--bone2)]">{pct(y.gap!, 1)} versus the {pct(y.edge!, 1)} usual-range edge: {y.pointsPast.toFixed(1)} percentage points past it.</p> : null}
+          {y.pointsPast != null ? <p className="mt-3 text-sm tabular-nums text-[color:var(--bone2)]">{y.pointsPast.toFixed(1)} points past the usual range (edge {pct(y.edge!, 1)}).</p> : null}
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
@@ -473,9 +472,6 @@ function LookTimes({ d }: { d: RegionData }) {
     <section id="look" aria-labelledby="look-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'pb-16 pt-16')}>
         <h2 id="look-h" className={title}>When each satellite flies over</h2>
-        <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">
-          Aqua’s crossing has moved later. VIIRS’s has stayed put.
-        </p>
         <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-12">
           <figure className="m-0 min-w-0 lg:col-span-6">
             <div className="relative">
@@ -488,7 +484,7 @@ function LookTimes({ d }: { d: RegionData }) {
             </figcaption>
           </figure>
           <div className="min-w-0 lg:col-span-6">
-            <p className="text-sm text-[color:var(--bone2)]">{dr.year === last.year ? `${dr.year}, the latest year` : dr.year}</p>
+            <p className="text-sm text-[color:var(--bone2)]">{dr.year}</p>
             <ul className="mt-2 border-t border-[color:var(--hairline)]">
               {LOOK_SATS.map((s) => (
                 <li key={s.id} className="grid grid-cols-[1.25rem_4.5rem_4rem_minmax(0,1fr)] items-baseline gap-x-2 border-b border-[color:var(--hairline)] py-2.5">

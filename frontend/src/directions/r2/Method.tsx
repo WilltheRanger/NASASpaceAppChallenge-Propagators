@@ -18,7 +18,7 @@ import { CHECKS, DETECTION, fmtInt, fmtRange, hm, inpeReproduction, pct, phrase,
 import { cn } from '@/lib/utils'
 import { TwoClocks } from './FieldFilm'
 import {
-  CAVEAT, CREDITS, DetMark, Footer, IMG, MockTag, More, PageNext, REPO_URL, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
+  CREDITS, DetMark, Footer, IMG, MockTag, More, PageNext, REPO_URL, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
   type DetShape, type Leave, type Links, type Nav,
 } from './common'
 
@@ -90,7 +90,7 @@ function OneDay() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="day-h" className={title}>One afternoon, two looks at the same forest</h2>
-          <p className={lead}>VIIRS looked early in the afternoon. Aqua looked later. The clouds, the smoke and the fires had changed.</p>
+          <p className={lead}>By Aqua’s later look, the clouds, smoke and fires had changed.</p>
         </div>
         <figure className="m-0 lg:col-span-8">
           <CompareSlider
@@ -108,7 +108,7 @@ function OneDay() {
             </CompareSliderAfter>
             <CompareSliderHandle />
           </CompareSlider>
-          <figcaption className="mt-3 text-sm text-[color:var(--bone2)]"><span className="text-[color:var(--bone)]">Drag the handle.</span> The dots on the pictures are the fires each satellite detected.</figcaption>
+          <figcaption className="mt-3 text-sm text-[color:var(--bone2)]"><span className="text-[color:var(--bone)]">Drag the handle.</span> Dots are detected fires.</figcaption>
         </figure>
       </div>
     </section>
@@ -144,7 +144,6 @@ function Steps() {
             </li>
           ))}
         </ol>
-        <p className="mt-8 max-w-[var(--measure)] text-base text-[color:var(--bone)]">{CAVEAT}</p>
         <More label="Technical notes" className="mt-4">
           <ul className="mt-2 flex max-w-[44rem] list-disc flex-col gap-2 pl-5 text-sm text-[color:var(--bone2)]">
             <li>Look time: the median local solar time of daytime vegetation-fire detections near the middle of the satellite’s view, from NASA FIRMS’s yearly files. VIIRS here is the S-NPP satellite.</li>
@@ -205,9 +204,8 @@ function Checks() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="checks-h" className={title}>{heading}</h2>
-          <p className={lead}>Each one says what should be true if the timing matters.</p>
           {before ? (
-            <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">For {numWord(before)} of them we had already seen the result when we wrote the rule. Those are marked, because they aren’t true predictions.</p>
+            <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">{capital(numWord(before))} were written after we saw the result, and are marked.</p>
           ) : null}
           {REPO_URL ? (
             <p className="mt-4 text-sm"><a href={REPO_URL} target="_blank" rel="noreferrer" className={textLink}>The rules and full results are in the code</a></p>
@@ -335,7 +333,6 @@ function Detection() {
         <div className="lg:col-span-4">
           <h2 id="detection-h" className={title}>VIIRS picks up small fires that Aqua misses</h2>
           <p className={lead}>In California’s fire records, VIIRS caught more of the small fires than Aqua, so it is the yardstick.</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">Matched in one state, with one method.</p>
           <More label="How we matched" className="mt-3">
             <p className="mt-1 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
               Each fire in the US Forest Service’s record was matched to the satellites’ detections. {matchingRule(DETECTION.rule)}
