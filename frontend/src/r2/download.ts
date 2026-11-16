@@ -19,7 +19,7 @@ export function downloadCalendarCsv(d: RegionData, range: MonthRange = calendarS
 }
 
 const SOURCES = [
-  'NASA FIRMS active fire data: MODIS Collection 6.1 (doi:10.5067/FIRMS/MODIS/MCD14ML);',
+  'NASA FIRMS active fire data: historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation (doi:10.5067/FIRMS/MODIS/MCD14ML).',
   'VIIRS 375 m, S-NPP (doi:10.5067/FIRMS/VIIRS/VNP14IMGT_NRT.002) and NOAA-20 (doi:10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002).',
 ]
 

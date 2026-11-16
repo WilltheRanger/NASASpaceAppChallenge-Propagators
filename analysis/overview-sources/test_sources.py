@@ -10,6 +10,14 @@ class SourcesTests(unittest.TestCase):
   self.assertIn('Matched-day Amazon audit',s)
   self.assertIn('These are not the full-year totals above',s)
   self.assertIn('Close call: just outside the usual range',s)
+ def test_modis_version_disclosure(self):
+  for name in ["directions/r2/common.tsx", "directions/r2/Method.tsx", "r2/download.ts"]:
+   s=(ROOT/"frontend/src"/name).read_text()
+   self.assertNotIn("MODIS Collection 6.1",s)
+   self.assertIn("6.2, 6.03, 61.03",s)
+   self.assertIn("collection consistency remains a limitation",s)
+  s=(ROOT/"frontend/src/directions/r2/common.tsx").read_text()
+  self.assertIn("MODIS 6.1NRT and VIIRS 2.0NRT",s)
  def test_numbers_reconciled(self):
   f=next(x['value'] for x in json.loads((ROOT/'data/out/facts.json').read_text())['facts'] if x['id']=='amazon_decline_2024_2025')
   self.assertEqual(round(abs(f['inpe_pct'])),69)
