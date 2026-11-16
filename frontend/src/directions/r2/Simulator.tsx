@@ -15,6 +15,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalS
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, CircleHelp, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Play, Plus, Search, X } from 'lucide-react'
 import { DecipherText } from '@/components/ui/decipher-text'
 import { SegmentedControl } from '@/components/ui/segmented-control'
+import { DelayRuler, TYPICAL_DELAY, formatDelay } from '@/components/ui/delay-ruler'
 import { DeltaTicker } from '@/components/ui/delta-ticker'
 import { SiChat, type SiTurn } from '@/components/ui/si-chat'
 import { ChartLine } from '@/components/ui/chart-line'
@@ -1084,68 +1085,55 @@ function PlacePanel({ place, headRef, onBack, onFly, onStrongest, cell, year, on
 
 const dayLabel = (s: string) => { const [y, m, d] = s.split('-').map(Number); return `${d} ${MONTHS[m - 1]} ${y}` }
 
-/** the alert delays: NASA's published range for FIRMS near-real-time data */
-const DELAYS: { value: DayDelay; name: string; label: string }[] = [
-  { value: 0, name: 'No delay, the best case', label: 'None' },
-  { value: 1.5, name: 'One and a half hours, inside the 60 to 125 minutes NASA reports for MODIS on average', label: '1.5 h' },
-  { value: 3, name: 'Three hours, the limit NASA states', label: '3 h' },
-]
+/** which satellite group each of the day's passes belongs to: S-NPP and NOAA-20 carry VIIRS */
+const DAY_GROUP: Record<DaySource, SatGroup> = { Terra: 'terra', 'S-NPP': 'viirs', 'NOAA-20': 'viirs', Aqua: 'aqua' }
 
 /** One real fire day: pick the satellite whose pass raises the alert and the alert's delay; the numbers roll (21st.dev's
  *  delta number ticker) and the map shows which of the day's fires that satellite saw. Nothing here is modelled: alert =
- *  the end of the pass plus the delay, daylight left = sunset minus the alert. */
+ *  the end of the pass plus the delay, daylight left = sunset minus the alert. Fires, passes: NASA FIRMS; sunset: NOAA's
+ *  solar equations; the delay runs over NASA's published range for FIRMS data. */
 function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource; delay: DayDelay }; setDay: (d: { src: DaySource; delay: DayDelay }) => void; onClose: () => void; motion: boolean }) {
   const r = dayRun(day.src, day.delay)
-  const stat = 'border-t border-[color:var(--hairline)] pt-2'
-  const big = 'text-[22px] font-medium leading-[1.25] tracking-[-0.01em] text-[color:var(--bone)]'
+  const label = 'mb-1 text-xs text-[color:var(--bone3)]'
   return (
-    <section aria-labelledby="fireday-h" className={cn(glass, 'px-4 pb-3 pt-3')}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 id="fireday-h" className="text-sm font-medium text-[color:var(--bone)]">One fire day: {dayLabel(FIRE_DAY_DATE)}, Pará, Brazil</h2>
-          <p className="mt-0.5 text-xs leading-5 text-[color:var(--bone3)]">
-            Real data: {DAY_FIRES.length} fires, which satellites saw each, and when each passed (NASA FIRMS). S-NPP and NOAA-20 carry VIIRS. The delay is the range NASA publishes for its fire data.
-          </p>
-        </div>
-        <button type="button" aria-label="Back to the fires on the map" title="Back to the fires on the map" onClick={onClose} className={cn('-mr-1 grid size-9 shrink-0 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
+    <section aria-labelledby="fireday-h" className={cn(glass, 'px-5 pb-3 pt-4')}>
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="fireday-h" className="text-sm font-medium text-[color:var(--bone)]">
+          Pará, Brazil <span className="font-normal tabular-nums text-[color:var(--bone3)]">· {dayLabel(FIRE_DAY_DATE)}</span>
+        </h2>
+        <button type="button" aria-label="Back to the fires on the map" title="Back to the fires on the map" onClick={onClose} className={cn('-mr-1.5 grid size-9 shrink-0 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
           <X size={16} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
-      <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
-        <div className="min-w-[300px] flex-1">
-          <p className="mb-1 text-xs text-[color:var(--bone2)]">Alert from</p>
+      {/* the answer first (the Verdict First Rule): daylight left, big; the alert, sunset and what this pass saw, one quiet line */}
+      <div className="mt-3">
+        <p className="flex flex-wrap items-baseline gap-x-2.5">
+          <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[48px] font-medium leading-none tracking-[-0.035em] text-[color:var(--bone)]" />
+          <span className="text-lg text-[color:var(--bone2)]">of daylight left</span>
+        </p>
+        <p className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] tabular-nums text-[color:var(--bone2)]">
+          <span>Alert <span className="text-[color:var(--bone)]">{fmtHM(r.alert)}</span> · sunset {fmtHM(SUNSET)}</span>
+          <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-full bg-[color:var(--bone)]" /><span className="text-[color:var(--bone)]">{fmtInt(r.seen)}</span> seen</span>
+          <span className="flex items-center gap-1.5"><span aria-hidden className="size-1.5 rounded-full bg-[#8D8A84]" />{fmtInt(r.total - r.seen)} missed</span>
+        </p>
+      </div>
+      <div className="mt-4 flex flex-wrap items-start gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-3">
+        <div className="min-w-[min(300px,100%)] flex-[3]">
+          <p className={label}>Alert from</p>
           <SegmentedControl<DaySource>
             label="Alert from"
             value={day.src}
             onChange={(src) => setDay({ ...day, src })}
             motion={motion}
-            segmentClassName="px-2 py-1.5 text-center"
-            options={DAY_SOURCES.map((v) => ({ value: v, name: `${v}, pass ends ${fmtHM(PASS_END[v])}`, label: <span><span className="block text-sm">{v}</span><span className="block text-[11px] tabular-nums opacity-80">{fmtHM(PASS_END[v])}</span></span> }))}
+            segmentClassName="whitespace-nowrap px-1.5 py-1.5 text-center"
+            options={DAY_SOURCES.map((v) => ({ value: v, name: `${v}, pass ends ${fmtHM(PASS_END[v])}`, label: <span><span className="flex items-center justify-center gap-1.5 text-[13px] sm:text-sm"><span className="max-sm:hidden"><Mark g={DAY_GROUP[v]} size={9} /></span>{v}</span><span className="block text-[11px] tabular-nums opacity-80">{fmtHM(PASS_END[v])}</span></span> }))}
           />
         </div>
-        <div className="w-[190px]">
-          <p className="mb-1 text-xs text-[color:var(--bone2)]">Delay before the alert</p>
-          <SegmentedControl<DayDelay>
-            label="Delay before the alert"
-            value={day.delay}
-            onChange={(delay) => setDay({ ...day, delay })}
-            motion={motion}
-            segmentClassName="px-2 py-[11px] text-center text-sm"
-            options={DELAYS}
-          />
+        <div className="min-w-[200px] flex-[2]">
+          <p className={label}>Delay</p>
+          <DelayRuler label="Delay between the pass and the alert, 0 to 3 hours" value={day.delay} onValue={(delay) => setDay({ ...day, delay })} band={TYPICAL_DELAY} bandLabel="typical" format={formatDelay} />
         </div>
       </div>
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
-        <div className={stat}><dt className="text-xs text-[color:var(--bone2)]">Alert arrives</dt><dd><DeltaTicker value={r.alert} basis={null} format={fmtHM} formatDelta={() => ''} label="Alert arrives" motion={motion} ghost={false} valueClassName={big} /></dd></div>
-        <div className={stat}><dt className="text-xs text-[color:var(--bone2)]">Daylight left</dt><dd><DeltaTicker value={r.daylight} basis={null} format={(h) => dur(h)} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName={big} /></dd></div>
-        <div className={stat}><dt className="text-xs text-[color:var(--bone2)]">Fires this pass saw</dt><dd className="flex items-baseline gap-1.5"><DeltaTicker value={r.seen} basis={null} format={fmtInt} formatDelta={() => ''} label="Fires this pass saw" motion={motion} ghost={false} valueClassName={big} /><span className="text-xs tabular-nums text-[color:var(--bone3)]">of {r.total}</span></dd></div>
-        <div className={stat}><dt className="text-xs text-[color:var(--bone2)]">Sunset</dt><dd className={cn(big, 'tabular-nums')}>{fmtHM(SUNSET)}</dd></div>
-      </dl>
-      <div aria-hidden className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[color:var(--bone2)]">
-        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[color:var(--bone)]" />seen by this satellite</span>
-        <span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-[#8D8A84]" />missed by this satellite</span>
-      </div>
-      <p className="mt-2 text-[11px] text-[color:var(--bone3)]">Times are local sun time. Delay: none is the best case; NASA reports 60 to 125 minutes on average for MODIS; 3 hours is the limit NASA states. Sunset from NOAA’s solar equations.</p>
     </section>
   )
 }
