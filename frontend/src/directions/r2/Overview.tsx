@@ -144,7 +144,7 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
             alt={p.alt}
             width={p.width}
             height={p.height}
-            fetchPriority="high"
+            {...{ fetchpriority: "high" }}
             className="absolute inset-0 -z-10 size-full object-cover object-[var(--focus-phone)] sm:object-[var(--focus)]"
           />
           <div aria-hidden className="absolute inset-0 -z-10 lg:hidden" style={{ background: LOW_SCRIM }} />

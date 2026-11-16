@@ -1089,10 +1089,10 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
       </div>
       {/* the answer first (the Verdict First Rule): daylight left, big; the alert, sunset and what this pass saw, one quiet line */}
       <div className="mt-3">
-        <p className="flex flex-wrap items-baseline gap-x-2.5">
+        <div className="flex flex-wrap items-baseline gap-x-2.5">
           <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[40px] font-medium leading-none tracking-[-0.03em] text-[color:var(--bone)]" />
           <span className="text-lg text-[color:var(--bone2)]">of daylight left</span>
-        </p>
+        </div>
         <p className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] tabular-nums text-[color:var(--bone2)]">
           <span>Alert <span className="text-[color:var(--bone)]">{fmtHM(r.alert)}</span> · sunset {fmtHM(SUNSET)}</span>
           <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-full bg-[color:var(--bone)]" /><span className="text-[color:var(--bone)]">{fmtInt(r.seen)}</span> seen</span>
