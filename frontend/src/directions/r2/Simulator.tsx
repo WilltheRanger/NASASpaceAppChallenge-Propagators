@@ -621,7 +621,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
             <div className="absolute right-4 top-4 z-20 flex flex-col items-end gap-2">
               {!xl && !siOpen ? (
                 <button type="button" onClick={() => setSiOpen(true)} className={cn(glass, 'flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
-                  <MessageSquare size={15} strokeWidth={1.75} aria-hidden /> Ask SI
+                  <MessageSquare size={15} strokeWidth={1.75} aria-hidden /> Ask Anchor
                 </button>
               ) : null}
               {/* the guide: back to the whole globe, the chart open, then the four steps */}
@@ -701,7 +701,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
                     {rail}
                     <div className="px-4">{chart}</div>
                     <div className="px-4 pt-4">
-                      <button type="button" onClick={() => setTab('si')} className={cn(secondary, 'w-full justify-center')}><MessageSquare size={15} strokeWidth={1.75} aria-hidden /> Ask SI about this place</button>
+                      <button type="button" onClick={() => setTab('si')} className={cn(secondary, 'w-full justify-center')}><MessageSquare size={15} strokeWidth={1.75} aria-hidden /> Ask Anchor about this place</button>
                     </div>
                     {footer}
                   </div>
@@ -712,7 +712,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         </section>
 
         {xl ? (
-          <aside aria-label="SI" className="flex w-[360px] shrink-0 flex-col border-l border-[color:var(--hairline)] bg-[color:var(--ground)]">
+          <aside aria-label="Ask Anchor" className="flex w-[360px] shrink-0 flex-col border-l border-[color:var(--hairline)] bg-[color:var(--ground)]">
             {si(undefined, 'min-h-0 flex-1')}
           </aside>
         ) : null}
