@@ -246,7 +246,7 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         <section id="global" aria-labelledby="global-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
           <div className={cn(shell, 'flex flex-wrap items-center gap-x-6 gap-y-4 py-12')}>
             <h2 id="global-h" className="text-lg font-medium text-[color:var(--bone)]">Or pick any area</h2>
-            <p className="max-w-xl text-sm text-[color:var(--bone2)]">The same comparison for any 2° square on the world map. Early exploration: not checked like the six places.</p>
+            <p className="max-w-xl text-sm text-[color:var(--bone2)]">The same comparison for any 2° square. Not checked like the six places.</p>
             <a href={anyArea(links)} onClick={leave} className={secondaryButton}>Open the world map <ArrowRight size={16} aria-hidden /></a>
             <a href="#calendar" className={primaryButton}>Back to the fire calendar <ArrowRight size={16} aria-hidden /></a>
           </div>
@@ -358,7 +358,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
     const a = nov.find((r) => r.year === 2016), b = nov[nov.length - 1]
     const tooFew = d.years.filter((r) => r.verdict === 'na').map((r) => r.year)
     return (
-      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
+      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
         <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
           <div className="lg:col-span-7">
             <h2 id="verdict-h" className={title}>Punjab + Haryana is our test case</h2>
@@ -375,7 +375,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
   }
   if (!y || y.gap == null) {
     return (
-      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
+      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
         <div className={cn(shell, 'py-16')}>
           <h2 id="verdict-h" className={title}>Too few fires over {d.phrase.the} to compare Aqua with the benchmark</h2>
           <div className="mt-8">{sim}</div>
@@ -385,7 +385,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
   }
   const unusual = y.verdict === 'outside'
   return (
-    <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
+    <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
         <div className="lg:col-span-7">
           <h2 id="verdict-h" className={title}>Aqua against the benchmark</h2>
@@ -658,7 +658,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
   } as CSSProperties
   const th = 'py-2 pr-3 text-left text-xs font-normal text-[color:var(--bone3)]'
   return (
-    <section id="years" aria-labelledby="years-h" style={chartVars} className="scroll-mt-32">
+    <section id="years" aria-labelledby="years-h" style={chartVars} className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h3 id="years-h" className={title}>{yearsHeading(d)}</h3>
@@ -708,8 +708,6 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               ))}
             </tbody>
           </table>
-          </More>
-          <MockTag show={d.mock} className="mt-3 inline-block" />
           {v.whole.length ? (
             <div className="mt-6 text-sm">
               <p className="font-medium text-[color:var(--bone)]">{hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}</p>
@@ -726,6 +724,8 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               {hasOfficialSeries(d.id) ? <p className="mt-3 text-xs text-[color:var(--bone3)]">INPE’s Programa Queimadas is Brazil’s official count; it follows one satellite, Aqua.</p> : null}
             </div>
           ) : null}
+          </More>
+          <MockTag show={d.mock} className="mt-3 inline-block" />
         </div>
       </div>
     </section>
@@ -909,11 +909,10 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-base text-[color:var(--bone)]">Aqua’s own count before 2012, VIIRS matched to Aqua after: one steady record from 2002 to 2025.</p>
-          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Each row is a year and each cell a month. {mode === 'count' ? 'Brighter cells mean more hotspots.' : 'Gold cells had more hotspots than a typical year, blue cells fewer.'}
+          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">{headline}</p>
+          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            One row per year, one cell per month. {mode === 'count' ? 'Brighter means more hotspots.' : 'Gold means more hotspots than a typical year, blue fewer.'}
           </p>
-          <p className="mt-4 text-lg text-[color:var(--bone)]">{headline}</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -952,11 +951,13 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
-          <div className="mt-4 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
+          <More label="About these numbers" className="mt-4">
+          <div className="mt-2 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
             <p>A hotspot is one satellite fire detection; a large fire can produce many.</p>
             <p>Typical = the median for that calendar month, 2002–2025.</p>
             <p>Counts before 2012 are Aqua’s own. From 2012 they come from VIIRS, whose overpass time has stayed constant, scaled to Aqua using the 2012–2020 ratio.</p>
           </div>
+          </More>
           {d.id.startsWith('br-') ? <RecentObservations /> : null}
           <a href={`#top`} className={cn('mt-6 inline-flex min-h-11 items-center gap-1 text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
             Pick another place <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />

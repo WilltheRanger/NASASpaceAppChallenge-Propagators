@@ -536,10 +536,12 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
       <div className={cn(shell, 'grid grid-cols-1 gap-x-6 gap-y-10 py-12 text-sm text-[color:var(--bone2)] lg:grid-cols-12')}>
         {notes.length ? (
           <section aria-labelledby="foot-notes" className="lg:col-span-12">
-            <h2 id="foot-notes" className={h}>Notes</h2>
-            <ul className="mt-3 grid grid-cols-1 gap-x-10 gap-y-2 md:grid-cols-2">
-              {notes.map((n, i) => <li key={i} className="max-w-[var(--measure)] leading-6">{n}</li>)}
-            </ul>
+            <h2 id="foot-notes" className="sr-only">Notes</h2>
+            <More label="Notes on this page">
+              <ul className="mt-3 grid grid-cols-1 gap-x-10 gap-y-2 md:grid-cols-2">
+                {notes.map((n, i) => <li key={i} className="max-w-[var(--measure)] leading-6">{n}</li>)}
+              </ul>
+            </More>
           </section>
         ) : null}
         <section aria-labelledby="foot-data" className="lg:col-span-4">
@@ -551,7 +553,8 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
           </p>
         </section>
         <section aria-labelledby="foot-pics" className="lg:col-span-8">
-          <h2 id="foot-pics" className={h}>Pictures and video</h2>
+          <h2 id="foot-pics" className="sr-only">Pictures and video</h2>
+          <More label="Photo and video credits">
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-5 gap-y-1.5 sm:grid-cols-[auto_1fr_auto_1fr]">
             {REGIONS.map((r) => {
               const p = photoFor(r.id)
@@ -574,6 +577,15 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
               <dd className="min-w-0">NASA Worldview / GIBS, NASA Blue Marble</dd>
             </div>
           </dl>
+          </More>
+        </section>
+        {/* the sponsors and hosts, as the README's acknowledgments name them; words only, no logos */}
+        <section aria-labelledby="foot-thanks" className="lg:col-span-12">
+          <h2 id="foot-thanks" className={h}>Thank you</h2>
+          <div className="mt-3 grid gap-x-6 gap-y-3 lg:grid-cols-2">
+            <p className="max-w-[var(--measure)] leading-6">To NASA and the 2026 NASA International Space Apps Challenge, funded by NASA’s Science Mission Directorate through a contract with Booz Allen Hamilton, Mindgrub and SecondMuse, and to its 17 space agency partners, especially the Brazilian Space Agency (AEB), Argentina’s CONAE and India’s ISRO.</p>
+            <p className="max-w-[var(--measure)] leading-6">To Build Future Mind Foundation for hosting the Chino Hills, CA local event on 14–15 November 2026, and to Local Lead Allen West and the organizing team.</p>
+          </div>
         </section>
         {/* the sponsors and hosts, as the README's acknowledgments name them; words only, no logos */}
         <section aria-labelledby="foot-thanks" className="lg:col-span-12">
