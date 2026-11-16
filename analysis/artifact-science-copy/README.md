@@ -7,4 +7,4 @@ Isolated review branch based on the matching multipage artifact source at 556eac
 - Fixes repeated acres units and distinguishes historical calendar coverage from the separate incomplete 2026 NRT snapshot.
 - Adds a separate P9 follow-up to the original test accordion. Counts come from the immutable final report at 3d06ffb; all six biomes remain insufficiently identified. The original tests, status tally, calibrated arrays, gates, and layout remain unchanged.
 
-Validation: `python -m unittest discover -s analysis/artifact-science-copy -v`; `cd frontend && npm ci --ignore-scripts && npm run build`. Review the small commit rather than merging unrelated scientific variant branches. This does not verify a slide deck: the supplied Claude URL is the app.
+Validation: `python -m unittest discover -s analysis/artifact-science-copy -v`; `cd frontend && npm ci --ignore-scripts && npm run build`. Review the small commit rather than merging unrelated scientific variant branches. This does not verify a slide deck: the supplied app link is the app.

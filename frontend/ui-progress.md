@@ -1,10 +1,10 @@
 # ui-progress.md: Phase 3 · UI (rule of three)
 
-- **Comment page (current):** https://claude.ai/artifact/JTaQg8yRyq77Teu8e5ytGH — direction D live, private, as two
+- **Comment page (current):** the shared comment-page link — direction D live, private, as two
   pages: the landing (main page) and the audit (`app.html`, "Open the audit"). The team comments on it and each round
   republishes to the same link (`ARTIFACT_OUT=<dir> npm run artifact`, then publish `<dir>/page.html` with `app.html`,
   `assets/` and `img/`).
-- **Canvas:** https://claude.ai/artifact/55RnYtpPDq8JdZzLAtyVYv ("Anchor", Design type). Round 1 screenshots are uploaded
+- **Canvas:** the shared design-canvas link ("Anchor", Design type). Round 1 screenshots are uploaded
   as assets; artboards stay unpublished until the team says the canvas (shared by link) may be used.
 - **Live prototype:** `frontend/` (Vite + React + TypeScript + Tailwind v4). `npm run dev`, then `?d=a` … `?d=e`
   (Round 2; D is `?d=d` for the landing and `?d=d&page=app` for the audit, `&region=<id>` for either). Round 1 stays
