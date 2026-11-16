@@ -574,8 +574,8 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
     },
     {
       t: 'NASA reprocessed VIIRS files in May 2025.',
-      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses.',
-      done: 'Addressed: Sources list the versions: MODIS Collection 6.1 and VIIRS Collection 2 (standard) for 2012–2025; 6.1NRT and 2.0NRT for the 2026 snapshot.',
+      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation.',
+      done: 'Addressed: Sources list each product’s version by period: VIIRS Collection 2 (standard) for 2012–2025, the MODIS archive’s codes, and 6.1NRT and 2.0NRT for the 2026 snapshot.',
     },
     {
       t: 'The calendar ends in 2025; a separate provisional card shows 8–14 Nov 2026.',

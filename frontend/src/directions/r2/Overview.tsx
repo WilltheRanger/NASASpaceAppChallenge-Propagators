@@ -24,7 +24,7 @@ import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import factsJson from '../../../../data/out/facts.json'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, CLOSE_CALL, FEATURED, andList, IMG, JETHVA, More, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
+  CAVEAT, FEATURED, andList, IMG, JETHVA, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
   primaryButton, useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -104,6 +104,7 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
         <OneDay />
         <Finding links={links} leave={leave} />
         <Doors links={links} leave={leave} />
+        <OverviewNotes links={links} leave={leave} />
       </main>
     </>
   )
@@ -307,7 +308,7 @@ function DayPanel({ step, picture = true, caption = true }: { step: number; pict
       <DayLine step={step} />
       {caption ? (
         <figcaption className="mt-3 text-xs text-[color:var(--bone3)]">
-          Pictures: {phrase(FEATURED).the.replace(/^the /, 'the central ')}, 4 September 2026, with each satellite’s fire detections (NASA Worldview). Times: usual looks in {DAY_LOOK?.year}, local sun time.
+          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026. Times shown are usual looks in {DAY_LOOK?.year}, not the image-day pass times. <a href="#overview-sources" className={textLink}>Image sources ↓</a>
         </figcaption>
       ) : null}
     </figure>
@@ -391,18 +392,8 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
                 : FINDING.join(' ')}
             </h2>
             {DECLINE ? <p className="mt-4 max-w-[40rem] text-base text-[color:var(--ink)]">{UNUSUAL_LINE}</p> : null}
-            {DECLINE ? (
-              <p className="mt-4 text-sm tabular-nums text-[color:var(--ink)] opacity-70">
-                Official (INPE): {int(DECLINE.inpe_2024)} to {int(DECLINE.inpe_2025)} detections. Benchmark: {int(DECLINE.fixed_2024)} to {int(DECLINE.fixed_2025)}.
-              </p>
-            ) : null}
             <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
-            {AMAZON_2025 && AMAZON_2025.aqua != null && AMAZON_2025.fixed != null ? (
-              <p className="mt-3 max-w-[40rem] text-lg text-[color:var(--ink)]">
-                In {AMAZON_2025.year} Aqua recorded about {int(Math.round((AMAZON_2025.aqua - AMAZON_2025.fixed) / 1000) * 1000)} more Amazon detections than the benchmark{' '}
-                <span className="tabular-nums">({int(AMAZON_2025.aqua)} vs {int(AMAZON_2025.fixed)})</span>.
-              </p>
-            ) : null}
+            <a href="#overview-sources" className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>Figures, definitions and sources ↓</a>
           </div>
           <Reveal className="lg:col-span-3 lg:col-start-10 lg:self-start lg:pt-2">
             <p className="rounded-[4px] border border-[color:var(--ink-20)] p-4 text-base text-[color:var(--ink)] lg:p-5 lg:text-lg">{CAVEAT}</p>
@@ -439,15 +430,8 @@ function Places() {
         ))}
       </ol>
       <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
-        Look times: local sun time, 2012–2020 against {YEAR}. Unusual: outside the 2012–2020 usual range, and the likely range doesn’t overlap it. {CLOSE_CALL}{' '}
-        Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.
+        Unusual: the likely range is wholly outside the usual range. Close call: just outside the usual range, but the likely range overlaps it. <a href="#overview-sources" className={textLink}>Definitions and sources ↓</a>
       </p>
-      <More label="About the range" className="mt-2">
-        <p className="max-w-[64rem] text-xs text-[color:var(--bone3)]">
-          The amber line is a 95% bootstrap interval: the days compared are resampled many times and the middle 95% of results kept. It depends on that
-          resampling. It is not the probability that an effect of the timing lies inside it.
-        </p>
-      </More>
     </div>
   )
 }
@@ -639,5 +623,38 @@ function Door({ href, leave, title, line, art, className }: { href: string; leav
       <span className="text-[clamp(28px,3vw,44px)] font-medium leading-[1.05] tracking-[-0.02em] text-[color:var(--bone)]">{title}</span>
       <span className="mt-2 max-w-[36ch] text-sm text-[color:var(--bone2)] sm:text-base">{line}</span>
     </a>
+  )
+}
+
+/** Supporting figures stay together without mixing full-year totals with matched-day audit counts. */
+function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) {
+  return (
+    <section id="overview-sources" aria-labelledby="overview-sources-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
+      <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
+        <div className="lg:col-span-4">
+          <h2 id="overview-sources-h" className="text-3xl font-medium tracking-[-0.02em]">Sources and notes</h2>
+          <p className="mt-4 text-sm text-[color:var(--bone2)]">The figures behind the Overview. Full-year totals and matched-day audit counts answer different questions.</p>
+          <a href={links.method('sources')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center')}>All product versions and sources <ArrowUpRight size={14} aria-hidden /></a>
+        </div>
+        <dl className="space-y-6 text-sm leading-6 text-[color:var(--bone2)] lg:col-span-8">
+          {DECLINE ? <div>
+            <dt className="font-medium text-[color:var(--bone)]">Full-year Amazon totals · 2024 → 2025</dt>
+            <dd>Official INPE: {int(DECLINE.inpe_2024)} → {int(DECLINE.inpe_2025)} detections ({Math.abs(Math.round(DECLINE.inpe_pct))}% decline). VIIRS-based annual benchmark: {int(DECLINE.fixed_2024)} → {int(DECLINE.fixed_2025)} ({Math.abs(Math.round(DECLINE.fixed_pct))}% decline). These compare whole calendar years, not just the audit’s matched days. Source: data/out/facts.json, amazon_decline_2024_2025; <a href="https://data.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer" className={textLink}>INPE Programa Queimadas</a>.</dd>
+          </div> : null}
+          {AMAZON_2025 && AMAZON_2025.fixed != null ? <div>
+            <dt className="font-medium text-[color:var(--bone)]">Matched-day Amazon audit · {AMAZON_2025.year}</dt>
+            <dd>Aqua: {int(AMAZON_2025.aqua)} daytime detections; benchmark: {int(AMAZON_2025.fixed)}. That is {int(AMAZON_2025.aqua - AMAZON_2025.fixed)} more detections (about {int(Math.round((AMAZON_2025.aqua - AMAZON_2025.fixed) / 1000) * 1000)}), on days both satellites returned data. These are not the full-year totals above. Source: data/out/audit/br-amazon.json. {CAVEAT}</dd>
+          </div> : null}
+          <div>
+            <dt className="font-medium text-[color:var(--bone)]">Six-place comparison and uncertainty</dt>
+            <dd>Look times are local sun time, 2012–2020 against {YEAR}. The usual range comes from nine 2012–2020 years. The amber line is a 95% bootstrap interval: the days compared are resampled many times and the middle 95% of results kept. It is not the probability that an effect of the timing lies inside it. Unusual means the likely interval does not overlap the usual range; close calls overlap it. Sources: data/out/drift and data/out/audit. Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-[color:var(--bone)]">Satellite images and illustrated times</dt>
+            <dd>Central Amazon, 4 September 2026, with each satellite’s fire detections: <a href="https://worldview.earthdata.nasa.gov" target="_blank" rel="noreferrer" className={textLink}>NASA Worldview / GIBS</a>. The clock diagram uses usual look times in {DAY_LOOK?.year}, not measured pass times for that image date. VIIRS imagery stands for the earlier observation time.</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
   )
 }

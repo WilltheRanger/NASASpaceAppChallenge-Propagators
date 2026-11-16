@@ -174,7 +174,7 @@ export const statementName = (id: string) => {
 
 /** The data the site stands on, with the identifiers to find each one. */
 export const CREDITS: { name: string; links: { text: string; href: string }[] }[] = [
-  { name: 'NASA FIRMS, MODIS Collection 6.1 (standard), Terra and Aqua: 2002–2025', links: [{ text: 'doi:10.5067/FIRMS/MODIS/MCD14ML', href: 'https://doi.org/10.5067/FIRMS/MODIS/MCD14ML' }] },
+  { name: 'NASA FIRMS, MODIS standard archive (Terra and Aqua), 2002–2025. Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation.', links: [{ text: 'doi:10.5067/FIRMS/MODIS/MCD14ML', href: 'https://doi.org/10.5067/FIRMS/MODIS/MCD14ML' }] },
   { name: 'NASA FIRMS, VIIRS 375 m Collection 2 (standard), S-NPP: 2012–2025', links: [{ text: 'NASA FIRMS archive download', href: 'https://firms.modaps.eosdis.nasa.gov/download/' }] },
   {
     name: 'NASA FIRMS near-real-time, for the 2026 snapshot: MODIS 6.1NRT and VIIRS 2.0NRT',
