@@ -929,7 +929,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <ModeToggle value={mode} onChange={onMode} classes={modeClasses} labels={{ anomaly: 'Compared with a typical year', count: 'Hotspot counts' }} countFirst />
+            <ModeToggle value={mode} onChange={onMode} classes={modeClasses} labels={{ anomaly: 'Compared with a typical year', count: 'Benchmark hotspots' }} countFirst />
             <span role="group" aria-label="Months shown" className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--bone2)]">
               <MonthField label="From" value={range.from} years={allYears} onChange={setFrom} />
               <span aria-hidden>to</span>
@@ -964,11 +964,13 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            Counts before 2012 are Aqua’s own. From 2012 they come from VIIRS, whose overpass time has stayed constant, scaled to Aqua using the 2012–2020 ratio. Every day of each month, not only the matched days used in the comparison with the benchmark. This is the benchmark series, not an official count.
+          </p>
           <More label="About these numbers" className="mt-4">
           <div className="mt-2 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
             <p>A hotspot is one satellite fire detection; a large fire can produce many.</p>
             <p>Typical = the median for that calendar month, 2002–2025.</p>
-            <p>Counts before 2012 are Aqua’s own. From 2012 they come from VIIRS, whose overpass time has stayed constant, scaled to Aqua using the 2012–2020 ratio.</p>
           </div>
           </More>
           {d.id.startsWith('br-') ? <RecentObservations /> : null}
