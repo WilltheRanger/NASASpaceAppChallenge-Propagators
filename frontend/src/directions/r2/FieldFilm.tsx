@@ -478,7 +478,7 @@ function LookTimes({ d }: { d: RegionData }) {
       <div className={cn(shell, 'pb-16 pt-16')}>
         <h2 id="look-h" className={title}>When each satellite flies over</h2>
         <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">
-          Each crosses {d.phrase.the} at about the same time every day. Aqua’s crossing has moved later. VIIRS’s has stayed put.
+          Compare typical crossing times over {d.phrase.the}. Aqua’s crossing has moved later; VIIRS’s has stayed near its usual time. Choose a year to compare all three satellites.
         </p>
         <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-12">
           <figure className="m-0 min-w-0 lg:col-span-6">
@@ -488,11 +488,23 @@ function LookTimes({ d }: { d: RegionData }) {
               <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
             </div>
             <figcaption className="mt-3 max-w-[34rem] text-xs text-[color:var(--bone3)]">
-              Seen from the Sun at noon in {dr.year}. Each ring is a satellite’s path; it looks at {name.replace(/^The /, 'the ')} where it crosses the dashed line. Drag to turn the globe.
+              Schematic for {dr.year}, seen from the Sun. Each ring shows a satellite’s path; the dashed line marks {name.replace(/^The /, 'the ')}. Drag to turn the globe. This is not a live position or an exact pass prediction.
             </figcaption>
           </figure>
           <div className="min-w-0 lg:col-span-6">
-            <p className="text-sm text-[color:var(--bone2)]">{dr.year === last.year ? `${dr.year}, the latest year` : dr.year}</p>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-sm text-[color:var(--bone2)]">Selected year</p>
+                <p className="mt-1 text-3xl font-medium tabular-nums">{dr.year}</p>
+              </div>
+              <label className="flex flex-col gap-1 text-sm text-[color:var(--bone2)]">
+                Choose a year
+                <select value={dr.year} onChange={(e) => setYear(Number(e.target.value))} className={cn('min-h-11 rounded border border-[color:var(--hairline)] bg-[color:var(--ground)] px-3 text-base text-[color:var(--bone)]', focusRing)}>
+                  {d.drift.map((r) => <option key={r.year} value={r.year}>{r.year}{r.year === last.year ? ' · latest' : ''}</option>)}
+                </select>
+              </label>
+            </div>
+            <p className="mt-3 text-sm text-[color:var(--bone2)]">Typical crossing time · local sun time, not your time zone</p>
             <ul className="mt-2 border-t border-[color:var(--hairline)]">
               {LOOK_SATS.map((s) => (
                 <li key={s.id} className="grid grid-cols-[1.25rem_4.5rem_4rem_minmax(0,1fr)] items-baseline gap-x-2 border-b border-[color:var(--hairline)] py-2.5">
@@ -503,8 +515,12 @@ function LookTimes({ d }: { d: RegionData }) {
                 </li>
               ))}
             </ul>
+            <div className="mt-6 border-t border-[color:var(--hairline)] pt-4">
+              <p className="text-base font-medium">How the times changed</p>
+              <p className="mt-1 text-sm text-[color:var(--bone2)]">The vertical marker selects {dr.year}. Labels at the right show {last.year}, the latest year.</p>
+            </div>
             <DriftChart d={d} year={dr.year} onYear={setYear} />
-            <p className="mt-2 text-xs text-[color:var(--bone3)]">Local sun time over {d.phrase.the}, by year. Pick a year to turn the globe. Source: drift/{d.id}.json</p>
+            <p className="mt-2 text-xs text-[color:var(--bone3)]">Higher means later in the day. Pick a year on the chart, or focus it and use the arrow keys. The table and globe update together. Source: drift/{d.id}.json</p>
           </div>
         </div>
       </div>
