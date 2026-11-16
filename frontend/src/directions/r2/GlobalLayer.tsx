@@ -24,7 +24,7 @@ const COLS = 360 / DEG, ROWS = (LAT_TOP - LAT_BOTTOM) / DEG
 export function describe(c: GlobalCell, year: 2024 | 2025) {
   const r = reading(c, year)
   if (!r.ok || r.L == null || r.lo == null || r.hi == null) return `Too few fires to read in ${year}`
-  return `Aqua ${pct((r.L - 1) * 100, 0)} against what we’d expect in ${year} (how sure we are: ${pct((r.lo - 1) * 100, 0)} to ${pct((r.hi - 1) * 100, 0)}); ${r.outside ? 'unusual' : 'not unusual'} for this square`
+  return `Aqua ${pct((r.L - 1) * 100, 0)} against what we’d expect in ${year} (likely range: ${pct((r.lo - 1) * 100, 0)} to ${pct((r.hi - 1) * 100, 0)}); ${r.outside ? 'unusual' : 'not unusual'} for this square`
 }
 
 export function GlobalLayer({ region, small }: { region: string; small: boolean }) {
@@ -293,7 +293,7 @@ export function CellPanel({ cell, year, small }: { cell: GlobalCell; year: 2024 
               <dd className="mt-1">
                 <span className="block text-[length:var(--fs-32)] font-medium leading-none">{pct((r.L - 1) * 100, 0)}</span>
                 <span className="mt-2 block">
-                  Aqua’s count against what we’d expect. How sure we are: {pct((r.lo - 1) * 100, 0)} to {pct((r.hi - 1) * 100, 0)}.{' '}
+                  Aqua’s count against what we’d expect. Likely range: {pct((r.lo - 1) * 100, 0)} to {pct((r.hi - 1) * 100, 0)}.{' '}
                   {r.outside ? 'Unusual' : 'Not unusual'} for this square{placebo ? ` (usual range ${placebo})` : ''}.
                 </span>
                 {r.shift != null ? <span className="mt-1 block">Aqua’s look time: {fmtShift(r.shift)} against 2012–2020.</span> : null}

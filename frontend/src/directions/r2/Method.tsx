@@ -17,6 +17,7 @@ import { ScrollSpy } from '@/components/ui/scroll-spy'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { CHECKS, DETECTION, fmtInt, fmtRange, hm, inpeReproduction, pct, phrase, regionData, type Check } from '@/r2/data'
 import { cn } from '@/lib/utils'
+import { TwoClocks } from './FieldFilm'
 import {
   CAVEAT, CREDITS, DetMark, Footer, IMG, MockTag, More, PageNext, REPO_URL, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
   type DetShape, type Leave, type Links, type Nav,
@@ -26,6 +27,7 @@ const SECTIONS = [
   { id: 'day', label: 'One afternoon' },
   { id: 'steps', label: 'What we compare' },
   { id: 'checks', label: 'Tests' },
+  { id: 'two-clocks', label: 'Two clocks' },
   { id: 'detection', label: 'Small fires' },
   { id: 'inpe', label: 'Matching INPE' },
   { id: 'limits', label: 'Limits' },
@@ -57,6 +59,7 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
         <OneDay />
         <Steps />
         <Checks />
+        <TwoClocksHere links={links} leave={leave} />
         <Detection />
         <InpeMatch />
         <Limits links={links} leave={leave} />
@@ -152,7 +155,7 @@ function LookLines() {
   )
 }
 
-/** One year's reading against the usual range: the grey band, zero, and Aqua's dot with how sure we are. */
+/** One year's reading against the usual range: the grey band, zero, and Aqua's dot with the likely range. */
 function RangeStrip({ gap, lo, hi, band }: { gap: number; lo: number; hi: number; band: [number, number] }) {
   const ref = useRef<HTMLDivElement | null>(null)
   const W = useMeasuredWidth(ref)
@@ -160,7 +163,7 @@ function RangeStrip({ gap, lo, hi, band }: { gap: number; lo: number; hi: number
   const x = (v: number) => 4 + ((v - min) / (max - min)) * Math.max(0, W - 8)
   const H = 64, cy = 26
   return (
-    <div ref={ref} role="img" aria-label={`Aqua ${pct(gap)} against what we’d expect, how sure we are ${fmtRange(lo, hi)}; usual range ${fmtRange(band[0], band[1])}.`} style={{ height: H }}>
+    <div ref={ref} role="img" aria-label={`Aqua ${pct(gap)} against what we’d expect, likely range ${fmtRange(lo, hi)}; usual range ${fmtRange(band[0], band[1])}.`} style={{ height: H }}>
       {W > 0 ? (
         <svg width={W} height={H} aria-hidden className="block overflow-visible" fontSize={11}>
           <rect x={x(band[0])} y={cy - 12} width={x(band[1]) - x(band[0])} height={24} fill="rgba(236, 233, 225, 0.12)" rx={2} />
@@ -194,7 +197,7 @@ function Steps() {
     },
     {
       title: 'Work out what we’d expect',
-      description: 'For each later year, VIIRS’s count and that rate give what we’d expect from Aqua. It does not show what Aqua would have counted if only its look time had changed.',
+      description: 'For each later year, VIIRS’s count and that rate give what we’d expect from Aqua. It is an estimate, not a measurement of Aqua at another time of day.',
       figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}</p> : null,
     },
     {
@@ -215,7 +218,7 @@ function Steps() {
             <li>Look time: the median local solar time of daytime vegetation-fire detections near the middle of the satellite’s view, from NASA FIRMS’s yearly files. VIIRS here is the S-NPP satellite.</li>
             <li>The rate: Aqua’s daytime detections divided by VIIRS’s on the same days, 2012–2020.</li>
             <li>What we’d expect: VIIRS’s count times that rate, on the same days. A day when either satellite sent no data is dropped. The calendar uses the same rate, filled from NOAA-20 where S-NPP is missing.</li>
-            <li>How sure we are: a 95% interval from resampling days. The usual range is the nine years 2012–2020, each scored against the other eight. A year outside it is flagged; a flag describes, it isn’t a significance test.</li>
+            <li>Likely range: a 95% interval from resampling days. The usual range is the nine years 2012–2020, each scored against the other eight. A year outside it is flagged; a flag describes, it isn’t a significance test.</li>
           </ul>
         </More>
       </div>
@@ -247,6 +250,15 @@ function StatusChip({ status }: { status: Check['status'] }) {
       {STATUS[status]}
     </span>
   )
+}
+
+/** Two clocks, moved here from the Regions pages: Terra drifted earlier and Aqua later, shown for the Amazon. Its own
+ *  text says that the two tests built on it failed, and links back to them. */
+function TwoClocksHere({ links, leave }: { links: Links; leave: Leave }) {
+  const d = regionData('br-amazon')
+  const small = useMedia('(max-width: 639px)')
+  const [year, setYear] = useState(() => (d.two.length ? d.two[d.two.length - 1].year : 2025))
+  return <TwoClocks d={d} year={year} onYear={setYear} small={small} links={links} leave={leave} />
 }
 
 function Checks() {
@@ -309,7 +321,7 @@ const share = (v: number) => `${(v * 100).toFixed(0)}%`
 /** Whole acres, rounded half to even as the team's pipeline (Python) rounds, so 946.5 reads 946 here and in the checks. */
 const acres = (v: number) => { const f = Math.floor(v); const r = v - f === 0.5 ? (f % 2 === 0 ? f : f + 1) : Math.round(v); return fmtInt(r) }
 
-/** Share of fires caught, by size class: a mark per satellite with how sure we are, on one 0–100% line. */
+/** Share of fires caught, by size class: a mark per satellite with the likely range, on one 0–100% line. */
 function DetectionChart({ small }: { small: boolean }) {
   const boxRef = useRef<HTMLDivElement | null>(null)
   const width = useMeasuredWidth(boxRef)
@@ -368,7 +380,7 @@ function DetectionChart({ small }: { small: boolean }) {
         {sats.map((s) => (
           <span key={s.key} className="inline-flex items-center gap-2"><svg width={14} height={14}><DetMark shape={s.shape} color={s.color} x={7} y={7} r={4.5} /></svg>{s.label}</span>
         ))}
-        <span className="inline-flex items-center gap-2"><svg width={16} height={12}><line x1={1} x2={15} y1={6} y2={6} stroke="var(--bone3)" strokeWidth={2} strokeLinecap="round" /></svg>How sure we are</span>
+        <span className="inline-flex items-center gap-2"><svg width={16} height={12}><line x1={1} x2={15} y1={6} y2={6} stroke="var(--bone3)" strokeWidth={2} strokeLinecap="round" /></svg>Likely range</span>
       </div>
     </div>
   )
@@ -415,7 +427,7 @@ function Detection() {
                   <div key={s.key}>
                     <dt className="inline-flex items-center gap-2 text-xs text-[color:var(--bone2)]"><svg width={14} height={14} aria-hidden><DetMark shape={s.shape} color={s.color} x={7} y={7} r={4.5} /></svg>{s.label}</dt>
                     <dd className="mt-1 text-[length:var(--fs-40)] font-medium leading-none tabular-nums">{acres(s.v!)} <span className="text-sm font-normal">acres</span></dd>
-                    {s.ci ? <dd className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">How sure we are: {acres(s.ci[0])} to {acres(s.ci[1])}</dd> : null}
+                    {s.ci ? <dd className="mt-1 text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {acres(s.ci[0])} to {acres(s.ci[1])}</dd> : null}
                   </div>
                 ))}
               </dl>
@@ -542,7 +554,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   const items: { t: string; b: ReactNode }[] = [
     {
       t: 'It can’t say how much of a difference the timing caused.',
-      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together, and the data don’t separate the timing’s share. What we’d expect is an estimate, not a corrected version of INPE’s official count.',
+      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together, and the data don’t separate the timing’s share. The benchmark is an estimate; it does not replace INPE’s official count.',
     },
     {
       t: '“Unusual” is a rough threshold. It is not proof.',

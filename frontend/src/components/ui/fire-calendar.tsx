@@ -32,6 +32,8 @@ export interface FireCalendarProps {
   onShow?: (cell: { year: number; month: number } | null) => void
   /** ring one month (e.g. the month a heading names); month is 0-based */
   highlight?: { year: number; month: number } | null
+  /** months to mark in the header (0-based), e.g. the fire season: underlined, in the brighter ink */
+  season?: number[]
   className?: string
 }
 
@@ -56,14 +58,14 @@ export function describeCell(cell: CalendarCell | null, month: number, year: num
   if (cell?.outside) return `${when}: outside the chosen range`
   if (!cell || cell.fixed == null) return `${when}: no data`
   const parts = [`${when}: ${fmtInt(cell.fixed)} fires we’d expect`]
-  if (cell.lo != null && cell.hi != null) parts.push(`how sure we are ${fmtInt(cell.lo)}–${fmtInt(cell.hi)}`)
+  if (cell.lo != null && cell.hi != null) parts.push(`likely range ${fmtInt(cell.lo)}–${fmtInt(cell.hi)}`)
   if (cell.median != null) parts.push(`normal ${fmtInt(cell.median)}`)
   if (cell.anomaly != null) parts.push(`${signed0(cell.anomaly)} vs. normal`)
   if (cell.flags.length) parts.push(cell.flags.map((f) => (f === 'provisional' ? 'not final yet' : f)).join(', '))
   return parts.join(', ')
 }
 
-export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, cellHeight = 24, label, monthLabels = 'short', onShow, highlight, className }: FireCalendarProps) {
+export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, cellHeight = 24, label, monthLabels = 'short', onShow, highlight, season, className }: FireCalendarProps) {
   const [active, setActive] = useState<{ y: number; m: number }>({ y: 0, m: 0 })
   const [shown, setShownState] = useState<{ y: number; m: number } | null>(null)
   const setShown = (v: { y: number; m: number } | null) => { setShownState(v); onShow?.(v ? { year: years[v.y], month: v.m } : null) }
@@ -101,8 +103,8 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
       >
         <div role="row" className="contents">
           <span role="columnheader"><span className="sr-only">Year</span></span>
-          {MONTHS.map((mo) => (
-            <span key={mo} role="columnheader" className="pb-1 text-center text-[12px] leading-4" style={{ color: 'var(--cal-muted)' }}>
+          {MONTHS.map((mo, mi) => (
+            <span key={mo} role="columnheader" className={season?.includes(mi) ? 'pb-1 text-center text-[12px] leading-4 underline decoration-1 underline-offset-4' : 'pb-1 text-center text-[12px] leading-4'} style={{ color: season?.includes(mi) ? 'var(--cal-fg, var(--bone))' : 'var(--cal-muted)' }}>
               {monthLabels === 'short' ? mo : mo[0]}
             </span>
           ))}
@@ -183,13 +185,13 @@ export function CalendarLegend({ mode, render = 'fill', className }: { mode: Cal
     <div className={cn('flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px]', className)} style={{ color: 'var(--cal-muted)' }}>
       {render === 'fill' && mode === 'anomaly' ? (
         <span className="flex items-center gap-2">
-          <span>Below normal</span>
+          <span>Fewer than normal</span>
           <span className="flex gap-[2px]" aria-hidden>
             {[5, 4, 3, 2, 1].map((s) => <span key={`d${s}`} className={sw} style={{ background: `var(--cal-down-${s})` }} />)}
             <span className={sw} style={{ background: 'var(--cal-mid)' }} />
             {[1, 2, 3, 4, 5].map((s) => <span key={`u${s}`} className={sw} style={{ background: `var(--cal-up-${s})` }} />)}
           </span>
-          <span>Above normal</span>
+          <span>More than normal for this month</span>
         </span>
       ) : null}
       {render === 'fill' && mode === 'count' ? (
@@ -203,8 +205,8 @@ export function CalendarLegend({ mode, render = 'fill', className }: { mode: Cal
         <span className="flex items-center gap-3">
           {mode === 'anomaly' ? (
             <>
-              <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: 'var(--cal-sq-up)' }} />Above normal</span>
-              <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: 'var(--cal-sq-down)' }} />Below normal</span>
+              <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: 'var(--cal-sq-up)' }} />More than normal for this month</span>
+              <span className="flex items-center gap-2"><span aria-hidden className="inline-block h-3 w-3" style={{ background: 'var(--cal-sq-down)' }} />Fewer than normal</span>
               <span>Larger square, further from normal</span>
             </>
           ) : <span>Larger square, more fires</span>}

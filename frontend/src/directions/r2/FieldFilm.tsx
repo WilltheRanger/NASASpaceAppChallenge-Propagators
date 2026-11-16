@@ -13,9 +13,8 @@ import { ArrowRight, ArrowUpRight, Download } from 'lucide-react'
 import { CalendarLegend, FireCalendar, type CalendarMode } from '@/components/ui/fire-calendar'
 import { ModeToggle } from '@/r2/controls'
 import { downloadCalendarCsv, downloadSummary } from '@/r2/download'
-import { GlobalLayer } from './GlobalLayer'
 import {
-  CHECKS, MONTHS, REGIONS, SECTIONS, calendarFinding, calendarGrid, calendarSpan, fmtInt, fmtRange, hasOfficialSeries, hm, isValidation, lookChange, minutesBetween, novemberRatio, pct, phrase, regionData, verdictLines,
+  CHECKS, MONTHS, REGIONS, calendarFinding, fireSeason, calendarGrid, calendarSpan, fmtInt, fmtRange, hasOfficialSeries, hm, isValidation, lookChange, minutesBetween, novemberRatio, pct, phrase, regionData, verdictLines,
   type Check, type MonthRange, type RegionData, type Verdict,
 } from '@/r2/data'
 import { cn } from '@/lib/utils'
@@ -181,7 +180,13 @@ const moreFewer = (gap: number) => `${Math.round(Math.abs(gap))}% ${gap >= 0 ? '
 const rangeText = (y: AuditRow) => (y.lo == null || y.hi == null ? '—' : fmtRange(y.lo, y.hi))
 /** the nine 2012–2020 years' range, as percent */
 const usualText = (d: RegionData) => `${pct(d.placebo[0])} to ${pct(d.placebo[1])}`
-const sectionSpy = SECTIONS.map((s) => ({ id: s.id, label: s.label }))
+/** The Regions page's sections, in the order the page tells them. */
+const sectionSpy = [
+  { id: 'calendar', label: 'Calendar' },
+  { id: 'verdict', label: 'Against the benchmark' },
+  { id: 'look', label: 'When it flies over' },
+  { id: 'global', label: 'Any area' },
+]
 
 function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; onRegion: (id: string) => void; nav: Nav; links: Links; leave: Leave }) {
   const d = useMemo(() => regionData(region), [region])
@@ -199,8 +204,7 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
   const small = useMedia('(max-width: 639px)')
   const wide = useMedia('(min-width: 1280px)')
   const pick = (id: string) => { onRegion(id); setYear(defaultYear(regionData(id))) }
-  const live = nav !== 'artifact'
-  const spy = live ? sectionSpy : sectionSpy.filter((s) => s.id !== 'global')
+  const spy = sectionSpy
   return (
     <>
       <SiteBar page="regions" links={links} leave={leave} regionsHref={links.regions(region)} />
@@ -233,17 +237,19 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
             {wide ? <ScrollSpy sections={spy} offset={128} label="Sections" motion={motion.on} onNavigate={(el) => glideTo(el, motion.on)} className="shrink-0" /> : null}
           </div>
         </div>
-        <div className={cn(shell, 'flex flex-wrap items-center gap-4 py-6')}>
-          <a href="#calendar" className={primaryButton}>Open burning calendar <ArrowRight size={16} aria-hidden /></a>
-          <p className="max-w-xl text-sm text-[color:var(--bone2)]">Choose a region above, compare months with their usual activity, or download the monthly record.</p>
-        </div>
-        <Result d={d} links={links} leave={leave} />
-        <LookTimes key={d.id} d={d} />
-        <YearByYear d={d} year={year} onYear={setYear} small={small} />
-        <TwoClocks d={d} year={year} onYear={setYear} small={small} links={links} leave={leave} />
         <Calendar d={d} mode={mode} onMode={setMode} range={range} onRange={setRange} small={small} />
-        {/* the world map's data is fetched from the site; the comment artifact doesn't carry it, so it is left out there */}
-        {live ? <GlobalLayer region={d.id} small={small} /> : null}
+        <Result d={d} links={links} leave={leave} />
+        <YearByYear d={d} year={year} onYear={setYear} small={small} />
+        <LookTimes key={d.id} d={d} />
+        {/* any other area: the world map lives on Explore, marked as early exploration */}
+        <section id="global" aria-labelledby="global-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
+          <div className={cn(shell, 'flex flex-wrap items-center gap-x-6 gap-y-4 py-12')}>
+            <h2 id="global-h" className="text-lg font-medium text-[color:var(--bone)]">Or pick any area</h2>
+            <p className="max-w-xl text-sm text-[color:var(--bone2)]">The same comparison for any 2° square on the world map. Early exploration: not checked like the six places.</p>
+            <a href={anyArea(links)} onClick={leave} className={secondaryButton}>Open the world map <ArrowRight size={16} aria-hidden /></a>
+            <a href="#calendar" className={primaryButton}>Back to the fire calendar <ArrowRight size={16} aria-hidden /></a>
+          </div>
+        </section>
       </main>
       <PageNext page="regions" links={links} leave={leave} regionsHref={links.regions(region)} />
       <Footer
@@ -260,6 +266,15 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
     </>
   )
 }
+
+/** the fire season's three months in words: "August, September and October" */
+function seasonMonths(d: RegionData) {
+  const s = fireSeason(d).start
+  return `${MONTH_LONG[s]}, ${MONTH_LONG[s + 1]} and ${MONTH_LONG[s + 2]}`
+}
+const seasonIndex = (d: RegionData) => { const s = fireSeason(d).start; return [s, s + 1, s + 2] }
+/** Explore's world map, opened at the whole globe */
+const anyArea = (links: Links) => { const u = links.sim(); return `${u}${u.includes('?') ? '&' : u.includes('#') ? '&' : '#'}globe=1` }
 
 /* ---------- The place's name over its footage ---------- */
 
@@ -319,6 +334,7 @@ function RegionHero({ d }: { d: RegionData }) {
         <h1 id="region-h" className={statement}>
           <span key={region} className="block animate-[anchor-fade_600ms_cubic-bezier(0.22,1,0.36,1)]">{statementName(region)}</span>
         </h1>
+        <p className="mt-3 text-lg text-[color:var(--bone)]">Fire season: {seasonMonths(d)}</p>
       </div>
     </section>
   )
@@ -360,7 +376,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
     return (
       <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
         <div className={cn(shell, 'py-16')}>
-          <h2 id="verdict-h" className={title}>Too few fires over {d.phrase.the} to compare Aqua with what we’d expect</h2>
+          <h2 id="verdict-h" className={title}>Too few fires over {d.phrase.the} to compare Aqua with the benchmark</h2>
           <div className="mt-8">{sim}</div>
         </div>
       </section>
@@ -371,9 +387,8 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
     <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
         <div className="lg:col-span-7">
-          <h2 id="verdict-h" className={title}>
-            In {y.year}, Aqua counted {moreFewer(y.gap)} fires over {d.phrase.the} than we’d expect
-          </h2>
+          <h2 id="verdict-h" className={title}>Aqua against the benchmark</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">In {y.year}, Aqua counted {moreFewer(y.gap)} fires over {d.phrase.the} than the VIIRS-based benchmark.</p>
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
             <RollingDigits text={pct(y.gap)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
@@ -390,9 +405,9 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
             <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
             <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
-            <dt className="text-[color:var(--bone3)]">What we’d expect</dt>
+            <dt className="text-[color:var(--bone3)]">Benchmark</dt>
             <dd className="tabular-nums">{y.fixed != null ? fmtInt(y.fixed) : '—'}</dd>
-            <dt className="text-[color:var(--bone3)]">How sure we are</dt>
+            <dt className="text-[color:var(--bone3)]">Likely range</dt>
             <dd className="tabular-nums">{rangeText(y)}</dd>
             <dt className="text-[color:var(--bone3)]">Usual range</dt>
             <dd className="tabular-nums">{usualText(d)}</dd>
@@ -626,7 +641,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
       range: y.lo != null && y.hi != null ? [y.lo, y.hi] : null,
       expected: d.placebo,
       outside: y.verdict === 'outside',
-      valueText: y.verdict === 'na' ? `${y.year}: too few fires to read` : `${y.year}: Aqua ${pct(y.gap!)} against what we’d expect, how sure we are ${rangeText(y)}, ${UNUSUAL[y.verdict].toLowerCase()}`,
+      valueText: y.verdict === 'na' ? `${y.year}: too few fires to read` : `${y.year}: Aqua ${pct(y.gap!)} against what we’d expect, likely range ${rangeText(y)}, ${UNUSUAL[y.verdict].toLowerCase()}`,
     })),
     [d],
   )
@@ -636,14 +651,13 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
   } as CSSProperties
   const th = 'py-2 pr-3 text-left text-xs font-normal text-[color:var(--bone3)]'
   return (
-    <section id="years" aria-labelledby="years-h" style={chartVars} className="scroll-mt-32 border-t border-[color:var(--hairline)]">
+    <section id="years" aria-labelledby="years-h" style={chartVars} className="scroll-mt-32">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="years-h" className={title}>{yearsHeading(d)}</h2>
+          <h3 id="years-h" className={title}>{yearsHeading(d)}</h3>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Each year since 2021: Aqua’s count against what we’d expect. The line is how sure we are; the grey band is the usual range, from 2012 to 2020.
+            Each year since 2021: Aqua’s count against the benchmark. The line is the likely range; the grey band is the usual range, from 2012 to 2020.
           </p>
-          {!isValidation(d.id) ? <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">{CAVEAT}</p> : null}
         </div>
         <div className="min-w-0 lg:col-span-8">
           <AnomalyChart
@@ -656,7 +670,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
             groupLabel={`Aqua against what we’d expect, by year, for ${d.name}`}
             bandLabel="Usual range, 2012–2020"
             formatTick={tickText}
-            legend={{ outside: 'Unusual', inside: 'Not unusual', range: 'How sure we are' }}
+            legend={{ outside: 'Unusual', inside: 'Not unusual', range: 'Likely range' }}
           />
           <More label="Show the numbers" className="mt-4">
           <table className="mt-2 w-full border-collapse text-sm tabular-nums">
@@ -667,7 +681,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
                 <th scope="col" className={cn(th, 'hidden text-right sm:table-cell')}>Aqua counted</th>
                 <th scope="col" className={cn(th, 'hidden text-right sm:table-cell')}>We’d expect</th>
                 <th scope="col" className={cn(th, 'text-right')}>Difference</th>
-                <th scope="col" className={cn(th, 'text-right')}>How sure we are</th>
+                <th scope="col" className={cn(th, 'text-right')}>Likely range</th>
                 <th scope="col" className={cn(th, 'pr-0 text-right')}>Unusual?</th>
               </tr>
             </thead>
@@ -690,13 +704,13 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
           </More>
           <MockTag show={d.mock} className="mt-3 inline-block" />
           {v.whole.length ? (
-            <More label={hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}>
-            <div className="mt-2 text-sm">
+            <div className="mt-6 text-sm">
+              <p className="font-medium text-[color:var(--bone)]">{hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}</p>
               <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, all twelve months</p>
               <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
                 {v.whole.map((r) => (
                   <Fragment key={r.name}>
-                    <dt className="text-[color:var(--bone3)]">{r.name === 'Fixed-clock calendar' ? 'What we’d expect' : r.name}</dt>
+                    <dt className="text-[color:var(--bone3)]">{r.name === 'Fixed-clock calendar' ? 'VIIRS-based benchmark' : r.name}</dt>
                     <dd className="tabular-nums">{pct(r.change)}</dd>
                     <dd className="tabular-nums text-[color:var(--bone3)]">{fmtInt(r.a)} to {fmtInt(r.b)}</dd>
                   </Fragment>
@@ -704,7 +718,6 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               </dl>
               {hasOfficialSeries(d.id) ? <p className="mt-3 text-xs text-[color:var(--bone3)]">INPE’s Programa Queimadas is Brazil’s official count; it follows one satellite, Aqua.</p> : null}
             </div>
-            </More>
           ) : null}
         </div>
       </div>
@@ -736,7 +749,7 @@ function failedChecks() {
   return ['P9', 'P10'].map((id) => CHECKS.checks.find((c) => c.id === id)).filter((c): c is Check => !!c && c.status === 'fail').map((c) => c.id)
 }
 
-function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; year: number; onYear: (y: number) => void; small: boolean; links: Links; leave: Leave }) {
+export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; year: number; onYear: (y: number) => void; small: boolean; links: Links; leave: Leave }) {
   const two = d.two
   const [inspect, setInspect] = useState<number | null>(null)
   const heading = twoClocksHeading(d)
@@ -750,7 +763,7 @@ function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; ye
   ]
   const difference: AnomalyPoint[] = two.map((x) => {
     const v = logPct(x.clock_diff), lo = logPct(x.clock_lo), hi = logPct(x.clock_hi)
-    return { id: String(x.year), label: String(x.year), value: v, range: [lo, hi], outside: lo > 0 || hi < 0, valueText: `${x.year}: Aqua’s change over Terra’s ${pct(v)}, how sure we are ${fmtRange(lo, hi)}` }
+    return { id: String(x.year), label: String(x.year), value: v, range: [lo, hi], outside: lo > 0 || hi < 0, valueText: `${x.year}: Aqua’s change over Terra’s ${pct(v)}, likely range ${fmtRange(lo, hi)}` }
   })
   const columnText = (i: number) => {
     const x = two[i]
@@ -788,7 +801,7 @@ function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; ye
           <figure className="m-0">
             <figcaption className="mb-4">
               <span className="block text-lg font-medium">Aqua and Terra, each compared with VIIRS</span>
-              <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Change since 2012–2020; 0 means no change. The lines are how sure we are.</span>
+              <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Change since 2012–2020; 0 means no change. The lines are the likely range.</span>
             </figcaption>
             <SeriesChart
               labels={two.map((x) => String(x.year))}
@@ -820,7 +833,7 @@ function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionData; ye
                 onSelect={pick}
                 groupLabel={`Aqua’s change over Terra’s for ${d.name}`}
                 formatTick={tickText}
-                legend={{ outside: 'Clear of zero', inside: 'Overlaps zero', range: 'How sure we are' }}
+                legend={{ outside: 'Clear of zero', inside: 'Overlaps zero', range: 'Likely range' }}
               />
             </figure>
           </More>
@@ -880,16 +893,16 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
   const highlight = f ? { year: Number(yr), month: MONTHS.indexOf(mon) } : null
   const heading = f ? `${MONTH_LONG[MONTHS.indexOf(mon)]} ${yr} was the furthest above normal for its month: ${pct(f.anomaly, 0)}` : 'Every month in this range sits near normal'
   const sentence = mode === 'anomaly'
-    ? 'Each square is a month: the daytime detections we’d expect from Aqua at its old time. Sand: more than normal for that month. Slate: fewer.'
-    : 'Each square is a month: the daytime detections we’d expect from Aqua at its old time. Brighter: more detections.'
+    ? 'VIIRS-based benchmark: VIIRS’s count scaled to Aqua’s 2012–2020 rate. Sand: more than normal for this month. Slate: fewer than normal.'
+    : 'VIIRS-based benchmark: VIIRS’s count scaled to Aqua’s 2012–2020 rate. Brighter: more detections.'
   return (
     <section id="calendar" aria-labelledby="calendar-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="calendar-h" className={title}>Burning activity calendar</h2>
+          <h2 id="calendar-h" className={title}>Every month since 2002, VIIRS-based, in Aqua-equivalent units</h2>
           <p className="mt-4 text-lg text-[color:var(--bone)]">{heading}</p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{sentence}</p>
-          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">This is a historical comparison, not a forecast, a count of unique fires, or proof of what Aqua would have seen at a different time.</p>
+          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Fire season, {seasonMonths(d)}: the underlined months. This is a historical comparison, not a forecast, a count of unique fires, or a measurement of Aqua at another time of day.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -922,6 +935,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
               cellHeight={small ? 20 : 24}
               monthLabels={small ? 'initial' : 'short'}
               highlight={highlight}
+              season={seasonIndex(d)}
               label={`Fire calendar for ${d.name}, ${mode === 'anomaly' ? 'each month compared with normal for that month' : 'the number of fires each month'}${f ? `; ${f.label} is ringed` : ''}`}
             />
           </div>

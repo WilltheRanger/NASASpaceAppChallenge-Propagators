@@ -51,7 +51,7 @@ ${css}
 html, body { background: #0B0D0B; color: #ECE9E1; }
 </style>`
 
-const description = "Aqua, the satellite behind Brazil's official fire count, now looks later in the day. Anchor compares its count with what we'd expect at its old time, in six places. Team Propagators, NASA Space Apps Challenge 2026."
+const description = "Anchor: a fire calendar on a steady reference. 24 years of satellite fire records for six places, compared against one consistent VIIRS-based benchmark. A NASA Space Apps Challenge 2026 team project, not an official NASA product."
 const overview = `<title>Anchor Fire Audit</title>
 <meta name="description" content="${description}">
 ${contract}
