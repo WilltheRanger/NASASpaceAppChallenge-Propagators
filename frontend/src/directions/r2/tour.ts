@@ -1,4 +1,4 @@
-// The Explore page's first-visit guide: four short steps, shown once, replayed from the header's Guide button.
+// The Explore page's first-visit guide: six short steps, shown once on the first visit, replayed from "How it works".
 import { driver, type DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
 import './tour.css'
@@ -17,37 +17,56 @@ const visible = (sel: string) => {
 }
 
 export function startGuide(shift: string, motion: boolean) {
+  // wide screens: the card beside the left panel; phones: above or below what it points at
+  const wide = window.matchMedia('(min-width: 1024px)').matches
+  const side = (w: 'right' | 'left') => (wide ? w : 'top') as 'right' | 'left' | 'top'
   const steps: DriveStep[] = [
     {
-      element: '[data-tour="intro"]',
+      element: '#alert-h',
       popover: {
-        title: 'What this page shows',
-        description: `NASA’s Aqua satellite now passes ${shift} later in the day. Fires burn more in the afternoon, so its fire count can change even when the fires don’t.`,
-        side: 'right', align: 'start',
+        title: 'What this page is for',
+        description: 'Plan around satellite fire alerts. If a fire starts here today, this shows when each satellite will spot it and alert you, and how much daylight you will have left to respond.',
+        side: side('right'), align: 'start',
       },
     },
     {
-      element: '[data-tour="places"]',
+      element: '[data-tour="inputs"]',
       popover: {
-        title: 'Six places, one number each',
-        description: 'Aqua’s 2025 count against what we’d expect. “Unusual” means further out than any year from 2012 to 2020. Click a place to fly there.',
-        side: 'right', align: 'start',
+        title: '1. Set it up',
+        description: 'Choose a place, or search any place on the map. Then set the alert delay: the time between a satellite passing over and its alert reaching you. NASA delivers within 3 hours.',
+        side: side('right'), align: 'start',
+      },
+    },
+    {
+      element: '[data-tour="answer"]',
+      popover: {
+        title: '2. Read the answer',
+        description: 'First alert: the earliest time any satellite tells you about the fire. Daylight left: the time from that alert until sunset.',
+        side: side('right'), align: 'start',
+      },
+    },
+    {
+      element: '[data-tour="table"]',
+      popover: {
+        title: '3. Compare the satellites',
+        description: 'One row per satellite: when it passes over, when its alert arrives, and the daylight left. The bars show the same on one line from sunrise to sunset.',
+        side: side('right'), align: 'start',
+      },
+    },
+    {
+      element: '[data-tour="then-now"]',
+      popover: {
+        title: '4. What changed',
+        description: `Aqua, the satellite behind Brazil’s official fire count, now passes ${shift} later than in 2012–2020. Switch to 2012–20 to see how much more daylight its alert used to leave.`,
+        side: side('right'), align: 'start',
       },
     },
     {
       element: '[data-tour="map"]',
       popover: {
-        title: 'The same test, worldwide',
-        description: 'Each square is one 2° area. Search or zoom in, then click a fire to see which satellites saw it, and when.',
-        side: 'left', align: 'center',
-      },
-    },
-    {
-      element: '[data-tour="chart"]',
-      popover: {
-        title: 'When each satellite looked',
-        description: 'One hump per satellite, by local time. Aqua (amber) now looks later than its 2012–2020 time, marked on the chart.',
-        side: 'top', align: 'center',
+        title: 'The fires on the map',
+        description: 'Real fires from the saved data, with their dates in the corner. Click or tap a fire to see which satellite saw it, and when. Replay this guide from “How it works”.',
+        side: wide ? 'left' : 'bottom', align: 'center',
       },
     },
   ].filter((s) => visible(s.element as string)) as DriveStep[]

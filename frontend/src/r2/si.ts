@@ -267,7 +267,7 @@ function seasonAnswer(ctx: SiContext, q: string): SiAnswer {
 
 const SAFETY: SiAnswer = {
   sentences: [
-    { text: 'SI can’t judge whether a fire is dangerous or give safety advice. For an active fire, follow your local fire service and emergency alerts.' },
+    { text: 'Ask Anchor can’t judge whether a fire is dangerous or give safety advice. For an active fire, follow your local fire service and emergency alerts.' },
     { text: 'It can tell you which satellites saw a fire, when, how hot it was, and how much daylight was left.' },
   ],
   sources: [],
@@ -331,7 +331,7 @@ function answer(question: string, ctx: SiContext): SiAnswer {
   const g = glossary(q)
   if (g) return g
   return {
-    sentences: [{ text: 'SI answers from this page’s data: which satellite saw a fire, when each satellite passes and why Aqua drifted, whether a year was unusual, fire seasons, daylight after the alert, and fires in view. It can also fly the map or show one satellite.' }],
+    sentences: [{ text: 'Ask Anchor answers from this page’s data: which satellite saw a fire, when each satellite passes and why Aqua drifted, whether a year was unusual, fire seasons, daylight after the alert, and fires in view. It can also fly the map or show one satellite.' }],
     sources: [],
     followUps: STARTERS,
   }
