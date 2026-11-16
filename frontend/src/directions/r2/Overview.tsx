@@ -228,6 +228,8 @@ function OneDay({ links, leave }: { links: Links; leave: Leave }) {
     { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change through the day.' },
     { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}, so we use it as the benchmark.</> },
   ]
+  // the panel's pictures: Aqua then, Aqua now, VIIRS (the panel's step 2, all three satellites side by side, is no longer a step)
+  const pic = [0, 1, 3]
   return (
     <section id="day" aria-labelledby="day-h" className="border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'pb-6 lg:pb-12')}>
@@ -235,7 +237,7 @@ function OneDay({ links, leave }: { links: Links; leave: Leave }) {
           <h2 id="day-h" className="max-w-[22ch] text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.02em]">
             Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
-          <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official fire count (INPE) relies on Aqua. But Aqua now flies over the Amazon about {look.minutes} minutes later than it did in 2012–2020.</p>
+          <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official count (INPE) relies on Aqua, which now flies over the Amazon {look.minutes} minutes later than in 2012–2020.</p>
           {TERRA_EARLIER ? (
             <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">
               Terra, Aqua’s morning twin, drifted the other way: about {TERRA_EARLIER} minutes earlier.{' '}
@@ -247,7 +249,7 @@ function OneDay({ links, leave }: { links: Links; leave: Leave }) {
           <StickyScroll
             className="mt-16"
             steps={steps}
-            panel={(i) => <DayPanel step={i} />}
+            panel={(i) => <DayPanel step={pic[i]} />}
             top="5.5rem"
             motion={motion.on}
             label={`Aqua’s day over ${phrase(FEATURED).the}, step by step`}
@@ -260,10 +262,10 @@ function OneDay({ links, leave }: { links: Links; leave: Leave }) {
                   {s.mark ? <span className="tabular-nums">{s.mark} </span> : null}
                   {s.title}
                 </h3>
-                <p className="mt-2 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{s.description}</p>
+                <p className="mt-2 max-w-[var(--measure)] text-base text-[color:var(--bone2)] sm:text-lg">{s.description}</p>
                 <div className="mt-5">
                   {/* the last step's picture is the first one again, so it keeps only the clock */}
-                  <DayPanel step={i} picture={i !== steps.length - 1} caption={i === steps.length - 1} />
+                  <DayPanel step={pic[i]} picture={i !== steps.length - 1} caption={i === steps.length - 1} />
                 </div>
               </li>
             ))}
@@ -466,7 +468,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
     <Reveal as="li" delay={i * 80}>
       <div className={cn('grid grid-cols-2 items-center gap-x-4 gap-y-3 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
         <span className="flex min-w-0 items-center gap-4">
-          <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:h-16 md:w-24">
+          <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:max-lg:hidden lg:h-16 lg:w-24">
             <img
               src={photo.srcSm}
               alt=""
@@ -479,7 +481,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           </span>
           <span className="min-w-0 text-lg font-medium leading-tight text-[color:var(--bone)] md:text-xl">{r.name}</span>
         </span>
-        <span className="justify-self-end md:hidden">{chip}</span>
+        <span className="justify-self-start md:hidden">{chip}</span>
         <span>
           <span className={label}><span className="md:hidden">Aqua looks later</span><span className="max-md:hidden">How much later Aqua looks</span></span>
           <span className="text-lg tabular-nums text-[color:var(--bone)]">+{r.look?.minutes ?? '—'} min</span>

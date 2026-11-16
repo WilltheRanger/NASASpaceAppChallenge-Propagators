@@ -889,11 +889,10 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
         <h1 className="text-[22px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
           If a fire started here, when would a satellite’s alert arrive, and how much daylight would be left?
         </h1>
-        <p className="mt-3 text-base text-[color:var(--bone2)]">Search a place, or pick one of the six below, to see it for each satellite.</p>
         <p className="mt-3 text-sm text-[color:var(--bone2)]">
           INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </p>
-        <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map.</p>
+        <p className="mt-3 text-sm text-[color:var(--bone3)]">Daytime detections, {WHEN}.</p>
         {/* how a mark's size reads: its area is the heat measured, not the ground burned */}
         <div className="mt-3 flex items-end gap-4 text-xs text-[color:var(--bone3)]">
           {[7, 70, 400].map((mw) => {
@@ -905,7 +904,7 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
               </span>
             )
           })}
-          <span className="max-w-[11rem] pb-0.5 leading-4">A dot’s area is the heat the satellite measured, not the ground burned.</span>
+          <span className="max-w-[11rem] pb-0.5 leading-4">Dot size is fire power, not area burned.</span>
         </div>
       </div>
       <div data-tour="places">
@@ -934,7 +933,6 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-xs leading-5 text-[color:var(--bone3)]">{CAVEAT}</p>
       </div>
       <DaySection onPlay={onPlayDay} active={false} />
     </div>
@@ -947,7 +945,7 @@ function DaySection({ onPlay, onYears, active }: { onPlay?: () => void; onYears?
   return (
     <section aria-labelledby="day-h" className="flex flex-col gap-2 border-t border-[color:var(--hairline)] pt-4">
       <h3 id="day-h" className="text-sm font-medium text-[color:var(--bone)]">Daylight for firefighters</h3>
-      <p className="text-sm text-[color:var(--bone2)]">{onPlay ? 'One real fire day in the Amazon: which fires each satellite saw, and how much daylight was left.' : 'How much daylight is left after each satellite’s alert, year by year.'}</p>
+      <p className="text-sm text-[color:var(--bone2)]">{onPlay ? 'One real fire day in the Amazon.' : 'Daylight left after each alert, by year.'}</p>
       <div className="flex flex-wrap gap-2">
         {onPlay ? <button type="button" onClick={onPlay} disabled={active} className={cn(secondary, 'disabled:opacity-50')}><Play size={15} strokeWidth={1.75} aria-hidden /> {active ? 'Playing below the map' : 'Play one fire day'}</button> : null}
         {onYears ? <button type="button" onClick={onYears} className={secondary}>Daylight by year <ArrowRight size={14} strokeWidth={1.75} aria-hidden /></button> : null}
@@ -980,7 +978,6 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, alert,
           {f.count ? (
             <p className="text-sm leading-6 text-[color:var(--bone2)]">
               <span className="text-[color:var(--bone)]">In {f.count.year}, Aqua counted <span className="tabular-nums">{fmtInt(f.count.now)}</span> hotspots; the VIIRS-based benchmark is <span className="tabular-nums">{fmtInt(f.count.old)}</span> ({signed(Math.round(f.count.gap))}%).</span>{' '}
-              {CAVEAT}
             </p>
           ) : f.nov ? (
             <p className="text-sm leading-6 text-[color:var(--bone2)]">Our test case: 2023–2025 have too few hotspots to read.</p>
@@ -1075,7 +1072,7 @@ function PlacePanel({ place, headRef, onBack, onFly, onStrongest, cell, year, on
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-xs text-[color:var(--bone3)]">The middle of each satellite’s looks, in local sun time. Real detections; not part of the audit.</p>
+        <p className="mt-2 text-xs text-[color:var(--bone3)]">Local sun time.</p>
       </div>
       {s.total ? <button type="button" onClick={onStrongest} className={cn(secondary, 'w-fit')}><Flame size={15} strokeWidth={1.75} aria-hidden /> Strongest fire</button> : null}
     </div>
@@ -1147,7 +1144,7 @@ const pctOf = (L: number) => `${signed((L - 1) * 100)}%`
 function CellReading({ cell, year, className }: { cell: GlobalCell | null; year: 2024 | 2025; className?: string }) {
   const r = cell ? reading(cell, year) : null
   if (!cell || !r || !r.ok || r.L == null || r.lo == null || r.hi == null) {
-    return <p className={cn('text-sm text-[color:var(--bone2)]', className)}>Too few fires to read in {year}. That is not the same as no change.</p>
+    return <p className={cn('text-sm text-[color:var(--bone2)]', className)}>Too few fires to read in {year}.</p>
   }
   const usual = cell.placebo_min != null && cell.placebo_max != null ? ` (its usual range: ${pctOf(cell.placebo_min)} to ${pctOf(cell.placebo_max)})` : ''
   return (
@@ -1176,7 +1173,6 @@ function CellRail({ cell, year, headRef, onBack, onCalendar, onZoom, zoomed }: {
       </div>
       <div>
         <CellReading cell={cell} year={year} />
-        <p className="mt-3 text-xs leading-5 text-[color:var(--bone2)]">{CAVEAT}</p>
         <p className="mt-2 text-xs leading-5 text-[color:var(--bone3)]">{EXPLORATORY}</p>
       </div>
       <dl className="flex flex-col">

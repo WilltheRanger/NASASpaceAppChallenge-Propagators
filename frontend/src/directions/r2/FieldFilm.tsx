@@ -387,25 +387,23 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
   return (
     <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
-        <div className="lg:col-span-7">
-          <h2 id="verdict-h" className={title}>Aqua against the benchmark</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">In {y.year}, Aqua counted {moreFewer(y.gap)} fires over {d.phrase.the} than the VIIRS-based benchmark.</p>
+        <div className="lg:col-span-8">
+          <h2 id="verdict-h" className={title}>Aqua against the benchmark, {y.year}</h2>
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
             <RollingDigits text={pct(y.gap, 0)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
             {y.pointsPast != null ? <span className="text-sm tabular-nums text-[color:var(--bone2)]">{Math.round(y.pointsPast)} points past the usual range</span> : null}
           </p>
           {y.verdict === 'close' ? <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{CLOSE_CALL}</p> : null}
-          <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{CAVEAT}</p>
+          <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)] lg:text-lg">{CAVEAT}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
               <Download size={16} strokeWidth={1.5} aria-hidden /> Download summary
             </button>
           </div>
-        </div>
-        <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
-          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
+          <More label="Show the numbers" className="mt-6">
+          <dl className="mt-3 grid max-w-sm grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
             <dt className="text-[color:var(--bone3)]">Aqua counted (matched days)</dt>
             <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
             <dt className="text-[color:var(--bone3)]">Benchmark (matched days)</dt>
@@ -420,10 +418,17 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
                 <dd className="tabular-nums">{look.minutes} min later</dd>
               </>
             ) : null}
+            {y.pointsPast != null ? (
+              <>
+                <dt className="text-[color:var(--bone3)]">Past the usual range</dt>
+                <dd className="tabular-nums">{y.pointsPast.toFixed(1)} points</dd>
+              </>
+            ) : null}
           </dl>
           <p className="mt-3 text-xs text-[color:var(--bone3)]">Matched days: the days in {y.year} when both Aqua and S-NPP sent data, all daytime hotspots. The whole-year totals below use every day, so they differ slightly; neither is wrong.</p>
           <p className="mt-2 text-xs text-[color:var(--bone3)]">Likely range: where the number lands in 95% of re-runs when we re-pick which days are compared. It doesn’t cover errors in the satellites themselves, missing coverage, or year-to-year weather.</p>
           <p className="mt-2 text-xs"><a href={links.method('steps')} onClick={leave} className={textLink}>Evidence: how we compare</a> · <a href={links.method('limits')} onClick={leave} className={textLink}>What it can’t tell you</a></p>
+          </More>
           {d.id === 'us-california' ? (
             <p className="mt-4 text-sm text-[color:var(--bone2)]">
               <a href={links.method('detection')} onClick={leave} className={textLink}>How well each satellite sees small fires</a>
@@ -477,9 +482,6 @@ function LookTimes({ d }: { d: RegionData }) {
     <section id="look" aria-labelledby="look-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'pb-16 pt-16')}>
         <h2 id="look-h" className={title}>When each satellite flies over</h2>
-        <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">
-          Each crosses {d.phrase.the} at about the same time every day. Aqua’s crossing has moved later. VIIRS’s has stayed put.
-        </p>
         <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-12">
           <figure className="m-0 min-w-0 lg:col-span-6">
             <div className="relative">
@@ -487,12 +489,12 @@ function LookTimes({ d }: { d: RegionData }) {
               <span aria-hidden className="pointer-events-none absolute left-0 top-2 text-xs text-[color:var(--bone3)]">Morning side</span>
               <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
             </div>
-            <figcaption className="mt-3 max-w-[34rem] text-xs text-[color:var(--bone3)]">
-              Seen from the Sun at noon in {dr.year}. Each ring is a satellite’s path; it looks at {name.replace(/^The /, 'the ')} where it crosses the dashed line. Drag to turn the globe.
+            <figcaption className="mt-3 max-w-[34rem] text-sm text-[color:var(--bone3)]">
+              Drag to turn the globe.
             </figcaption>
           </figure>
           <div className="min-w-0 lg:col-span-6">
-            <p className="text-sm text-[color:var(--bone2)]">{dr.year === last.year ? `${dr.year}, the latest year` : dr.year}</p>
+            <p className="text-sm text-[color:var(--bone2)]">{dr.year}</p>
             <ul className="mt-2 border-t border-[color:var(--hairline)]">
               {LOOK_SATS.map((s) => (
                 <li key={s.id} className="grid grid-cols-[1.25rem_4.5rem_4rem_minmax(0,1fr)] items-baseline gap-x-2 border-b border-[color:var(--hairline)] py-2.5">
@@ -504,7 +506,7 @@ function LookTimes({ d }: { d: RegionData }) {
               ))}
             </ul>
             <DriftChart d={d} year={dr.year} onYear={setYear} />
-            <p className="mt-2 text-xs text-[color:var(--bone3)]">Local sun time over {d.phrase.the}, by year. Pick a year to turn the globe. Source: drift/{d.id}.json</p>
+            <p className="mt-2 text-sm text-[color:var(--bone3)]">Pick a year to turn the globe.</p>
           </div>
         </div>
       </div>
@@ -662,8 +664,8 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h3 id="years-h" className={title}>{yearsHeading(d)}</h3>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Each year since 2021: Aqua’s count against the benchmark. The line is the likely range; the grey band is the usual range, from 2012 to 2020. {CLOSE_CALL}
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
+            Each year since 2021, against the benchmark. The line is the likely range; the grey band is the usual range, from 2012 to 2020. {CLOSE_CALL}
           </p>
         </div>
         <div className="min-w-0 lg:col-span-8">
@@ -784,12 +786,12 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="two-h" className={title}>{heading}</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
             Terra and Aqua carry the same kind of camera. Terra drifted earlier in the day and Aqua later, so if the time of day matters, their counts should move apart.
           </p>
           {failed.length ? (
-            <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
-              {failed.length === 2 ? 'Two tests of this idea didn’t hold up' : 'A test of this idea didn’t hold up'}, so read it as a description, not proof.
+            <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone)]">
+              {failed.length === 2 ? 'Two tests of this idea weren’t confirmed' : 'A test of this idea wasn’t confirmed'}, so we use it to describe the pattern, not to prove it.
             </p>
           ) : null}
           {t ? (
@@ -807,7 +809,7 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           <figure className="m-0">
             <figcaption className="mb-4">
               <span className="block text-lg font-medium">Aqua and Terra, each compared with VIIRS</span>
-              <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Change since 2012–2020; 0 means no change. The lines are the likely range.</span>
+              <span className="mt-1 block max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">Change since 2012–2020.</span>
             </figcaption>
             <SeriesChart
               labels={two.map((x) => String(x.year))}
@@ -827,7 +829,7 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           </figure>
           <More label="More detail: Aqua’s change minus Terra’s">
             <figure className="m-0 mt-3" style={diffVars}>
-              <figcaption className="mb-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+              <figcaption className="mb-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
                 A range clear of zero means the two moved apart; it doesn’t say why. Each satellite is counted near the middle of its view.
               </figcaption>
               <AnomalyChart
@@ -910,8 +912,8 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
           <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">{headline}</p>
-          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            One row per year, one cell per month. {mode === 'count' ? 'Brighter means more hotspots.' : 'Gold means more hotspots than a typical year, blue fewer.'}
+          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)] sm:text-base">
+            Each row is a year and each cell a month. {mode === 'count' ? 'Brighter cells mean more hotspots.' : 'Gold cells had more hotspots than a typical year, blue cells fewer.'}
           </p>
         </div>
         <div className="min-w-0 lg:col-span-8">
