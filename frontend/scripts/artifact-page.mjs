@@ -5,7 +5,7 @@
 // videos are copied as files. app.html, the audit page's old address, is a small redirect to regions.html that keeps
 // the region and the calendar's keys from its hash.
 // Usage: ARTIFACT_OUT=<dir> npm run artifact   (default dir: dist-artifact).
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const out = process.env.ARTIFACT_OUT ?? 'dist-artifact'
@@ -27,6 +27,10 @@ const images = [
 ]
 for (const dir of ['overview', 'prints', 'regions', 'daylight', 'sim', 'earth']) mkdirSync(join(out, 'img', dir), { recursive: true })
 for (const f of images) copyFileSync(join('public', 'img', f), join(out, 'img', f))
+// the Explore map's sharper Blue Marble pictures (scripts/earth-tiles.py): this page can't reach a tile server
+const tiles = readdirSync(join('public', 'img', 'earth', 'tiles')).filter((f) => f.endsWith('.webp'))
+mkdirSync(join(out, 'img', 'earth', 'tiles'), { recursive: true })
+for (const f of tiles) copyFileSync(join('public', 'img', 'earth', 'tiles', f), join(out, 'img', 'earth', 'tiles', f))
 // the drone loops and their posters (the Regions page)
 const videos = regions.flatMap((r) => [`${r}.mp4`, `${r}-poster.jpg`])
 mkdirSync(join(out, 'video', 'regions'), { recursive: true })
