@@ -502,7 +502,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
       >
         {place && !region ? <option value="__here">{short(place.name)}</option> : null}
         {STUDIED_PLACES.map((p) => <option key={p.id} value={p.id}>{short(p.name)}</option>)}
-        <option value="__globe">Whole globe…</option>
+        <option value="__globe">Whole world…</option>
       </select>
       <ChevronDown size={14} strokeWidth={1.75} aria-hidden className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[color:var(--bone2)]" />
     </label>
@@ -514,7 +514,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const rail = cell ? (
     <CellRail cell={cell} year={mapYear} headRef={headRef} onBack={() => pickCell(null)} onCalendar={() => setCellOpen(true)} onZoom={() => setCellZoom(true)} zoomed={cellZoom} />
   ) : !place ? (
-    <Idle onPick={pickRegion} onPlayDay={playDay} world={grid != null && layer === 'clock'} />
+    <Idle onPick={pickRegion} onPlayDay={playDay} world={grid != null && layer === 'clock'} live={live} />
   ) : facts ? (
     <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} clock={clock} onClock={setClock} alert={alertPanel}
       daylight={<DaySection onPlay={facts.d.id === 'br-amazon' ? playDay : undefined} onYears={() => setLightOpen(true)} active={day != null} />} />
@@ -576,6 +576,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
               padding={padding}
               baseSrc={`${IMG}earth/bluemarble-4096.jpg`}
               tilesSrc={`${IMG}earth/tiles/`}
+              squaresSrc={`${import.meta.env.BASE_URL}data/fire-squares.json`}
               live={live}
               motion={motion}
               onArrive={() => setArrived(true)}
@@ -614,7 +615,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
               Fires from {WHEN}{clock === 'old' && region ? ', seen by VIIRS near Aqua’s old time' : ''}
             </p>
           ) : null}
-          {failed ? <p className={cn(glass, 'absolute left-4 top-4 z-20 px-3 py-2 text-xs text-[color:var(--bone2)]')}>This browser can’t draw the 3D globe. The numbers below are unaffected.</p> : null}
+          {failed ? <p className={cn(glass, 'absolute left-4 top-4 z-20 px-3 py-2 text-xs text-[color:var(--bone2)]')}>This browser can’t draw the map. The numbers below are unaffected.</p> : null}
 
           {/* zoom, the whole globe, and SI where it has no rail */}
           {wide && !failed ? (
@@ -629,7 +630,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
               <div role="group" aria-label="Map view" className={cn(glass, 'flex w-10 flex-col divide-y divide-[color:var(--hairline)] overflow-hidden')}>
                 <button type="button" aria-label="Zoom in" title="Zoom in" onClick={() => earth.current?.zoomBy(1)} className={iconButton}><Plus size={16} strokeWidth={1.75} aria-hidden /></button>
                 <button type="button" aria-label="Zoom out" title="Zoom out" onClick={() => earth.current?.zoomBy(-1)} className={iconButton}><Minus size={16} strokeWidth={1.75} aria-hidden /></button>
-                <button type="button" aria-label="Whole globe" title="Whole globe" onClick={() => (place ? back() : earth.current?.home())} className={iconButton}><Globe2 size={16} strokeWidth={1.75} aria-hidden /></button>
+                <button type="button" aria-label="Whole world" title="Whole world" onClick={() => (place ? back() : earth.current?.home())} className={iconButton}><Globe2 size={16} strokeWidth={1.75} aria-hidden /></button>
               </div>
             </div>
           ) : null}
@@ -802,7 +803,7 @@ function SearchField({ inputRef, q, setQ, open, setOpen, items, active, setActiv
           className="h-full min-w-0 flex-1 bg-transparent text-sm text-[color:var(--bone)] outline-none placeholder:text-[color:var(--bone3)]"
         />
         {q ? (
-          <button type="button" aria-label="Clear and go back to the whole globe" onClick={() => { clear(); inputRef.current?.focus() }} className={cn('grid size-8 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
+          <button type="button" aria-label="Clear and go back to the whole world" onClick={() => { clear(); inputRef.current?.focus() }} className={cn('grid size-8 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
             <X size={16} strokeWidth={1.75} aria-hidden />
           </button>
         ) : (
@@ -879,7 +880,7 @@ const Key = ({ children }: { children: ReactNode }) => (
 
 /* ---------- the left rail ---------- */
 
-function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPlayDay: () => void; world: boolean }) {
+function Idle({ onPick, onPlayDay, world, live }: { onPick: (id: string) => void; onPlayDay: () => void; world: boolean; live: boolean }) {
   return (
     <div className="flex flex-col gap-7 px-5 pb-6 pt-6">
       <div data-tour="intro">
@@ -891,19 +892,18 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
           INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </p>
         <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map.</p>
-        {/* how a mark's size reads: its area is the heat measured, not the ground burned */}
-        <div className="mt-3 flex items-end gap-4 text-xs text-[color:var(--bone3)]">
-          {[7, 70, 400].map((mw) => {
-            const r = 3 * Math.sqrt(mw / 7)
-            return (
-              <span key={mw} className="flex flex-col items-center gap-1">
-                <span aria-hidden className="block rounded-full border border-[color:var(--bone2)]" style={{ width: r * 2, height: r * 2 }} />
-                <span className="tabular-nums">{mw}{mw === 400 ? '+' : ''} MW</span>
-              </span>
-            )
-          })}
-          <span className="max-w-[11rem] pb-0.5 leading-4">A dot’s area is the heat the satellite measured, not the ground burned.</span>
+        {/* how a mark reads: solid is hot; far out a fixed dot, up close the ground the detection covers */}
+        <div className="mt-3 flex items-center gap-4 text-xs text-[color:var(--bone3)]">
+          {([[0.45, '3 MW or less'], [0.8, '30 MW'], [1, '150 MW or more']] as const).map(([o, label]) => (
+            <span key={label} className="flex items-center gap-1.5">
+              <span aria-hidden className="block size-2.5 rounded-[1px] bg-[color:var(--sat-aqua)]" style={{ opacity: o }} />
+              <span className="tabular-nums">{label}</span>
+            </span>
+          ))}
         </div>
+        <p className="mt-2 text-xs leading-5 text-[color:var(--bone3)]">
+          A more solid mark gave off more heat. Far out, every detection is one small dot.{live ? ' Zoom in and each becomes a square the size of the ground it covered.' : ''}
+        </p>
       </div>
       <div data-tour="places">
         <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--hairline)] pb-2">
@@ -1013,7 +1013,7 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={onStrongest} className={secondary}><Flame size={15} strokeWidth={1.75} aria-hidden /> Strongest fire</button>
         <a href={studyHref} onClick={leave} className={primary}>{short(f.d.name)} in Regions <ArrowRight size={15} strokeWidth={1.75} aria-hidden /></a>
-        <button type="button" onClick={onBack} className={secondary}><Globe2 size={15} strokeWidth={1.75} aria-hidden /> Whole globe</button>
+        <button type="button" onClick={onBack} className={secondary}><Globe2 size={15} strokeWidth={1.75} aria-hidden /> Whole world</button>
       </div>
       </div>
       </More>
@@ -1367,7 +1367,7 @@ function LookChart({ box: viewBox, probe, show, setShow, fire, near, oldClock, l
           {sources ? (
             <ul className="mt-1 flex list-none flex-col gap-1 border-t border-[color:var(--hairline)] pt-2 text-[11px] text-[color:var(--bone3)]">
               <li>Fires: NASA FIRMS, MODIS (Terra, Aqua) and VIIRS 375 m (NOAA-20, NOAA-21), {WINDOW.start} to {WINDOW.end} UTC. The files hold {fmtInt(TOTALS.reduce((a, b) => a + b, 0))} daytime detections; the map draws {fmtInt(DOTS)}, the strongest per satellite in each 2 km square.</li>
-              <li>Globe: NASA Blue Marble{live ? ', through NASA GIBS' : ''}.</li>
+              <li>Map: NASA Blue Marble{live ? ', through NASA GIBS' : ''}.</li>
               {live ? <li>Close up: Sentinel-2 cloudless 2016 by EOX (s2maps.eu), contains modified Copernicus Sentinel data 2016, CC BY 4.0.</li> : null}
               <li>Aqua 2012–20: the team’s drift files. Countries: mledoze/countries, ODbL.</li>
             </ul>
