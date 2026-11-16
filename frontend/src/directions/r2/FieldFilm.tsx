@@ -453,7 +453,7 @@ function LookTimes({ d }: { d: RegionData }) {
       <div className={cn(shell, 'pb-16 pt-16')}>
         <h2 id="look-h" className={title}>When each satellite flies over</h2>
         <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone2)]">
-          Each one crosses {d.phrase.the} at about the same time every day. Aqua’s crossing has moved later; VIIRS’s has not.
+          Each crosses {d.phrase.the} at about the same time every day. Aqua’s crossing has moved later. VIIRS’s has stayed put.
         </p>
         <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-12">
           <figure className="m-0 min-w-0 lg:col-span-6">

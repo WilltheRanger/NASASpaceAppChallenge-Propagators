@@ -1,6 +1,6 @@
 /*
  * THESIS: How we know, in plain steps: what we compare, how we tested it, what it can't tell you.
- * OWN-WORLD: Anchor dark, bone text, Albert Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
+ * OWN-WORLD: Anchor dark, bone text, IBM Plex Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
  * STORY: one Amazon afternoon seen twice (a slider); the comparison in four steps; the ten tests, failures and all; the
  *   California small-fires test; how closely we match INPE; what Anchor can't tell you; sources.
  * FORM: a reference page with a section bar that follows the reader; one control per figure; small print in the footer.
@@ -92,7 +92,7 @@ function OneDay() {
         <div className="lg:col-span-4">
           <h2 id="day-h" className={title}>One afternoon, two looks at the same forest</h2>
           <p className={lead}>VIIRS looked early in the afternoon. Aqua looked later. The clouds, the smoke and the fires had changed.</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">One day doesn’t measure anything. The yearly counts do.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">A single day measures nothing on its own. The yearly counts are the measurement.</p>
         </div>
         <figure className="m-0 lg:col-span-8">
           <CompareSlider
@@ -545,7 +545,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together, and the data don’t separate the timing’s share. What we’d expect is an estimate, not a corrected version of INPE’s official count.',
     },
     {
-      t: '“Unusual” is a rough line, not a proof.',
+      t: '“Unusual” is a rough threshold. It is not proof.',
       b: 'Nine years set the usual range, so a tenth ordinary year would fall outside it about one time in five. A flag describes a year. It isn’t a significance test.',
     },
     {

@@ -1,7 +1,7 @@
 /*
  * THESIS: The overview is one question. A count taken later in the day: the park at 1:30, then 3:00; then Aqua's look
  *   sliding later over the Amazon, which the reader moves by hand; then six places on the same scale.
- * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, Albert Sans, hairlines, 4 px corners; photographs carry the colour.
+ * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, IBM Plex Sans, hairlines, 4 px corners; photographs carry the colour.
  *   Terra a blue ring, VIIRS a green diamond, Aqua an amber dot; amber means Aqua only.
  * STORY: the park question (two lines, brought up by scrolling); Aqua's look by year, dragged; the finding with its
  *   caveat; six places on one scale, each a link to its page; three picture doors on.
@@ -150,7 +150,7 @@ function Park() {
               className="max-w-[26ch] text-balance text-[clamp(22px,2.6vw,40px)] leading-[1.15] tracking-[-0.015em] text-[color:var(--bone)]"
             >
               Years later you count at <span className="tabular-nums">3:00</span> and find more people.{' '}
-              <span className="text-[color:var(--bone2)]">Did more people come, or did you just show up at a busier time?</span>
+              <span className="text-[color:var(--bone2)]">Did more people come, or did you arrive at a busier time?</span>
             </m.p>
           </div>
           {on ? (
@@ -507,7 +507,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
           href={links.method()}
           leave={leave}
           title="How we know"
-          line="The checks we set ourselves, the ones that failed, and the limits."
+          line="Our checks, including the ones that failed, and the method’s limits."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}daylight/br-amazon-2024-09-02.jpg`} alt="" loading="lazy" className={pic} />}
         />

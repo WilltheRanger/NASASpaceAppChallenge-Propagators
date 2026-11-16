@@ -1,7 +1,7 @@
 /*
  * The Explore page (the file keeps its first name). THESIS: One question at a time: which satellite saw this fire, and when? The Earth sits in the middle; the place and
  *   its numbers on the left; SI on the right; under the map, when each satellite looked at everything in view.
- * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, Albert Sans, NASA Blue Marble. The satellite marks are the Region
+ * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, IBM Plex Sans, NASA Blue Marble. The satellite marks are the Region
  *   page's: Terra a blue ring, VIIRS a green diamond, Aqua an amber dot. Region frames are white, so amber means Aqua.
  * STORY: A judge clicks a fire and reads which satellites saw that spot and at what local time. The chart shows each
  *   satellite's clock over everything in view, with Aqua's 2012–2020 clock marked. A studied region shows the audit as
@@ -12,19 +12,20 @@
  * FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Play, Plus, Search, X } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, CircleHelp, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Play, Plus, Search, X } from 'lucide-react'
 import { DecipherText } from '@/components/ui/decipher-text'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { DeltaTicker } from '@/components/ui/delta-ticker'
 import { SiChat, type SiTurn } from '@/components/ui/si-chat'
 import { ChartLine } from '@/components/ui/chart-line'
 import { DaylightSection } from './daylight'
+import { guideSeen, startGuide } from './tour'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
 import { KeyValueList, type KeyValueListItem } from '@/components/ui/key-value-list'
 import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, N as DOTS, SAT, SAT_NAMES, SENSOR, TOTALS, WINDOW, groupOf, heatShare, histogram, lstOf, near, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
-import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, placeById, searchPlaces, type Place } from '@/r2/places'
+import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, nameAt, nameNear, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
 import { BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, PASS_END, SOURCES as DAY_SOURCES, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
 import { DOWN, EXPLORATORY, L_STEPS, NEAR, UP, cellFeatures, cellIdAt, cellName, globalGrid, reading, type GlobalCell, type GlobalGrid } from '@/r2/global'
@@ -269,6 +270,13 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const chartRef = useRef<HTMLDivElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   const chartH = useHeight(chartRef, 170)
+  // first visit on a wide screen at the whole globe: the guide opens once the page has settled
+  useEffect(() => {
+    if (place || !wide || guideSeen()) return
+    const t = window.setTimeout(() => startGuide(SHIFT, motion), 1200)
+    return () => window.clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const sheetH = useHeight(sheetRef, 260)
   const fireRef = useRef(fire)
   fireRef.current = fire
@@ -375,8 +383,18 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const turnId = useRef(0)
   const onAsk = (text: string) => {
     const a = ask(text, { region, place, view, fire })
-    setTurns((t) => [...t, { id: ++turnId.current, q: text, a }])
+    const id = ++turnId.current
+    setTurns((t) => [...t, { id, q: text, a }])
     if (a.select != null) pickFire(a.select)
+    // a fire's town, region and country, when OpenStreetMap answers; the offline name stays otherwise
+    const at = a.locate
+    if (at && live) {
+      nameAt(at.lon, at.lat).then((name) => {
+        if (!name) return
+        const label = `${name} (${at.label.replace(/^.*\((.*)\)$/, '$1')})`
+        setTurns((t) => t.map((x) => (x.id !== id ? x : { ...x, a: { ...x.a, sentences: x.a.sentences.map((z) => ({ ...z, text: z.text.replace(at.label, label) })) } })))
+      })
+    }
   }
   const onAction = (x: SiAction) => {
     if (x.kind === 'fly') choose(x.place)
@@ -507,7 +525,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           </aside>
         ) : null}
 
-        <section ref={stageRef} aria-label="Map" className="relative min-w-0 flex-1 overflow-hidden">
+        <section ref={stageRef} data-tour="map" aria-label="Map" className="relative min-w-0 flex-1 overflow-hidden">
           <div aria-hidden className={cn('absolute inset-0', STARS)} />
           {failed ? (
             <img src={`${IMG}earth/bluemarble-4096.jpg`} alt="" className="absolute inset-0 size-full object-cover opacity-80" />
@@ -563,7 +581,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
             <WorldControl grid={grid} layer={layer} setLayer={setLayer} year={mapYear} setYear={setMapYear} hover={hoverId ? cellById.get(hoverId) ?? null : null} closeIn={zoom >= 6.5} wide={wide} motion={motion} />
           ) : null}
 
-          {failed ? <p className={cn(glass, 'absolute left-4 top-4 z-20 px-3 py-2 text-xs text-[color:var(--bone2)]')}>This browser can’t draw the 3D globe. The numbers still work.</p> : null}
+          {failed ? <p className={cn(glass, 'absolute left-4 top-4 z-20 px-3 py-2 text-xs text-[color:var(--bone2)]')}>This browser can’t draw the 3D globe. The numbers below are unaffected.</p> : null}
 
           {/* zoom, the whole globe, and SI where it has no rail */}
           {wide && !failed ? (
@@ -573,6 +591,10 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
                   <MessageSquare size={15} strokeWidth={1.75} aria-hidden /> Ask SI
                 </button>
               ) : null}
+              {/* the guide: back to the whole globe, the chart open, then the four steps */}
+              <button type="button" onClick={() => { if (place) back(); setChartOpen(true); window.setTimeout(() => startGuide(SHIFT, motion), place ? 600 : 0) }} className={cn(glass, 'flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
+                <CircleHelp size={15} strokeWidth={1.75} aria-hidden /> Guide
+              </button>
               <div role="group" aria-label="Map view" className={cn(glass, 'flex w-10 flex-col divide-y divide-[color:var(--hairline)] overflow-hidden')}>
                 <button type="button" aria-label="Zoom in" title="Zoom in" onClick={() => earth.current?.zoomBy(1)} className={iconButton}><Plus size={16} strokeWidth={1.75} aria-hidden /></button>
                 <button type="button" aria-label="Zoom out" title="Zoom out" onClick={() => earth.current?.zoomBy(-1)} className={iconButton}><Minus size={16} strokeWidth={1.75} aria-hidden /></button>
@@ -582,7 +604,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           ) : null}
 
           {wide ? (
-            <div ref={chartRef} className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2">
+            <div ref={chartRef} data-tour="chart" className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2">
               {chartOpen || day ? chart : (
                 <button type="button" onClick={() => setChartOpen(true)} className={cn(glass, 'mx-auto flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
                   <ChevronDown size={15} strokeWidth={1.75} aria-hidden className="rotate-180" /> When each satellite saw fires
@@ -836,7 +858,7 @@ const Key = ({ children }: { children: ReactNode }) => (
 function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPlayDay: () => void; world: boolean }) {
   return (
     <div className="flex flex-col gap-7 px-5 pb-6 pt-6">
-      <div>
+      <div data-tour="intro">
         <h1 className="text-[22px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
           If a fire started here, when would a satellite’s alert arrive, and how much daylight would be left?
         </h1>
@@ -846,7 +868,7 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
         </p>
         <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map.</p>
       </div>
-      <div>
+      <div data-tour="places">
         <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--hairline)] pb-2">
           <h2 className="text-sm font-medium text-[color:var(--bone)]">Six places</h2>
           <span className="text-xs text-[color:var(--bone3)]">2025 count against what we’d expect</span>
@@ -1353,10 +1375,17 @@ function FireCard({ i, onClose, square, below = false, docked = false }: { i: nu
   const hotter = Math.round(heatShare(i) * 100)
   const others = Math.max(0, near(LON[i], LAT[i], 3).length - 1)
   const modis = SAT[i] <= 1
+  const [where, setWhere] = useState<string | null>(() => nameNear(LON[i], LAT[i]))
+  useEffect(() => {
+    let on = true
+    setWhere(nameNear(LON[i], LAT[i]))
+    nameAt(LON[i], LAT[i]).then((n) => { if (on && n) setWhere(n) })
+    return () => { on = false }
+  }, [i])
   const items: KeyValueListItem[] = [
     { label: 'Daylight left', value: left > 0 ? `${fmtLeft(left)}, sunset ${fmtHM(sun.set)}` : `None, sunset was ${fmtHM(sun.set)}` },
     { label: 'UTC', value: `${String(utc.getUTCHours()).padStart(2, '0')}:${String(utc.getUTCMinutes()).padStart(2, '0')}, ${utc.getUTCDate()} ${MONTHS_SHORT[utc.getUTCMonth()]}` },
-    { label: 'Where', value: coords(LAT[i], LON[i]) },
+    { label: 'Where', value: where ? <>{where}<span className="block text-[color:var(--bone3)]">{coords(LAT[i], LON[i])}</span></> : coords(LAT[i], LON[i]) },
     { label: 'Pixel', value: modis ? 'About 1 km across' : 'About 375 m across' },
     { label: 'Nearby', value: others ? `${others} more within 3 km` : 'None within 3 km' },
   ]
@@ -1450,7 +1479,7 @@ const STARS = 'bg-[image:radial-gradient(1px_1px_at_12%_18%,rgba(236,233,225,0.4
 /** the region tags on the globe (MapLibre markers are plain DOM, outside Tailwind's reach); white, as amber is Aqua's */
 const TAG_CSS = `
 .anchor-tag{display:flex;align-items:center;gap:6px;min-height:24px;padding:3px 8px 3px 6px;border-radius:3px;cursor:pointer;white-space:nowrap;
-  background:rgba(11,13,11,0.9);border:1px solid rgba(236,233,225,0.35);color:#ECE9E1;font:500 12px/16px 'Albert Sans',ui-sans-serif,system-ui,sans-serif;
+  background:rgba(11,13,11,0.9);border:1px solid rgba(236,233,225,0.35);color:#ECE9E1;font:500 12px/16px 'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
   box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:background-color 150ms}
 .anchor-tag:hover{background:#1C1F1D}
 .anchor-tag[data-on="true"]{border-color:#ECE9E1}
