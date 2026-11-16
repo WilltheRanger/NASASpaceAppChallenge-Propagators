@@ -2,6 +2,8 @@
 
 **Team Propagators · NASA Space Apps Challenge 2026 · Challenge: Harmonization of MODIS and VIIRS Hot Spots**
 
+**Live site:** https://willtheranger.github.io/NASASpaceAppChallenge-Propagators/ · A NASA Space Apps Challenge 2026 team project, not an official NASA product.
+
 Anchor is a web app that turns NASA's MODIS and VIIRS hotspot records into one burning-activity calendar per region, counted on a **fixed observation clock**. It also checks an official national fire statistic: Brazil's fire program (INPE) still counts fires with NASA's Aqua satellite as its "reference satellite", but Aqua's afternoon pass has drifted later every year since 2021. Over the Amazon its median look time moved from **13:37 (2012 to 2020) to 14:57 (2025)**.
 
 Every number in the app comes from the JSON files in `data/out/`, which are produced by the code in `analysis/`. All of it is real data, except files marked `"mock": true`.
@@ -29,7 +31,7 @@ Every number in the app comes from the JSON files in `data/out/`, which are prod
 - **Daylight left after the alert:** how much daylight remains when each satellite's alert arrives, before and after the drift.
 - **Ten written predictions:** each checked against the data, with failures reported as written.
 - **A world map (exploratory):** the same clock audit on every 2° cell of the map with enough fires, with a calendar per cell. It is not checked against a national reference series.
-- **Explore, a globe for any place:** far out, the world map's 2° cells; click one for its reading and calendar. Close in, the past day's NASA FIRMS detections; click one to see which satellites saw that spot, and when. A searched place shows the reading of the cell it sits in. One real fire day (Pará, 2 Sep 2024) shows which fires each pass saw and the daylight left when its alert arrives; the alert delays are NASA's published range for FIRMS data. Nothing on the page is modelled.
+- **Explore, a globe for any place:** far out, the world map's 2° cells; click one for its reading and calendar. Close in, a saved snapshot of recent NASA FIRMS detections; click one to see which satellites saw that spot, and when. A searched place shows the reading of the cell it sits in. One real fire day (Pará, 2 Sep 2024) shows which fires each pass saw and the daylight left when its alert arrives; the alert delays are an assumed what-if (0 to 3 hours), and real alert delivery was not measured.
 - **A limits section:** in the app and below.
 
 ## Method in brief
@@ -40,7 +42,7 @@ All times are **local solar time** (UTC + longitude / 15). Only daytime detectio
 
 $$R = \frac{\text{Aqua count}}{\text{S-NPP count}}$$
 
-**2. Fixed-clock count.** What Aqua would have counted had its clock not moved:
+**2. Fixed-clock count (the benchmark).** What the 2012–2020 Aqua/S-NPP relationship predicts from the S-NPP count; a steady reference, not a corrected Aqua count:
 
 $$\text{fixed} = \text{S-NPP count} \times R$$
 
@@ -53,8 +55,6 @@ $$L = \frac{\text{Aqua count}}{\text{fixed-clock count}}$$
 - **Noise floor:** each baseline year scored against the other eight.
 
 ## Key results
-
-Every number below needs the team's final check before the submission freeze.
 
 **When each satellite looked** (median local solar time, 2012 to 2020 median, then 2025):
 
@@ -168,8 +168,8 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
     - Clouds are ruled out (GOES cloud mask).
     - Changed viewing geometry is ruled out: NASA granule footprints show Aqua's near-nadir viewing share flat at about 40% from 2016 to 2025.
     - GOES predicts the large-fire change for both satellites.
-    - A regression across 80 region-years attributes about 90% of Aqua's 2025 Amazon excess to the look-time shift.
-    - **Read L as Aqua departing from the fixed clock mainly because it now looks later.**
+    - A regression across 80 region-years ties about 90% of Aqua's 2025 Amazon excess (in log L; range 43–137%) to the look-time shift. That is an association; it cannot prove cause.
+    - **Read L as how far Aqua departs from the fixed clock, not as proof of what caused the departure.**
     - Still open: the fire-regime test and the off-season months.
 - **The reference clock is ending.** NASA stopped delivering new Suomi NPP data on 2 November 2026, and S-NPP is the fixed clock that L is measured against. MODIS itself is scheduled to stop collecting data on Terra in January 2027 and on Aqua around September 2027 (CAMS, 2026).
   - Any audit after 2026 has to be rebuilt on NOAA-20 and NOAA-21 VIIRS.
