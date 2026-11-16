@@ -14,7 +14,8 @@ import { createPortal } from 'react-dom'
 import { Map as MLMap, Marker, addProtocol, setWorkerUrl, type GeoJSONSource, type ImageSource, type MapGeoJSONFeature, type StyleSpecification } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { LAT, LON, N, SAT } from '@/r2/fires'
+import { FRP, LAT, LON, N, SAT } from '@/r2/fires'
+import TILES from '@/r2/earth/tiles.json'
 
 setWorkerUrl(workerUrl)
 
@@ -60,6 +61,8 @@ export interface EarthGlobeProps {
   padding: EarthPadding
   /** the Blue Marble image the comment page cuts into tiles */
   baseSrc: string
+  /** the folder of sharper Blue Marble pictures (scripts/earth-tiles.py) for a page that can't reach a tile server */
+  tilesSrc?: string
   /** stream NASA GIBS and Sentinel-2 tiles too (the live site; the comment page cannot reach them) */
   live: boolean
   motion: boolean
@@ -93,12 +96,12 @@ const PROBE = 64
 /** the squares show below this zoom; the fires take over above it */
 const CELLS_GONE = 6.5
 
-/** the fire points as GeoJSON, once: g = 0 Terra, 1 Aqua, 2 VIIRS */
+/** the fire points as GeoJSON, once: g = 0 Terra, 1 Aqua, 2 VIIRS; f = the heat it gave off (fire radiative power, MW) */
 let firesGeo: GeoJSON.FeatureCollection | null = null
 function fireFeatures() {
   if (firesGeo) return firesGeo
   const features: GeoJSON.Feature[] = new Array(N)
-  for (let i = 0; i < N; i++) features[i] = { type: 'Feature', properties: { i, g: SAT[i] >= 2 ? 2 : SAT[i] }, geometry: { type: 'Point', coordinates: [LON[i], LAT[i]] } }
+  for (let i = 0; i < N; i++) features[i] = { type: 'Feature', properties: { i, g: SAT[i] >= 2 ? 2 : SAT[i], f: FRP[i] }, geometry: { type: 'Point', coordinates: [LON[i], LAT[i]] } }
   firesGeo = { type: 'FeatureCollection', features }
   return firesGeo
 }
@@ -118,13 +121,13 @@ function diamond(px: number, fill: string, stroke: string) {
   c.width = c.height = px
   const g = c.getContext('2d')
   if (!g) return null
-  const h = px / 2, r = h - 2
+  const h = px / 2, r = h - px / 16
   g.beginPath()
   g.moveTo(h, h - r); g.lineTo(h + r, h); g.lineTo(h, h + r); g.lineTo(h - r, h)
   g.closePath()
   g.fillStyle = fill
   g.fill()
-  g.lineWidth = 2
+  g.lineWidth = px / 16
   g.strokeStyle = stroke
   g.stroke()
   return g.getImageData(0, 0, px, px)
@@ -177,6 +180,62 @@ function useBaseProtocol(src: string) {
     return { data: await createImageBitmap(c) }
   })
 }
+
+/** Sharper Blue Marble for a page that can't reach a tile server (scripts/earth-tiles.py writes the pictures). Each
+ *  picture is 2048 px: 8 x 8 tiles of one zoom, named by its square on a coarser grid. `w` covers the whole world at
+ *  zoom 5; `f` covers, at zoom 8, the squares that hold most of the day's fires. A tile of a lower zoom is the same
+ *  picture drawn smaller. Pictures load when the map first needs them; the last few stay in memory. */
+const FIRE_PICTURES = new Set<string>(TILES.fire.cells)
+const pictures = new Map<string, Promise<ImageBitmap | HTMLImageElement>>()
+const KEEP_PICTURES = 10
+function picture(url: string) {
+  const had = pictures.get(url)
+  if (had) { pictures.delete(url); pictures.set(url, had); return had }
+  const p = new Promise<ImageBitmap | HTMLImageElement>((resolve, reject) => {
+    const im = new Image()
+    im.decoding = 'async'
+    im.onload = () => { (typeof createImageBitmap === 'function' ? createImageBitmap(im) : Promise.resolve(im)).then(resolve, () => resolve(im)) }
+    im.onerror = () => { pictures.delete(url); reject(new Error('picture did not load')) }
+    im.src = url
+  })
+  pictures.set(url, p)
+  if (pictures.size > KEEP_PICTURES) pictures.delete(pictures.keys().next().value as string)
+  return p
+}
+let tilesOn = false
+function useTilesProtocol(dir: string) {
+  if (tilesOn) return
+  tilesOn = true
+  addProtocol('anchor-tiles', async (params) => {
+    const m = /anchor-tiles:\/\/(w|f)\/(\d+)\/(\d+)\/(\d+)/.exec(params.url)
+    if (!m) throw new Error('bad tile')
+    const kind = m[1] as 'w' | 'f', z = Number(m[2]), x = Number(m[3]), y = Number(m[4])
+    const spec = kind === 'w' ? TILES.world : TILES.fire
+    if (z > spec.z || z < spec.grid) throw new Error('no picture at this zoom')
+    // the picture this tile falls in, and the tile's square inside it
+    const per = 2 ** (z - spec.grid)
+    const gx = Math.floor(x / per), gy = Math.floor(y / per)
+    if (kind === 'f' && !FIRE_PICTURES.has(`${gx}-${gy}`)) throw new Error('no picture here')
+    const img = await picture(`${dir}${kind}-${gx}-${gy}.webp`)
+    const size = 2048 / per
+    const c: OffscreenCanvas | HTMLCanvasElement = typeof OffscreenCanvas !== 'undefined'
+      ? new OffscreenCanvas(256, 256)
+      : Object.assign(document.createElement('canvas'), { width: 256, height: 256 })
+    const g = c.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null
+    if (!g) throw new Error('no 2d context')
+    g.imageSmoothingQuality = 'high'
+    g.drawImage(img, (x - gx * per) * size, (y - gy * per) * size, size, size, 0, 0, 256, 256)
+    return { data: await createImageBitmap(c) }
+  })
+}
+
+/** How much bigger a detection draws for the heat it gave off (fire radiative power, MW), on the square root so a
+ *  mark's area follows the heat: about 0.75 for the faintest, 1 near the day's middle (7 MW), 2.8 for the strongest. */
+const HEAT = ['interpolate', ['linear'], ['sqrt', ['get', 'f']], 0, 0.75, 2.6, 1, 5.2, 1.35, 11, 1.9, 30, 2.8]
+/** a size in px times the heat factor; `share` under 1 flattens the factor, for far-out views where marks crowd */
+const heat = (px: number, share = 1) => ['*', px, share === 1 ? HEAT : ['+', 1, ['*', share, ['-', HEAT, 1]]]]
+/** a mark's size by zoom, growing as the map closes in, with heat counting for more the closer it is */
+const grow = (stops: [number, number][]) => ['interpolate', ['exponential', 1.5], ['zoom'], ...stops.flatMap(([z, px]) => [z, heat(px, z <= 2 ? 0.35 : z <= 5 ? 0.65 : 1)])] as never
 
 /** the four corners of a box as short L-shaped strokes: a framing, not a boundary */
 function brackets(b: Box) {
@@ -232,8 +291,10 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     const el = boxRef.current
     if (!el) return
     useBaseProtocol(baseSrc)
+    const bundled = !live && !!props.tilesSrc
+    if (bundled) useTilesProtocol(props.tilesSrc as string)
     const w = el.clientWidth || 1200, h = el.clientHeight || 800
-    const dot = (color: string, r: number[]) => ({ 'circle-color': color, 'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], ...r], 'circle-pitch-alignment': 'map', 'circle-stroke-color': GROUND, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 2, 0, 5, 0.6] })
+    const dot = (color: string, r: [number, number][]) => ({ 'circle-color': color, 'circle-radius': grow(r), 'circle-pitch-alignment': 'map', 'circle-stroke-color': GROUND, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 2, 0, 5, 0.6] })
     const style: StyleSpecification = {
       version: 8,
       projection: { type: band(4, 5.5) },
@@ -243,6 +304,11 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         ...(live ? {
           gibs: { type: 'raster' as const, tiles: [GIBS_BM], tileSize: 256, maxzoom: 8 },
           s2: { type: 'raster' as const, tiles: [S2], tileSize: 256, maxzoom: 14 },
+        } : {}),
+        // the comment page's own sharper pictures: the world at zoom 5, and zoom 6 to 8 where the day's fires are
+        ...(bundled ? {
+          world2x: { type: 'raster' as const, tiles: ['anchor-tiles://w/{z}/{x}/{y}'], tileSize: 256, minzoom: TILES.world.z, maxzoom: TILES.world.z },
+          sharp: { type: 'raster' as const, tiles: ['anchor-tiles://f/{z}/{x}/{y}'], tileSize: 256, minzoom: TILES.fire.z - 2, maxzoom: TILES.fire.z },
         } : {}),
         grid: { type: 'geojson', data: GRID },
         regions: { type: 'geojson', data: NONE },
@@ -255,6 +321,10 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'ocean', type: 'background', paint: { 'background-color': '#0A1A2C' } },
         { id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } },
         ...(live ? [{ id: 'gibs', type: 'raster' as const, source: 'gibs', minzoom: 3, paint: { 'raster-fade-duration': 250 } }] : []),
+        ...(bundled ? [
+          { id: 'world2x', type: 'raster' as const, source: 'world2x', paint: { 'raster-fade-duration': 150 } },
+          { id: 'sharp', type: 'raster' as const, source: 'sharp', paint: { 'raster-fade-duration': 150 } },
+        ] : []),
         { id: 'ctx-slot', type: 'background', layout: { visibility: 'none' } },
         ...(live ? [{ id: 's2', type: 'raster' as const, source: 's2', minzoom: 4.5, paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 4.5, 0, 6, 1], 'raster-fade-duration': 250 } }] : []) as never[],
         { id: 'grid', type: 'line', source: 'grid', paint: { 'line-color': BONE, 'line-width': 0.6, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 0, 0.09, 6, 0.05] } },
@@ -267,16 +337,16 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'region-edge', type: 'line', source: 'regions', paint: { 'line-color': BONE, 'line-opacity': ['case', ['get', 'on'], 0.6, 0.22], 'line-width': 1, 'line-dasharray': [2, 3] } },
         { id: 'frames', type: 'line', source: 'frames', layout: { 'line-cap': 'square', 'line-join': 'miter' }, paint: { 'line-color': BONE, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, 0.7] } },
         // VIIRS beneath (the most numerous), then Terra's rings, then Aqua on top: Aqua is the satellite the audit is about
-        { id: 'fire-viirs-dot', type: 'circle', source: 'fires', maxzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2], paint: dot(VIIRS, [1, 1.1, 4, 1.9, 6, 2.6]) as never },
+        { id: 'fire-viirs-dot', type: 'circle', source: 'fires', maxzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2], paint: dot(VIIRS, [[1, 1.1], [4, 1.9], [6, 2.8]]) as never },
         {
           id: 'fire-viirs', type: 'symbol', source: 'fires', minzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2],
-          layout: { 'icon-image': 'viirs-mark', 'icon-size': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 0.3, 4, 0.45, 8, 0.8, 11, 1.05], 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-padding': 0 },
+          layout: { 'icon-image': 'viirs-mark', 'icon-size': grow([[1, 0.3], [4, 0.45], [8, 0.85], [11, 1.4]]), 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-padding': 0 },
         },
         {
           id: 'fire-terra', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 0],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 1, 1.4, 4, 2.4, 8, 4.4, 11, 6], 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': grow([[1, 1.4], [4, 2.4], [8, 4.8], [11, 8.5]]), 'circle-pitch-alignment': 'map' },
         },
-        { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, [1, 1.3, 4, 2.2, 8, 4, 11, 6]) as never },
+        { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, [[1, 1.3], [4, 2.2], [8, 4.5], [11, 8]]) as never },
         // one real fire day: the fires this satellite missed (dim), then the ones it saw
         { id: 'scene-fire-dim', type: 'circle', source: 'scene-fires', filter: ['!', ['get', 'seen']], paint: { 'circle-color': '#8D8A84', 'circle-opacity': 0.75, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 9, 3.5], 'circle-stroke-color': GROUND, 'circle-stroke-width': 0.6 } },
         {
@@ -289,11 +359,11 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         },
         {
           id: 'fire-near', type: 'circle', source: 'fires', filter: ['in', ['get', 'i'], ['literal', []]],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 5, 8, 8], 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, ['+', 3, heat(2, 0.35)], 8, ['+', 3, heat(5, 1)], 11, ['+', 3, heat(9, 1)]] as never, 'circle-pitch-alignment': 'map' },
         },
         {
           id: 'fire-sel', type: 'circle', source: 'fires', filter: ['==', ['get', 'i'], -1],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 8, 8, 12], 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, ['+', 6, heat(2, 0.35)], 8, ['+', 7, heat(5, 1)], 11, ['+', 8, heat(9, 1)]] as never, 'circle-pitch-alignment': 'map' },
         },
       ],
     }
@@ -315,8 +385,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     if (import.meta.env.DEV) (window as unknown as { __anchorMap?: MLMap }).__anchorMap = map
     map.on('error', () => { /* a tile that fails stays blank; the base below shows through */ })
     map.on('load', () => {
-      const mark = diamond(32, VIIRS, GROUND)
-      if (mark && !map.hasImage('viirs-mark')) map.addImage('viirs-mark', mark, { pixelRatio: 2 })
+      const mark = diamond(96, VIIRS, GROUND)
+      if (mark && !map.hasImage('viirs-mark')) map.addImage('viirs-mark', mark, { pixelRatio: 6 })
       ;(map.getSource('fires') as GeoJSONSource | undefined)?.setData(fireFeatures())
       setReady(true)
     })

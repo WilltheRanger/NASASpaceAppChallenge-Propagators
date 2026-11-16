@@ -435,7 +435,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const padding: EarthPadding = useMemo(() => (wide
     ? { top: 24, left: 24, right: 72 + (siOpen && !xl ? 352 : 0), bottom: chartH + 28 }
     : { top: 76, left: 16, right: 16, bottom: sheetH + 12 }), [wide, xl, siOpen, chartH, sheetH])
-  const target: EarthTarget = useMemo(() => (day ? { key: 'fire-day', bbox: DAY_BOX } : cell && cellZoom ? { key: `cell-${cell.id}`, bbox: [cell.lon0, cell.lat0, cell.lon1, cell.lat1] } : place ? { key: place.id, bbox: boxFor(place), maxZoom: !live && !region ? 4.6 : undefined } : null), [day != null, place, live, region, cellZoom ? cell?.id : null]) // eslint-disable-line react-hooks/exhaustive-deps
+  const target: EarthTarget = useMemo(() => (day ? { key: 'fire-day', bbox: DAY_BOX } : cell && cellZoom ? { key: `cell-${cell.id}`, bbox: [cell.lon0, cell.lat0, cell.lon1, cell.lat1] } : place ? { key: place.id, bbox: boxFor(place), maxZoom: !live && !region ? 6.5 : undefined } : null), [day != null, place, live, region, cellZoom ? cell?.id : null]) // eslint-disable-line react-hooks/exhaustive-deps
   const sceneData = useMemo(() => (day ? dayScene(day.src) : null), [day?.src]) // eslint-disable-line react-hooks/exhaustive-deps
   // the squares belong to the whole-globe view; at a place the fires and the place's own numbers lead, so only the
   // picked square (if any) is outlined there
@@ -576,6 +576,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
               onCellHover={setHoverId}
               padding={padding}
               baseSrc={`${IMG}earth/bluemarble-4096.jpg`}
+              tilesSrc={`${IMG}earth/tiles/`}
               live={live}
               motion={motion}
               onArrive={() => setArrived(true)}
@@ -890,7 +891,7 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
         <p className="mt-3 text-sm text-[color:var(--bone2)]">
           INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </p>
-        <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map.</p>
+        <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map. A bigger dot gave off more heat.</p>
       </div>
       <div data-tour="places">
         <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--hairline)] pb-2">
