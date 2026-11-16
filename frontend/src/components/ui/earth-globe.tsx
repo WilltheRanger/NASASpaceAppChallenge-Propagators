@@ -441,7 +441,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
       cb.current.onProbe?.({ box: [c.lng - dLon, c.lat - dLat, c.lng + dLon, c.lat + dLat], x: at.x, y: at.y, r: PROBE })
     }
     const askProbe = () => { if (!probeFrame) probeFrame = requestAnimationFrame(probe) }
-    map.on('mousemove', (e) => { probeAt = { x: e.point.x, y: e.point.y }; askProbe() })
+    // over a callout (the fire card) there is no map under the pointer, so no square
+    map.on('mousemove', (e) => { const t = e.originalEvent.target; probeAt = t instanceof Element && t.closest('.maplibregl-marker') ? null : { x: e.point.x, y: e.point.y }; askProbe() })
     map.on('mouseout', () => { probeAt = null; askProbe() })
     map.on('dragstart', () => { dragging = true; askProbe() })
     map.on('dragend', () => { dragging = false; askProbe() })

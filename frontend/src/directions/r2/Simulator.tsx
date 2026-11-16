@@ -1388,51 +1388,69 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
     nameAt(LON[i], LAT[i]).then((n) => { if (on && n) setWhere(n) })
     return () => { on = false }
   }, [i])
-  const big = 'block text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]'
-  const small = 'mt-1 block text-xs text-[color:var(--bone3)]'
+  // where in the day, sunrise to sunset, the pass came (0 to 1)
+  const seenAt = Math.max(0, Math.min(1, (lst - sun.rise) / Math.max(0.1, sun.set - sun.rise)))
+  const dt = 'w-[4.5rem] shrink-0 pt-px text-[13px] text-[color:var(--bone3)]'
   return (
-    <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)] text-left', docked ? 'w-full' : 'w-[300px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
+    <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[color:var(--ground)] text-left', docked ? 'w-full' : 'w-[300px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
       <div className="flex items-center gap-2 pl-3 pr-1.5 pt-1.5">
-        <Mark g={g} />
-        <p className="text-sm font-medium text-[color:var(--bone)]">
-          {SAT_NAMES[SAT[i]]}<span className="font-normal text-[color:var(--bone3)]"> · {SENSOR[SAT[i]]}</span>
+        <Mark g={g} size={12} />
+        <p className="text-[15px] font-medium text-[color:var(--bone)]">
+          {SAT_NAMES[SAT[i]]}<span className="text-sm font-normal text-[color:var(--bone3)]"> · {SENSOR[SAT[i]]}</span>
         </p>
         <button type="button" aria-label="Close" onClick={onClose} className={cn('ml-auto grid size-8 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
           <X size={15} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-3 px-3 pb-3">
-        <p>
-          <span className={small}>Seen at</span>
-          <span className={cn(big, 'mt-1')}>{fmtHM(lst)}</span>
-          <span className={small}>local sun time</span>
+      {/* the answer: daylight left after this pass, on a strip of the day from sunrise to sunset */}
+      <div className="px-3 pb-3 pt-1">
+        <p className="flex items-baseline justify-between gap-3">
+          <span className="text-xs text-[color:var(--bone3)]">Daylight left</span>
+          <span className="text-xs tabular-nums text-[color:var(--bone3)]">seen <span className="font-medium text-[color:var(--bone)]">{fmtHM(lst)}</span> local sun time</span>
         </p>
-        <p>
-          <span className={small}>Daylight left</span>
-          <span className={cn(big, 'mt-1')}>{left > 0 ? fmtLeft(left) : 'None'}</span>
-          <span className={small}>sunset {fmtHM(sun.set)}</span>
+        <p className="mt-1 text-[28px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{left > 0 ? fmtLeft(left) : 'None'}</p>
+        <span aria-hidden className="relative mt-3 block h-1.5 w-full rounded-full bg-[color:var(--hairline)]">
+          <span className="absolute inset-y-0 right-0 rounded-full" style={{ left: `${seenAt * 100}%`, background: COLOR[g] }} />
+          <span className="absolute -top-[4px] h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-[color:var(--bone)]" style={{ left: `${seenAt * 100}%` }} />
+        </span>
+        <p className="mt-1.5 flex justify-between text-xs tabular-nums text-[color:var(--bone3)]">
+          <span>sunrise {fmtHM(sun.rise)}</span>
+          <span>sunset {fmtHM(sun.set)}</span>
         </p>
       </div>
-      <dl className="flex flex-col gap-1.5 border-t border-[color:var(--hairline)] px-3 py-2.5 text-sm">
+      <dl className="flex flex-col gap-2.5 border-t border-[color:var(--hairline)] px-3 py-3 text-sm">
         <div className="flex gap-2">
-          <dt className="w-[4.5rem] shrink-0 text-[color:var(--bone3)]">Also seen</dt>
-          <dd className="flex flex-col gap-0.5 text-[color:var(--bone)]">
+          <dt className={dt}>Also seen</dt>
+          <dd className="flex flex-col gap-1 text-[color:var(--bone)]">
             {also.length ? also.map((r) => (
-              <span key={r.sat} className="flex items-center gap-1.5 tabular-nums"><Mark g={groupOf(r.sat)} size={8} />{SAT_NAMES[r.sat]} at {fmtHM(lstOf(r.i!))}</span>
-            )) : <span className="text-[color:var(--bone2)]">No other satellite, within 3 km</span>}
+              <span key={r.sat} className="flex items-center gap-1.5 tabular-nums"><Mark g={groupOf(r.sat)} size={9} />{SAT_NAMES[r.sat]} <span className="text-[color:var(--bone2)]">at {fmtHM(lstOf(r.i!))}</span></span>
+            )) : <span className="text-[color:var(--bone2)]">None within 3 km</span>}
           </dd>
         </div>
         <div className="flex gap-2">
-          <dt className="w-[4.5rem] shrink-0 text-[color:var(--bone3)]">Where</dt>
-          <dd className="text-[color:var(--bone)]">{where ? <>{where} <span className="text-[color:var(--bone3)]">· {coords(LAT[i], LON[i])}</span></> : coords(LAT[i], LON[i])}</dd>
+          <dt className={dt}>Where</dt>
+          <dd className="min-w-0 text-[color:var(--bone)]">
+            {where ?? coords(LAT[i], LON[i])}
+            {where ? <span className="block text-xs tabular-nums text-[color:var(--bone3)]">{coords(LAT[i], LON[i])}</span> : null}
+          </dd>
+        </div>
+        {/* the reported fire power, placed among today's detections: a strip from weakest to strongest with this fire's notch */}
+        <div className="flex gap-2">
+          <dt className={dt}>Heat</dt>
+          <dd className="flex min-w-0 flex-1 flex-col gap-1.5 text-[color:var(--bone)]">
+            <span className="flex items-baseline justify-between gap-2 tabular-nums">
+              <span className="font-medium">{fmtMW(FRP[i])} MW</span>
+              <span className="text-xs text-[color:var(--bone2)]">stronger than {Math.min(99, frpPercentile)}%</span>
+            </span>
+            <span aria-hidden className="relative block h-1.5 w-full rounded-full bg-[color:var(--hairline)]">
+              <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--bone2)]" style={{ width: `${frpPercentile}%` }} />
+              <span className="absolute -top-[4px] h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-[color:var(--bone)]" style={{ left: `${frpPercentile}%` }} />
+            </span>
+            <span className="text-[11px] leading-4 text-[color:var(--bone3)]">Of today’s detections. Sensors differ, so compare loosely.</span>
+          </dd>
         </div>
       </dl>
-      <p className="border-t border-[color:var(--hairline)] px-3 py-2 text-[11px] leading-4 text-[color:var(--bone3)]">
-        <span className="tabular-nums text-[color:var(--bone2)]">{fmtMW(FRP[i])} MW</span> <span>fire radiative power</span>.{' '}
-        <span>Higher FRP than {frpPercentile}% of snapshot detections</span>.{' '}
-        Mixed sensors and observation times; not temperature or a ranking of unique fires.
-      </p>
-      {docked ? null : <span aria-hidden className={cn('absolute left-1/2 size-3 -translate-x-1/2 rotate-45 border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)]', below ? '-top-[7px] border-l border-t' : '-bottom-[7px] border-b border-r')} />}
+      {docked ? null : <span aria-hidden className={cn('absolute left-1/2 size-3 -translate-x-1/2 rotate-45 border-[color:var(--bone-20)] bg-[color:var(--ground)]', below ? '-top-[7px] border-l border-t' : '-bottom-[7px] border-b border-r')} />}
     </div>
   )
 }
