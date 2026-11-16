@@ -141,7 +141,7 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
               <h1 id="park-h" className="text-[clamp(56px,11vw,168px)] font-medium leading-[0.9] tracking-[-0.04em] text-[color:var(--bone)]">
                 Anchor
               </h1>
-              <p className="mt-4 max-w-[28rem] text-[24px] leading-[1.25] text-[color:var(--bone)]">A steady fire calendar for six places, 2002 to 2025.</p>
+              <p className="mt-4 max-w-[28rem] text-[24px] leading-[1.25] text-[color:var(--bone)]">A fire calendar for six regions, 2002 to 2025.</p>
               <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-6')}>
                 Open the fire calendar <ArrowUpRight size={16} aria-hidden />
               </a>
