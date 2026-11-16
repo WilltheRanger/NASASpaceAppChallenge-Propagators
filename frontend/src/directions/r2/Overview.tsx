@@ -220,7 +220,7 @@ function OneDay() {
     { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
   ]
   return (
-    <section id="day" aria-labelledby="day-h">
+    <section id="day" aria-labelledby="day-h" className="border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'pb-6 lg:pb-12')}>
         <div className="flex flex-col gap-5 pt-8 lg:pt-12">
           <h2 id="day-h" className="max-w-[22ch] text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.02em]">
@@ -433,11 +433,12 @@ function Places() {
           <PlaceRow key={r.id} r={r} i={i} />
         ))}
       </ol>
-      <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
+      <More label="About the range" className="mt-4">
+      <p className="mt-2 max-w-[64rem] text-xs text-[color:var(--bone3)]">
         Look times: local sun time, 2012–2020 against {YEAR}. Unusual: further from the benchmark than any year from 2012 to 2020; the amber line is the likely range.
         Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.
       </p>
-      <More label="About the range" className="mt-2">
+
         <p className="max-w-[64rem] text-xs text-[color:var(--bone3)]">
           The amber line is a 95% bootstrap interval: the days compared are resampled many times and the middle 95% of results kept. It depends on that
           resampling. It is not the probability that an effect of the timing lies inside it.
