@@ -1,20 +1,20 @@
 /*
  * THESIS: The overview is one day. Anchor's idea is a count taken later in the day, so the page moves along the clock:
- *   the park at 1:30, then 3:00; Aqua's look sliding from 13:37 to 14:57 over one real Amazon day; then six places on
+ *   Aqua's look sliding from 13:37 to 14:57 over one real Amazon day, the park only as an analogy; then six places on
  *   the same afternoon. It refuses the stat-row-and-cards landing.
  * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, Albert Sans, hairlines, 4 px corners; photographs carry the colour.
  *   Terra a blue ring, VIIRS a green diamond, Aqua amber; a ring is the old time, a dot the new; amber means Aqua only.
- * STORY: the park question; the same question for fires, one step per scroll; the finding with its caveat beside it;
- *   six places on shared scales, each a door to its page; three picture doors on.
- * FIRST VIEWPORT: a framed, full-height Unsplash photograph of wildfire smoke at dusk; the analogy as a title card
- *   bottom-left on a ground scrim; a bone ring-to-dot glyph from 1:30 to 3:00; "See what we found"; the next chapter peeks.
+ * STORY: the count is taken later, with the park analogy beside the first picture; Aqua's day, one step per scroll;
+ *   the finding with its caveat beside it; six places on shared scales, each a door to its page; three picture doors on.
+ * FIRST VIEWPORT: a framed, full-height Unsplash photograph of wildfire smoke at dusk; the name and one line bottom-left
+ *   on a ground scrim; "Open the fire calendar"; the next chapter peeks.
  * FORM: one day, scrubbed (4 of 6), staged as Anduril's framed film, then a sticky reveal; seed 5dd3674c.
  * FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
  *
  * Every number comes from src/r2/data.ts (data/out/drift and data/out/audit); "unusual" is the audit's outside_noise,
  * read only where the year's status is ok. The satellite pictures are NASA Worldview / GIBS (credited in the footer).
  */
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useRef, type CSSProperties, type ReactNode } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { RollingDigits } from '@/components/ui/rolling-digits'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
@@ -85,14 +85,6 @@ const RECEIPT = (() => {
   const off = Math.abs(r.firms - r.inpe) / r.inpe * 100
   return { ...r, within: off < 0.5 ? '0.5' : off < 1 ? '1' : String(Math.ceil(off)) }
 })()
-/** How many minutes earlier Terra looks over the featured place than its 2012–2020 median (data/out/drift): 75 for the Amazon */
-const TERRA_EARLIER = (() => {
-  const v = DAY.drift.filter((r) => r.year <= 2020 && r.terra_lst).map((r) => hm(r.terra_lst)).sort((a, b) => a - b)
-  const last = DAY.lastDrift
-  if (!v.length || !last?.terra_lst) return null
-  const m = Math.round((v[Math.floor(v.length / 2)] - hm(last.terra_lst)) * 60)
-  return m > 0 ? m : null
-})()
 type PassKey = 'terra' | 'viirs' | 'aqua'
 const PASSES: Record<PassKey, { name: string; when: string; alt: string; fit?: string }> = {
   terra: { name: 'Terra', when: 'Morning', alt: 'Terra, morning, 4 Sep 2026: hazy smoke and a few clouds over the forest', fit: 'object-left' },
@@ -118,8 +110,7 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
       <main>
         <Park links={links} leave={leave} />
         <WhoFor />
-        <Later />
-        <OneDay links={links} leave={leave} />
+        <OneDay />
         <WhatsNew links={links} leave={leave} />
         <Finding links={links} leave={leave} />
       </main>
@@ -129,7 +120,7 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
   )
 }
 
-/* ---------- The park: the photograph and the question, together from the first frame ---------- */
+/* ---------- The opening: the framed photograph ---------- */
 
 /** Phones and tablets: the scrim rises from the bottom, under the title. */
 const LOW_SCRIM = 'linear-gradient(0deg, rgba(11,13,11,0.94) 0%, rgba(11,13,11,0.74) 32%, rgba(11,13,11,0.36) 62%, rgba(11,13,11,0.12) 100%)'
@@ -223,57 +214,9 @@ function WhatsNew({ links, leave }: { links: Links; leave: Leave }) {
   )
 }
 
-/** Years later: the second count, on its own below the photograph, with the clock moving from 1:30 to 3:00 the first
- *  time it comes into view. */
-function Later() {
-  const motion = useMotion()
-  const [ref, seen] = useInView<HTMLDivElement>(motion.on, 0.6)
-  const [moved, setMoved] = useState(!motion.on)
-  useEffect(() => {
-    if (!seen) return
-    if (!motion.on) { setMoved(true); return }
-    const t = window.setTimeout(() => setMoved(true), 450)
-    return () => window.clearTimeout(t)
-  }, [seen, motion.on])
-  return (
-    <section aria-labelledby="later-h">
-      {/* one pattern for both statements: the headline on the left, its supporting line on the right, bottoms aligned */}
-      {/* one column: the statement, then its line under it; space, not rules, separates the two statements */}
-      <div className={cn(shell, 'flex flex-col gap-5 pb-16 pt-20 lg:pb-24 lg:pt-28')}>
-        <h2 id="later-h" className="max-w-[22ch] text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.02em]">
-          Count people in a park at <span className="tabular-nums">1:30</span>. Years later you count at <span className="tabular-nums">3:00</span> and find more people.
-        </h2>
-        <div className="flex max-w-[36rem] flex-col gap-6">
-          <p className="text-lg leading-[1.56] text-[color:var(--bone2)]">Did more people come, or did you just show up at a busier time?</p>
-          <div ref={ref}><ParkClock moved={moved} big /></div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/** The park's two counts on one stretch of afternoon: a ring at 1:30, the dot at 3:00. Bone, not amber: this is the
- *  park, not a satellite. The same ring-and-dot reads Aqua's move further down. */
-function ParkClock({ moved, big = false }: { moved: boolean; big?: boolean }) {
-  const motion = useMotion()
-  const travel = motion.on ? `transition-[left,width] duration-1000 ${expo}` : ''
-  return (
-    <span role="img" aria-label="The count moved from 1:30 to 3:00." className={cn('flex items-center gap-4 tabular-nums text-[color:var(--bone2)]', big ? 'text-lg' : 'text-sm')}>
-      <span>1:30</span>
-      <span aria-hidden className={cn('relative block h-3', big ? 'w-full max-w-64 flex-1' : 'w-28 sm:w-40')}>
-        <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[color:var(--bone-30)]" />
-        <span className={cn('absolute left-0 top-1/2 h-0.5 -translate-y-1/2 bg-[color:var(--bone)]', travel)} style={{ width: moved ? '100%' : '0%' }} />
-        <span className="absolute left-0 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[color:var(--bone)] bg-[color:var(--ground)]" />
-        <span className={cn('absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--bone)]', travel)} style={{ left: moved ? '100%' : '0%' }} />
-      </span>
-      <span className={cn(motion.on && 'transition-colors duration-500', moved ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone3)]')}>3:00</span>
-    </span>
-  )
-}
-
 /* ---------- One day: Aqua's question, one step per scroll ---------- */
 
-function OneDay({ links, leave }: { links: Links; leave: Leave }) {
+function OneDay() {
   const motion = useMotion()
   // wide screens scrub one pinned picture; phones put each step's picture right under it
   const wideScreen = useMedia('(min-width: 1024px)')
@@ -282,52 +225,46 @@ function OneDay({ links, leave }: { links: Links; leave: Leave }) {
   // Terra drifted too (earlier), so only VIIRS is said to have kept its time
   const steps: StickyStep[] = [
     { mark: look.old, title: 'Aqua used to look here', description: 'Local sun time, 2012–2020.' },
-    { mark: look.now, title: `In ${look.year} it looked ${look.minutes} minutes later`, description: <>Across our six places: {RANGE} later.</> },
+    { mark: look.now, title: 'It looks here now', description: <>Local sun time, {look.year}. Across our six places: {RANGE} later.</> },
     { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change through the day.' },
     { mark: look.viirs, title: 'VIIRS kept its time', description: 'So we use it as the benchmark.' },
   ]
   // the panel's pictures: Aqua then, Aqua now, VIIRS (the panel's step 2, all three satellites side by side, is no longer a step)
   const pic = [0, 1, 3]
+  const label = `Aqua’s day over ${phrase(FEATURED).the}, step by step`
+  // the claim, then the park analogy, beside the first picture
+  const intro = (
+    <div className="pb-14 lg:pb-16">
+      <h2 id="day-h" className="text-balance text-[32px] font-medium leading-[1.04] tracking-[-0.02em] sm:text-[40px]">
+        Brazil’s official fire count is now taken about {look.minutes} minutes later in the day
+      </h2>
+      <p className="mt-5 max-w-[30rem] text-lg leading-[1.56] text-[color:var(--bone2)]"><span className="font-medium text-[color:var(--bone)]">Analogy:</span> Imagine counting people in a park at 3:00 instead of 1:30. You’d see a different crowd.</p>
+    </div>
+  )
   return (
-    <section id="day" aria-labelledby="day-h" className="border-t border-[color:var(--hairline)]">
-      <div className={cn(shell, 'pb-6 lg:pb-12')}>
-        <div className="flex flex-col gap-5 pt-8 lg:pt-12">
-          <h2 id="day-h" className="max-w-[22ch] text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.02em]">
-            Aqua, a NASA satellite that spots fires from space, faces the same question
-          </h2>
-          <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official count (INPE) relies on Aqua, which now flies over the Amazon {look.minutes} minutes later than in 2012–2020.</p>
-          {TERRA_EARLIER ? (
-            <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">
-              Terra, Aqua’s morning twin, drifted the other way: {TERRA_EARLIER} minutes earlier.{' '}
-              <a href={links.method('two-clocks')} onClick={leave} className={textLink}>See both clocks</a>
-            </p>
-          ) : null}
-        </div>
+    <section id="day" aria-labelledby="day-h">
+      <div className={cn(shell, 'pb-6 pt-20 lg:pb-12 lg:pt-28')}>
         {wideScreen ? (
-          <StickyScroll
-            className="mt-16"
-            steps={steps}
-            panel={(i) => <DayPanel step={pic[i]} />}
-            top="5.5rem"
-            motion={motion.on}
-            label={`Aqua’s day over ${phrase(FEATURED).the}, step by step`}
-          />
+          <StickyScroll intro={intro} steps={steps} panel={(i) => <DayPanel step={pic[i]} />} top="5.5rem" motion={motion.on} label={label} />
         ) : (
-          <ol aria-label={`Aqua’s day over ${phrase(FEATURED).the}, step by step`} className="mt-10 flex flex-col gap-14">
-            {steps.map((s, i) => (
-              <li key={s.title} className="border-t border-[color:var(--hairline)] pt-4">
-                <h3 className="text-2xl font-medium leading-tight tracking-[-0.01em]">
-                  {s.mark ? <span className="tabular-nums">{s.mark} </span> : null}
-                  {s.title}
-                </h3>
-                <p className="mt-2 max-w-[var(--measure)] text-base text-[color:var(--bone2)] sm:text-lg">{s.description}</p>
-                <div className="mt-5">
-                  {/* the last step's picture is the first one again, so it keeps only the clock */}
-                  <DayPanel step={pic[i]} picture={i !== steps.length - 1} caption={i === steps.length - 1} />
-                </div>
-              </li>
-            ))}
-          </ol>
+          <>
+            {intro}
+            <ol aria-label={label} className="flex flex-col gap-14">
+              {steps.map((s, i) => (
+                <li key={s.title} className="border-t border-[color:var(--hairline)] pt-4">
+                  <h3 className="text-2xl font-medium leading-tight tracking-[-0.01em]">
+                    {s.mark ? <span className="tabular-nums">{s.mark} </span> : null}
+                    {s.title}
+                  </h3>
+                  <p className="mt-2 max-w-[var(--measure)] text-base text-[color:var(--bone2)] sm:text-lg">{s.description}</p>
+                  <div className="mt-5">
+                    {/* the last step's picture is the first one again, so it keeps only the clock */}
+                    <DayPanel step={pic[i]} picture={i !== steps.length - 1} caption={i === steps.length - 1} />
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </>
         )}
       </div>
     </section>
