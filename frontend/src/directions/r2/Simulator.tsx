@@ -1099,12 +1099,6 @@ const DAY_GROUP: Record<DaySource, SatGroup> = { Terra: 'terra', 'S-NPP': 'viirs
 function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource; delay: DayDelay }; setDay: (d: { src: DaySource; delay: DayDelay }) => void; onClose: () => void; motion: boolean }) {
   const r = dayRun(day.src, day.delay)
   const label = 'mb-1 text-xs text-[color:var(--bone3)]'
-  // the strip runs from the hour before the first pass to sunset
-  const start = Math.floor(Math.min(...DAY_SOURCES.map((v) => PASS_END[v]))) - 1
-  const end = SUNSET
-  const alertAt = Math.min(end, r.alert)
-  const at = (h: number) => `${(Math.max(0, Math.min(1, (h - start) / (end - start))) * 100).toFixed(2)}%`
-  const move = motion ? 'transition-[left,width] duration-300 ease-[var(--ease)] motion-reduce:transition-none' : ''
   return (
     <section aria-labelledby="fireday-h" className={cn(glass, 'px-4 pb-3 pt-3')}>
       <div className="flex items-center justify-between gap-3">
@@ -1132,37 +1126,16 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
           <DelayRuler label="Delay between the pass and the alert, 0 to 3 hours" value={day.delay} onValue={(delay) => setDay({ ...day, delay })} band={TYPICAL_DELAY} bandLabel="typical" format={formatDelay} />
         </div>
       </div>
-      {/* the day: each pass as its satellite's mark, the delay in muted bone, then the daylight left in the chosen
-          satellite's colour up to sunset */}
-      <div className="mt-3 border-t border-[color:var(--hairline)] pt-3">
-        <div aria-hidden className="relative mx-1 h-12">
-          <span className="absolute inset-x-0 top-[22px] h-1.5 rounded-full bg-[color:var(--hairline)]" />
-          <span className={cn('absolute top-[22px] h-1.5 bg-[color:var(--bone-30)]', move)} style={{ left: at(PASS_END[day.src]), width: `calc(${at(alertAt)} - ${at(PASS_END[day.src])})` }} />
-          <span className={cn('absolute top-[22px] h-1.5 rounded-r-full', move)} style={{ left: at(alertAt), right: 0, background: COLOR[DAY_GROUP[day.src]] }} />
-          {DAY_SOURCES.map((v) => (
-            <span key={v} className="absolute top-[25px] grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[color:var(--ground)] p-[3px]" style={{ left: at(PASS_END[v]) }}>
-              <Mark g={DAY_GROUP[v]} size={v === day.src ? 11 : 8} off={v !== day.src} />
-            </span>
-          ))}
-          <span className={cn('absolute top-[14px] h-[22px] w-0.5 -translate-x-1/2 rounded-full bg-[color:var(--bone)]', move)} style={{ left: at(alertAt) }} />
-          <span className={cn('absolute top-0 whitespace-nowrap text-xs tabular-nums text-[color:var(--bone)]', move, alertAt > end - (end - start) * 0.15 ? '-translate-x-full' : '-translate-x-1/2')} style={{ left: at(alertAt) }}>alert {fmtHM(r.alert)}</span>
-          <span className="absolute left-0 top-[34px] text-[11px] tabular-nums text-[color:var(--bone3)]">{fmtHM(start)}</span>
-          <span className="absolute right-0 top-[34px] text-[11px] tabular-nums text-[color:var(--bone3)]">sunset {fmtHM(SUNSET)}</span>
+      {/* the answer: daylight left, and which of the day's fires this pass saw (the map's two dot sizes) */}
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-3">
+        <div>
+          <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[28px] font-medium leading-none tracking-[-0.02em] text-[color:var(--bone)]" />
+          <p className="mt-1.5 text-xs tabular-nums text-[color:var(--bone3)]">daylight left · alert {fmtHM(r.alert)}, sunset {fmtHM(SUNSET)}</p>
         </div>
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-          <div>
-            <p className="text-xs text-[color:var(--bone3)]">Daylight left</p>
-            <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[28px] font-medium leading-none tracking-[-0.02em] text-[color:var(--bone)]" />
-          </div>
-          <div className="flex flex-col gap-1.5 sm:items-end">
-            <p className="text-sm tabular-nums text-[color:var(--bone2)]"><span className="font-medium text-[color:var(--bone)]">{fmtInt(r.seen)}</span> of {r.total} fires seen by {day.src}</p>
-            <p className="flex items-center gap-3 text-[11px] text-[color:var(--bone3)]">
-              <span aria-hidden className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[color:var(--bone)]" />seen</span>
-              <span aria-hidden className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-[#8D8A84]" />missed</span>
-              <span>Local sun time · NASA FIRMS</span>
-            </p>
-          </div>
-        </div>
+        <p className="flex items-center gap-4 text-sm tabular-nums text-[color:var(--bone2)]">
+          <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-full bg-[color:var(--bone)]" /><span className="font-medium text-[color:var(--bone)]">{fmtInt(r.seen)}</span> seen</span>
+          <span className="flex items-center gap-1.5"><span aria-hidden className="size-1.5 rounded-full bg-[#8D8A84]" />{fmtInt(r.total - r.seen)} missed</span>
+        </p>
       </div>
     </section>
   )
