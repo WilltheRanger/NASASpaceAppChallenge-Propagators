@@ -1,5 +1,5 @@
 // SI: the Explore page's question-and-answer panel. Every answer is assembled from data the page already holds (the
-// team's drift, audit and daylight files, and the past day's NASA FIRMS detections) by fixed rules: a question is matched
+// team's drift, audit and daylight files, and the saved file of NASA FIRMS detections) by fixed rules: a question is matched
 // to one of a few kinds, and the answer's sentences carry the sources their numbers come from. Nothing is generated, so
 // nothing is invented; a question outside these kinds gets the list of what SI can answer.
 import { REGIONS, daylightHeadline, fmtHM, fmtInt, hm, isValidation, regionData, verdictHeadline } from './data'
@@ -19,7 +19,7 @@ export type SiAnswer = { sentences: SiSentence[]; sources: SiSource[]; actions?:
 export type SiContext = { region: string | null; place: Place | null; view: Box | null; fire: number | null }
 
 const SRC = {
-  firms: { id: 'firms', title: 'NASA FIRMS active fires, past day: MODIS (Terra, Aqua), VIIRS (NOAA-20, NOAA-21)', domain: 'firms.modaps.eosdis.nasa.gov', url: 'https://firms.modaps.eosdis.nasa.gov' },
+  firms: { id: 'firms', title: `NASA FIRMS active fires, ${dayText(WINDOW.start)} to ${dayText(WINDOW.end)}: MODIS (Terra, Aqua), VIIRS (NOAA-20, NOAA-21)`, domain: 'firms.modaps.eosdis.nasa.gov', url: 'https://firms.modaps.eosdis.nasa.gov' },
   drift: (id: string) => ({ id: `drift-${id}`, title: `Look times by year, ${regionData(id).name}`, domain: `data/out/drift/${id}.json` }),
   audit: (id: string) => ({ id: `audit-${id}`, title: `Aqua’s count vs what we’d expect, ${regionData(id).name}`, domain: `data/out/audit/${id}.json` }),
   daylight: (id: string) => ({ id: `daylight-${id}`, title: `Daylight after the alert, ${regionData(id).name}`, domain: `data/out/daylight/${id}.json` }),
@@ -84,7 +84,7 @@ function whenAnswer(ctx: SiContext, q: string): SiAnswer {
   const s = summary(box)
   const where = region ? regionData(region).phrase.the : ctx.place?.name ?? (box ? 'the map’s view' : 'the world')
   const out: SiSentence[] = [
-    { text: `Past day over ${where}, median local solar time: VIIRS ${hours(s.viirs.lst)}, Aqua ${hours(s.aqua.lst)}, Terra ${hours(s.terra.lst)}.`, cite: ['firms'] },
+    { text: `${dayText(WINDOW.start)} to ${dayText(WINDOW.end)} over ${where}, median local solar time: VIIRS ${hours(s.viirs.lst)}, Aqua ${hours(s.aqua.lst)}, Terra ${hours(s.terra.lst)}.`, cite: ['firms'] },
   ]
   const sources: SiSource[] = [SRC.firms]
   if (region) {
@@ -154,7 +154,7 @@ function countAnswer(ctx: SiContext): SiAnswer {
   const where = ctx.region ? regionData(ctx.region).phrase.the : box ? 'the map’s view' : 'the world'
   return {
     sentences: [
-      { text: `Past day, ${where}: ${fmtInt(s.total)} daytime fires on the map. VIIRS ${fmtInt(s.viirs.n)}, Aqua ${fmtInt(s.aqua.n)}, Terra ${fmtInt(s.terra.n)}.`, cite: ['firms'] },
+      { text: `${dayText(WINDOW.start)} to ${dayText(WINDOW.end)}, ${where}: ${fmtInt(s.total)} daytime fires on the map. VIIRS ${fmtInt(s.viirs.n)}, Aqua ${fmtInt(s.aqua.n)}, Terra ${fmtInt(s.terra.n)}.`, cite: ['firms'] },
       { text: 'The map keeps one detection per satellite per 2 km cell, so these aren’t full counts.', cite: ['firms'] },
     ],
     sources: [SRC.firms],
@@ -221,7 +221,7 @@ function answer(question: string, ctx: SiContext): SiAnswer {
     const i = strongest(box)
     if (i == null) return { sentences: [{ text: 'No fires in view. Zoom out or pick a region.' }], sources: [] }
     const where = scope ? `in ${regionData(scope).phrase.the}` : box ? 'in view' : 'in the world'
-    return fireAnswer(i, `Strongest fire ${where}, past day`)
+    return fireAnswer(i, `Strongest fire ${where}, ${dayText(WINDOW.start)} to ${dayText(WINDOW.end)}`)
   }
   if (has(q, 'fix', 'fixed clock', 'old clock', 'benchmark', 'counterfactual')) return fixAnswer(ctx, q)
   if (has(q, 'daylight', 'dark', 'sunset', 'alert')) return daylightAnswer(ctx, q)

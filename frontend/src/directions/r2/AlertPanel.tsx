@@ -41,7 +41,7 @@ function SatMark({ k }: { k: AlertRow['key'] }) {
   return <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: COLOR[k] }} />
 }
 
-export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore, basis, motion, headingLevel = 2 }: {
+export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, headingLevel = 2 }: {
   /** the place, as it reads in a sentence: "the Amazon", "Kenya" */
   place: string
   rows: AlertRow[]
@@ -52,6 +52,13 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   onDelay: (d: AlertDelay) => void
   /** when Aqua passed in 2012-2020 (hours), where the team has measured it */
   aquaBefore?: number | null
+  /** Aqua at its 2012-2020 pass instead of today's: the then/now switch */
+  aquaThen?: boolean
+  onAquaThen?: (then: boolean) => void
+  /** the place and the six studied regions, under the question */
+  picker?: ReactNode
+  /** the dates of the fires on the map, e.g. "14–15 Nov 2026" */
+  fires?: string
   /** where the pass times and the sunset come from, in one or two short sentences */
   basis: ReactNode
   motion: boolean
@@ -60,15 +67,17 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   const H = headingLevel === 1 ? 'h1' : 'h2'
   const day = Math.max(0.1, set - rise)
   const at = (h: number) => `${Math.max(0, Math.min(100, ((h - rise) / day) * 100))}%`
+  const then = aquaThen && aquaBefore != null
   const read = rows.map((r) => {
-    if (r.pass == null) return { ...r, alert: null, left: null }
-    const alert = r.pass + delay
-    return { ...r, alert, left: set - alert }
+    const pass = r.key === 'aqua' && then ? aquaBefore : r.pass
+    if (pass == null) return { ...r, pass, alert: null, left: null }
+    const alert = pass + delay
+    return { ...r, pass, alert, left: set - alert }
   })
   // the most daylight is worth marking only when there is more than one satellite to compare
   const lit = read.filter((r) => r.left != null && Math.round(r.left * 60) > 0)
   const best = lit.length > 1 ? Math.max(...lit.map((r) => r.left as number)) : null
-  const aqua = read.find((r) => r.key === 'aqua')
+  const aqua = rows.find((r) => r.key === 'aqua')
   const later = aqua?.pass != null && aquaBefore != null ? Math.round((aqua.pass - aquaBefore) * 60) : null
   // the same delay on both of Aqua's times: how many minutes of daylight the later pass costs (none of it once both are after dark)
   const fewer = later != null && aqua?.pass != null && aquaBefore != null
@@ -76,27 +85,28 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
     : null
   const move = motion ? 'transition-[left,width] duration-300 ease-[var(--ease)] motion-reduce:transition-none' : ''
   return (
-    <section aria-labelledby="alert-h" className="flex flex-col gap-4">
-      <H id="alert-h" className="text-[20px] font-medium leading-[1.25] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
-        If a fire started in {place}, when would a satellite’s alert arrive, and how much daylight would be left?
+    <section aria-labelledby="alert-h" className="flex flex-col gap-3 sm:gap-4">
+      <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance] sm:text-[20px] sm:leading-[1.25]">
+        If a fire starts in {place} today, when will a satellite tell you, and how much daylight will be left to act?
       </H>
+      {picker}
 
-      <div>
-        <p className="mb-1.5 flex items-baseline justify-between gap-3 text-xs text-[color:var(--bone2)]">
-          <span>Delay between the pass and the alert</span>
-          <span className="rounded-[3px] border border-dashed border-[color:var(--bone-30)] px-1.5 text-[11px] text-[color:var(--bone2)]">assumed</span>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs leading-4 text-[color:var(--bone2)]">
+          Alert delay
+          <span className="ml-1.5 rounded-[3px] border border-dashed border-[color:var(--bone-30)] px-1 text-[11px]">assumed</span>
         </p>
-        <SegmentedControl<AlertDelay> label="Delay between the pass and the alert, an assumption" value={delay} onChange={onDelay} motion={motion} segmentClassName="px-2 py-1.5 text-center text-sm" options={DELAYS} />
+        <SegmentedControl<AlertDelay> label="Delay between the pass and the alert, an assumption" value={delay} onChange={onDelay} motion={motion} className="w-[176px] shrink-0" segmentClassName="px-2 py-1 text-center text-sm" options={DELAYS} />
       </div>
 
-      <ol className="flex flex-col">
+      <ol id="alert-rows" className="flex flex-col">
         {read.map((r) => {
           const top = best != null && r.left === best
           const dark = r.left != null && Math.round(r.left * 60) <= 0
           return (
-            <li key={r.key} className="border-t border-[color:var(--hairline)] py-3">
+            <li key={r.key} className="border-t border-[color:var(--hairline)] py-2.5">
               <div className="flex items-baseline justify-between gap-3">
-                <span className="flex items-center gap-2 text-sm font-medium text-[color:var(--bone)]"><SatMark k={r.key} />{r.name}</span>
+                <span className="flex items-center gap-2 text-sm font-medium text-[color:var(--bone)]"><SatMark k={r.key} />{r.name}{r.key === 'aqua' && then ? <span className="text-xs font-normal text-[color:var(--bone2)]">in 2012–2020</span> : null}</span>
                 {r.left == null ? (
                   <span className="text-xs text-[color:var(--bone3)]">No detections here that day</span>
                 ) : (
@@ -112,11 +122,11 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
                     Passes {fmtHM(r.pass)} <span aria-hidden>→</span><span className="sr-only">,</span> alert {fmtHM(r.alert)}
                   </p>
                   {/* the day from sunrise to sunset: the pass, the wait for the alert (dashed: assumed), the daylight left */}
-                  <div aria-hidden className="relative mt-2 h-3">
+                  <div aria-hidden className="relative mt-1.5 h-3">
                     <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[color:var(--hairline)]" />
                     <span className={cn('absolute top-1/2 h-0 -translate-y-1/2 border-t-2 border-dashed', move)} style={{ left: at(r.pass), width: `calc(${at(r.alert)} - ${at(r.pass)})`, borderColor: COLOR[r.key] }} />
                     <span className={cn('absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[color:var(--bone)]', move)} style={{ left: at(r.alert), width: `calc(100% - ${at(r.alert)})` }} />
-                    {r.key === 'aqua' && aquaBefore != null && later != null && Math.abs(later) >= 5 ? (
+                    {r.key === 'aqua' && !then && aquaBefore != null && later != null && Math.abs(later) >= 5 ? (
                       <span title="Aqua’s pass in 2012–2020" className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--ground)]" style={{ left: at(aquaBefore), border: `2px solid ${COLOR.aqua}` }} />
                     ) : null}
                     <span className="absolute top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: at(r.pass), background: COLOR[r.key] }} />
@@ -132,16 +142,35 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
         </li>
       </ol>
 
-      {later != null && fewer != null && later >= 5 ? (
-        <p className="text-sm leading-6 text-[color:var(--bone)]">
-          Aqua now passes {later} minutes later than in 2012–2020. With the same delay, its alert would arrive {later} minutes later
-          {fewer > 0 ? <> and leave {fewer} fewer minutes of daylight.</> : <>; at this delay both would arrive after dark.</>}
-        </p>
+      {later != null && fewer != null && later >= 5 && aquaBefore != null && aqua?.pass != null ? (
+        <div data-tour="then-now" className="flex flex-col gap-2.5 rounded-[4px] border border-[color:var(--hairline)] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-medium text-[color:var(--bone)]">What Aqua’s drift changed</h3>
+            {onAquaThen ? (
+              <SegmentedControl<'then' | 'now'>
+                label="Aqua's pass time: 2012 to 2020, or now"
+                value={then ? 'then' : 'now'}
+                onChange={(v) => onAquaThen(v === 'then')}
+                motion={motion}
+                className="w-[176px] shrink-0"
+                segmentClassName="px-2 py-1 text-center text-sm"
+                options={[
+                  { value: 'then', name: `2012 to 2020, ${fmtHM(aquaBefore)}`, label: <span className="tabular-nums">Then {fmtHM(aquaBefore)}</span> },
+                  { value: 'now', name: `Now, ${fmtHM(aqua.pass)}`, label: <span className="tabular-nums">Now {fmtHM(aqua.pass)}</span> },
+                ]}
+              />
+            ) : null}
+          </div>
+          <p className="text-sm leading-6 text-[color:var(--bone)]">
+            Aqua now passes {later} minutes later than in 2012–2020, so its alert arrives {later} minutes later
+            {fewer > 0 ? <> and leaves {fewer} fewer minutes of daylight.</> : <>. At this delay it arrives after dark either way.</>}
+          </p>
+        </div>
       ) : null}
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs leading-5">
         <dt className="text-[color:var(--bone)]">Real</dt>
-        <dd className="text-[color:var(--bone2)]">Pass times, sunset, and the fires on the map.</dd>
+        <dd className="text-[color:var(--bone2)]">Pass times, sunset, and the fires on the map{fires ? ` (${fires})` : ''}.</dd>
         <dt className="text-[color:var(--bone)]">Assumed</dt>
         <dd className="text-[color:var(--bone2)]">The alert delay. NASA reports 60 to 125 minutes on average for MODIS, and 3 hours as its limit.</dd>
       </dl>
