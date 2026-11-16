@@ -183,7 +183,7 @@ function useBaseProtocol(src: string) {
 
 /** Sharper Blue Marble for a page that can't reach a tile server (scripts/earth-tiles.py writes the pictures). Each
  *  picture is 2048 px: 8 x 8 tiles of one zoom, named by its square on a coarser grid. `w` covers the whole world at
- *  zoom 5; `f` covers, at zoom 8, the squares that hold most of the day's fires. A tile of a lower zoom is the same
+ *  zoom 7; `f` covers, at zoom 8, every square that holds one of the day's fires. A tile of a lower zoom is the same
  *  picture drawn smaller. Pictures load when the map first needs them; the last few stay in memory. */
 const FIRE_PICTURES = new Set<string>(TILES.fire.cells)
 const pictures = new Map<string, Promise<ImageBitmap | HTMLImageElement>>()
@@ -229,13 +229,15 @@ function useTilesProtocol(dir: string) {
   })
 }
 
-/** How much bigger a detection draws for the heat it gave off (fire radiative power, MW), on the square root so a
- *  mark's area follows the heat: about 0.75 for the faintest, 1 near the day's middle (7 MW), 2.8 for the strongest. */
-const HEAT = ['interpolate', ['linear'], ['sqrt', ['get', 'f']], 0, 0.75, 2.6, 1, 5.2, 1.35, 11, 1.9, 30, 2.8]
+/** How a detection's mark is sized: its area is in proportion to the heat the satellite measured there (fire
+ *  radiative power, MW), so ten times the heat is ten times the area. A mark at the day's middle value (7 MW) draws at
+ *  the base size; readings under 3 MW draw as 3 and over 400 MW as 400, so no mark vanishes or covers the map. */
+export const HEAT_MIN = 3, HEAT_MID = 7, HEAT_MAX = 400
+const HEAT = ['sqrt', ['/', ['max', HEAT_MIN, ['min', HEAT_MAX, ['get', 'f']]], HEAT_MID]]
 /** a size in px times the heat factor; `share` under 1 flattens the factor, for far-out views where marks crowd */
 const heat = (px: number, share = 1) => ['*', px, share === 1 ? HEAT : ['+', 1, ['*', share, ['-', HEAT, 1]]]]
-/** a mark's size by zoom, growing as the map closes in, with heat counting for more the closer it is */
-const grow = (stops: [number, number][]) => ['interpolate', ['exponential', 1.5], ['zoom'], ...stops.flatMap(([z, px]) => [z, heat(px, z <= 2 ? 0.35 : z <= 5 ? 0.65 : 1)])] as never
+/** a mark's size by zoom, growing as the map closes in; at every zoom its area stays in proportion to its heat */
+const grow = (stops: [number, number][]) => ['interpolate', ['exponential', 1.5], ['zoom'], ...stops.flatMap(([z, px]) => [z, heat(px)])] as never
 
 /** the four corners of a box as short L-shaped strokes: a framing, not a boundary */
 function brackets(b: Box) {
@@ -307,8 +309,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         } : {}),
         // the comment page's own sharper pictures: the world at zoom 5, and zoom 6 to 8 where the day's fires are
         ...(bundled ? {
-          world2x: { type: 'raster' as const, tiles: ['anchor-tiles://w/{z}/{x}/{y}'], tileSize: 256, minzoom: TILES.world.z, maxzoom: TILES.world.z },
-          sharp: { type: 'raster' as const, tiles: ['anchor-tiles://f/{z}/{x}/{y}'], tileSize: 256, minzoom: TILES.fire.z - 2, maxzoom: TILES.fire.z },
+          world2x: { type: 'raster' as const, tiles: ['anchor-tiles://w/{z}/{x}/{y}'], tileSize: 256, minzoom: TILES.world.z - 2, maxzoom: TILES.world.z },
+          sharp: { type: 'raster' as const, tiles: ['anchor-tiles://f/{z}/{x}/{y}'], tileSize: 256, minzoom: TILES.fire.z, maxzoom: TILES.fire.z },
         } : {}),
         grid: { type: 'geojson', data: GRID },
         regions: { type: 'geojson', data: NONE },
@@ -359,11 +361,11 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         },
         {
           id: 'fire-near', type: 'circle', source: 'fires', filter: ['in', ['get', 'i'], ['literal', []]],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, ['+', 3, heat(2, 0.35)], 8, ['+', 3, heat(5, 1)], 11, ['+', 3, heat(9, 1)]] as never, 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, ['+', 3, heat(2)], 8, ['+', 3, heat(5, 1)], 11, ['+', 3, heat(9, 1)]] as never, 'circle-pitch-alignment': 'map' },
         },
         {
           id: 'fire-sel', type: 'circle', source: 'fires', filter: ['==', ['get', 'i'], -1],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, ['+', 6, heat(2, 0.35)], 8, ['+', 7, heat(5, 1)], 11, ['+', 8, heat(9, 1)]] as never, 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, ['+', 6, heat(2)], 8, ['+', 7, heat(5, 1)], 11, ['+', 8, heat(9, 1)]] as never, 'circle-pitch-alignment': 'map' },
         },
       ],
     }
