@@ -157,7 +157,13 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
 - **A later pass also changes viewing conditions** (ground temperature, sun angle), not only fire activity.
 - **The drift also changed how Aqua samples the ground** (pixel size, gaps between scans), so L for 2024 and 2025 mixes time of day with sampling. The two-clocks test is our attempt to separate them, and its simple version failed (P10).
   - NASA's MODIS fire lead reports (Giglio, May 2025) that the drift changed pixel size (about 970 m instead of 1 km along-scan by spring 2025), the gaps between scans, bowtie overlap and view angles, and that Terra was lowered about 6 km in 2022.
-  - The same talk says the effects on spatial sampling "seem to have abruptly increased in magnitude in late 2024". Amazon's L rises from 1.10 (2024) to 1.30 (2025) over that period. The timing matches; we have not tested whether the sampling change caused the rise.
+  - The same talk says the effects on spatial sampling "seem to have abruptly increased in magnitude in late 2024". Amazon's L rises from 1.10 (2024) to 1.30 (2025) over that period.
+  - **Tested: Aqua's excess sits in near-nadir pixels** ([`analysis/validation/near_nadir_L.md`](analysis/validation/near_nadir_L.md); it reproduces the published L to within 0.0005).
+    - Amazon 2025: near-nadir Aqua (scan ≤ 1.3 km) gives L = 1.53 (1.34 to 1.76), and off-nadir Aqua gives 0.99 (0.88 to 1.16). Cerrado and Argentina show the same split.
+    - Aqua's near-nadir share of detections rose from 55.6% (2012 to 2020) to 66.8% (2025). Terra's rose from 51% to 58%. S-NPP's stayed at 36 to 37%.
+    - So both MODIS instruments now sample differently, as NASA's MODIS team reports.
+  - Terra's drop in 2025 (L = 0.56) appears in both near- and off-nadir pixels, the pattern a time-of-day effect would give.
+  - **Read L as Aqua departing from the fixed clock, through a mix of later look time and changed sampling.** This data cannot yet say how much of the gap each one causes.
 - **The reference clock is ending.** NASA stopped delivering new Suomi NPP data on 2 November 2026, and S-NPP is the fixed clock that L is measured against. MODIS itself is scheduled to stop collecting data on Terra in January 2027 and on Aqua around September 2027 (CAMS, 2026).
   - Any audit after 2026 has to be rebuilt on NOAA-20 and NOAA-21 VIIRS.
   - NOAA-20 overlaps S-NPP from 2018, so its exchange rate can be estimated before S-NPP's record ends. We have not done this yet.
