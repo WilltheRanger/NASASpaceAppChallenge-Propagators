@@ -213,7 +213,7 @@ function OneDay() {
   const look = DAY_LOOK
   if (!look) return null
   const steps: StickyStep[] = [
-    { mark: look.old, title: 'Aqua used to look here', description: <>2012–2020, local sun time.</> },
+    { mark: look.old, title: 'Aqua used to look here', description: <>2012–2020.</> },
     {
       mark: look.now,
       title: `In ${look.year} it looked ${look.minutes} minutes later`,
@@ -307,7 +307,7 @@ function DayPanel({ step, picture = true, caption = true }: { step: number; pict
       <DayLine step={step} />
       {caption ? (
         <figcaption className="mt-3 text-xs text-[color:var(--bone3)]">
-          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026. Times shown are usual looks in {DAY_LOOK?.year}, not the image-day pass times. <a href="#overview-sources" className={textLink}>Image sources ↓</a>
+          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026. <a href="#overview-sources" className={textLink}>Image sources ↓</a>
         </figcaption>
       ) : null}
     </figure>
@@ -390,7 +390,6 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
                 ? <>Brazil’s official Amazon count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025; the VIIRS-based benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
                 : FINDING.join(' ')}
             </h2>
-            <p className="mt-4 max-w-[40rem] text-base text-[color:var(--ink)]">{FINDING.join(' ')}</p>
             <a href="#overview-sources" className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>Figures, definitions and sources ↓</a>
           </div>
           <Reveal className="lg:col-span-3 lg:col-start-10 lg:self-start lg:pt-2">
