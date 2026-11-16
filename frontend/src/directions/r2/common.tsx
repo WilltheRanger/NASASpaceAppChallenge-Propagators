@@ -34,7 +34,7 @@ export const BASE_TOKENS = {
   '--shadow-menu': '0 8px 24px rgba(0, 0, 0, 0.5)',
   '--ring-in': 'inset 0 0 0 2px #ECE9E1',
   '--ring-in-on': 'inset 0 0 0 2px #0B0D0B',
-  '--f-ui': "'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif",
+  '--f-ui': "'Albert Sans', ui-sans-serif, system-ui, sans-serif",
   '--ease': 'cubic-bezier(0.22, 1, 0.36, 1)',
 } as const
 

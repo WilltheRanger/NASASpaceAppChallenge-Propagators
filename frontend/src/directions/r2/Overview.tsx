@@ -2,7 +2,7 @@
  * THESIS: The overview is one day. Anchor's idea is a count taken later in the day, so the page moves along the clock:
  *   the park at 1:30, then 3:00; Aqua's look sliding from 13:37 to 14:57 over one real Amazon day; then six places on
  *   the same afternoon. It refuses the stat-row-and-cards landing.
- * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, IBM Plex Sans, hairlines, 4 px corners; photographs carry the colour.
+ * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, Albert Sans, hairlines, 4 px corners; photographs carry the colour.
  *   Terra a blue ring, VIIRS a green diamond, Aqua amber; a ring is the old time, a dot the new; amber means Aqua only.
  * STORY: the park question; the same question for fires, one step per scroll; the finding with its caveat beside it;
  *   six places on shared scales, each a door to its page; three picture doors on.

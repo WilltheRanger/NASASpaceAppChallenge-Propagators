@@ -1,7 +1,7 @@
 /*
  * The Explore page (the file keeps its first name). THESIS: One question at a time: which satellite saw this fire, and when? The Earth sits in the middle; the place and
  *   its numbers on the left; SI on the right; under the map, when each satellite looked at everything in view.
- * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, IBM Plex Sans, NASA Blue Marble. The satellite marks are the Region
+ * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, Source Sans 3 (the rest of the site: Albert Sans), NASA Blue Marble. The satellite marks are the Region
  *   page's: Terra a blue ring, VIIRS a green diamond, Aqua an amber dot. Region frames are white, so amber means Aqua.
  * STORY: A judge clicks a fire and reads which satellites saw that spot and at what local time. The chart shows each
  *   satellite's clock over everything in view, with Aqua's 2012–2020 clock marked. A studied region shows the audit as
@@ -11,7 +11,7 @@
  * FORM: docked rails around the map (revised after the critique and the audit; was corner instruments).
  * FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, CircleHelp, CornerDownLeft, Crosshair, Flame, Globe2, MapPin, MessageSquare, Minus, Play, Plus, Search, X } from 'lucide-react'
 import { AnchorLogo, AnchorMark } from '@/components/brand/anchor-logo'
 import { DecipherText } from '@/components/ui/decipher-text'
@@ -99,6 +99,9 @@ type Facts = ReturnType<typeof regionFacts>
 const LIST = REGIONS.map((r) => ({ id: r.id, name: short(r.name), f: regionFacts(r.id) }))
 /** how much later Aqua passed by 2025 across the studied regions (daylight files) */
 const SHIFTS = LIST.map((r) => (r.f.look.old && r.f.look.now ? Math.round((hm(r.f.look.now) - hm(r.f.look.old)) * 60) : null)).filter((v): v is number => v != null)
+// Explore's own type: a humanist sans, softer than the rest of the site's; loaded when this page opens
+const EXPLORE_FONT_URL = 'https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&display=swap'
+const EXPLORE_TYPE = { '--f-ui': "'Source Sans 3', 'Albert Sans', ui-sans-serif, system-ui, sans-serif", fontFamily: 'var(--f-ui)' } as CSSProperties
 const SHIFT = SHIFTS.length ? `${Math.min(...SHIFTS)} to ${Math.max(...SHIFTS)} minutes` : 'over an hour'
 /** said next to every finding */
 const CAVEAT = 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.'
@@ -250,6 +253,10 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const chartRef = useRef<HTMLDivElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   const chartH = useHeight(chartRef, 170)
+  useEffect(() => {
+    if (document.querySelector(`link[href="${EXPLORE_FONT_URL}"]`)) return
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = EXPLORE_FONT_URL; document.head.appendChild(l)
+  }, [])
   // first visit on a wide screen at the whole globe: the guide opens once the page has settled
   useEffect(() => {
     if (place || !wide || guideSeen()) return
@@ -406,7 +413,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   return (
     <>
       <style>{TAG_CSS}</style>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
+      <header style={EXPLORE_TYPE} className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
         <div className="flex h-14 items-center justify-between gap-4 px-4 lg:px-5">
           <a href={home} onClick={leave} aria-label="Anchor home" className={cn('flex shrink-0 items-center rounded leading-none', focusRing)}>
             <span className="sm:hidden"><AnchorMark size={18} /></span>
@@ -429,7 +436,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         </div>
       </header>
 
-      <main className="fixed inset-x-0 bottom-0 top-14 flex bg-[#03060A]">
+      <main style={EXPLORE_TYPE} className="fixed inset-x-0 bottom-0 top-14 flex bg-[#03060A]">
         {place ? <h1 className="sr-only">Explore: {place.name}</h1> : null}
         {wide ? (
           <aside aria-label="Place" className="relative z-20 flex w-[340px] shrink-0 flex-col border-r border-[color:var(--hairline)] bg-[color:var(--ground)] xl:w-[352px]">
@@ -1376,7 +1383,7 @@ const STARS = 'bg-[image:radial-gradient(1px_1px_at_12%_18%,rgba(236,233,225,0.4
 /** the region tags on the globe (MapLibre markers are plain DOM, outside Tailwind's reach); white, as amber is Aqua's */
 const TAG_CSS = `
 .anchor-tag{display:flex;align-items:center;gap:6px;min-height:24px;padding:3px 8px 3px 6px;border-radius:3px;cursor:pointer;white-space:nowrap;
-  background:rgba(11,13,11,0.9);border:1px solid rgba(236,233,225,0.35);color:#ECE9E1;font:500 12px/16px 'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  background:rgba(11,13,11,0.9);border:1px solid rgba(236,233,225,0.35);color:#ECE9E1;font:500 12px/16px 'Source Sans 3','Albert Sans',ui-sans-serif,system-ui,sans-serif;
   box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:background-color 150ms}
 .anchor-tag:hover{background:#1C1F1D}
 .anchor-tag[data-on="true"]{border-color:#ECE9E1}

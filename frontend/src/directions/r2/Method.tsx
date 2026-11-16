@@ -1,7 +1,7 @@
 import p9Followup from '../../../../data/out/p9-followup.json'
 /*
  * THESIS: How we know, in plain steps, with every technical detail one click deeper.
- * OWN-WORLD: Anchor dark, bone text, IBM Plex Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
+ * OWN-WORLD: Anchor dark, bone text, Albert Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
  * STORY: one Amazon day seen three times; the comparison in four steps; the ten checks, failures and all; the
  *   California real-fires test; how closely we match INPE; what Anchor can't do; sources and the code.
  * FIRST VIEWPORT: the page's question, its section bar, and the three looks at one day.
