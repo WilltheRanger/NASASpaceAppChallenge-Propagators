@@ -1103,7 +1103,7 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
     <section aria-labelledby="fireday-h" className={cn(glass, 'px-4 pb-3 pt-3')}>
       <div className="flex items-center justify-between gap-3">
         <h2 id="fireday-h" className="text-sm font-medium text-[color:var(--bone)]">
-          Pará, Brazil <span className="font-normal tabular-nums text-[color:var(--bone3)]">· {dayLabel(FIRE_DAY_DATE)} · {DAY_FIRES.length} fires</span>
+          Pará, Brazil <span className="font-normal tabular-nums text-[color:var(--bone3)]">· {dayLabel(FIRE_DAY_DATE)}</span>
         </h2>
         <button type="button" aria-label="Back to the fires on the map" title="Back to the fires on the map" onClick={onClose} className={cn('-mr-1.5 grid size-9 shrink-0 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
           <X size={16} strokeWidth={1.75} aria-hidden />
