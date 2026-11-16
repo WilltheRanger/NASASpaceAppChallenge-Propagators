@@ -479,7 +479,7 @@ function LookTimes({ d }: { d: RegionData }) {
               <span aria-hidden className="pointer-events-none absolute left-0 top-2 text-xs text-[color:var(--bone3)]">Morning side</span>
               <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
             </div>
-            <figcaption className="mt-3 max-w-[34rem] text-xs text-[color:var(--bone3)]">
+            <figcaption className="mt-3 max-w-[34rem] text-sm text-[color:var(--bone3)]">
               Each ring is a satellite’s path, seen at noon in {dr.year}. Drag to turn the globe.
             </figcaption>
           </figure>
@@ -496,7 +496,7 @@ function LookTimes({ d }: { d: RegionData }) {
               ))}
             </ul>
             <DriftChart d={d} year={dr.year} onYear={setYear} />
-            <p className="mt-2 text-xs text-[color:var(--bone3)]">Local sun time. Pick a year to turn the globe.</p>
+            <p className="mt-2 text-sm text-[color:var(--bone3)]">Local sun time. Pick a year to turn the globe.</p>
           </div>
         </div>
       </div>

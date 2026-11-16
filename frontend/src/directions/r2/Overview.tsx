@@ -249,7 +249,7 @@ function OneDay() {
                   {s.mark ? <span className="tabular-nums">{s.mark} </span> : null}
                   {s.title}
                 </h3>
-                <p className="mt-2 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{s.description}</p>
+                <p className="mt-2 max-w-[var(--measure)] text-base text-[color:var(--bone2)] sm:text-lg">{s.description}</p>
                 <div className="mt-5">
                   {/* the last step's picture is the first one again, so it keeps only the clock */}
                   <DayPanel step={pic[i]} picture={i !== steps.length - 1} caption={i === steps.length - 1} />
