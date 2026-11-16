@@ -9,7 +9,8 @@ import { box, day, fires, pass_end_lst, sunset_lst } from '../../../data/out/sim
 /** the four satellites that passed that day, in the order they passed */
 export const SOURCES = ['Terra', 'S-NPP', 'NOAA-20', 'Aqua'] as const
 export type Source = (typeof SOURCES)[number]
-export type Delay = 0 | 1.5 | 3
+/** hours between the pass and its alert */
+export type Delay = number
 type Fire = { id: number; lat: number; lon: number; frp: number; n: number; seen_by: string[]; t_Terra: number | null; t_VIIRS: number | null; t_Aqua: number | null }
 
 export const DAY = day as string

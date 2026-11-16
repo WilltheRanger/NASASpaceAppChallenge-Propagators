@@ -24,7 +24,7 @@ import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import factsJson from '../../../../data/out/facts.json'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, Footer, IMG, JETHVA, PageNext, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
+  CAVEAT, FEATURED, Footer, andList, IMG, JETHVA, More, PageNext, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
   primaryButton, useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -37,7 +37,7 @@ const ROWS = REGIONS.map((r) => {
   const d = regionData(r.id)
   const look = lookChange(d)
   const y = d.years.find((x) => x.year === YEAR) ?? null
-  const read = y && y.verdict !== 'na' && y.gap != null && y.lo != null && y.hi != null ? { gap: y.gap, lo: y.lo, hi: y.hi, unusual: y.verdict === 'outside', close: y.verdict === 'close' } : null
+  const read = y && y.verdict !== 'na' && y.gap != null && y.lo != null && y.hi != null ? { gap: y.gap, lo: y.lo, hi: y.hi, unusual: y.verdict === 'outside', close: y.verdict === 'close', past: y.pointsPast } : null
   return { id: r.id, name: r.name, short: phrase(r.id).short, look, read, band: d.placebo, usual: d.placeboYears, later: !!d.driftStart && (look?.minutes ?? 0) > 0 }
 })
 type Row = (typeof ROWS)[number]
@@ -45,12 +45,14 @@ const UNUSUAL = ROWS.filter((r) => r.read?.unusual)
 const CLOSE = ROWS.filter((r) => r.read?.close)
 const ALL_LATER = ROWS.every((r) => r.later)
 /** The finding, worded from the rows: every place looked later; these were unusual. */
+/** "In 2025, Aqua's count was clearly unusual in two places (Amazon, Cerrado); Argentina is a close call." */
+const closeText = CLOSE.length ? `${andList(CLOSE.map((r) => r.short))} ${CLOSE.length === 1 ? 'is a close call' : 'are close calls'}` : ''
+const UNUSUAL_LINE = UNUSUAL.length
+  ? `In ${YEAR}, Aqua’s count was clearly unusual in ${numWord(UNUSUAL.length)} ${UNUSUAL.length === 1 ? 'place' : 'places'} (${UNUSUAL.map((r) => r.short).join(', ')})${closeText ? `; ${closeText}` : ''}.`
+  : `In ${YEAR}, Aqua’s count was not clearly unusual in any place${closeText ? `; ${closeText}` : ''}.`
 const FINDING = [
   ALL_LATER ? `In all ${numWord(ROWS.length)} places, Aqua started looking later.` : `In ${numWord(ROWS.filter((r) => r.later).length)} of ${numWord(ROWS.length)} places, Aqua started looking later.`,
-  UNUSUAL.length
-    ? `In ${numWord(UNUSUAL.length)} (${UNUSUAL.map((r) => r.short).join(', ')}), its ${YEAR} count was clearly unusual against the benchmark.`
-    : `In none was its ${YEAR} count unusually far from what we’d expect.`,
-  ...(CLOSE.length ? [`${CLOSE.map((r) => r.short).join(', ')} ${CLOSE.length === 1 ? 'is a close call' : 'are close calls'} in ${YEAR}.`] : []),
+  UNUSUAL_LINE,
 ]
 /** INPE's official Amazon count and the VIIRS-based benchmark, 2024 to 2025 (data/out/facts.json, amazon_decline_2024_2025),
  *  and Aqua's 2025 count beside the benchmark (data/out/audit/br-amazon.json) */
@@ -74,6 +76,14 @@ const along = (v: number) => (v - SCALE.min) / (SCALE.max - SCALE.min)
 /** The day the middle chapter follows: the featured place's look times, and the satellites' pictures of one day. */
 const DAY = regionData(FEATURED)
 const DAY_LOOK = lookChange(DAY)
+/** How many minutes earlier Terra looks over the featured place than its 2012–2020 median (data/out/drift): 75 for the Amazon */
+const TERRA_EARLIER = (() => {
+  const v = DAY.drift.filter((r) => r.year <= 2020 && r.terra_lst).map((r) => hm(r.terra_lst)).sort((a, b) => a - b)
+  const last = DAY.lastDrift
+  if (!v.length || !last?.terra_lst) return null
+  const m = Math.round((v[Math.floor(v.length / 2)] - hm(last.terra_lst)) * 60)
+  return m > 0 ? m : null
+})()
 type PassKey = 'terra' | 'viirs' | 'aqua'
 const PASSES: Record<PassKey, { name: string; when: string; alt: string; fit?: string }> = {
   terra: { name: 'Terra', when: 'Morning', alt: 'Terra, morning, 4 Sep 2026: hazy smoke and a few clouds over the forest', fit: 'object-left' },
@@ -99,7 +109,7 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
       <main>
         <Park links={links} leave={leave} />
         <Later />
-        <OneDay />
+        <OneDay links={links} leave={leave} />
         <Finding links={links} leave={leave} />
       </main>
       <PageNext page="overview" links={links} leave={leave} />
@@ -144,7 +154,7 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
               <h1 id="park-h" className="text-[clamp(56px,11vw,168px)] font-medium leading-[0.9] tracking-[-0.04em] text-[color:var(--bone)]">
                 Anchor
               </h1>
-              <p className="mt-4 max-w-[28rem] text-[24px] leading-[1.25] text-[color:var(--bone)]">A fire calendar for six regions, 2002 to 2025.</p>
+              <p className="mt-4 max-w-[28rem] text-[24px] leading-[1.25] text-[color:var(--bone)]">A fire calendar for six regions.</p>
               <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-6')}>
                 Open the fire calendar <ArrowUpRight size={16} aria-hidden />
               </a>
@@ -206,7 +216,7 @@ function ParkClock({ moved, big = false }: { moved: boolean; big?: boolean }) {
 
 /* ---------- One day: Aqua's question, one step per scroll ---------- */
 
-function OneDay() {
+function OneDay({ links, leave }: { links: Links; leave: Leave }) {
   const motion = useMotion()
   // wide screens scrub one pinned picture; phones put each step's picture right under it
   const wideScreen = useMedia('(min-width: 1024px)')
@@ -219,13 +229,19 @@ function OneDay() {
     { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}, so we use it as the benchmark.</> },
   ]
   return (
-    <section id="day" aria-labelledby="day-h">
+    <section id="day" aria-labelledby="day-h" className="border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'pb-6 lg:pb-12')}>
         <div className="flex flex-col gap-5 pt-8 lg:pt-12">
           <h2 id="day-h" className="max-w-[22ch] text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.02em]">
             Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
           <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official fire count (INPE) relies on Aqua. But Aqua now flies over the Amazon about {look.minutes} minutes later than it did in 2012–2020.</p>
+          {TERRA_EARLIER ? (
+            <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">
+              Terra, Aqua’s morning twin, drifted the other way: about {TERRA_EARLIER} minutes earlier.{' '}
+              <a href={links.method('two-clocks')} onClick={leave} className={textLink}>See both clocks</a>
+            </p>
+          ) : null}
         </div>
         {wideScreen ? (
           <StickyScroll
@@ -422,9 +438,11 @@ function Places() {
           <PlaceRow key={r.id} r={r} i={i} />
         ))}
       </ol>
-      <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
+      <More label="About the range" className="mt-4">
+      <p className="mt-2 max-w-[64rem] text-xs text-[color:var(--bone3)]">
         Unusual: the likely range is wholly outside the usual range. Close call: just outside the usual range, but the likely range overlaps it.
       </p>
+      </More>
     </div>
   )
 }
@@ -435,15 +453,18 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
   // the column names show above each value on phones; on wide screens the header row shows them and these stay for screen readers
   const label = 'mb-1.5 block text-xs text-[color:var(--bone3)] md:sr-only'
   const chip = r.read ? (
-    <span className={cn('inline-block rounded px-2 py-0.5 text-sm', r.read.unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone2)]')}>
-      {r.read.unusual ? 'Unusual' : r.read.close ? 'Close call' : 'Not unusual'}
+    <span className="block max-md:text-right">
+      <span className={cn('inline-block rounded px-2 py-0.5 text-sm', r.read.unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : r.read.close ? 'border border-[color:var(--bone-30)] text-[color:var(--bone)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone2)]')}>
+        {r.read.unusual ? 'Unusual' : r.read.close ? 'Close call' : 'Not unusual'}
+      </span>
+      {r.read.past != null ? <span className="mt-1.5 block text-xs tabular-nums text-[color:var(--bone3)]">{Math.round(r.read.past)} points past the usual range</span> : null}
     </span>
   ) : (
     <span className="text-sm text-[color:var(--bone2)]">Our test case</span>
   )
   return (
     <Reveal as="li" delay={i * 80}>
-      <div className={cn('grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
+      <div className={cn('grid grid-cols-2 items-center gap-x-4 gap-y-3 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
         <span className="flex min-w-0 items-center gap-4">
           <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:h-16 md:w-24">
             <img
@@ -458,24 +479,23 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           </span>
           <span className="min-w-0 text-lg font-medium leading-tight text-[color:var(--bone)] md:text-xl">{r.name}</span>
         </span>
-        <span className="md:hidden">{chip}</span>
-        <span className="col-span-2 md:col-span-1">
-          <span className={label}>How much later Aqua looks</span>
+        <span className="justify-self-end md:hidden">{chip}</span>
+        <span>
+          <span className={label}><span className="md:hidden">Aqua looks later</span><span className="max-md:hidden">How much later Aqua looks</span></span>
           <span className="text-lg tabular-nums text-[color:var(--bone)]">+{r.look?.minutes ?? '—'} min</span>
           {r.look ? <span className="sr-only"> (from {r.look.old} to {r.look.now})</span> : null}
-          {r.look ? <MiniShift old={r.look.old} now={r.look.now} /> : null}
+          {r.look ? <span className="max-md:hidden"><MiniShift old={r.look.old} now={r.look.now} /></span> : null}
         </span>
-        <span className="col-span-2 md:col-span-1">
-          <span className={label}>{YEAR} count vs the benchmark</span>
+        <span>
+          <span className={label}><span className="md:hidden">vs benchmark</span><span className="max-md:hidden">{YEAR} count vs the benchmark</span></span>
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
               <RollingDigits text={pct(r.read.gap, 0)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
             </span>
           ) : (
-            <span className="block text-sm text-[color:var(--bone2)]">Too few fires to read in {YEAR}</span>
+            <span className="block text-sm text-[color:var(--bone2)]"><span className="md:hidden">Too few fires</span><span className="max-md:hidden">Too few fires to read in {YEAR}</span></span>
           )}
-          <Strip r={r} />
-          <span className="md:hidden"><StripAxis /></span>
+          <span className="max-md:hidden"><Strip r={r} /></span>
         </span>
         <span className="hidden md:block">{chip}</span>
       </div>

@@ -10,7 +10,7 @@
  */
 import type { ReactNode } from 'react'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { DelayRuler } from '@/components/ui/delay-ruler'
+import { DelayRuler, TYPICAL_DELAY, formatDelay } from '@/components/ui/delay-ruler'
 import { fmtHM } from '@/r2/data'
 import { cn } from '@/lib/utils'
 
@@ -24,17 +24,6 @@ export type AlertRow = {
 }
 
 const COLOR: Record<AlertRow['key'], string> = { terra: 'var(--sat-terra)', viirs: 'var(--sat-viirs)', aqua: 'var(--sat-aqua)' }
-/** NASA FIRMS: MODIS alerts typically arrive 60 to 125 minutes after the pass; 3 hours is the stated bound */
-const TYPICAL: [number, number] = [1, 125 / 60]
-
-/** a delay as "0 h", "45 min", "1 h 30" */
-function delayText(h: number) {
-  const m = Math.round(h * 60)
-  if (m === 0) return '0 h'
-  const hh = Math.floor(m / 60)
-  return hh ? (m % 60 ? `${hh} h ${String(m % 60).padStart(2, '0')}` : `${hh} h`) : `${m} min`
-}
-
 /** hours as "2 h 05" or "45 min" */
 function span(h: number) {
   const m = Math.round(h * 60)
@@ -49,7 +38,7 @@ function SatMark({ k }: { k: AlertRow['key'] }) {
 }
 
 
-export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, onHelp, calendar, headingLevel = 2 }: {
+export function AlertPanel({ place, when, rows, rise, set, delay, onDelay, aquaBefore, aquaThen = false, onAquaThen, picker, fires, basis, motion, onHelp, calendar, headingLevel = 2 }: {
   /** the place, as it reads in a sentence: "the Amazon", "Kenya" */
   place: string
   rows: AlertRow[]
@@ -65,6 +54,8 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   onAquaThen?: (then: boolean) => void
   /** the place control (step 1) */
   picker?: ReactNode
+  /** the scenario's date, e.g. "15 Sep" (mid fire season) or the fire file's dates */
+  when?: string
   /** the dates of the fires on the map, e.g. "14–15 Nov 2026" */
   fires?: string
   /** where the pass times and the sunset come from, in one or two short sentences */
@@ -102,7 +93,7 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
       <div>
         <p className="mb-1.5 text-xs text-[color:var(--bone3)]">What-if for responders</p>
         <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance]">
-          If a fire starts in {place} today, when could a satellite alert me, and how much daylight would I have left to act?
+          If a fire started in {place}{when ? ` on ${when}` : ''}, when could a satellite alert me, and how much daylight would I have left to act?
         </H>
         <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {onHelp ? (
@@ -127,9 +118,9 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
             label="Alert delay after the pass (assumed), 0 to 3 hours"
             value={delay}
             onValue={onDelay}
-            band={TYPICAL}
+            band={TYPICAL_DELAY}
             bandLabel="typical"
-            format={delayText}
+            format={formatDelay}
           />
         </div>
       </div>
@@ -211,8 +202,9 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
           </p>
           <p className="text-sm leading-5 text-[color:var(--bone2)]">
             {fewer > 0
-              ? <>Same delay, so the alert comes {later} min later with <span className="text-[color:var(--bone)]">{fewer} min less daylight</span>.</>
-              : <>Same delay, so the alert comes {later} min later; after dark either way.</>}
+              ? <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, leaving <span className="text-[color:var(--bone)]">about {fewer} fewer minutes of daylight</span>.</>
+              : <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, after dark either way.</>}
+            <span className="mt-1 block text-xs text-[color:var(--bone3)]">A what-if: real alert delivery wasn’t measured.</span>
           </p>
         </div>
       ) : null}

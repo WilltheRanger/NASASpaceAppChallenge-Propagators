@@ -8,6 +8,17 @@
 import * as Slider from '@radix-ui/react-slider'
 import { cn } from '@/lib/utils'
 
+/** NASA FIRMS: MODIS alerts typically arrive 60 to 125 minutes after the pass; 3 hours is the stated bound */
+export const TYPICAL_DELAY: [number, number] = [1, 125 / 60]
+
+/** a delay as "0 h", "45 min", "1 h 30" */
+export function formatDelay(h: number) {
+  const m = Math.round(h * 60)
+  if (m === 0) return '0 h'
+  const hh = Math.floor(m / 60)
+  return hh ? (m % 60 ? `${hh} h ${String(m % 60).padStart(2, '0')}` : `${hh} h`) : `${m} min`
+}
+
 export interface DelayRulerProps {
   /** hours */
   value: number
