@@ -1297,11 +1297,11 @@ function FireCard({ i, onClose, square, below = false, docked = false }: { i: nu
       </div>
       <div className="grid grid-cols-2 gap-3 px-3">
         <p>
-          <span className="block text-[26px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{fmtHM(lst)}</span>
+          <span className="block text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{fmtHM(lst)}</span>
           <span className="mt-1 block text-xs text-[color:var(--bone3)]">local sun time</span>
         </p>
         <p>
-          <span className="block text-[26px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">
+          <span className="block text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">
             {fmtMW(FRP[i])}<span className="text-sm font-normal text-[color:var(--bone2)]"> MW</span>
           </span>
           <span className="mt-1 block text-xs text-[color:var(--bone3)]">heat it gave off</span>
