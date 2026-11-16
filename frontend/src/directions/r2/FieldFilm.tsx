@@ -394,7 +394,6 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
           </p>
           <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)] lg:text-lg">{CAVEAT}</p>
-          {y.pointsPast != null ? <p className="mt-3 text-sm tabular-nums text-[color:var(--bone2)]">{y.pointsPast.toFixed(1)} points past the usual range (edge {pct(y.edge!, 1)}).</p> : null}
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
@@ -415,6 +414,12 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
               <>
                 <dt className="text-[color:var(--bone3)]">Aqua looks</dt>
                 <dd className="tabular-nums">{look.minutes} min later</dd>
+              </>
+            ) : null}
+            {y.pointsPast != null ? (
+              <>
+                <dt className="text-[color:var(--bone3)]">Past the usual range</dt>
+                <dd className="tabular-nums">{y.pointsPast.toFixed(1)} points</dd>
               </>
             ) : null}
           </dl>
@@ -480,7 +485,7 @@ function LookTimes({ d }: { d: RegionData }) {
               <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
             </div>
             <figcaption className="mt-3 max-w-[34rem] text-sm text-[color:var(--bone3)]">
-              Each ring is a satellite’s path, seen at noon in {dr.year}. Drag to turn the globe.
+              Drag to turn the globe.
             </figcaption>
           </figure>
           <div className="min-w-0 lg:col-span-6">
@@ -496,7 +501,7 @@ function LookTimes({ d }: { d: RegionData }) {
               ))}
             </ul>
             <DriftChart d={d} year={dr.year} onYear={setYear} />
-            <p className="mt-2 text-sm text-[color:var(--bone3)]">Local sun time. Pick a year to turn the globe.</p>
+            <p className="mt-2 text-sm text-[color:var(--bone3)]">Pick a year to turn the globe.</p>
           </div>
         </div>
       </div>
