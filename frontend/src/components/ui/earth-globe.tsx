@@ -27,12 +27,16 @@ export type EarthPadding = { top: number; right: number; bottom: number; left: n
 export type EarthHandle = {
   zoomBy: (d: number) => void
   home: () => void
-  /** pan just enough that a point has `top` px of room above it and `side` px either side (for a card drawn over it) */
-  reveal: (lon: number, lat: number, room: { top: number; side: number }) => void
+  /** pan just enough that a point has `top` px of room above it, `side` px either side and, when given, `bottom` px
+   *  below it (for a card drawn over or under it) */
+  reveal: (lon: number, lat: number, room: { top: number; side: number; bottom?: number }) => void
+  /** the room, in px, between a point and the top and bottom of the clear stage (inside the panels' padding) */
+  room: (lon: number, lat: number) => { above: number; below: number } | null
 }
 export type Show = { terra: boolean; aqua: boolean; viirs: boolean }
 /** React content drawn at a point on the map (the selected fire's card, a searched place's reticle) */
-export type Callout = { key: string; lon: number; lat: number; anchor: 'center' | 'bottom'; content: React.ReactNode } | null
+/** a card drawn on the map: above its point (anchor bottom), below it (anchor top), or centred on it */
+export type Callout = { key: string; lon: number; lat: number; anchor: 'center' | 'bottom' | 'top'; content: React.ReactNode } | null
 
 export interface EarthGlobeProps {
   regions: EarthRegion[]
@@ -540,8 +544,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     for (const c of callouts) {
       if (!c) continue
       const el = document.createElement('div')
-      el.style.pointerEvents = c.anchor === 'bottom' ? 'auto' : 'none'
-      markers.push(new Marker({ element: el, anchor: c.anchor, offset: c.anchor === 'bottom' ? [0, -14] : [0, 0], opacityWhenCovered: '0' }).setLngLat([c.lon, c.lat]).addTo(map))
+      el.style.pointerEvents = c.anchor === 'center' ? 'none' : 'auto'
+      markers.push(new Marker({ element: el, anchor: c.anchor, offset: c.anchor === 'bottom' ? [0, -14] : c.anchor === 'top' ? [0, 14] : [0, 0], opacityWhenCovered: '0' }).setLngLat([c.lon, c.lat]).addTo(map))
       made[c.key] = el
     }
     setHosts(made)
@@ -561,10 +565,17 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
       const p = map.project([lon, lat])
       const pad = cb.current.padding
       const minX = pad.left + room.side, maxX = el.clientWidth - pad.right - room.side
-      const minY = pad.top + room.top, maxY = el.clientHeight - pad.bottom - 16
+      const minY = pad.top + room.top, maxY = el.clientHeight - pad.bottom - (room.bottom ?? 16)
       const dx = p.x < minX ? p.x - minX : p.x > maxX ? p.x - maxX : 0
       const dy = p.y < minY ? p.y - minY : p.y > maxY ? p.y - maxY : 0
       if (dx || dy) map.panBy([dx, dy], { duration: motionRef.current ? 450 : 0 })
+    },
+    room: (lon, lat) => {
+      const map = mapRef.current, el = boxRef.current
+      if (!map || !el) return null
+      const p = map.project([lon, lat])
+      const pad = cb.current.padding
+      return { above: p.y - pad.top, below: el.clientHeight - pad.bottom - p.y }
     },
   }), [])
 
