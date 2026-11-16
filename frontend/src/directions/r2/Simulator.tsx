@@ -1100,7 +1100,7 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
   const r = dayRun(day.src, day.delay)
   const label = 'mb-1 text-xs text-[color:var(--bone3)]'
   return (
-    <section aria-labelledby="fireday-h" className={cn(glass, 'px-4 pb-3 pt-3')}>
+    <section aria-labelledby="fireday-h" className={cn(glass, 'px-5 pb-3 pt-4')}>
       <div className="flex items-center justify-between gap-3">
         <h2 id="fireday-h" className="text-sm font-medium text-[color:var(--bone)]">
           Pará, Brazil <span className="font-normal tabular-nums text-[color:var(--bone3)]">· {dayLabel(FIRE_DAY_DATE)}</span>
@@ -1109,7 +1109,19 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
           <X size={16} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
-      <div className="mt-2 flex flex-wrap items-start gap-x-6 gap-y-2">
+      {/* the answer first (the Verdict First Rule): daylight left, big; the alert, sunset and what this pass saw, one quiet line */}
+      <div className="mt-3">
+        <p className="flex flex-wrap items-baseline gap-x-2.5">
+          <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[48px] font-medium leading-none tracking-[-0.035em] text-[color:var(--bone)]" />
+          <span className="text-lg text-[color:var(--bone2)]">of daylight left</span>
+        </p>
+        <p className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] tabular-nums text-[color:var(--bone2)]">
+          <span>Alert <span className="text-[color:var(--bone)]">{fmtHM(r.alert)}</span> · sunset {fmtHM(SUNSET)}</span>
+          <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-full bg-[color:var(--bone)]" /><span className="text-[color:var(--bone)]">{fmtInt(r.seen)}</span> seen</span>
+          <span className="flex items-center gap-1.5"><span aria-hidden className="size-1.5 rounded-full bg-[#8D8A84]" />{fmtInt(r.total - r.seen)} missed</span>
+        </p>
+      </div>
+      <div className="mt-4 flex flex-wrap items-start gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-3">
         <div className="min-w-[min(300px,100%)] flex-[3]">
           <p className={label}>Alert from</p>
           <SegmentedControl<DaySource>
@@ -1125,17 +1137,6 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
           <p className={label}>Delay</p>
           <DelayRuler label="Delay between the pass and the alert, 0 to 3 hours" value={day.delay} onValue={(delay) => setDay({ ...day, delay })} band={TYPICAL_DELAY} bandLabel="typical" format={formatDelay} />
         </div>
-      </div>
-      {/* the answer: daylight left, and which of the day's fires this pass saw (the map's two dot sizes) */}
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-3">
-        <div>
-          <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[28px] font-medium leading-none tracking-[-0.02em] text-[color:var(--bone)]" />
-          <p className="mt-1.5 text-xs tabular-nums text-[color:var(--bone3)]">daylight left · alert {fmtHM(r.alert)}, sunset {fmtHM(SUNSET)}</p>
-        </div>
-        <p className="flex items-center gap-4 text-sm tabular-nums text-[color:var(--bone2)]">
-          <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-full bg-[color:var(--bone)]" /><span className="font-medium text-[color:var(--bone)]">{fmtInt(r.seen)}</span> seen</span>
-          <span className="flex items-center gap-1.5"><span aria-hidden className="size-1.5 rounded-full bg-[#8D8A84]" />{fmtInt(r.total - r.seen)} missed</span>
-        </p>
       </div>
     </section>
   )
