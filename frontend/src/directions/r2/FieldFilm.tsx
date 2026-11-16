@@ -406,9 +406,9 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
         </div>
         <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
-            <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
+            <dt className="text-[color:var(--bone3)]">Aqua counted (matched days)</dt>
             <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
-            <dt className="text-[color:var(--bone3)]">Benchmark</dt>
+            <dt className="text-[color:var(--bone3)]">Benchmark (matched days)</dt>
             <dd className="tabular-nums">{y.fixed != null ? fmtInt(y.fixed) : '—'}</dd>
             <dt className="text-[color:var(--bone3)]">Likely range</dt>
             <dd className="tabular-nums">{rangeText(y)}</dd>
@@ -421,6 +421,9 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
               </>
             ) : null}
           </dl>
+          <p className="mt-3 text-xs text-[color:var(--bone3)]">Matched days: the days in {y.year} when both Aqua and S-NPP sent data, all daytime hotspots. The whole-year totals below use every day, so they differ slightly; neither is wrong.</p>
+          <p className="mt-2 text-xs text-[color:var(--bone3)]">Likely range: where the number lands in 95% of re-runs when we re-pick which days are compared. It doesn’t cover errors in the satellites themselves, missing coverage, or year-to-year weather.</p>
+          <p className="mt-2 text-xs"><a href={links.method('steps')} onClick={leave} className={textLink}>Evidence: how we compare</a> · <a href={links.method('limits')} onClick={leave} className={textLink}>What it can’t tell you</a></p>
           {d.id === 'us-california' ? (
             <p className="mt-4 text-sm text-[color:var(--bone2)]">
               <a href={links.method('detection')} onClick={leave} className={textLink}>How well each satellite sees small fires</a>
@@ -710,7 +713,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
           {v.whole.length ? (
             <div className="mt-6 text-sm">
               <p className="font-medium text-[color:var(--bone)]">{hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}</p>
-              <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, all twelve months</p>
+              <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, every day of all twelve months (the result above uses matched days, so its totals differ slightly)</p>
               <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
                 {v.whole.map((r) => (
                   <Fragment key={r.name}>
