@@ -52,7 +52,6 @@ export function DelayRuler({ value, onValue, min = 0, max = 3, step = 0.25, band
         step={step}
         value={[value]}
         onValueChange={([v]) => { if (v != null && v !== value) onValue(v) }}
-        aria-label={label}
         className="relative flex h-16 w-full cursor-pointer touch-none items-start"
       >
         <Slider.Track className="relative mt-7 h-9 w-full">
@@ -74,6 +73,7 @@ export function DelayRuler({ value, onValue, min = 0, max = 3, step = 0.25, band
           ) : null}
         </Slider.Track>
         <Slider.Thumb
+          aria-label={label}
           aria-valuetext={format(value)}
           className="group relative block h-16 w-11 cursor-grab outline-none active:cursor-grabbing"
         >
