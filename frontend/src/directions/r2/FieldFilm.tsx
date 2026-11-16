@@ -472,11 +472,13 @@ function LookTimes({ d }: { d: RegionData }) {
   ]
   const name = statementName(d.id)
   const description = `${name} at noon in ${dr.year}, with each satellite’s path: Terra looks at ${dr.terra_lst}, VIIRS at ${dr.viirs_lst} and Aqua at ${dr.aqua_lst}, local sun time.`
+  // how far a satellite's look has moved from its 2012-2020 time; under four minutes counts as holding
   const change = (key: LookKey) => {
     const u = usualLook(d, key)
-    if (u == null) return ''
+    if (u == null) return { text: '', moved: false }
     const m = Math.round((hm(dr[key]) - u) * 60)
-    return Math.abs(m) < 4 ? 'about its usual time' : m > 0 ? `${m} min later than 2012–2020` : `${-m} min earlier than 2012–2020`
+    if (Math.abs(m) < 4) return { text: key === 'viirs_lst' ? 'kept its time' : 'about its usual time', moved: false }
+    return { text: m > 0 ? `${m} min later than 2012–2020` : `${-m} min earlier than 2012–2020`, moved: true }
   }
   return (
     <section id="look" aria-labelledby="look-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
@@ -489,24 +491,30 @@ function LookTimes({ d }: { d: RegionData }) {
               <span aria-hidden className="pointer-events-none absolute left-0 top-2 text-xs text-[color:var(--bone3)]">Morning side</span>
               <span aria-hidden className="pointer-events-none absolute right-0 top-2 text-xs text-[color:var(--bone3)]">Evening side</span>
             </div>
-            <figcaption className="mt-3 max-w-[34rem] text-sm text-[color:var(--bone3)]">
-              Drag to turn the globe.
+            <figcaption className="mt-3 max-w-[34rem] text-sm text-[color:var(--bone2)]">
+              Each ring is one satellite’s path. Its mark sits where it passes over {d.phrase.the}, and the line below gives the time. <span className="text-[color:var(--bone3)]">Drag to turn the globe.</span>
             </figcaption>
           </figure>
           <div className="min-w-0 lg:col-span-6">
-            <p className="text-sm text-[color:var(--bone2)]">{dr.year}</p>
-            <ul className="mt-2 border-t border-[color:var(--hairline)]">
-              {LOOK_SATS.map((s) => (
-                <li key={s.id} className="grid grid-cols-[1.25rem_4.5rem_4rem_minmax(0,1fr)] items-baseline gap-x-2 border-b border-[color:var(--hairline)] py-2.5">
-                  <span className="self-center"><SatMark sat={s.id} size={11} /></span>
-                  <span className="text-[color:var(--bone)]">{s.name}</span>
-                  <span className="text-xl font-medium tabular-nums text-[color:var(--bone)]">{dr[s.key]}</span>
-                  <span className="text-sm text-[color:var(--bone3)]">{s.id === 'viirs' && Math.abs(Math.round((hm(dr[s.key]) - (usualLook(d, s.key) ?? 0)) * 60)) < 4 ? 'kept its time' : change(s.key)}</span>
-                </li>
-              ))}
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <p className="text-xl font-medium tabular-nums text-[color:var(--bone)]">In {dr.year}</p>
+              <p className="text-sm text-[color:var(--bone3)]">Pass times, local sun time</p>
+            </div>
+            <ul className="mt-3 border-t border-[color:var(--hairline)]">
+              {LOOK_SATS.map((s) => {
+                const c = change(s.key)
+                return (
+                  <li key={s.id} className="grid grid-cols-[1.25rem_4.5rem_4rem_minmax(0,1fr)] items-baseline gap-x-2 border-b border-[color:var(--hairline)] py-2.5">
+                    <span className="self-center"><SatMark sat={s.id} size={11} /></span>
+                    <span className="text-[color:var(--bone)]">{s.name}</span>
+                    <span className="text-xl font-medium tabular-nums text-[color:var(--bone)]">{dr[s.key]}</span>
+                    <span className={cn('text-sm', c.moved ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone3)]')}>{c.text}</span>
+                  </li>
+                )
+              })}
             </ul>
             <DriftChart d={d} year={dr.year} onYear={setYear} />
-            <p className="mt-2 text-sm text-[color:var(--bone3)]">Pick a year to turn the globe.</p>
+            <p className="mt-2 text-sm text-[color:var(--bone3)]">Drag along the chart to change the year. The table and the globe follow.</p>
           </div>
         </div>
       </div>
@@ -522,7 +530,7 @@ function DriftChart({ d, year, onYear }: { d: RegionData; year: number; onYear: 
   const W = useMeasuredWidth(ref)
   const rows = d.drift
   const H = 260
-  const padL = 46, padR = 92, padT = 14, padB = 26
+  const padL = 50, padR = 56, padT = 14, padB = 28
   const all = rows.flatMap((r) => LOOK_SATS.map((s) => hm(r[s.key])))
   const lo = Math.floor(Math.min(...all) - 0.3), hi = Math.ceil(Math.max(...all) + 0.3)
   const y0 = rows[0].year, y1 = rows[rows.length - 1].year
@@ -532,7 +540,8 @@ function DriftChart({ d, year, onYear }: { d: RegionData; year: number; onYear: 
   const start = d.driftStart ? rows.find((r) => r.year === d.driftStart) ?? null : null
   const hours: number[] = []
   for (let h = Math.ceil(lo); h <= Math.floor(hi); h++) if (h % 3 === 0 || hi - lo <= 4) hours.push(h)
-  const yearTicks = [...new Set([y0, y0 + Math.round((y1 - y0) / 3), y0 + Math.round((2 * (y1 - y0)) / 3), y1])]
+  // a label every third year counting back from the last; the chosen year takes the place of any label beside it
+  const yearTicks = rows.map((r) => r.year).filter((yr) => yr === year || ((y1 - yr) % 3 === 0 && Math.abs(yr - year) > 1))
   const pick = (clientX: number) => {
     const el = ref.current
     if (!el || W <= 0) return
@@ -572,15 +581,18 @@ function DriftChart({ d, year, onYear }: { d: RegionData; year: number; onYear: 
       }}
     >
       {W > 0 ? (
-        <svg width={W} height={H} aria-hidden className="block overflow-visible" fontSize={11}>
+        <svg width={W} height={H} aria-hidden className="block overflow-visible" fontSize={12}>
           {hours.map((h) => (
             <g key={h}>
               <line x1={padL} x2={W - padR} y1={y(h)} y2={y(h)} stroke="var(--hairline)" />
               <text x={padL - 8} y={y(h)} textAnchor="end" dominantBaseline="central" fill="var(--bone3)" className="tabular-nums">{String(h).padStart(2, '0')}:00</text>
             </g>
           ))}
+          {rows.map((r) => (
+            <line key={r.year} x1={x(r.year)} x2={x(r.year)} y1={H - padB + 4} y2={H - padB + 8} stroke="var(--bone-20)" />
+          ))}
           {yearTicks.map((yr) => (
-            <text key={yr} x={x(yr)} y={H - 6} textAnchor="middle" fill="var(--bone3)" className="tabular-nums">{yr}</text>
+            <text key={yr} x={x(yr)} y={H - 4} textAnchor="middle" fill={yr === year ? 'var(--bone)' : 'var(--bone3)'} fontWeight={yr === year ? 500 : 400} className="tabular-nums">{yr}</text>
           ))}
           {start ? (
             <g>
@@ -600,10 +612,9 @@ function DriftChart({ d, year, onYear }: { d: RegionData; year: number; onYear: 
               })()}
             </g>
           ))}
+          {/* the lines are named at their ends; the times are the chosen year's, in the table above */}
           {ends.map(({ s, y: ly }) => (
-            <text key={s.id} x={W - padR + 10} y={ly} dominantBaseline="central" fill="var(--bone)" fontSize={12}>
-              {s.name} <tspan fill="var(--bone3)" className="tabular-nums">{lastRow[s.key]}</tspan>
-            </text>
+            <text key={s.id} x={W - padR + 12} y={ly} dominantBaseline="central" fill="var(--bone)" fontSize={13}>{s.name}</text>
           ))}
         </svg>
       ) : null}

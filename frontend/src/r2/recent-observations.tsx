@@ -6,7 +6,7 @@ export function RecentObservations() {
     <aside aria-labelledby="recent-observations-h" className="mt-8 rounded border border-[color:var(--hairline)] p-5 text-sm text-[color:var(--bone2)]">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 id="recent-observations-h" className="font-medium text-[color:var(--bone)]">2026 observations</h3>
-        <span className="rounded border border-[color:var(--hairline)] px-2 py-1 text-xs">Provisional · incomplete coverage</span>
+        <span className="rounded border border-[color:var(--hairline)] px-2 py-1 text-xs">Provisional</span>
       </div>
       <p className="mt-3">{snapshot.detections.toLocaleString('en-US')} daytime detections across Brazil’s six biomes, {snapshot.date_min} to {snapshot.date_max}. Not part of the calendar above.</p>
       <details className="mt-3">

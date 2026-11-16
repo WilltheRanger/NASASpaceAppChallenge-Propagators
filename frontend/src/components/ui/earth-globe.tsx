@@ -1,20 +1,26 @@
 /**
- * Earth globe: NASA Blue Marble on a 3D globe (MapLibre GL) that flattens into a 2D map on the way down to a place
- * (the projection eases from globe to web mercator across a band of zoom levels set for each flight). On it: the past
- * day's NASA FIRMS daytime fire detections in the site's satellite marks (Aqua an amber dot, VIIRS a green diamond,
- * Terra a blue ring), which can be clicked; the six studied regions, framed by white corner brackets; a faint grid.
+ * The Explore map: NASA Blue Marble as a flat web-mercator map (MapLibre GL) that pans around the world like any web
+ * map. (It was a 3D globe that unrolled; the file and component keep that name.) On it: the past day's NASA FIRMS
+ * daytime fire detections, which can be clicked; the six studied regions, framed by white corner brackets; a faint grid.
+ *
+ * Fire marks. Far out, every detection is one small dot of a fixed size in its satellite's mark (Aqua an amber dot,
+ * VIIRS a green diamond, Terra a blue ring), so the map shows where fire clusters as well as the strongest fires.
+ * Up close on the live site the dots hand over to squares: every detection drawn at the size of the ground it covers
+ * (FIRMS's scan and track footprint), so neighbouring squares join into the ground that was burning. Heat (fire
+ * radiative power) is how solid a mark is, at every zoom.
+ *
  * Optionally the world's 2-degree squares, coloured by how far Aqua's count sits from what we'd expect: they show far
  * out and fade as the map closes in, where the fires take over.
  *
- * Imagery: the comment page carries one 4096 px Blue Marble image, cut into tiles here (no network), and sharper Blue
- * Marble around each studied region; the live site also streams NASA GIBS Blue Marble and Sentinel-2 cloudless close up.
+ * Imagery: the comment page carries Blue Marble pictures of its own (no network); the live site also streams NASA GIBS
+ * Blue Marble and Sentinel-2 cloudless close up.
  */
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { Map as MLMap, Marker, addProtocol, setWorkerUrl, type GeoJSONSource, type ImageSource, type MapGeoJSONFeature, type StyleSpecification } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { FRP, LAT, LON, N, SAT } from '@/r2/fires'
+import { FRP, LAT, LON, N, SAT, groupOf, near as nearFires } from '@/r2/fires'
 import TILES from '@/r2/earth/tiles.json'
 
 setWorkerUrl(workerUrl)
@@ -63,6 +69,8 @@ export interface EarthGlobeProps {
   baseSrc: string
   /** the folder of sharper Blue Marble pictures (scripts/earth-tiles.py) for a page that can't reach a tile server */
   tilesSrc?: string
+  /** every detection with its ground footprint (scripts/fire-squares.py), fetched once the live map zooms close */
+  squaresSrc?: string
   /** stream NASA GIBS and Sentinel-2 tiles too (the live site; the comment page cannot reach them) */
   live: boolean
   motion: boolean
@@ -133,12 +141,19 @@ function diamond(px: number, fill: string, stroke: string) {
   return g.getImageData(0, 0, px, px)
 }
 
-/** the zoom at which the whole Earth fits the stage */
-const homeZoom = (w: number, h: number) => Math.log2((Math.min(w, h) * 0.92 * Math.PI) / 512)
-/** the band over which the globe flattens: globe below z0, a flat map above z1 */
-const band = (z0: number, z1: number) => ['interpolate', ['linear'], ['zoom'], z0, 'vertical-perspective', z1, 'mercator'] as unknown as string
-const flatAt = (z: number, b: [number, number]) => Math.max(0, Math.min(1, (z - b[0]) / (b[1] - b[0])))
+/** the zoom at which the whole world spans the stage (a tall phone stage fits most of its height instead) */
+const homeZoom = (w: number, h: number) => Math.log2(Math.max(w, h * 0.85) / 512)
+/** where the whole-world view is centred */
+const HOME: [number, number] = [0, 18]
 const mercY = (lat: number) => (1 - Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) / Math.PI) / 2
+/** the whole-world view. The world spans the stage's width; where a panel hides part of the stage's height (the phone's
+ *  sheet), HOME sits in the middle of the clear part and the map closes in just far enough to still cover the stage */
+function homeCam(w: number, h: number, p: EarthPadding) {
+  const ch = Math.max(1, h - p.top - p.bottom)
+  const cy = p.top + ch / 2, my = mercY(HOME[1])
+  const world = Math.max(512 * 2 ** homeZoom(w, ch), cy / my, (h - cy) / (1 - my))
+  return { center: HOME, zoom: Math.log2(world / 512), padding: { top: p.top, bottom: p.bottom, left: 0, right: 0 } }
+}
 /** the zoom and centre that fit a box inside the padded stage, as a flat map */
 function fit(b: Box, w: number, h: number, p: EarthPadding) {
   const aw = Math.max(80, w - p.left - p.right), ah = Math.max(80, h - p.top - p.bottom)
@@ -229,15 +244,34 @@ function useTilesProtocol(dir: string) {
   })
 }
 
-/** How a detection's mark is sized: its area is in proportion to the heat the satellite measured there (fire
- *  radiative power, MW), so ten times the heat is ten times the area. A mark at the day's middle value (7 MW) draws at
- *  the base size; readings under 3 MW draw as 3 and over 400 MW as 400, so no mark vanishes or covers the map. */
-export const HEAT_MIN = 3, HEAT_MID = 7, HEAT_MAX = 400
-const HEAT = ['sqrt', ['/', ['max', HEAT_MIN, ['min', HEAT_MAX, ['get', 'f']]], HEAT_MID]]
-/** a size in px times the heat factor; `share` under 1 flattens the factor, for far-out views where marks crowd */
-const heat = (px: number, share = 1) => ['*', px, share === 1 ? HEAT : ['+', 1, ['*', share, ['-', HEAT, 1]]]]
-/** a mark's size by zoom, growing as the map closes in; at every zoom its area stays in proportion to its heat */
-const grow = (stops: [number, number][]) => ['interpolate', ['exponential', 1.5], ['zoom'], ...stops.flatMap(([z, px]) => [z, heat(px)])] as never
+/** How solid a detection draws: its heat (fire radiative power, MW) on the square root, from faint at 3 MW or less to
+ *  solid at 150 MW or more. Size never carries heat: far out it is fixed, up close it is the ground covered. */
+export const HEAT_FAINT = 3, HEAT_SOLID = 150
+const BRIGHT = ['interpolate', ['linear'], ['sqrt', ['get', 'f']], Math.sqrt(HEAT_FAINT), 0.45, Math.sqrt(30), 0.8, Math.sqrt(HEAT_SOLID), 1]
+/** the zooms over which the fixed dots hand over to true-size squares, once the squares have loaded: about where a
+ *  375 m square is as wide as a dot */
+const HAND0 = 9.2, HAND1 = 10
+/** a dot's size in px, the same for every detection: `far` out to zoom 6, easing to `near` at the handover */
+const fixed = (far: number, near: number) => ['interpolate', ['linear'], ['zoom'], 6, far, HAND1, near] as never
+
+/** Every detection as the rectangle of ground it covers: FIRMS's scan (across the satellite's path, drawn east-west)
+ *  and track (along it, drawn north-south). The real pixel is tilted a few degrees along the orbit; FIRMS's file
+ *  doesn't give the tilt, so the size is true and the angle is north-up. Rows: lon * 1e4, lat * 1e4, satellite, FRP,
+ *  scan and track in units of 10 m. */
+function squareFeatures(pts: number[]): GeoJSON.FeatureCollection {
+  const n = Math.floor(pts.length / 6)
+  const features: GeoJSON.Feature[] = new Array(n)
+  for (let i = 0; i < n; i++) {
+    const lon = pts[i * 6] / 1e4, lat = pts[i * 6 + 1] / 1e4, sat = pts[i * 6 + 2]
+    const hx = (pts[i * 6 + 4] * 5) / (111320 * Math.max(0.05, Math.cos((lat * Math.PI) / 180)))
+    const hy = (pts[i * 6 + 5] * 5) / 111320
+    features[i] = {
+      type: 'Feature', properties: { g: sat >= 2 ? 2 : sat, f: pts[i * 6 + 3] },
+      geometry: { type: 'Polygon', coordinates: [[[lon - hx, lat - hy], [lon + hx, lat - hy], [lon + hx, lat + hy], [lon - hx, lat + hy], [lon - hx, lat - hy]]] },
+    }
+  }
+  return { type: 'FeatureCollection', features }
+}
 
 /** the four corners of a box as short L-shaped strokes: a framing, not a boundary */
 function brackets(b: Box) {
@@ -278,7 +312,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
   const boxRef = React.useRef<HTMLDivElement | null>(null)
   const mapRef = React.useRef<MLMap | null>(null)
   const [ready, setReady] = React.useState(false)
-  const bandRef = React.useRef<[number, number]>([4, 5.5])
+  const squaresReady = React.useRef(false)
   const cb = React.useRef(props)
   cb.current = props
   const motionRef = React.useRef(motion)
@@ -296,11 +330,10 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     const bundled = !live && !!props.tilesSrc
     if (bundled) useTilesProtocol(props.tilesSrc as string)
     const w = el.clientWidth || 1200, h = el.clientHeight || 800
-    const dot = (color: string, r: [number, number][]) => ({ 'circle-color': color, 'circle-radius': grow(r), 'circle-pitch-alignment': 'map', 'circle-stroke-color': GROUND, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 2, 0, 5, 0.6] })
+    const dot = (color: string, far: number, near: number) => ({ 'circle-color': color, 'circle-radius': fixed(far, near), 'circle-pitch-alignment': 'map', 'circle-stroke-color': GROUND, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 2, 0, 5, 0.6] })
     const style: StyleSpecification = {
       version: 8,
-      projection: { type: band(4, 5.5) },
-      sky: { 'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 4, 0.8, 6, 0] },
+      projection: { type: 'mercator' },
       sources: {
         base: { type: 'raster', tiles: ['anchor-earth://{z}/{x}/{y}'], tileSize: 256, maxzoom: 4 },
         ...(live ? {
@@ -316,6 +349,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         regions: { type: 'geojson', data: NONE },
         frames: { type: 'geojson', data: NONE },
         fires: { type: 'geojson', data: NONE, buffer: 16, tolerance: 0 },
+        squares: { type: 'geojson', data: NONE, tolerance: 0, buffer: 8 },
         'scene-fires': { type: 'geojson', data: NONE },
         cells: { type: 'geojson', data: NONE },
       },
@@ -338,17 +372,20 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'region-hit', type: 'fill', source: 'regions', paint: { 'fill-color': '#000', 'fill-opacity': 0 } },
         { id: 'region-edge', type: 'line', source: 'regions', paint: { 'line-color': BONE, 'line-opacity': ['case', ['get', 'on'], 0.6, 0.22], 'line-width': 1, 'line-dasharray': [2, 3] } },
         { id: 'frames', type: 'line', source: 'frames', layout: { 'line-cap': 'square', 'line-join': 'miter' }, paint: { 'line-color': BONE, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, 0.7] } },
+        // up close: every detection at the size of the ground it covers, in its satellite's colour; overlaps show through
+        { id: 'squares', type: 'fill', source: 'squares', minzoom: HAND0 - 0.6, paint: { 'fill-color': ['match', ['get', 'g'], 0, TERRA, 1, AQUA, VIIRS], 'fill-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, ['*', 0.92, BRIGHT]], 'fill-antialias': true } as never },
+        { id: 'squares-edge', type: 'line', source: 'squares', minzoom: HAND0 - 0.6, paint: { 'line-color': ['match', ['get', 'g'], 0, TERRA, 1, AQUA, VIIRS], 'line-width': 1, 'line-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, 0.9] } as never },
         // VIIRS beneath (the most numerous), then Terra's rings, then Aqua on top: Aqua is the satellite the audit is about
-        { id: 'fire-viirs-dot', type: 'circle', source: 'fires', maxzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2], paint: dot(VIIRS, [[1, 1.1], [4, 1.9], [6, 2.8]]) as never },
+        { id: 'fire-viirs-dot', type: 'circle', source: 'fires', maxzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2], paint: dot(VIIRS, 2, 2) as never },
         {
           id: 'fire-viirs', type: 'symbol', source: 'fires', minzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2],
-          layout: { 'icon-image': 'viirs-mark', 'icon-size': grow([[1, 0.3], [4, 0.45], [8, 0.85], [11, 1.4]]), 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-padding': 0 },
+          layout: { 'icon-image': 'viirs-mark', 'icon-size': fixed(0.34, 0.44), 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-padding': 0 },
         },
         {
           id: 'fire-terra', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 0],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': grow([[1, 1.4], [4, 2.4], [8, 4.8], [11, 8.5]]), 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': fixed(2.4, 3.2), 'circle-pitch-alignment': 'map' },
         },
-        { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, [[1, 1.3], [4, 2.2], [8, 4.5], [11, 8]]) as never },
+        { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, 2.2, 3) as never },
         // one real fire day: the fires this satellite missed (dim), then the ones it saw
         { id: 'scene-fire-dim', type: 'circle', source: 'scene-fires', filter: ['!', ['get', 'seen']], paint: { 'circle-color': '#8D8A84', 'circle-opacity': 0.75, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 9, 3.5], 'circle-stroke-color': GROUND, 'circle-stroke-width': 0.6 } },
         {
@@ -361,18 +398,18 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         },
         {
           id: 'fire-near', type: 'circle', source: 'fires', filter: ['in', ['get', 'i'], ['literal', []]],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, ['+', 3, heat(2)], 8, ['+', 3, heat(5, 1)], 11, ['+', 3, heat(9, 1)]] as never, 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': fixed(6, 8), 'circle-pitch-alignment': 'map' },
         },
         {
           id: 'fire-sel', type: 'circle', source: 'fires', filter: ['==', ['get', 'i'], -1],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, ['+', 6, heat(2)], 8, ['+', 7, heat(5, 1)], 11, ['+', 8, heat(9, 1)]] as never, 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': fixed(9, 12), 'circle-pitch-alignment': 'map' },
         },
       ],
     }
     let map: MLMap
     try {
       map = new MLMap({
-        container: el, style, center: [-40, 8], zoom: homeZoom(w, h), minZoom: 0.4, maxZoom: live ? 11 : 8.5,
+        container: el, style, center: HOME, zoom: homeZoom(w, h), minZoom: Math.max(0, homeZoom(w, h) - 0.25), maxZoom: live ? 13 : 8.5,
         attributionControl: false, maplibreLogo: false, dragRotate: false, pitchWithRotate: false, touchPitch: false, maxPitch: 0,
         renderWorldCopies: true, fadeDuration: 150, canvasContextAttributes: { antialias: false },
         // keep tiles across the whole zoom range (0.4 to 11): the default keeps 5 levels, so zooming out to the whole
@@ -420,6 +457,12 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         }
         cb.current.onFire?.(Number(best.properties?.i))
         return
+      }
+      // up close a square is much wider than its dot: a click anywhere on it picks the nearest detection of a shown satellite
+      if (squaresReady.current && map.getZoom() >= HAND0) {
+        const at = map.unproject(p)
+        const hit = nearFires(at.lng, at.lat, 1.5).find(({ i }) => cb.current.show[groupOf(SAT[i])])
+        if (hit) { cb.current.onFire?.(hit.i); return }
       }
       const c = cellAt()
       if (c) { cb.current.onCell?.(String(c)); return }
@@ -483,20 +526,55 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     ;(map.getSource('scene-fires') as GeoJSONSource | undefined)?.setData(props.scene ?? NONE)
   }, [ready, props.scene])
 
+  // How solid the dots draw: by heat; fading in as the 2-degree squares fade out (while those show); fading out as the
+  // true-size squares take over up close (once those have loaded).
+  const paintFires = React.useCallback(() => {
+    const map = mapRef.current
+    if (!map) return
+    const stops: unknown[] = []
+    if (cellsOn.current) stops.push(4.5, 0, CELLS_GONE - 0.5, BRIGHT)
+    if (squaresReady.current) stops.push(HAND0, BRIGHT, HAND1, 0)
+    const op = (stops.length ? ['interpolate', ['linear'], ['zoom'], ...stops] : BRIGHT) as never
+    map.setPaintProperty('fire-viirs', 'icon-opacity', op)
+    map.setPaintProperty('fire-viirs-dot', 'circle-opacity', op)
+    map.setPaintProperty('fire-viirs-dot', 'circle-stroke-opacity', op)
+    map.setPaintProperty('fire-terra', 'circle-stroke-opacity', op)
+    map.setPaintProperty('fire-aqua', 'circle-opacity', op)
+    map.setPaintProperty('fire-aqua', 'circle-stroke-opacity', op)
+  }, [])
+
+  // Up close on the live site: every detection at the size of the ground it covers. The file is fetched the moment
+  // the map nears the handover; until it arrives (or if it can't), the dots stay.
+  React.useEffect(() => {
+    const map = mapRef.current
+    const src = props.squaresSrc
+    if (!map || !ready || !live || !src) return
+    let asked = false, gone = false
+    const load = () => {
+      if (asked || map.getZoom() < HAND0 - 1.5) return
+      asked = true
+      fetch(src)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error('no squares'))))
+        .then((d: { pts: number[] }) => {
+          if (gone) return
+          ;(map.getSource('squares') as GeoJSONSource | undefined)?.setData(squareFeatures(d.pts))
+          squaresReady.current = true
+          paintFires()
+        })
+        .catch(() => { /* the dots stay */ })
+    }
+    map.on('zoom', load)
+    load()
+    return () => { gone = true; map.off('zoom', load) }
+  }, [ready, live, props.squaresSrc, paintFires])
+
   // the 2-degree squares; while they show, the day's fires fade in only as the squares fade out
   React.useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
     ;(map.getSource('cells') as GeoJSONSource | undefined)?.setData(props.cells ?? NONE)
-    const on = (props.cells?.features.length ?? 0) > 1
-    const fade = (to: number) => (on ? ['interpolate', ['linear'], ['zoom'], 4.5, 0, CELLS_GONE - 0.5, to] : to) as never
-    map.setPaintProperty('fire-viirs', 'icon-opacity', fade(1))
-    map.setPaintProperty('fire-viirs-dot', 'circle-opacity', fade(1))
-    map.setPaintProperty('fire-viirs-dot', 'circle-stroke-opacity', fade(1))
-    map.setPaintProperty('fire-terra', 'circle-stroke-opacity', fade(1))
-    map.setPaintProperty('fire-aqua', 'circle-opacity', fade(1))
-    map.setPaintProperty('fire-aqua', 'circle-stroke-opacity', fade(1))
-  }, [ready, props.cells])
+    paintFires()
+  }, [ready, props.cells, paintFires])
   React.useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -511,6 +589,9 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     map.setLayoutProperty('fire-aqua', 'visibility', show.aqua ? 'visible' : 'none')
     map.setLayoutProperty('fire-viirs', 'visibility', show.viirs ? 'visible' : 'none')
     map.setLayoutProperty('fire-viirs-dot', 'visibility', show.viirs ? 'visible' : 'none')
+    const shown = ['in', ['get', 'g'], ['literal', [show.terra ? 0 : -1, show.aqua ? 1 : -1, show.viirs ? 2 : -1]]] as never
+    map.setFilter('squares', shown)
+    map.setFilter('squares-edge', shown)
   }, [ready, show.terra, show.aqua, show.viirs])
 
   // the clicked fire and its other sightings
@@ -574,13 +655,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
   // sharper Blue Marble around the selected region, from the moment it is picked
   useImageLayer(mapRef, ready, 'region-ctx', context ?? null, 'ctx-slot', motion)
 
-  // A flight in three legs, so the globe never snaps flat. MapLibre's flyTo keeps most of its zooming for the last
-  // moment, which crossed the flatten band in a fraction of a second; here each leg is a plain ease and the band always
-  // spans the whole leg that changes the shape:
-  //   rise: a flat map curls back into the globe on the way out (only when it isn't a globe already);
-  //   turn: the globe rotates to the place, at globe height;
-  //   dive: the globe unrolls into a map across the whole descent.
-  // A band is only ever swapped where it gives the same shape at the current zoom, so nothing jumps between legs.
+  // A flight on the flat map: a short trip eases straight there; a long one pulls back, so the reader sees where
+  // the map is going, then closes in. Each leg is a plain ease the reader can interrupt.
   React.useEffect(() => {
     const map = mapRef.current
     const el = boxRef.current
@@ -588,10 +664,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     const id = ++flight.current
     const w = el.clientWidth, h = el.clientHeight
     const home = homeZoom(w, h)
-    const globeZ = home + 0.1
-    const NO_PAD = { top: 0, right: 0, bottom: 0, left: 0 }
     map.stop()
-    const setBand = (b: [number, number]) => { bandRef.current = b; map.setProjection({ type: band(b[0], b[1]) }) }
     // a reader who drags or scrolls mid-flight takes the camera; the flight stops where they are
     let taken = false
     const take = () => { taken = true }
@@ -609,34 +682,16 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         window.setTimeout(finish, o.duration + 400)
         map.easeTo({ ...o, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true })
       })
-    const z = map.getZoom()
-    const flat = flatAt(z, bandRef.current)
-    /** rise to globe height, keeping the shape the map has now at this zoom */
-    const rise = async () => {
-      if (flat < 0.02 || z <= globeZ + 0.05) return true
-      setBand([globeZ, globeZ + (z - globeZ) / flat])
-      return leg({ zoom: globeZ, padding: cb.current.padding, duration: 900 + (z - globeZ) * 120 })
-    }
     const run = async () => {
-      if (!target) {
-        if (!(await rise())) return
-        return leg({ center: [-40, 8], zoom: home, padding: NO_PAD, duration: 1100 })
-      }
+      if (!target) return leg({ ...homeCam(w, h, cb.current.padding), duration: 1100 })
       const cam = fit(target.bbox, w, h, cb.current.padding)
       if (target.maxZoom != null) cam.zoom = Math.min(cam.zoom, target.maxZoom)
       const c = map.getCenter()
       const km = 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(Math.sin(((cam.center[1] - c.lat) * Math.PI) / 360) ** 2 + Math.cos((c.lat * Math.PI) / 180) * Math.cos((cam.center[1] * Math.PI) / 180) * Math.sin(((cam.center[0] - c.lng) * Math.PI) / 360) ** 2)))
-      const bigPlace = cam.zoom - globeZ < 0.4 // so large it reads best as a globe
-      if (km < 700 && flat > 0.98 && !bigPlace) {
-        // a short hop on a flat map stays flat
-        setBand([globeZ, Math.max(globeZ + 0.3, Math.min(z, cam.zoom) - 0.02)])
-      } else {
-        if (!(await rise())) return
-        if (km > 150 && !(await leg({ center: cam.center, zoom: Math.min(map.getZoom(), globeZ), padding: cb.current.padding, duration: Math.round(Math.min(2400, 800 + km / 7)) }))) return
-        const from = map.getZoom()
-        setBand(bigPlace ? [cam.zoom + 1, cam.zoom + 2] : [from + 0.02, Math.max(from + 0.3, cam.zoom - 0.05)])
-      }
-      const ok = await leg({ center: cam.center, zoom: cam.zoom, padding: cb.current.padding, duration: Math.round(1300 + Math.abs(cam.zoom - map.getZoom()) * 260) })
+      // far away: pull back to a height that shows both ends, moving toward the place, before closing in
+      const high = Math.max(home, Math.min(map.getZoom(), cam.zoom, 8.5 - Math.log2(Math.max(1, km / 100))))
+      if (km > 900 && map.getZoom() > high + 0.4 && !(await leg({ center: [(c.lng + cam.center[0]) / 2, (c.lat + cam.center[1]) / 2], zoom: high, padding: cb.current.padding, duration: Math.round(Math.min(1800, 700 + km / 8)) }))) return
+      const ok = await leg({ center: cam.center, zoom: cam.zoom, padding: cb.current.padding, duration: Math.round(1100 + Math.abs(cam.zoom - map.getZoom()) * 240 + Math.min(900, km / 6)) })
       if (ok || id === flight.current) cb.current.onArrive?.(target.key)
     }
     void run().finally(() => { map.off('dragstart', take); map.off('wheel', take) })
@@ -666,7 +721,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     home: () => {
       const map = mapRef.current, el = boxRef.current
       if (!map || !el) return
-      map.flyTo({ center: [-40, 8], zoom: homeZoom(el.clientWidth, el.clientHeight), padding: { top: 0, right: 0, bottom: 0, left: 0 }, duration: motionRef.current ? 1400 : 0, essential: true })
+      map.flyTo({ ...homeCam(el.clientWidth, el.clientHeight, cb.current.padding), duration: motionRef.current ? 1400 : 0, essential: true })
     },
     reveal: (lon, lat, room) => {
       const map = mapRef.current, el = boxRef.current
