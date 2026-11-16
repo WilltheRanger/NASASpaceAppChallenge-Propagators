@@ -1,0 +1,5 @@
+# Additional original-check diagnostics
+
+Original P5/P7/P10 scores remain unchanged. This follow-up is post-hoc, not preregistered. It tests whether using daily mean FRP as a proxy for individual fire strength obscures P5's interpretation. Individual FRP classes use baseline 2012–2020 S-NPP detection terciles per biome, with the same MW boundaries applied to Aqua detections. FRP is not interchangeable between instruments and detections are not matched physical fires; this is a sensitivity, not a retroactive original pass or causal proof.
+
+Use exact historical IBGE polygons, daytime type0 detections, MODIS confidence>=30 / VIIRS normal-high. Keep original common-day support, month adjustment, 16-day Poisson bootstrap, 1000 draws, 2021–25 target years. Compute both fixed and replicate-specific baseline Aqua class weights; report every biome-year, including invalid/insufficient ones, and compare with original all-detection and filter-consistent audit intervals. Do not choose cutoffs or exclusions based on the output.

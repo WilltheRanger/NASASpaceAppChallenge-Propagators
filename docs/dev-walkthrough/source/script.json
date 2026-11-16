@@ -1,0 +1,90 @@
+{
+  "voice": "af_heart",
+  "speed": 1.08,
+  "scenes": [
+    {
+      "id": "intro",
+      "chapter": "Intro",
+      "lines": [
+        {"d": "Here's our web app in two minutes: what it shows, how the data flows, and the rules your code has to follow.",
+         "s": "Here's our web app, in two minutes: what it shows, how the data flows, and the rules your code has to follow."}
+      ]
+    },
+    {
+      "id": "problem",
+      "chapter": "Why",
+      "lines": [
+        {"d": "Fire satellites take a snapshot at about the same time every day.",
+         "s": "Fire satellites take a snapshot at about the same time every day."},
+        {"d": "But NASA's Aqua satellite has drifted: its 1:30 PM snapshot now happens near 3:50 PM over the Amazon, and Terra is sliding earlier.",
+         "s": "But NASA's Aqua satellite has drifted. Its one-thirty P M snapshot now happens near three-fifty P M, over the Amazon, and Terra is sliding earlier."},
+        {"d": "Fire activity changes through the day, so the counts shift even when the fires don't.",
+         "s": "Fire activity changes through the day, so the counts shift, even when the fires don't."},
+        {"d": "And Brazil's official fire record still uses Aqua as its reference.",
+         "s": "And Brazil's official fire record still uses Aqua as its reference."}
+      ]
+    },
+    {
+      "id": "method",
+      "chapter": "Method",
+      "lines": [
+        {"d": "So VIIRS, which still looks at a fixed time, becomes our clock.",
+         "s": "So veers, which still looks at a fixed time, becomes our clock."},
+        {"d": "We learn the Aqua-to-VIIRS ratio for each region and month from 2012 to 2020, before the drift.",
+         "s": "We learn the Aqua-to-veers ratio for each region and month, from twenty twelve to twenty twenty, before the drift."},
+        {"d": "VIIRS times that ratio is a fixed-clock count, in Aqua units.",
+         "s": "Veers, times that ratio, is a fixed-clock count, in Aqua units."},
+        {"d": "The gap between the real Aqua count and that number shows how far an Aqua-based record has drifted.",
+         "s": "The gap between the real Aqua count and that number shows how far an Aqua-based record has drifted."}
+      ]
+    },
+    {
+      "id": "app",
+      "chapter": "The app",
+      "lines": [
+        {"d": "That's the app: a fixed-clock fire calendar for anywhere. Pick one of six preset regions.",
+         "s": "That's the app: a fixed-clock fire calendar, for anywhere. Pick one of six preset regions."},
+        {"d": "The calendar covers every month since 2002, colored by count or by anomaly against the historical median, with a CSV download.",
+         "s": "The calendar covers every month since two thousand two, colored by count, or by anomaly against the historical median, with a C S V download."},
+        {"d": "The audit panel shows that gap for every year since 2021, with error bars.",
+         "s": "The audit panel shows that gap for every year since twenty twenty-one, with error bars."},
+        {"d": "Next, the drift chart, and our centerpiece, the two-clocks test: Terra and Aqua drift in opposite directions, so comparing them isolates the clock effect.",
+         "s": "Next, the drift chart, and our centerpiece, the two-clocks test. Terra and Aqua drift in opposite directions, so comparing them isolates the clock effect."},
+        {"d": "Then California's detection limits, checked against real recorded fires, and a “How do we know?” checklist.",
+         "s": "Then California's detection limits, checked against real, recorded fires. And a \"how do we know\" checklist."}
+      ]
+    },
+    {
+      "id": "data",
+      "chapter": "Data flow",
+      "lines": [
+        {"d": "Under the hood, a Python pipeline turns NASA FIRMS hotspots into small JSON files, one per panel, per region.",
+         "s": "Under the hood, a Python pipeline turns NASA firms hotspots into small Jason files, one per panel, per region."},
+        {"d": "The app is static and reads only those files.",
+         "s": "The app is static, and reads only those files."},
+        {"d": "Until the real ones land in data/out, build against data/mock: same layout, same fields.",
+         "s": "Until the real ones land in data slash out, build against data slash mock. Same layout, same fields."}
+      ]
+    },
+    {
+      "id": "rules",
+      "chapter": "Rules",
+      "lines": [
+        {"d": "Five rules.", "s": "Five rules."},
+        {"d": "Mock data always shows a MOCK badge.", "s": "Mock data always shows a mock badge."},
+        {"d": "Null means no data, not zero.", "s": "Null means no data. Not zero."},
+        {"d": "Hatch provisional months and mark outages.", "s": "Hatch provisional months, and mark outages."},
+        {"d": "Show “not enough fires to measure” instead of a noisy number.", "s": "Show \"not enough fires to measure\", instead of a noisy number."},
+        {"d": "And every number on screen comes from the JSON.", "s": "And every number on screen comes from the Jason."}
+      ]
+    },
+    {
+      "id": "outro",
+      "chapter": "Start",
+      "lines": [
+        {"d": "Start with the mock-data README. Let's build it.",
+         "s": "Start with the mock data read-me. Let's build it."}
+      ]
+    }
+  ]
+}

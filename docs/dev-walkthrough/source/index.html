@@ -1,0 +1,156 @@
+<!doctype html>
+<!-- Developer walkthrough video tooling; see ../README.md. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Propagators developer walkthrough</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <div id="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="dots"></div></div>
+
+  <!-- 1. INTRO -->
+  <section class="scene" id="intro">
+    <div class="itext">
+      <div class="kicker" id="i-kick">Space Apps 2026 &middot; Challenge #9 &middot; MODIS + VIIRS harmonization</div>
+      <h1><span id="i-t1">Fixed-clock</span><span id="i-t2">fire calendar</span></h1>
+      <div class="plus" id="i-plus">+ clock audit</div>
+      <div class="sub" id="i-sub">A two-minute tour for developers: what the app shows, how the data flows, and the rules your code follows.</div>
+    </div>
+    <svg id="dial" width="620" height="620" viewBox="-310 -310 620 620"></svg>
+    <div class="dnote" id="i-dnote">When each satellite looks (local time): design vs. Nov 2026, measured from FIRMS hotspots</div>
+  </section>
+
+  <!-- 2. PROBLEM -->
+  <section class="scene" id="problem">
+    <div class="head"><div class="kicker">Why</div><h2>Aqua's clock has drifted</h2></div>
+    <div class="panel" id="p-panel"><svg id="p-svg" width="1680" height="560"></svg></div>
+    <div class="panel" id="p-callout">
+      <svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="23" r="21" fill="none" stroke="#ffb547" stroke-width="2"/><rect x="21" y="11" width="4" height="16" rx="2" fill="#ffb547"/><circle cx="23" cy="33" r="2.6" fill="#ffb547"/></svg>
+      <div><div class="big">Brazil's official fire record (INPE) still uses <span class="c-aqua">Aqua</span> as its reference satellite.</div>
+      <div class="small">Its named successor, S-NPP VIIRS, was switched off on Nov 2, 2026.</div></div>
+    </div>
+  </section>
+
+  <!-- 3. METHOD -->
+  <section class="scene" id="method">
+    <div class="head"><div class="kicker">Method</div><h2>VIIRS becomes the fixed clock</h2></div>
+    <div class="panel fcard" id="m-c1" style="top:250px">
+      <div class="lab"><span class="num">1</span>Baseline &middot; 2012&ndash;2020</div>
+      <div class="f">R = <span class="c-aqua">Aqua</span> &divide; <span class="c-viirs">VIIRS</span></div>
+      <div class="d">per region &times; calendar month, before the drift</div>
+    </div>
+    <div class="panel fcard" id="m-c2" style="top:472px">
+      <div class="lab"><span class="num">2</span>Fixed-clock count</div>
+      <div class="f"><span class="c-viirs">fixed</span> = <span class="c-viirs">VIIRS</span> &times; R</div>
+      <div class="d">in Aqua units: what Aqua would count at its old clock</div>
+    </div>
+    <div class="panel fcard" id="m-c3" style="top:694px">
+      <div class="lab"><span class="num">3</span>Clock audit &middot; 2021 onward</div>
+      <div class="f">L = <span class="c-aqua">Aqua</span> &divide; <span class="c-viirs">fixed</span></div>
+      <div class="d">gap = L &minus; 1: how far an Aqua-based record has drifted</div>
+    </div>
+    <div class="panel" id="m-chart"><svg id="m-svg" width="920" height="640"></svg><div class="schem">SCHEMATIC &middot; NOT REAL DATA</div></div>
+  </section>
+
+  <!-- 4. APP -->
+  <section class="scene" id="app-scene">
+    <div id="a-view"><div id="app"></div></div>
+    <div id="a-reads"><span class="tag-mock">MOCK</span><span class="lbl" id="a-lbl">reads</span><span class="files"><span style="color:#6b768f">data/mock/</span><span id="a-files">regions.json</span></span></div>
+  </section>
+
+  <!-- 5. DATA FLOW -->
+  <section class="scene" id="data">
+    <div class="head"><div class="kicker">Data flow</div><h2>From satellite files to a static app</h2></div>
+    <svg id="d-svg" width="1920" height="1080"></svg>
+    <div class="panel dcard" id="d-src1" style="left:110px;top:282px;width:420px;height:196px">
+      <div class="t1">NASA FIRMS hotspots</div>
+      <div class="t2"><span class="c-aqua">MODIS C6.1</span> &middot; Terra, Aqua<br><span class="c-viirs">VIIRS 375 m</span> &middot; S-NPP, NOAA-20</div>
+      <div class="t3">yearly country CSVs</div>
+    </div>
+    <div class="panel dcard" id="d-src2" style="left:110px;top:510px;width:420px;height:168px">
+      <div class="t1">USFS FPA-FOD 7th ed.</div>
+      <div class="t3">fires agencies recorded, 1992&ndash;2024<br>used for the California check</div>
+    </div>
+    <div class="panel dcard" id="d-pipe" style="left:620px;top:282px;width:430px;height:396px">
+      <div class="t1">Python pipeline <span class="tagline tag-false" style="margin-left:6px">analysis/</span></div>
+      <div class="step" id="d-st1"><span class="n">1</span><span>Filter: daytime, vegetation fires, confidence</span></div>
+      <div class="step" id="d-st2"><span class="n">2</span><span>Assign each hotspot to a region</span></div>
+      <div class="step" id="d-st3"><span class="n">3</span><span>Aggregate by region, month and year</span></div>
+      <div class="step" id="d-st4"><span class="n">4</span><span>Write one JSON file per panel, per region</span></div>
+    </div>
+    <div class="panel dcard" id="d-out" style="left:1130px;top:236px;width:440px;height:476px">
+      <div class="t1 mono" style="font-size:24px">data/out/<span class="tagline tag-false">mock: false</span></div>
+      <div class="ftree" id="d-tree"></div>
+    </div>
+    <div class="panel dcard" id="d-mock" style="left:1130px;top:736px;width:440px;height:118px;border-color:rgba(255,212,59,.5)">
+      <div class="t1 mono" style="font-size:24px">data/mock/<span class="tagline tag-true">mock: true</span></div>
+      <div class="t3">same layout &middot; same fields</div>
+    </div>
+    <div class="panel dcard" id="d-app" style="left:1640px;top:380px;width:210px;height:250px">
+      <div class="t1" style="font-size:24px">Static web app</div>
+      <div class="t3">reads only these JSON files</div>
+      <div class="t3" style="margin-top:14px;color:#c7d0e2">no server<br>public link,<br>no login</div>
+    </div>
+  </section>
+
+  <!-- 6. RULES -->
+  <section class="scene" id="rules">
+    <div class="head"><div class="kicker">Rules</div><h2>Five rules for your code</h2></div>
+    <div class="panel rule" id="r1" style="top:246px"><div class="rn">1</div>
+      <div class="rt"><div class="a">Mock data always shows a MOCK badge</div><div class="b">Every mock file has "mock": true. Never put a mock number in a slide.</div></div>
+      <div class="ex"><span class="code"><span class="k">"mock"</span>: <span class="n">true</span></span><svg class="arrow" viewBox="0 0 40 16"><path d="M2 8h32M28 2l7 6-7 6" stroke="#9ba6bd" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tag-mock" style="font-size:20px;padding:6px 14px">MOCK</span></div>
+    </div>
+    <div class="panel rule" id="r2" style="top:374px"><div class="rn">2</div>
+      <div class="rt"><div class="a">null means no data, never zero</div><div class="b">A satellite that wasn't flying yet has no count. Show a gap, not a 0.</div></div>
+      <div class="ex"><span class="code"><span class="k">"noaa20"</span>: <span class="n">null</span></span><svg class="arrow" viewBox="0 0 40 16"><path d="M2 8h32M28 2l7 6-7 6" stroke="#9ba6bd" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="minicell" style="background:repeating-linear-gradient(135deg,#1c2436 0 6px,#141b2b 6px 12px);border:1px solid #3b4558;color:#9ba6bd">no data</div>
+        <div class="minicell" style="background:#1a2132;border:1px solid #3b4558;color:#6b768f;text-decoration:line-through;font-size:20px">0</div></div>
+    </div>
+    <div class="panel rule" id="r3" style="top:502px"><div class="rn">3</div>
+      <div class="rt"><div class="a">Hatch provisional months, mark outages</div><div class="b">flags: "provisional" (2026 near-real-time data) and "outage" (satellite gap)</div></div>
+      <div class="ex"><div class="minicell" style="background:#8a3c1c">normal</div>
+        <div class="minicell" style="background:repeating-linear-gradient(135deg,#a8481f 0 6px,#5c2a14 6px 12px)">provisional</div>
+        <div class="minicell" style="background:#2b4d8f;outline:2px dashed #eaf0fa;outline-offset:-4px">outage</div></div>
+    </div>
+    <div class="panel rule" id="r4" style="top:630px"><div class="rn">4</div>
+      <div class="rt"><div class="a">Too few fires? Say so</div><div class="b">status "insufficient_data" shows a message, not a noisy number (California 2023 in the mock)</div></div>
+      <div class="ex"><div class="empty">Not enough fires to measure</div></div>
+    </div>
+    <div class="panel rule" id="r5" style="top:758px"><div class="rn">5</div>
+      <div class="rt"><div class="a">Every number on screen comes from the JSON</div><div class="b">No hand-typed numbers in the UI or the slides.</div></div>
+      <div class="ex"><span class="code"><span class="k">"gap_pct"</span>: <span class="n">22.4</span></span><svg class="arrow" viewBox="0 0 40 16"><path d="M2 8h32M28 2l7 6-7 6" stroke="#9ba6bd" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-family:var(--display);font-size:34px;font-weight:600;color:#ffb547">+22.4%</span></div>
+    </div>
+  </section>
+
+  <!-- 7. OUTRO -->
+  <section class="scene" id="outro">
+    <div class="head"><div class="kicker">Next</div><h2>Start here</h2></div>
+    <div class="srow" id="o1" style="top:300px"><span class="p">data/mock/README.md</span><span class="d">data contract + UI notes</span></div>
+    <div class="srow" id="o2" style="top:384px"><span class="p">research/execution-plan.md</span><span class="d">method, roles, gates</span></div>
+    <div class="srow" id="o3" style="top:468px"><span class="p">analysis/</span><span class="d">pipeline scripts + first results</span></div>
+    <div class="srow" id="o4" style="top:560px"><span class="d" style="font-size:21px">All on branch <span class="mono" style="color:#eaf0fa">will/beautiful-hawking-r06ab0</span></span></div>
+    <div class="panel" id="o-time">
+      <div class="k" style="color:var(--viirs)">Submission</div>
+      <div class="row"><div class="k">Internal submit</div><div class="v">Sun 9:00 PM</div></div>
+      <div class="row"><div class="k">Hard deadline</div><div class="v">Sun 11:59 PM PT</div></div>
+    </div>
+    <div id="o-credits">
+      <b>Data:</b> NASA FIRMS (MODIS C6.1, VIIRS 375 m); USFS FPA-FOD 7th ed. App previews use the synthetic files in data/mock. Look times: team analysis of FIRMS data, Nov 2026.<br>
+      No NASA logos or branding used.
+    </div>
+  </section>
+
+  <div id="chrome">
+    <div id="brand"><span class="b1">PROPAGATORS</span><span class="b2">Developer walkthrough</span></div>
+    <div id="chapters"></div>
+  </div>
+  <div id="captions"><div id="cap"></div></div>
+  <div id="fade"></div>
+</div>
+<script src="node_modules/gsap/dist/gsap.min.js"></script>
+<script src="data.js"></script>
+<script src="scenes.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (brady/brazil-data).",
+ "region": "br-cerrado",
+ "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month), all daytime detections; 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
+ "baseline": {
+  "years": "2012-2020",
+  "ratio": 0.17,
+  "noise_floor": 0.026,
+  "placebo_min": 0.974,
+  "placebo_max": 1.026
+ },
+ "years": [
+  {
+   "year": 2021,
+   "status": "ok",
+   "L": 1.015,
+   "L_lo": 0.961,
+   "L_hi": 1.055,
+   "L_strat": 1.014,
+   "aqua_count": 56064,
+   "fixed_count": 55246,
+   "gap_pct": 1.5,
+   "outside_noise": false
+  },
+  {
+   "year": 2022,
+   "status": "ok",
+   "L": 1.029,
+   "L_lo": 0.979,
+   "L_hi": 1.084,
+   "L_strat": 1.056,
+   "aqua_count": 47273,
+   "fixed_count": 45942,
+   "gap_pct": 2.9,
+   "outside_noise": true
+  },
+  {
+   "year": 2023,
+   "status": "ok",
+   "L": 1.024,
+   "L_lo": 0.98,
+   "L_hi": 1.068,
+   "L_strat": 1.043,
+   "aqua_count": 50370,
+   "fixed_count": 49208,
+   "gap_pct": 2.4,
+   "outside_noise": false
+  },
+  {
+   "year": 2024,
+   "status": "ok",
+   "L": 1.196,
+   "L_lo": 1.109,
+   "L_hi": 1.304,
+   "L_strat": 1.217,
+   "aqua_count": 74383,
+   "fixed_count": 62189,
+   "gap_pct": 19.6,
+   "outside_noise": true
+  },
+  {
+   "year": 2025,
+   "status": "ok",
+   "L": 1.109,
+   "L_lo": 1.041,
+   "L_hi": 1.238,
+   "L_strat": 1.101,
+   "aqua_count": 55246,
+   "fixed_count": 49820,
+   "gap_pct": 10.9,
+   "outside_noise": true
+  }
+ ],
+ "validation_variant": "IBGE 2019 cell-center sensitivity rerun; not merged production data",
+ "biome_lookup_source": "IBGE 2019 1:250000, EPSG:4674 transformed to EPSG:4326"
+}

@@ -1,0 +1,135 @@
+{
+  "acquired_paired_dates": 18,
+  "planned_dates": 18,
+  "complete": true,
+  "biomes": [
+    {
+      "biome": "amazon",
+      "eligible_cells": 2355,
+      "informative_cells": 13,
+      "informative_dates": 4,
+      "sampled_snpp_fire_weight": 10.806568541399814,
+      "sampled_noaa20_fire_weight": 7.879438262376528,
+      "events_by_date": {
+        "A2019196": 1.9685455641453016,
+        "A2019258": 7.861544805079064,
+        "A2020197": 0.9787780673479459,
+        "A2020259": 7.87713836720403
+      },
+      "informative_cells_by_order": {
+        "negative": 10,
+        "positive": 3
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "cerrado",
+      "eligible_cells": 3731,
+      "informative_cells": 22,
+      "informative_dates": 6,
+      "sampled_snpp_fire_weight": 13.58795431643576,
+      "sampled_noaa20_fire_weight": 10.63018488456139,
+      "events_by_date": {
+        "A2018258": 2.9805811533565416,
+        "A2019196": 3.907455375090304,
+        "A2019258": 8.666510179495026,
+        "A2020015": 0.9651308042166767,
+        "A2020197": 1.9156422592974724,
+        "A2020259": 5.782819429541127
+      },
+      "informative_cells_by_order": {
+        "negative": 8,
+        "positive": 14
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "rank_conditioning_or_fit_failure"
+    },
+    {
+      "biome": "caatinga",
+      "eligible_cells": 1111,
+      "informative_cells": 5,
+      "informative_dates": 3,
+      "sampled_snpp_fire_weight": 3.8712915269679575,
+      "sampled_noaa20_fire_weight": 1.9551923836562306,
+      "events_by_date": {
+        "A2018258": 2.92453060573133,
+        "A2019319": 1.932187679031288,
+        "A2020197": 0.9697656258615704
+      },
+      "informative_cells_by_order": {
+        "negative": 1,
+        "positive": 4
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "mata_atlantica",
+      "eligible_cells": 3087,
+      "informative_cells": 11,
+      "informative_dates": 6,
+      "sampled_snpp_fire_weight": 4.649035722994207,
+      "sampled_noaa20_fire_weight": 8.271367237237792,
+      "events_by_date": {
+        "A2018135": 0.9199925991173497,
+        "A2018196": 0.9227063849078315,
+        "A2019258": 1.9008767732392844,
+        "A2020015": 1.9771195853850172,
+        "A2020197": 5.304428010719107,
+        "A2020259": 1.8952796068634088
+      },
+      "informative_cells_by_order": {
+        "negative": 4,
+        "positive": 7
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "rank_conditioning_or_fit_failure"
+    },
+    {
+      "biome": "pantanal",
+      "eligible_cells": 642,
+      "informative_cells": 2,
+      "informative_dates": 1,
+      "sampled_snpp_fire_weight": 0.9386435981787017,
+      "sampled_noaa20_fire_weight": 0.9606580613579304,
+      "events_by_date": {
+        "A2019258": 1.899301659536632
+      },
+      "informative_cells_by_order": {
+        "negative": 0,
+        "positive": 2
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    },
+    {
+      "biome": "pampa",
+      "eligible_cells": 1051,
+      "informative_cells": 0,
+      "informative_dates": 0,
+      "sampled_snpp_fire_weight": 0.0,
+      "sampled_noaa20_fire_weight": 0.0,
+      "events_by_date": {},
+      "informative_cells_by_order": {
+        "negative": 0,
+        "positive": 0
+      },
+      "status": "insufficient_identification",
+      "beta": null,
+      "ci95": null,
+      "reason": "fewer_than_six_fire_informative_dates"
+    }
+  ],
+  "interpretation": "Original P9 outcomes unchanged; do not score incomplete or unidentified calibration as a pass."
+}

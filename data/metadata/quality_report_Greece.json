@@ -1,0 +1,103 @@
+{
+  "rows_raw": 136946,
+  "rejected_by_reason": {
+    "latitude_invalid": 0,
+    "longitude_invalid": 0,
+    "acq_date_invalid": 0,
+    "acq_time_invalid": 0,
+    "instrument_mismatch": 0
+  },
+  "rows_rejected": 0,
+  "clipped_files": {
+    "firms_nrt_global7d/modis/20261116T0321Z_MODIS_C6_1_Global_7d.csv": {
+      "rows_in_file": 78201,
+      "rows_in_region": 22
+    },
+    "firms_nrt_global7d/viirs-noaa20/20261116T0321Z_J1_VIIRS_C2_Global_7d.csv": {
+      "rows_in_file": 418900,
+      "rows_in_region": 101
+    },
+    "firms_nrt_global7d/viirs-noaa21/20261116T0321Z_J2_VIIRS_C2_Global_7d.csv": {
+      "rows_in_file": 399841,
+      "rows_in_region": 123
+    }
+  },
+  "flags": {
+    "satellite_code_unknown": 0,
+    "frp_missing": 0,
+    "frp_negative": 0,
+    "brightness_out_of_range": 0,
+    "pixel_size_out_of_range": 0,
+    "confidence_invalid": 0,
+    "hotspot_type_missing": 246
+  },
+  "rows_superseded_by_better_source": 0,
+  "exact_duplicates_removed": 0,
+  "cross_file_duplicates_removed": 0,
+  "detection_id_collisions": 0,
+  "possible_overlap_duplicates_flagged": 94,
+  "rows_clean": 136946,
+  "generated_at_utc": "2026-11-16T03:23:14+00:00",
+  "by_product": [
+    {
+      "product": "modis",
+      "satellite": "Aqua",
+      "rows": 24798,
+      "first": "2002-07-04",
+      "last": "2026-11-13",
+      "pct_low_conf": 0.0441971127,
+      "pct_presumed_veg": 0.9880539188,
+      "frp_missing": 0,
+      "versions": "6.03, 6.1NRT, 6.2, 61.03",
+      "processing": "NRT, standard"
+    },
+    {
+      "product": "modis",
+      "satellite": "Terra",
+      "rows": 21482,
+      "first": "2001-01-06",
+      "last": "2026-11-13",
+      "pct_low_conf": 0.0435248115,
+      "pct_presumed_veg": 0.980027933,
+      "frp_missing": 0,
+      "versions": "6.03, 6.1NRT, 6.2, 61.03",
+      "processing": "NRT, standard"
+    },
+    {
+      "product": "viirs-noaa20",
+      "satellite": "NOAA-20",
+      "rows": 101,
+      "first": "2026-11-08",
+      "last": "2026-11-15",
+      "pct_low_conf": 0.0099009901,
+      "pct_presumed_veg": null,
+      "frp_missing": 0,
+      "versions": "2.0NRT",
+      "processing": "NRT"
+    },
+    {
+      "product": "viirs-noaa21",
+      "satellite": "NOAA-21",
+      "rows": 123,
+      "first": "2026-11-08",
+      "last": "2026-11-15",
+      "pct_low_conf": 0.0081300813,
+      "pct_presumed_veg": null,
+      "frp_missing": 0,
+      "versions": "2.0NRT",
+      "processing": "NRT"
+    },
+    {
+      "product": "viirs-snpp",
+      "satellite": "Suomi NPP",
+      "rows": 90442,
+      "first": "2012-01-20",
+      "last": "2025-12-31",
+      "pct_low_conf": 0.0559695717,
+      "pct_presumed_veg": 0.8308639791,
+      "frp_missing": 0,
+      "versions": "2",
+      "processing": "standard"
+    }
+  ]
+}

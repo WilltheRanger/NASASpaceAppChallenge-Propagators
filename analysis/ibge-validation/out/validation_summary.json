@@ -1,0 +1,42 @@
+{
+  "regions": [
+    {
+      "region": "br-amazon",
+      "months": 288,
+      "fixed_months": 282
+    },
+    {
+      "region": "br-cerrado",
+      "months": 288,
+      "fixed_months": 282
+    },
+    {
+      "region": "br-pantanal",
+      "months": 288,
+      "fixed_months": 282
+    },
+    {
+      "region": "ar-argentina",
+      "months": 288,
+      "fixed_months": 282
+    },
+    {
+      "region": "in-punjab-haryana",
+      "months": 288,
+      "fixed_months": 282
+    },
+    {
+      "region": "us-california",
+      "months": 288,
+      "fixed_months": 282
+    }
+  ],
+  "p3": {
+    "within_10pct": 516,
+    "eligible_biome_months": 648,
+    "rate": 0.7962962962962963,
+    "gate_status": "fail",
+    "filtered_rate": 0.6975308641975309,
+    "note": "Aggregate count agreement, not event-level detection match rate. Not preregistered."
+  }
+}

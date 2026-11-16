@@ -1,0 +1,58 @@
+"""Bounded per-swath extraction for the fixed CALIBRATION_PLAN sample."""
+import argparse,datetime,hashlib,json,sys
+from pathlib import Path
+import h5py,numpy as np
+from scipy.spatial import cKDTree
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'p9-swath-access'))
+from pilot import xyz
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'ibge-exact-diagnosis'))
+from classify import Classifier
+BIOMES=['amazon','cerrado','caatinga','mata_atlantica','pantanal','pampa']
+def grid(archive,out):
+ lon,lat=np.meshgrid(np.arange(-73.975,-34,.05),np.arange(-33.975,6,.05));lon=lon.ravel();lat=lat.ravel()
+ labels=Classifier(archive).classify(lon,lat);k=np.isin(labels,BIOMES)
+ np.savez_compressed(out,lon=lon[k],lat=lat[k],biome=labels[k].astype('U16'))
+def extract(fire,geo,gridfile,out,max_zenith=45):
+ grid=np.load(gridfile);targets=xyz(grid['lat'],grid['lon'])
+ with h5py.File(fire) as f,h5py.File(geo) as g:
+  if fire.name.split('.')[1:3]!=geo.name.split('.')[1:3]:raise ValueError('time mismatch')
+  if ('VNP' in fire.name)!=('VNP' in geo.name):raise ValueError('satellite mismatch')
+  if geo.name not in str(f.attrs.get('InputPointer','')):raise ValueError('exact geolocation input missing')
+  fm=f['fire mask'][:]; latset=g['geolocation_data/latitude']; lonset=g['geolocation_data/longitude']
+  if fm.shape!=latset.shape or latset.shape!=lonset.shape:raise ValueError('shape mismatch')
+  # Tile-bounded geometry filter, independent of grid phase/spacing.
+  # Native flat pixel IDs retained for dependence-aware pairing.
+  # Latitude/longitude margins conservatively exceed 375 m in Brazil.
+  native_parts=[]; points=[]
+  minlat,maxlat=float(grid['lat'].min())-.005,float(grid['lat'].max())+.005
+  minlon,maxlon=float(grid['lon'].min())-.007,float(grid['lon'].max())+.007
+  for row in range(0,fm.shape[0],256):
+   lat=latset[row:row+256];lon=lonset[row:row+256]
+   k=(lat>=minlat)&(lat<=maxlat)&(lon>=minlon)&(lon<=maxlon)
+   native_parts.append(np.flatnonzero(k)+row*fm.shape[1]);points.append(xyz(lat[k],lon[k]))
+  native=np.concatenate(native_parts);tree=cKDTree(np.concatenate(points));dist,idx=tree.query(targets,distance_upper_bound=375)
+  ids=np.flatnonzero(np.isfinite(dist));pix=native[idx[ids]];mask=fm.ravel()[pix]
+  z=g['geolocation_data/sensor_zenith'];raw=z[:].ravel()[pix];zen=raw*float(np.asarray(z.attrs['scale_factor']).item())
+  usable=(raw>=0)&(zen<=max_zenith)&np.isin(mask,[5,8,9]);ids=ids[usable];pix=pix[usable];zen=zen[usable];mask=mask[usable]
+  t=g['scan_line_attributes/ev_mid_time'];label=t.attrs['long_name'].decode()
+  if 'TAI93' not in label:raise ValueError('unsupported time scale')
+  year=int(fire.name.split('.')[1][1:5])
+  if not 2018<=year<=2020:raise ValueError('outside calibration epoch')
+  scans=len(t);lines=fm.shape[0]
+  if lines!=scans*32:raise ValueError('unexpected image scan layout')
+  # Ten leap seconds accrued since 1993-01-01 UTC through 2018--2020.
+  # NASA TAI93 definition plus NIST leap table, recorded in documentation.
+  leap=int(np.asarray(g.attrs.get('TAI93_leapseconds',10)).reshape(-1)[0])
+  if leap!=10:raise ValueError('unexpected TAI93 leap seconds for calibration epoch')
+  tai=t[:][(pix//fm.shape[1])//32];utc=tai-leap
+  epoch=datetime.datetime(1993,1,1);start=datetime.datetime.fromisoformat(f.attrs['StartTime'].decode());end=datetime.datetime.fromisoformat(f.attrs['EndTime'].decode())
+  secs0=(start-epoch).total_seconds();secs1=(end-epoch).total_seconds()
+  if len(utc) and (utc.min()<secs0-2 or utc.max()>secs1+2):raise ValueError('scan time outside declared UTC swath')
+  np.savez_compressed(out,grid_id=ids,native_pixel_id=pix,fire=np.isin(mask,[8,9]),zenith=zen,distance_m=dist[ids],utc_seconds_since_1993=utc,local_hour=(utc%86400)/3600+grid['lon'][ids]/15)
+  report={'fire':fire.name,'geo':geo.name,'grid':gridfile.name,'sample':out.name,'usable_centers':len(ids),'fire_centers':int(np.isin(mask,[8,9]).sum()),'hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [fire,geo,out]},'max_sensor_zenith_degrees':max_zenith,'status':'extracted_not_calibrated'}
+  out.with_suffix('.json').write_text(json.dumps(report,indent=2)+'\n')
+  return report
+if __name__=='__main__':
+ p=argparse.ArgumentParser();s=p.add_subparsers(dest='cmd',required=True);a=s.add_parser('grid');a.add_argument('archive');a.add_argument('out',type=Path);a=s.add_parser('extract');a.add_argument('fire',type=Path);a.add_argument('geo',type=Path);a.add_argument('grid',type=Path);a.add_argument('out',type=Path);a=p.parse_args()
+ if a.cmd=='grid':grid(a.archive,a.out)
+ else:print(json.dumps(extract(a.fire,a.geo,a.grid,a.out)))

@@ -645,7 +645,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
       range: y.lo != null && y.hi != null ? [y.lo, y.hi] : null,
       expected: d.placebo,
       outside: y.verdict === 'outside',
-      valueText: y.verdict === 'na' ? `${y.year}: too few fires to read` : `${y.year}: Aqua ${pct(y.gap!)} against what we’d expect, likely range ${rangeText(y)}, ${UNUSUAL[y.verdict].toLowerCase()}`,
+      valueText: y.verdict === 'na' ? `${y.year}: too few fires to read` : `${y.year}: Aqua ${pct(y.gap!)} against the benchmark, likely range ${rangeText(y)}, ${UNUSUAL[y.verdict].toLowerCase()}`,
     })),
     [d],
   )
@@ -907,7 +907,9 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
           <p className="mt-4 max-w-[var(--measure)] text-base text-[color:var(--bone)]">Aqua’s own count before 2012, VIIRS matched to Aqua after: one steady record from 2002 to 2025.</p>
-          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Each row is a year and each cell a month. Brighter cells mean more hotspots.</p>
+          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            Each row is a year and each cell a month. {mode === 'count' ? 'Brighter cells mean more hotspots.' : 'Gold cells had more hotspots than a typical year, blue cells fewer.'}
+          </p>
           <p className="mt-4 text-lg text-[color:var(--bone)]">{headline}</p>
         </div>
         <div className="min-w-0 lg:col-span-8">

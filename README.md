@@ -132,6 +132,9 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
 | **NOAA Global Monitoring Laboratory**, Solar Calculation Details: https://gml.noaa.gov/grad/solcalc/calcdetails.html | Sunset equations (daylight analysis) | US Government work |
 | **NASA Earthdata**, "NASA FIRMS Helps Fight Wildland Fires in Near Real-Time" | FIRMS alert latency (daylight analysis) | Cited |
 | Giglio, L. (2007). Characterization of the tropical diurnal fire cycle using VIRS and MODIS observations. *Remote Sensing of Environment* 108(4), 407 to 421. doi:10.1016/j.rse.2006.11.018 | Why drifting overpass times bend fire records | Cited |
+| Giglio, L. (2025). "Terra/Aqua Orbit-Drift Update." NASA LANCE User Working Group, May 2025: https://landweb.modaps.eosdis.nasa.gov/data/filePost/LANCE_UWG_Orbit_Drift_Giglio_202505.pdf | How drift changes MODIS pixel size, scan gaps and view angles; Terra's 2022 orbit lowering | Cited |
+| NASA Earthdata, MCD14DL product page: https://www.earthdata.nasa.gov/learn/find-data/near-real-time/firms/mcd14dl | Notice that new Suomi NPP data delivery ceases on 2 November 2026 | Cited |
+| Copernicus Atmosphere Monitoring Service (2026). "Drifting away from MODIS: the CAMS Global Fire Assimilation System": https://atmosphere.copernicus.eu/drifting-away-modis-cams-global-fire-assimilation-system | MODIS end dates (Terra January 2027, Aqua about September 2027); CAMS moving to VIIRS | Cited |
 | Jethva (2026). "Timing the Flames." *Remote Sensing* 18(10), 1506: https://www.mdpi.com/2072-4292/18/10/1506 | Published Aqua pass times over Punjab (prediction P2) | Cited |
 
 ## Prior work, and what is ours
@@ -153,6 +156,17 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
 - **Night fires are invisible to this method,** so L is a lower bound on hidden fire.
 - **A later pass also changes viewing conditions** (ground temperature, sun angle), not only fire activity.
 - **The drift also changed how Aqua samples the ground** (pixel size, gaps between scans), so L for 2024 and 2025 mixes time of day with sampling. The two-clocks test is our attempt to separate them, and its simple version failed (P10).
+  - NASA's MODIS fire lead reports (Giglio, May 2025) that the drift changed pixel size (about 970 m instead of 1 km along-scan by spring 2025), the gaps between scans, bowtie overlap and view angles, and that Terra was lowered about 6 km in 2022.
+  - The same talk says the effects on spatial sampling "seem to have abruptly increased in magnitude in late 2024". Amazon's L rises from 1.10 (2024) to 1.30 (2025) over that period.
+  - **Tested: Aqua's excess sits in near-nadir pixels** ([`analysis/validation/near_nadir_L.md`](analysis/validation/near_nadir_L.md); it reproduces the published L to within 0.0005).
+    - Amazon 2025: near-nadir Aqua (scan ≤ 1.3 km) gives L = 1.53 (1.34 to 1.76), and off-nadir Aqua gives 0.99 (0.88 to 1.16). Cerrado and Argentina show the same split.
+    - Aqua's near-nadir share of detections rose from 55.6% (2012 to 2020) to 66.8% (2025). Terra's rose from 51% to 58%. S-NPP's stayed at 36 to 37%.
+    - So both MODIS instruments now sample differently, as NASA's MODIS team reports.
+  - Terra's drop in 2025 (L = 0.56) appears in both near- and off-nadir pixels, the pattern a time-of-day effect would give.
+  - **Read L as Aqua departing from the fixed clock, through a mix of later look time and changed sampling.** This data cannot yet say how much of the gap each one causes.
+- **The reference clock is ending.** NASA stopped delivering new Suomi NPP data on 2 November 2026, and S-NPP is the fixed clock that L is measured against. MODIS itself is scheduled to stop collecting data on Terra in January 2027 and on Aqua around September 2027 (CAMS, 2026).
+  - Any audit after 2026 has to be rebuilt on NOAA-20 and NOAA-21 VIIRS.
+  - NOAA-20 overlaps S-NPP from 2018, so its exchange rate can be estimated before S-NPP's record ends. We have not done this yet.
 - **A hotspot is a detection, not a count of fires.** One large fire makes many hotspots; a small one may make none.
 - **Small regions are noisy:** Punjab + Haryana has too few fires after 2022 for an audit.
 - **No 2026 calendar yet:** there are no 2026 yearly FIRMS files; the calendar ends in December 2025.
@@ -181,6 +195,13 @@ npm run build      # static site in frontend/dist
 5. [`analysis/daylight/`](analysis/daylight/README.md): daylight left after the alert, with its benchmarks.
 6. [`analysis/global/`](analysis/global/README.md): the exploratory world map (about 9.7 GB of FIRMS archives, read in place), with its benchmarks. `npm run dev` and `npm run build` copy `data/out/global` into `frontend/public/global`, where the app fetches it when the map is opened.
 
+**Tests.** Every Python test suite, one folder at a time (CI runs the same on each push to main and each pull request, plus a site build: `.github/workflows/tests.yml`):
+
+```
+python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
+scripts/test_all.sh
+```
+
 ## Repository layout
 
 | Path | What it holds |
@@ -191,6 +212,8 @@ npm run build      # static site in frontend/dist
 | `analysis/` | The pipelines above, each with its own README |
 | `analysis/simulation/` | An earlier one-day study. The app reads only its real detections and pass times |
 | `research/` | Written predictions and planning notes |
+| `pipeline/`, `data/processed/`, `data/metadata/` | A general FIRMS download and cleaning pipeline (any country; yearly archive, keyless 7-day feeds, MAP_KEY API) with a Greece example and data dictionary. Not used by the app |
+| `scripts/test_all.sh` | Runs every test suite |
 
 ## Use of AI (disclosure)
 
@@ -268,3 +291,52 @@ The app's photographs, video and satellite images are not AI-generated; their so
 Videographers are credited in the app's footer.
 
 **Satellite imagery:** NASA Worldview / GIBS. We acknowledge the use of imagery from the NASA Worldview application (https://worldview.earthdata.nasa.gov), part of NASA's Earth Observing System Data and Information System (EOSDIS).
+
+---
+
+## FIRMS data-cleaning pipeline
+
+Making 20+ years of fragmented MODIS and VIIRS fire detections comparable and understandable.
+Project brief: [Info.md](Info.md).
+
+## Data pipeline (status: working, Greece 2001 → today)
+
+```
+data/
+├── raw/        untouched FIRMS CSVs (git-ignored, re-download with step 1)
+├── processed/  cleaned, harmonised hotspots + monthly summary
+├── sample/     ~2k stratified rows for frontend/AI development and tests
+└── metadata/   sources, data dictionary, limitations, quality report, download manifest
+`````bash
+python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python -m pipeline.download --country Greece --start 2001 --end 2026   # 1. yearly archive (MODIS + VIIRS S-NPP)
+.venv/bin/python -m pipeline.download_recent --mode keyless                     # 2. last 7 days, MODIS + NOAA-20/21 (no key)
+.venv/bin/python -m pipeline.clean --country Greece                              # 3. clean + merge
+.venv/bin/python -m pytest -q tests                                              # 4. tests (all suites: scripts/test_all.sh)
+.venv/bin/python -m analysis.validation.modis_version_boundaries                 # 5. sensor-consistency checks
+```
+
+Optional, with a free [FIRMS MAP_KEY](https://firms.modaps.eosdis.nasa.gov/api/map_key/): backfill 2026-to-date and the NOAA-20/21 archive.
+
+```bash
+export FIRMS_MAP_KEY=your_key
+.venv/bin/python -m pipeline.download_recent --mode api --country Greece --start 2026-01-01
+.venv/bin/python -m pipeline.download_recent --mode api --country Greece --start 2018-04-01 --end 2025-12-31 --sensors viirs-noaa20 viirs-noaa21
+```
+
+Any FIRMS country file name works for `--country` (e.g. `Australia`, `United_States`; US/Australia files are hundreds of MB per year).
+
+Key findings so far (Greece): VIIRS sees 3.1–4.0× more fire pixels than MODIS every year; MODIS version changes cause no step change; **Terra/Aqua orbit drift since ~2022 shifts MODIS overpass times by ~1 h**; **Suomi NPP stopped delivering data on 2026-11-02**, so VIIRS now continues on NOAA-20/21. Details: [data-limitations.md](data/metadata/data-limitations.md), [analysis/validation](analysis/validation/).
+
+.
+
+Outputs:
+
+- `data/processed/firms_<country>_hotspots.parquet`: one row per fire pixel, MODIS and VIIRS in one schema ([data dictionary](data/metadata/data-dictionary.md))
+- `data/processed/firms_<country>_monthly_summary.csv`: counts, confidence mix and FRP per satellite per month
+- `data/processed/firms_<country>_rejected.csv`: rows that failed validation, with reasons
+- `data/metadata/quality_report_<country>.md`: row accounting and coverage
+
+**Read [data-limitations.md](data/metadata/data-limitations.md) before analysing.** One row is one pixel, not one fire; MODIS and VIIRS counts and FRP aren't interchangeable.
+
+Data: NASA FIRMS. See [sources.md](data/metadata/sources.md) for URLs, citation and acknowledgement.
