@@ -1391,7 +1391,7 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
   const big = 'block text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]'
   const small = 'mt-1 block text-xs text-[color:var(--bone3)]'
   return (
-    <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)] text-left', docked ? 'w-full' : 'w-[300px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
+    <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[color:var(--ground)] text-left', docked ? 'w-full' : 'w-[300px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
       <div className="flex items-center gap-2 pl-3 pr-1.5 pt-1.5">
         <Mark g={g} />
         <p className="text-sm font-medium text-[color:var(--bone)]">
@@ -1426,13 +1426,20 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
           <dt className="w-[4.5rem] shrink-0 text-[color:var(--bone3)]">Where</dt>
           <dd className="text-[color:var(--bone)]">{where ? <>{where} <span className="text-[color:var(--bone3)]">· {coords(LAT[i], LON[i])}</span></> : coords(LAT[i], LON[i])}</dd>
         </div>
+        {/* the reported fire power, placed among today's detections: a strip from weakest to strongest with this fire's notch */}
+        <div className="flex gap-2">
+          <dt className="w-[4.5rem] shrink-0 text-[color:var(--bone3)]">Heat</dt>
+          <dd className="flex min-w-0 flex-1 flex-col gap-1.5 text-[color:var(--bone)]">
+            <span className="tabular-nums">{fmtMW(FRP[i])} MW</span>
+            <span aria-hidden className="relative block h-1.5 w-full rounded-full bg-[color:var(--hairline)]">
+              <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--bone-30)]" style={{ width: `${frpPercentile}%` }} />
+              <span className="absolute -top-[3px] h-3 w-0.5 -translate-x-1/2 bg-[color:var(--bone)]" style={{ left: `${frpPercentile}%` }} />
+            </span>
+            <span className="text-[11px] leading-4 text-[color:var(--bone3)]">{frpPercentile >= 99 ? 'Stronger than 99%' : `Stronger than ${frpPercentile}%`} of today’s detections. Sensors differ, so compare loosely.</span>
+          </dd>
+        </div>
       </dl>
-      <p className="border-t border-[color:var(--hairline)] px-3 py-2 text-[11px] leading-4 text-[color:var(--bone3)]">
-        <span className="tabular-nums text-[color:var(--bone2)]">{fmtMW(FRP[i])} MW</span> <span>fire radiative power</span>.{' '}
-        <span>Higher FRP than {frpPercentile}% of snapshot detections</span>.{' '}
-        Mixed sensors and observation times; not temperature or a ranking of unique fires.
-      </p>
-      {docked ? null : <span aria-hidden className={cn('absolute left-1/2 size-3 -translate-x-1/2 rotate-45 border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)]', below ? '-top-[7px] border-l border-t' : '-bottom-[7px] border-b border-r')} />}
+      {docked ? null : <span aria-hidden className={cn('absolute left-1/2 size-3 -translate-x-1/2 rotate-45 border-[color:var(--bone-20)] bg-[color:var(--ground)]', below ? '-top-[7px] border-l border-t' : '-bottom-[7px] border-b border-r')} />}
     </div>
   )
 }
