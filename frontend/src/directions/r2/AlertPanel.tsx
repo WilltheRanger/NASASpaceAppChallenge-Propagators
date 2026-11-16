@@ -10,10 +10,12 @@
  */
 import type { ReactNode } from 'react'
 import { SegmentedControl } from '@/components/ui/segmented-control'
+import { DelayRuler } from '@/components/ui/delay-ruler'
 import { fmtHM } from '@/r2/data'
 import { cn } from '@/lib/utils'
 
-export type AlertDelay = 0 | 1.5 | 3
+/** hours between a pass and its alert: 0 to 3 in quarter hours */
+export type AlertDelay = number
 export type AlertRow = {
   key: 'terra' | 'viirs' | 'aqua'
   name: string
@@ -22,11 +24,16 @@ export type AlertRow = {
 }
 
 const COLOR: Record<AlertRow['key'], string> = { terra: 'var(--sat-terra)', viirs: 'var(--sat-viirs)', aqua: 'var(--sat-aqua)' }
-const DELAYS: { value: AlertDelay; name: string; label: string }[] = [
-  { value: 0, name: 'No delay', label: '0 h' },
-  { value: 1.5, name: 'One and a half hours', label: '1.5 h' },
-  { value: 3, name: 'Three hours, NASA’s stated maximum', label: '3 h' },
-]
+/** NASA FIRMS: MODIS alerts typically arrive 60 to 125 minutes after the pass; 3 hours is the stated bound */
+const TYPICAL: [number, number] = [1, 125 / 60]
+
+/** a delay as "0 h", "45 min", "1 h 30" */
+function delayText(h: number) {
+  const m = Math.round(h * 60)
+  if (m === 0) return '0 h'
+  const hh = Math.floor(m / 60)
+  return hh ? (m % 60 ? `${hh} h ${String(m % 60).padStart(2, '0')}` : `${hh} h`) : `${m} min`
+}
 
 /** hours as "2 h 05" or "45 min" */
 function span(h: number) {
@@ -114,9 +121,16 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
             {picker}
           </div>
         ) : null}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col">
           <span className={label}>Alert delay</span>
-          <SegmentedControl<AlertDelay> label="Alert delay after the pass (assumed)" value={delay} onChange={onDelay} motion={motion} className="w-[150px] shrink-0" segmentClassName="px-1.5 py-1 text-center text-sm" options={DELAYS} />
+          <DelayRuler
+            label="Alert delay after the pass (assumed), 0 to 3 hours"
+            value={delay}
+            onValue={onDelay}
+            band={TYPICAL}
+            bandLabel="typical"
+            format={delayText}
+          />
         </div>
       </div>
 
