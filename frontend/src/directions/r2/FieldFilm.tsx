@@ -192,9 +192,9 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
   const d = useMemo(() => regionData(region), [region])
   const motion = useMotion()
   const [year, setYear] = useState(() => defaultYear(d))
-  const [mode, setModeState] = useState<CalendarMode>(() => (readParam('cal') === 'count' ? 'count' : 'anomaly'))
+  const [mode, setModeState] = useState<CalendarMode>(() => (readParam('cal') === 'anomaly' ? 'anomaly' : 'count'))
   const [range, setRangeState] = useState<MonthRange>(() => readRange(d))
-  const setMode = (m: CalendarMode) => { setModeState(m); writeParams(nav, { cal: m === 'count' ? 'count' : null }) }
+  const setMode = (m: CalendarMode) => { setModeState(m); writeParams(nav, { cal: m === 'anomaly' ? 'anomaly' : null }) }
   const setRange = (r: MonthRange) => {
     const full = calendarSpan(d)
     const all = r.from === full.from && r.to === full.to
@@ -890,23 +890,25 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
   const setFrom = (ym: string) => onRange({ from: ym, to: ym > range.to ? ym : range.to })
   const setTo = (ym: string) => onRange({ from: ym < range.from ? ym : range.from, to: ym })
   const [mon, yr] = f ? f.label.split(' ') : []
-  const highlight = f ? { year: Number(yr), month: MONTHS.indexOf(mon) } : null
-  const heading = f ? `${MONTH_LONG[MONTHS.indexOf(mon)]} ${yr} was the furthest above normal for its month: ${pct(f.anomaly, 0)}` : 'Every month in this range sits near normal'
-  const sentence = mode === 'anomaly'
-    ? '2002–2011: Aqua’s own count. From 2012: the VIIRS-based benchmark, VIIRS’s count scaled to Aqua’s 2012–2020 rate. Sand: more than normal for this month. Slate: fewer than normal.'
-    : '2002–2011: Aqua’s own count. From 2012: the VIIRS-based benchmark, VIIRS’s count scaled to Aqua’s 2012–2020 rate. Brighter: more detections.'
+  const headline: ReactNode = {
+    'br-amazon': 'Fire season runs August to October, when two-thirds of the year’s hotspots occur. The 2024 season was 33% above typical; 2025 was 72% below.',
+    'br-cerrado': 'Fire season runs August to October (70% of the year’s hotspots). 2024 was close to typical; 2025 was 28% below.',
+    'br-pantanal': 'Fire season runs August to October (three-quarters of the year’s hotspots). 2024 was 2.5 times typical; 2025 was 87% below.',
+    'ar-argentina': 'Fire season runs July to September (60% of the year’s hotspots). 2024 was 21% below typical; 2025 was 44% below.',
+    'in-punjab-haryana': <>Crop-burning season runs October to December (nearly 90% of the year’s hotspots). 2024 and 2025 were far below typical, but burning has shifted later in the day (<a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>), so fewer hotspots may not mean less burning.</>,
+    'us-california': 'Fire season runs August to October (two-thirds of the year’s hotspots). 2020 had the most hotspots since 2002; 2024 and 2025 were 15% and 17% below typical.',
+  }[d.id] ?? `Fire season runs ${seasonMonths(d)}.`
   return (
     <section id="calendar" aria-labelledby="calendar-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="calendar-h" className={title}>Every month since 2002, in Aqua-equivalent units</h2>
-          <p className="mt-4 text-lg text-[color:var(--bone)]">{heading}</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{sentence}</p>
-          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Fire season, {seasonMonths(d)}: the underlined months. This is a historical comparison, not a forecast, a count of unique fires, or a measure of burned area.</p>
+          <h2 id="calendar-h" className={title}>Fire calendar</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Each row is a year and each cell a month. Brighter cells mean more hotspots.</p>
+          <p className="mt-4 text-lg text-[color:var(--bone)]">{headline}</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <ModeToggle value={mode} onChange={onMode} classes={modeClasses} labels={{ anomaly: 'Compared with normal', count: 'Number of fires' }} />
+            <ModeToggle value={mode} onChange={onMode} classes={modeClasses} labels={{ anomaly: 'Compared with a typical year', count: 'Hotspot counts' }} countFirst />
             <span role="group" aria-label="Months shown" className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--bone2)]">
               <MonthField label="From" value={range.from} years={allYears} onChange={setFrom} />
               <span aria-hidden>to</span>
@@ -934,13 +936,18 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
               render="fill"
               cellHeight={small ? 20 : 24}
               monthLabels={small ? 'initial' : 'short'}
-              highlight={highlight}
+              highlight={null}
               season={seasonIndex(d)}
-              label={`Fire calendar for ${d.name}, ${mode === 'anomaly' ? 'each month compared with normal for that month' : 'the number of fires each month'}${f ? `; ${f.label} is ringed` : ''}`}
+              label={`Fire calendar for ${d.name}, ${mode === 'anomaly' ? 'each month compared with a typical year' : 'hotspots each month'}`}
             />
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
+          <div className="mt-4 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
+            <p>A hotspot is one satellite fire detection; a large fire can produce many.</p>
+            <p>Typical = the median for that calendar month, 2002–2025.</p>
+            <p>Counts before 2012 are Aqua’s own. From 2012 they come from VIIRS, whose overpass time has stayed constant, scaled to Aqua using the 2012–2020 ratio.</p>
+          </div>
           <a href={`#top`} className={cn('mt-6 inline-flex min-h-11 items-center gap-1 text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
             Pick another place <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />
           </a>
