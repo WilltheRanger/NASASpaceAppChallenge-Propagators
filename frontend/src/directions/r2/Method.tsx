@@ -3,7 +3,7 @@ import p9Followup from '../../../../data/out/p9-followup.json'
  * THESIS: How we know, in plain steps, with every technical detail one click deeper.
  * OWN-WORLD: Anchor dark, bone text, IBM Plex Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
  * STORY: one Amazon day seen three times; the comparison in four steps; the ten checks, failures and all; the
- *   California real-fires test; how closely we match INPE; what Anchor can't do; sources, the AI disclosure, the code.
+ *   California real-fires test; how closely we match INPE; what Anchor can't do; sources and the code.
  * FIRST VIEWPORT: the page's question, its section bar, and the three looks at one day.
  * FORM: a long reference page with a section bar that follows the reader (21st.dev scroll spy).
  * Moved here from the Region page: the three passes, how we read a count, the checks, detection, limits and about.
@@ -679,7 +679,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   )
 }
 
-/* ---------- Sources, the AI disclosure, the code ---------- */
+/* ---------- Sources and the code ---------- */
 
 function Sources() {
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
@@ -706,24 +706,6 @@ function Sources() {
               </li>
             ))}
           </ul>
-          <div id="ai" className="mt-12 scroll-mt-32">
-            <h3 className="text-2xl font-medium leading-tight tracking-[-0.01em]">Use of AI (disclosure)</h3>
-            <div className="mt-4 flex max-w-[var(--measure)] flex-col gap-3 text-sm text-[color:var(--bone2)]">
-              <p>The 2026 Space Apps rules ask teams to disclose AI use. AI assistants (large language model chat and coding tools) were used throughout this project. Team members directed the work, made the decisions and reviewed the results. AI assistance was used for:</p>
-              <More label="What AI helped with">
-                <ul className="flex list-disc flex-col gap-1.5 pl-5">
-                  <li><strong className="font-medium text-[color:var(--bone)]">research:</strong> finding and reading sources, checking facts, and reviewing and stress-testing the plan;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">the data pipelines</strong> in <code>analysis/</code> (downloads, region assignment, counts, look times, the INPE comparison), and therefore the data they write to <code>data/out/</code>;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">the statistics:</strong> clock audit, bootstrap intervals, noise floor, two clocks and prediction checks;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">the California detection limits, the daylight analysis and the exploratory world map,</strong> including their independent checks;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">the web app</strong> in <code>frontend/</code>: code, layout and on-page text;</li>
-                  <li><strong className="font-medium text-[color:var(--bone)]">documentation,</strong> including this README.</li>
-                </ul>
-              </More>
-              <p>The app’s photographs, video and satellite images are not AI-generated; their sources are credited below.</p>
-            </div>
-            <p className="mt-3 text-xs text-[color:var(--bone3)]">The team’s words, from the project README.</p>
-          </div>
         </div>
       </div>
     </section>

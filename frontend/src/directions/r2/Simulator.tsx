@@ -27,7 +27,7 @@ import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
 import { KeyValueList, type KeyValueListItem } from '@/components/ui/key-value-list'
 import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, SAT, SAT_NAMES, SENSOR, WINDOW, groupOf, heatShare, histogram, lstOf, near, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
-import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, placeById, searchPlaces, type Place } from '@/r2/places'
+import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, nameAt, nameNear, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
 import { BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, PASS_END, SOURCES as DAY_SOURCES, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
 import { DOWN, EXPLORATORY, L_STEPS, NEAR, UP, cellFeatures, cellIdAt, cellName, globalGrid, reading, type GlobalCell, type GlobalGrid } from '@/r2/global'
@@ -316,8 +316,18 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const turnId = useRef(0)
   const onAsk = (text: string) => {
     const a = ask(text, { region, place, view, fire })
-    setTurns((t) => [...t, { id: ++turnId.current, q: text, a }])
+    const id = ++turnId.current
+    setTurns((t) => [...t, { id, q: text, a }])
     if (a.select != null) pickFire(a.select)
+    // a fire's town, region and country, when OpenStreetMap answers; the offline name stays otherwise
+    const at = a.locate
+    if (at && live) {
+      nameAt(at.lon, at.lat).then((name) => {
+        if (!name) return
+        const label = `${name} (${at.label.replace(/^.*\((.*)\)$/, '$1')})`
+        setTurns((t) => t.map((x) => (x.id !== id ? x : { ...x, a: { ...x.a, sentences: x.a.sentences.map((z) => ({ ...z, text: z.text.replace(at.label, label) })) } })))
+      })
+    }
   }
   const onAction = (x: SiAction) => {
     if (x.kind === 'fly') choose(x.place)
@@ -1262,10 +1272,17 @@ function FireCard({ i, onClose, square, below = false }: { i: number; onClose: (
   const hotter = Math.round(heatShare(i) * 100)
   const others = Math.max(0, near(LON[i], LAT[i], 3).length - 1)
   const modis = SAT[i] <= 1
+  const [where, setWhere] = useState<string | null>(() => nameNear(LON[i], LAT[i]))
+  useEffect(() => {
+    let on = true
+    setWhere(nameNear(LON[i], LAT[i]))
+    nameAt(LON[i], LAT[i]).then((n) => { if (on && n) setWhere(n) })
+    return () => { on = false }
+  }, [i])
   const items: KeyValueListItem[] = [
     { label: 'Daylight left', value: left > 0 ? `${fmtLeft(left)}, sunset ${fmtHM(sun.set)}` : `None, sunset was ${fmtHM(sun.set)}` },
     { label: 'UTC', value: `${String(utc.getUTCHours()).padStart(2, '0')}:${String(utc.getUTCMinutes()).padStart(2, '0')}, ${utc.getUTCDate()} ${MONTHS_SHORT[utc.getUTCMonth()]}` },
-    { label: 'Where', value: coords(LAT[i], LON[i]) },
+    { label: 'Where', value: where ? <>{where}<span className="block text-[color:var(--bone3)]">{coords(LAT[i], LON[i])}</span></> : coords(LAT[i], LON[i]) },
     { label: 'Pixel', value: modis ? 'About 1 km across' : 'About 375 m across' },
     { label: 'Nearby', value: others ? `${others} more within 3 km` : 'None within 3 km' },
   ]
