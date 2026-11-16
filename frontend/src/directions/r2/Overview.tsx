@@ -230,7 +230,7 @@ function OneDay() {
           <h2 id="day-h" className="text-balance text-[clamp(30px,3.6vw,52px)] font-medium leading-[1.05] tracking-[-0.025em] lg:col-span-7">
             Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
-          <p className="max-w-[30ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">INPE’s official fire count for Brazil follows Aqua.</p>
+          <p className="max-w-[34ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">Brazil relies on it: INPE, Brazil’s space research institute, uses Aqua for the country’s official fire count. But Aqua now flies over the Amazon about {look.minutes} minutes later than it did in 2012–2020.</p>
         </div>
         {wideScreen ? (
           <StickyScroll
