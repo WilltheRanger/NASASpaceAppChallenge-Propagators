@@ -92,9 +92,10 @@ function OneDay() {
       <div className={cn(shell, 'py-16 lg:py-24')}>
         <h2 id="day-h" className={title}>One day, three looks at the same forest</h2>
         <p className={lead}>The central Amazon on 4 September 2026, seen by three satellites at three times. Clouds, smoke and fires change between looks.</p>
-        <ul className="mt-10 grid grid-cols-3 gap-2 sm:gap-4">
+        {/* phones swipe through the three looks at a readable size; wider screens show them side by side */}
+        <ul aria-label="Three looks, morning to later afternoon" className="-mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0">
           {PASSES.map((p, i) => (
-            <Reveal as="li" key={p.key} delay={i * 100} className="min-w-0">
+            <Reveal as="li" key={p.key} delay={i * 100} className="w-[78%] min-w-0 shrink-0 snap-start sm:w-auto">
               <figure className="m-0">
                 <div className="relative aspect-square overflow-hidden rounded-[4px] bg-[color:var(--surface)]">
                   <img src={square(p.key)} alt={p.alt} width={720} height={720} loading="lazy" className={cn('size-full object-cover', p.fit)} />
