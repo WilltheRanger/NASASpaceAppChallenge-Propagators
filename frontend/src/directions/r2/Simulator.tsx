@@ -33,6 +33,7 @@ import { DOWN, EXPLORATORY, L_STEPS, NEAR, UP, cellFeatures, cellIdAt, cellName,
 import { CellPanel } from './GlobalLayer'
 import CONTEXT from '@/r2/earth/context.json'
 import { cn } from '@/lib/utils'
+import { AlertPanel, type AlertDelay } from './AlertPanel'
 
 type Nav = 'dev' | 'artifact'
 type Leave = (e: ReactMouseEvent<HTMLAnchorElement>) => void
@@ -116,6 +117,9 @@ const boxFor = (p: Place): Box => {
 /** the studied regions in a country, or whose box holds the place */
 const studiedFor = (p: Place) => (p.iso && STUDIED_IN[p.iso]) || REGIONS.filter((r) => p.lon >= r.bbox[0] && p.lon <= r.bbox[2] && p.lat >= r.bbox[1] && p.lat <= r.bbox[3]).map((r) => r.id)
 
+/** The place the page opens on. */
+const DEFAULT_PLACE = 'br-amazon'
+
 /** A value kept in the URL: the query string on the site, the hash in the comment page. */
 function readParam(key: string) {
   const q = new URLSearchParams(window.location.search).get(key)
@@ -139,7 +143,9 @@ function writeParams(nav: Nav, values: Record<string, string | null>) {
 /** the place in the URL: a studied region, fire area or country by id; anything else as "xy-lat,lon" and its name */
 function restorePlace(): Place | null {
   const id = readParam('place')
-  if (!id) return null
+  // with nothing asked for, open on the Amazon: its numbers and fires are in the page's own files. The whole globe is
+  // one click away ("All regions"), and stays the opening view for a link that asks for it or for a square
+  if (!id) return readParam('globe') || readParam('cell') ? null : placeById(DEFAULT_PLACE)
   const p = placeById(id)
   const name = readParam('name')
   return p && name && p.kind === 'Coordinates' ? { ...p, name, kind: 'Place', span: 4 } : p
@@ -194,6 +200,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const xl = useMedia('(min-width: 1600px)')
   const live = nav !== 'artifact'
   const [place, setPlace] = useState<Place | null>(restorePlace)
+  /** the assumed wait between a pass and its alert, for the alert panel */
+  const [delay, setDelay] = useState<AlertDelay>(1.5)
   const [arrived, setArrived] = useState(false)
   const [q, setQ] = useState(() => place?.name ?? '')
   const [open, setOpen] = useState(false)
@@ -285,11 +293,11 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     setLightOpen(false)
     pickCell(null)
     const xy = p.kind === 'Place' || p.kind === 'Coordinates'
-    writeParams(nav, { place: xy ? `xy-${p.lat.toFixed(4)},${p.lon.toFixed(4)}` : p.id, name: p.kind === 'Place' ? p.name : null })
+    writeParams(nav, { place: xy ? `xy-${p.lat.toFixed(4)},${p.lon.toFixed(4)}` : p.id, name: p.kind === 'Place' ? p.name : null, globe: null })
     // the place's heading takes focus, so the next Tab continues from the place, not the top of the page
     requestAnimationFrame(() => headRef.current?.focus({ preventScroll: true }))
   }
-  const back = () => { setPlace(null); setArrived(false); setQ(''); setFire(null); setDay(null); setShow(ALL); setLightOpen(false); pickCell(null); writeParams(nav, { place: null, name: null }) }
+  const back = () => { setPlace(null); setArrived(false); setQ(''); setFire(null); setDay(null); setShow(ALL); setLightOpen(false); pickCell(null); writeParams(nav, { place: null, name: null, globe: '1' }) }
   const pickRegion = (id: string) => { const p = STUDIED_PLACES.find((x) => x.id === id); if (p) choose(p) }
 
   const pickFire = (i: number) => {
@@ -369,15 +377,42 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
       busy={online.state === 'busy' && online.q === q} failed={online.state === 'failed' && online.q === q} live={live} typing={typing} motion={motion} onLookUp={lookUp}
     />
   )
+  // the fire manager's question for the place in view: pass times and sunset are real, the delay is the reader's choice
+  const alert = useMemo(() => {
+    if (facts) {
+      const dl = daylight(facts.d)
+      if (!dl) return null
+      const y = dl.at(facts.year)
+      return {
+        place: facts.d.phrase.the,
+        rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: y.look[g] })),
+        rise: y.rise, set: y.set, aquaBefore: dl.baseAqua,
+        basis: `Pass times: each satellite’s usual time here in ${y.year}. Sunset: ${y.mid.day} ${MONTHS[y.mid.m - 1]}, the middle of the fire season.`,
+      }
+    }
+    if (place) {
+      const s = summary(boxFor(place))
+      const [yy, mm, dd] = WINDOW.start.split(' ')[0].split('-').map(Number)
+      const sun = sunTimes(yy, mm, dd, place.lat)
+      return {
+        place: place.name,
+        rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: s[g].lst })),
+        rise: sun.rise, set: sun.set, aquaBefore: null,
+        basis: `Pass times: the middle of each satellite’s fire detections here on ${WHEN}. Sunset: that day, at this latitude.`,
+      }
+    }
+    return null
+  }, [facts, place])
+  const alertPanel = alert ? <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} /> : null
   const rail = cell ? (
     <CellRail cell={cell} year={mapYear} headRef={headRef} onBack={() => pickCell(null)} onCalendar={() => setCellOpen(true)} onZoom={() => setCellZoom(true)} zoomed={cellZoom} />
   ) : !place ? (
     <Idle onPick={pickRegion} onPlayDay={playDay} world={grid != null && layer === 'clock'} />
   ) : facts ? (
-    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} clock={clock} onClock={setClock}
+    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} clock={clock} onClock={setClock} alert={alertPanel}
       daylight={<DaySection onPlay={facts.d.id === 'br-amazon' ? playDay : undefined} onYears={() => setLightOpen(true)} active={day != null} />} />
   ) : (
-    <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} cell={placeCell} year={mapYear} onCell={grid ? (id) => pickCell(id) : undefined} />
+    <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} alert={alertPanel} cell={placeCell} year={mapYear} onCell={grid ? (id) => pickCell(id) : undefined} />
   )
   const footer = <p className="px-5 pb-5 pt-1 text-[11px] leading-4 text-[color:var(--bone3)]">{FOOTER}</p>
   const chart = day ? <FireDayPanel day={day} setDay={setDay} onClose={endDay} motion={motion} /> : <LookChart onFold={wide ? () => setChartOpen(false) : undefined} box={view} show={show} setShow={setShow} fire={fire} near={near} oldClock={facts?.look.old ? { from: hm(facts.look.old), to: hm(facts.look.old) } : OLD_CLOCK} live={live} motion={motion} />
@@ -722,8 +757,12 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
     <div className="flex flex-col gap-7 px-5 pb-6 pt-6">
       <div>
         <h1 className="text-[22px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] [text-wrap:balance]">
-          INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
+          If a fire started here, when would a satellite’s alert arrive, and how much daylight would be left?
         </h1>
+        <p className="mt-3 text-sm text-[color:var(--bone2)]">Search a place, or pick one of the six below, to see it for each satellite.</p>
+        <p className="mt-3 text-sm text-[color:var(--bone2)]">
+          INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
+        </p>
         <p className="mt-3 text-sm text-[color:var(--bone2)]">{world ? 'Search or turn the globe to any place. Far out, each square shows Aqua’s 2025 count against what we’d expect; click one for its numbers. Close in, click any fire to see which satellite saw it, and when.' : 'Click any fire to see which satellite saw it, and when.'}</p>
       </div>
       <div>
@@ -784,9 +823,9 @@ const BackButton = ({ onBack, label = 'All regions' }: { onBack: () => void; lab
 
 type Clock = 'old' | 'new'
 
-function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion, clock, onClock, daylight }: {
+function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion, clock, onClock, daylight, alert }: {
   f: Facts; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onStrongest: () => void; studyHref: string; leave: Leave; motion: boolean
-  clock: Clock; onClock: (c: Clock) => void; daylight?: ReactNode
+  clock: Clock; onClock: (c: Clock) => void; daylight?: ReactNode; alert?: ReactNode
 }) {
   const old = clock === 'old'
   const look = { old: f.look.old ? hm(f.look.old) : null, new: f.look.now ? hm(f.look.now) : null }
@@ -799,6 +838,7 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
         <h2 ref={headRef} tabIndex={-1} className="text-2xl font-medium leading-tight tracking-[-0.015em] text-[color:var(--bone)] outline-none">{short(f.d.name)}</h2>
         <p className="mt-1 text-sm text-[color:var(--bone3)]">{f.country}{f.season ? ` · fire season ${f.season}` : ''}</p>
       </div>
+      {alert ? <div className="border-y border-[color:var(--hairline)] py-5">{alert}</div> : null}
       {f.count ? (
         <div>
           <p className="text-[40px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{signed(f.count.gap)}%</p>
@@ -884,9 +924,9 @@ function Readout({ name, note, value, basis, format, formatDelta, motion }: {
   )
 }
 
-function PlacePanel({ place, headRef, onBack, onFly, onStrongest, cell, year, onCell }: {
+function PlacePanel({ place, headRef, onBack, onFly, onStrongest, cell, year, onCell, alert }: {
   place: Place; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onFly: (id: string) => void; onStrongest: () => void
-  cell: GlobalCell | null; year: 2024 | 2025; onCell?: (id: string) => void
+  cell: GlobalCell | null; year: 2024 | 2025; onCell?: (id: string) => void; alert?: ReactNode
 }) {
   const s = useMemo(() => summary(boxFor(place)), [place])
   const inside = studiedFor(place)
@@ -897,6 +937,7 @@ function PlacePanel({ place, headRef, onBack, onFly, onStrongest, cell, year, on
         <h2 ref={headRef} tabIndex={-1} className="text-2xl font-medium leading-tight tracking-[-0.015em] text-[color:var(--bone)] outline-none [overflow-wrap:anywhere]">{place.name}</h2>
         <p className="mt-1 text-sm text-[color:var(--bone3)]">{place.kind}</p>
       </div>
+      {alert ? <div className="border-y border-[color:var(--hairline)] py-5">{alert}</div> : null}
       {inside.length ? (
         <div>
           <p className="text-xs text-[color:var(--bone3)]">Studied here</p>
