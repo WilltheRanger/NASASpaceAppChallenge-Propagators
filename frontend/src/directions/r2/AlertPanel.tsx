@@ -202,8 +202,9 @@ export function AlertPanel({ place, when, rows, rise, set, delay, onDelay, aquaB
           </p>
           <p className="text-sm leading-5 text-[color:var(--bone2)]">
             {fewer > 0
-              ? <>Same delay, so the alert comes {later} min later with <span className="text-[color:var(--bone)]">{fewer} min less daylight</span>.</>
-              : <>Same delay, so the alert comes {later} min later; after dark either way.</>}
+              ? <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, leaving <span className="text-[color:var(--bone)]">about {fewer} fewer minutes of daylight</span>.</>
+              : <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, after dark either way.</>}
+            <span className="mt-1 block text-xs text-[color:var(--bone3)]">A what-if: real alert delivery wasn’t measured.</span>
           </p>
         </div>
       ) : null}

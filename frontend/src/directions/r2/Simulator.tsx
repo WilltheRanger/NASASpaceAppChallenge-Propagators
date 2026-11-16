@@ -471,8 +471,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: facts.d.phrase.the,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: y.look[g] })),
         rise: y.rise, set: y.set, aquaBefore: dl.baseAqua,
-        when: `${y.mid.day} ${MONTHS[y.mid.m - 1]} (mid fire season, with ${facts.year}’s usual pass times)`,
-        basis: `Sun time, ${y.mid.day} ${MONTHS[y.mid.m - 1]} (mid fire season).`,
+        when: `${y.mid.day} ${MONTHS[y.mid.m - 1]}`,
+        basis: `Sun time, ${y.mid.day} ${MONTHS[y.mid.m - 1]} (mid fire season), with ${facts.year}’s usual pass times.`,
       }
     }
     if (place) {
@@ -1130,8 +1130,8 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
           />
         </div>
         <div className="min-w-[200px] flex-[2]">
-          <p className={label}>Delay</p>
-          <DelayRuler label="Delay between the pass and the alert, 0 to 3 hours" value={day.delay} onValue={(delay) => setDay({ ...day, delay })} band={TYPICAL_DELAY} bandLabel="typical" format={formatDelay} />
+          <p className={label}>Delay (assumed)</p>
+          <DelayRuler label="Delay between the pass and the alert (assumed), 0 to 3 hours" value={day.delay} onValue={(delay) => setDay({ ...day, delay })} band={TYPICAL_DELAY} bandLabel="typical" format={formatDelay} />
         </div>
       </div>
     </section>
