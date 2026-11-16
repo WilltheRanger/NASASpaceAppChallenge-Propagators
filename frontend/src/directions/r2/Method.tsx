@@ -29,7 +29,7 @@ const SECTIONS = [
   { id: 'two-clocks', label: 'Two clocks' },
   { id: 'detection', label: 'Small fires' },
   { id: 'inpe', label: 'Matching INPE' },
-  { id: 'limits', label: 'Scope' },
+  { id: 'limits', label: 'Limits' },
   { id: 'sources', label: 'Sources' },
 ]
 
@@ -64,16 +64,7 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
         <Sources />
       </main>
       <PageNext page="method" links={links} leave={leave} />
-      <Footer
-        links={links}
-        leave={leave}
-        notes={[
-          <>The two pictures of the Amazon were taken on 4 September 2026, with each satellite’s fire detections drawn on them.</>,
-          <>The steps are shown for the Amazon; every place is worked out the same way.</>,
-          <>The small-fires test uses the US Forest Service’s record of California fires, 2012–2020.</>,
-          <>Several tests are scored on all six of Brazil’s biomes, including three that aren’t among our six places.{CHECKS.mock ? ' The test results shown are mock data.' : ''}</>,
-        ]}
-      />
+      <Footer links={links} leave={leave} />
     </>
   )
 }
@@ -110,7 +101,7 @@ function OneDay() {
             </CompareSliderAfter>
             <CompareSliderHandle />
           </CompareSlider>
-          <figcaption className="mt-3 text-sm text-[color:var(--bone2)]"><span className="text-[color:var(--bone)]">Drag the handle.</span> Dots are detected fires.</figcaption>
+          <figcaption className="mt-3 text-sm text-[color:var(--bone2)]">Dots are detected fires.</figcaption>
         </figure>
       </div>
     </section>
@@ -129,7 +120,7 @@ function Steps() {
     { title: 'Find when each satellite looked', text: 'The middle time of its fire detections that year.', value: last ? `Aqua ${last.aqua_lst} · VIIRS ${last.viirs_lst}` : null },
     { title: 'Learn how Aqua and VIIRS compare', text: 'Aqua detections for every 100 VIIRS detections, 2012–2020.', value: ratio != null ? `${Math.round(ratio * 100)} per 100` : null },
     { title: 'Work out what we’d expect', text: `VIIRS’s count times that rate: the benchmark${y ? ` for ${y.year}` : ''}.`, value: y && y.fixed != null ? fmtInt(y.fixed) : null },
-    { title: 'Compare', text: 'Aqua’s count against the benchmark. Further out than any year from 2012 to 2020 is unusual.', value: y && y.gap != null ? pct(y.gap) : null },
+    { title: 'Compare', text: 'Aqua’s count against the benchmark. Further out than any year from 2012 to 2020 is unusual.', value: y && y.gap != null ? pct(y.gap, 0) : null },
   ]
   return (
     <section id="steps" aria-labelledby="steps-h" className={section}>
@@ -334,10 +325,10 @@ function Detection() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="detection-h" className={title}>VIIRS picks up small fires that Aqua misses</h2>
-          <p className={lead}>In California’s fire records, VIIRS caught more of the small fires than Aqua, so it is the yardstick.</p>
+          <p className={lead}>Checked against the US Forest Service’s record of California fires, 2012–2020.</p>
           <More label="How we matched" className="mt-3">
             <p className="mt-1 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
-              Each fire in the US Forest Service’s record was matched to the satellites’ detections. {matchingRule(DETECTION.rule)}
+              {matchingRule(DETECTION.rule)}
             </p>
           </More>
           <MockTag show={!!DETECTION.mock} className="mt-3 inline-block" />
@@ -476,27 +467,27 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   }, [])
   const weak = useMemo(weakFlags, [])
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
-  const items: { t: string; b: ReactNode; done?: string; next?: string }[] = [
+  const items: { t: string; b: ReactNode; next?: ReactNode }[] = [
     {
-      t: 'It can’t fully separate the timing from everything else.',
+      t: 'It can’t fully separate the timing from everything else',
       b: 'The comparison sets Aqua’s count beside what we’d expect from VIIRS. We then tested the other explanations. Clouds: a geostationary cloud mask shows Aqua’s old and new look times are equally clear. Viewing angle: NASA’s swath outlines show Aqua didn’t look at the Amazon from overhead more often. Fire size: for large fires, the geostationary satellite predicts the change. None of them explains the gap. Across 80 region-years, about 90% of the Amazon’s 2025 gap traces to the later look (likely range 43–137%). Still open: the excess is similar in the deforestation arc and the interior, where timing predicts a difference, and months outside the fire season aren’t tested. The benchmark is an estimate; it does not replace INPE’s official count.',
-      next: 'Tested in nine ways (analysis/attribution in the repository). Next: the fire-regime split, the off-season months, and MODIS per-pixel fire masks.',
+      next: REPO_URL
+        ? <><a href={`${REPO_URL}/tree/main/analysis/attribution`} target="_blank" rel="noreferrer" className={link}>The nine tests</a>. Next: the fire-regime split, the off-season months, and MODIS per-pixel fire masks.</>
+        : 'Next: the fire-regime split, the off-season months, and MODIS per-pixel fire masks.',
     },
     {
-      t: '“Unusual” is a screen, not a verdict.',
-      b: 'Nine years, 2012 to 2020, set the usual range, so an ordinary year lands outside it about one time in five. A flag marks a year worth a closer look; it isn’t a significance test.',
-      done: 'Addressed: each unusual or close-call year now shows how many points it sits past the usual range.',
+      t: '“Unusual” is a screen, not a verdict',
+      b: 'Nine years, 2012 to 2020, set the usual range, so an ordinary year lands outside it about one time in five. A flag marks a year worth a closer look; it isn’t a significance test. Each flagged year shows how many points it sits past the usual range.',
     },
     {
-      t: weak.length ? `Some flags are close calls: ${andList(weak.map((w) => `${phrase(w.id).the} (${w.years.join(', ')})`))} ${weak.length === 1 && weak[0].years.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is a close call.',
+      t: weak.length ? `Some flags are close calls: ${andList(weak.map((w) => `${phrase(w.id).the} (${w.years.join(', ')})`))} ${weak.length === 1 && weak[0].years.length === 1 ? 'sits' : 'sit'} just outside the usual range` : 'A year just outside a narrow usual range is a close call',
       b: 'Close call: just outside the usual range, but the likely range overlaps it. These labels describe uncertainty, not proof of a timing effect.',
-      done: 'Addressed: a year whose likely range overlaps the usual range is now labelled “Close call”, not “Unusual”.',
     },
     {
-      t: 'Missing satellite days are handled openly.',
+      t: 'A partial data loss over one region isn’t caught',
       b: (
         <>
-          A day with no daytime detection anywhere in Brazil counts as an outage and is dropped for every region. A partial loss over one region isn’t caught.
+          A day with no daytime detection anywhere in Brazil counts as an outage and is dropped for every region; a loss over one region alone isn’t seen.
           {filled.length ? ` ${capital(numWord(filled.length))} calendar months had a VIIRS outage day with nothing to fill it, so they show Aqua’s own count: ${andList(filled.map(monthName))}.` : ''}
           {' '}Aqua went into safe hold on 31 March 2022, and Terra paused its science data in October 2022.
         </>
@@ -504,41 +495,39 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       next: 'Next: check coverage region by region, and tell a missing day apart from a day with no fires.',
     },
     {
-      t: 'NASA’s May 2025 VIIRS reprocessing leaves the counts alone.',
-      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation. These input codes are not established collection names. The provisional NRT snapshot remains separate.',
-      done: 'Addressed: Sources list each product’s version by period: VIIRS Collection 2 (standard) for 2012–2025, the MODIS archive’s codes, and 6.1NRT and 2.0NRT for the 2026 snapshot.',
+      t: 'MODIS product versions vary by year',
+      b: 'Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation. NASA’s May 2025 VIIRS reprocessing touches the timing and fire-size inputs, not the counts the comparison uses.',
     },
     {
-      t: 'The calendar runs through 2025; a separate provisional card shows 8–14 Nov 2026.',
-      b: 'The card is separate from the historical calendar: provisional, incomplete coverage, not a full-year trend.',
-      done: 'Addressed: the Brazil region pages show the 2026 snapshot on its own card, labelled “Provisional · incomplete coverage”.',
+      t: 'The calendar stops at 2025',
+      b: 'A separate provisional card shows 8–14 Nov 2026: incomplete coverage, not a full-year trend.',
     },
     {
-      t: 'Aqua and Terra are nearing the end of their missions, and the method carries on.',
+      t: 'Aqua and Terra are nearing the end of their missions',
       b: (
         <>
           NASA has planned <a href={NASA_TERRA} target="_blank" rel="noreferrer" className={link}>Terra’s last operations</a> and{' '}
           <a href={NASA_AQUA_LIFE} target="_blank" rel="noreferrer" className={link}>Aqua’s end of life</a>, so counts that follow Aqua, as INPE’s does, will need a new reference.{' '}
-          <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 and NOAA-21 carry the same camera and keep their time, so the benchmark carries on without them.
+          <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 carries the same camera on the same clock, so the benchmark carries on.
         </>
       ),
-      next: 'Next: check NOAA-20 and NOAA-21 against S-NPP, so the benchmark can carry on past 2025.',
+      // analysis/handover: NOAA-20 reproduces the S-NPP audit out of sample; no 2024 or 2025 verdict changes
+      next: 'Checked: with NOAA-20 in place of S-NPP, every 2024 and 2025 result keeps its label (the Amazon’s 2025 gap: +29% against +30%).',
     },
   ]
   return (
     <section id="limits" aria-labelledby="limits-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="limits-h" className={title}>How far the result goes</h2>
-          <p className="mt-4 text-sm"><a href={links.regions()} onClick={leave} className={textLink}>The six places</a></p>
+          <h2 id="limits-h" className={title}>Limits</h2>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <Accordion type="multiple" motion={motion.on} level={3}>
             {items.map((it, i) => (
               <AccordionItem key={it.t} value={`l${i}`}>
-                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{it.done ? 'Addressed · ' : ''}{it.t}</AccordionTrigger>
+                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{it.t}</AccordionTrigger>
                 <AccordionContent><p className="max-w-[var(--measure)]">{it.b}</p>
-                  {it.done || it.next ? <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{it.done ?? it.next}</p> : null}
+                  {it.next ? <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{it.next}</p> : null}
                 </AccordionContent>
               </AccordionItem>
             ))}

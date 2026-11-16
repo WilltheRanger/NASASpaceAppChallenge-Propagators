@@ -9,7 +9,8 @@ class CalendarNavigation(unittest.TestCase):
         self.assertIn('Open the fire calendar', s)
     def test_region_preserves_selection(self):
         s = (ROOT/'frontend/src/directions/r2/FieldFilm.tsx').read_text()
-        self.assertIn('href="#calendar" className={primaryButton}', s)
+        # the calendar is the Regions page's first section, ahead of the audit result, so no extra shortcut button is needed
+        self.assertLess(s.index('<Calendar d={d}'), s.index('<Result d={d}'))
         self.assertIn("window.location.hash !== '#calendar'", s)
         self.assertIn("if (el) glideTo(el, false)", s)
     def test_heading_and_limits(self):
