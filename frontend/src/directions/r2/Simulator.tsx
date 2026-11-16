@@ -470,6 +470,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: facts.d.phrase.the,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: y.look[g] })),
         rise: y.rise, set: y.set, aquaBefore: dl.baseAqua,
+        when: `${y.mid.day} ${MONTHS[y.mid.m - 1]} (mid fire season, with ${facts.year}’s usual pass times)`,
         basis: `Sun time, ${y.mid.day} ${MONTHS[y.mid.m - 1]} (mid fire season).`,
       }
     }
@@ -481,6 +482,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: place.name,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: s[g].lst })),
         rise: sun.rise, set: sun.set, aquaBefore: null,
+        when: WHEN,
         basis: `Sun time, ${WHEN}.`,
       }
     }
@@ -608,7 +610,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
 
           {place && !day && !failed ? (
             <p className={cn(glass, 'pointer-events-none absolute z-20 px-2.5 py-1.5 text-xs text-[color:var(--bone)]', wide ? 'left-4 top-4' : 'left-3')} style={wide ? undefined : { bottom: `calc(${(pull != null ? 0 : SHEET[snap]) * 100}% + ${pull ?? 0}px + 8px)` }}>
-              Fires from {WHEN}{clock === 'old' && region ? ', seen by VIIRS near Aqua’s 2012–2020 time' : ''}
+              Fires on the map: {WHEN}, a saved snapshot{clock === 'old' && region ? ', seen by VIIRS near Aqua’s 2012–2020 time' : ''}
             </p>
           ) : null}
           {failed ? <p className={cn(glass, 'absolute left-4 top-4 z-20 px-3 py-2 text-xs text-[color:var(--bone2)]')}>This browser can’t draw the 3D globe. The numbers below are unaffected.</p> : null}
