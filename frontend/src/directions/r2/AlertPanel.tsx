@@ -10,7 +10,7 @@
  */
 import type { ReactNode } from 'react'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { DelayRuler } from '@/components/ui/delay-ruler'
+import { DelayRuler, TYPICAL_DELAY, formatDelay } from '@/components/ui/delay-ruler'
 import { fmtHM } from '@/r2/data'
 import { cn } from '@/lib/utils'
 
@@ -24,17 +24,6 @@ export type AlertRow = {
 }
 
 const COLOR: Record<AlertRow['key'], string> = { terra: 'var(--sat-terra)', viirs: 'var(--sat-viirs)', aqua: 'var(--sat-aqua)' }
-/** NASA FIRMS: MODIS alerts typically arrive 60 to 125 minutes after the pass; 3 hours is the stated bound */
-const TYPICAL: [number, number] = [1, 125 / 60]
-
-/** a delay as "0 h", "45 min", "1 h 30" */
-function delayText(h: number) {
-  const m = Math.round(h * 60)
-  if (m === 0) return '0 h'
-  const hh = Math.floor(m / 60)
-  return hh ? (m % 60 ? `${hh} h ${String(m % 60).padStart(2, '0')}` : `${hh} h`) : `${m} min`
-}
-
 /** hours as "2 h 05" or "45 min" */
 function span(h: number) {
   const m = Math.round(h * 60)
@@ -127,9 +116,9 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
             label="Alert delay after the pass (assumed), 0 to 3 hours"
             value={delay}
             onValue={onDelay}
-            band={TYPICAL}
+            band={TYPICAL_DELAY}
             bandLabel="typical"
-            format={delayText}
+            format={formatDelay}
           />
         </div>
       </div>
