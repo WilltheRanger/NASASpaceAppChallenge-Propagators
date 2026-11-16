@@ -1,6 +1,6 @@
 /*
  * THESIS: How we know, in plain steps: what we compare, how we tested it, what it can't tell you.
- * OWN-WORLD: Anchor dark, bone text, IBM Plex Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
+ * OWN-WORLD: Anchor dark, bone text, Albert Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
  * STORY: one Amazon afternoon seen twice (a slider); the comparison in four steps; the ten tests, failures and all; the
  *   California small-fires test; how closely we match INPE; what Anchor can't tell you; sources.
  * FORM: a reference page with a section bar that follows the reader; one control per figure; small print in the footer.

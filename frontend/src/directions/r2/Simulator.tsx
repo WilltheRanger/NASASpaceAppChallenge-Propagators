@@ -1,7 +1,7 @@
 /*
  * The Explore page (the file keeps its first name). THESIS: One question at a time: which satellite saw this fire, and when? The Earth sits in the middle; the place and
  *   its numbers on the left; SI on the right; under the map, when each satellite looked at everything in view.
- * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, IBM Plex Sans, NASA Blue Marble. The satellite marks are the Region
+ * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, Albert Sans, NASA Blue Marble. The satellite marks are the Region
  *   page's: Terra a blue ring, VIIRS a green diamond, Aqua an amber dot. Region frames are white, so amber means Aqua.
  * STORY: A judge clicks a fire and reads which satellites saw that spot and at what local time. The chart shows each
  *   satellite's clock over everything in view, with Aqua's 2012–2020 clock marked. A studied region shows the audit as
@@ -1479,7 +1479,7 @@ const STARS = 'bg-[image:radial-gradient(1px_1px_at_12%_18%,rgba(236,233,225,0.4
 /** the region tags on the globe (MapLibre markers are plain DOM, outside Tailwind's reach); white, as amber is Aqua's */
 const TAG_CSS = `
 .anchor-tag{display:flex;align-items:center;gap:6px;min-height:24px;padding:3px 8px 3px 6px;border-radius:3px;cursor:pointer;white-space:nowrap;
-  background:rgba(11,13,11,0.9);border:1px solid rgba(236,233,225,0.35);color:#ECE9E1;font:500 12px/16px 'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  background:rgba(11,13,11,0.9);border:1px solid rgba(236,233,225,0.35);color:#ECE9E1;font:500 12px/16px 'Albert Sans',ui-sans-serif,system-ui,sans-serif;
   box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:background-color 150ms}
 .anchor-tag:hover{background:#1C1F1D}
 .anchor-tag[data-on="true"]{border-color:#ECE9E1}
