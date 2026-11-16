@@ -89,7 +89,6 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
   return (
     <section aria-labelledby="alert-h" className="flex flex-col gap-5">
       <div>
-        <p className="mb-1.5 text-xs text-[color:var(--bone3)]">What-if for responders</p>
         <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance]">
           If a fire starts in {place} today, when could a satellite alert me, and how much daylight would I have left to act?
         </H>

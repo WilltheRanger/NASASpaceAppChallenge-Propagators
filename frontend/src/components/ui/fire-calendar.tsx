@@ -109,7 +109,7 @@ export function FireCalendar({ years, cells, mode, render = 'fill', maxCount, ce
   return (
     <div className={cn('w-full', className)} style={{ color: 'var(--cal-fg)' }}>
       <p className="mb-3 min-h-5 text-[12px] leading-5 tabular-nums" style={{ color: 'var(--cal-muted)' }} aria-live="polite">
-        {readout ?? 'Point at a month, or focus the grid and use the arrow keys'}
+        {readout ?? 'Point at a month to read it'}
       </p>
       <div
         role="grid"

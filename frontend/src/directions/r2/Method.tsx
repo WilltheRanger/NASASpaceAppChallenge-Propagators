@@ -47,7 +47,6 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
       <main className="pt-14">
         <div className={cn(shell, 'pb-8 pt-14 sm:pt-20')}>
           <h1 className="max-w-[18ch] text-balance text-[clamp(40px,5.4vw,80px)] font-medium leading-[1] tracking-[-0.035em]">How we know</h1>
-          <p className="mt-5 max-w-[34rem] text-lg text-[color:var(--bone2)]">What we compare, how we tested it, and how far the result goes.</p>
         </div>
         <div className="sticky top-14 z-30 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
           <div className={cn(shell, 'py-1')}>
@@ -92,7 +91,6 @@ function OneDay() {
         <div className="lg:col-span-4">
           <h2 id="day-h" className={title}>One afternoon, two looks at the same forest</h2>
           <p className={lead}>VIIRS looked early in the afternoon. Aqua looked later. The clouds, the smoke and the fires had changed.</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">A single day measures nothing on its own. The yearly counts are the measurement.</p>
         </div>
         <figure className="m-0 lg:col-span-8">
           <CompareSlider
@@ -207,7 +205,7 @@ function Checks() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="checks-h" className={title}>{heading}</h2>
-          <p className={lead}>Each one says what should be true if the timing matters. The failures stay on the page.</p>
+          <p className={lead}>Each one says what should be true if the timing matters.</p>
           {before ? (
             <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">For {numWord(before)} of them we had already seen the result when we wrote the rule. Those are marked, because they aren’t true predictions.</p>
           ) : null}
@@ -336,8 +334,8 @@ function Detection() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="detection-h" className={title}>VIIRS picks up small fires that Aqua misses</h2>
-          <p className={lead}>California keeps a record of its fires. We checked which of them each satellite picked up. VIIRS found more of the small ones, so we use it as the yardstick.</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">This is one way of matching fires in one state. It doesn’t give the cameras’ limits everywhere.</p>
+          <p className={lead}>In California’s fire records, VIIRS caught more of the small fires than Aqua, so it is the yardstick.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">Matched in one state, with one method.</p>
           <More label="How we matched" className="mt-3">
             <p className="mt-1 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
               Each fire in the US Forest Service’s record was matched to the satellites’ detections. {matchingRule(DETECTION.rule)}
@@ -349,7 +347,6 @@ function Detection() {
           <figure className="m-0">
             <figcaption className="mb-4">
               <span className="block text-lg font-medium">Share of real fires each satellite picked up, by fire size</span>
-              <span className="mt-1 block text-sm text-[color:var(--bone2)]">Point at a row to read it.</span>
             </figcaption>
             <DetectionChart small={small} />
           </figure>
@@ -441,7 +438,7 @@ function InpeMatch() {
               From 2012 to 2020 our monthly count was within 10% of INPE’s official count {all}% of the time{study ? `, and ${study[3]}% of the time from 2021 to 2025` : ''}.
             </p>
           ) : null}
-          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">INPE uses the same NASA fire data, so this shows we follow the same series. It isn’t an independent test.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">Same NASA data as INPE, so this checks our processing, not the finding.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <p className="mb-4 text-lg font-medium">The Amazon’s hotspot detections by year</p>
@@ -528,7 +525,6 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="limits-h" className={title}>How far the result goes</h2>
-          <p className={lead}>Before comparing one year’s count with another’s, check how far Aqua sat from the benchmark in both years.</p>
           <p className="mt-4 text-sm"><a href={links.regions()} onClick={leave} className={textLink}>The six places</a></p>
         </div>
         <div className="min-w-0 lg:col-span-8">
@@ -573,7 +569,6 @@ function Sources() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="sources-h" className={title}>Sources</h2>
-          <p className={lead}>Every number on this site comes from the team’s data files, built from these.</p>
           {REPO_URL ? (
             <p className="mt-6">
               <a href={REPO_URL} target="_blank" rel="noreferrer" className={cn('inline-flex min-h-11 items-center gap-2 text-sm', link)}>The code and the method notes <ArrowRight size={14} strokeWidth={1.5} aria-hidden /></a>
