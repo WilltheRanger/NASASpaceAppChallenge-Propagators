@@ -4,6 +4,11 @@
 html, body { margin: 0; }
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Keyboard focus stays visible. Controls that carry the focus-ring classes could end up focused with
+   outline-style none (computed "none 2px"), which hid the ring; this unlayered rule restores the line and leaves
+   each ring's width, offset and colour alone. */
+[class*='focus-visible:outline-2']:focus-visible { outline-style: solid; }
+
 /* Direction D (Field film): the region tour's progress line, the app photograph's arrival, and the footer motion
    switch, which stops every transition and animation inside the page when it is off. */
 @keyframes anchor-dwell { from { transform: scaleX(0); } to { transform: scaleX(1); } }

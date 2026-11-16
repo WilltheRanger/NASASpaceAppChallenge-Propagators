@@ -30,6 +30,8 @@ export interface StickyScrollProps {
   motion?: boolean
   /** what the step list is called, for screen readers */
   label: string
+  /** shown above the steps, beside the picture */
+  intro?: React.ReactNode
   className?: string
 }
 
@@ -46,7 +48,7 @@ function useWide() {
   return wide
 }
 
-export function StickyScroll({ steps, panel, initial = 0, onActive, top = '6rem', motion = true, label, className }: StickyScrollProps) {
+export function StickyScroll({ steps, panel, initial = 0, onActive, top = '6rem', motion = true, label, intro, className }: StickyScrollProps) {
   const reduce = useReducedMotion()
   const still = !motion || !!reduce
   const wide = useWide()
@@ -105,6 +107,7 @@ export function StickyScroll({ steps, panel, initial = 0, onActive, top = '6rem'
   if (!wide) {
     return (
       <div className={className}>
+        {intro}
         <div>{panel(active)}</div>
         <div className="mt-6">{list}</div>
       </div>
@@ -112,7 +115,7 @@ export function StickyScroll({ steps, panel, initial = 0, onActive, top = '6rem'
   }
   return (
     <div ref={ref} className={cn('grid grid-cols-12 gap-x-6', className)}>
-      <div className="col-span-5 pb-[24svh]">{list}</div>
+      <div className="col-span-5 pb-[24svh]">{intro}{list}</div>
       <div className="col-span-7">
         <div className="sticky" style={{ top }}>{panel(active)}</div>
       </div>

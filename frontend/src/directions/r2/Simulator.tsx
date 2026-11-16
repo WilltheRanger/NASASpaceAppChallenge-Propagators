@@ -24,7 +24,7 @@ import { startGuide } from './tour'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
-import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, N as DOTS, SAT, SAT_NAMES, SENSOR, TOTALS, WINDOW, groupOf, heatShare, histogram, lstOf, near, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
+import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, N as DOTS, SAT, SAT_NAMES, SENSOR, TOTALS, WINDOW, edgeLat, groupOf, heatShare, histogram, lstOf, near, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
 import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, nameAt, nameNear, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
 import { BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, PASS_END, SOURCES as DAY_SOURCES, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
@@ -452,7 +452,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     const r = reading(c, 2025)
     return { ok: r.ok, gap: r.L != null ? (r.L - 1) * 100 : null, outside: r.outside }
   }, [fire, cellById])
-  if (fire != null && wide) callouts.push({ key: `fire-${fire}-${fireBelow ? 'b' : 'a'}`, lon: LON[fire], lat: LAT[fire], anchor: fireBelow ? 'top' : 'bottom', content: <FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} below={fireBelow} /> })
+  if (fire != null && wide) callouts.push({ key: `fire-${fire}-${fireBelow ? 'b' : 'a'}`, lon: LON[fire], lat: edgeLat(fire, fireBelow), anchor: fireBelow ? 'top' : 'bottom', content: <FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} below={fireBelow} /> })
   if (place && !region && arrived && !day) callouts.push({ key: `pin-${place.id}`, lon: place.lon, lat: place.lat, anchor: 'center', content: <Reticle text={coords(place.lat, place.lon)} motion={motion} /> })
 
   const search = (
@@ -1089,10 +1089,10 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
       </div>
       {/* the answer first (the Verdict First Rule): daylight left, big; the alert, sunset and what this pass saw, one quiet line */}
       <div className="mt-3">
-        <p className="flex flex-wrap items-baseline gap-x-2.5">
-          <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[48px] font-medium leading-none tracking-[-0.035em] text-[color:var(--bone)]" />
+        <div className="flex flex-wrap items-baseline gap-x-2.5">
+          <DeltaTicker value={Math.max(0, r.daylight)} basis={null} format={(h) => (h > 0 ? dur(h) : 'None')} formatDelta={() => ''} label="Daylight left" motion={motion} ghost={false} valueClassName="text-[40px] font-medium leading-none tracking-[-0.03em] text-[color:var(--bone)]" />
           <span className="text-lg text-[color:var(--bone2)]">of daylight left</span>
-        </p>
+        </div>
         <p className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] tabular-nums text-[color:var(--bone2)]">
           <span>Alert <span className="text-[color:var(--bone)]">{fmtHM(r.alert)}</span> · sunset {fmtHM(SUNSET)}</span>
           <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-full bg-[color:var(--bone)]" /><span className="text-[color:var(--bone)]">{fmtInt(r.seen)}</span> seen</span>
@@ -1310,7 +1310,7 @@ function LookChart({ box: viewBox, probe, show, setShow, fire, near, oldClock, l
           </div>
           {sources ? (
             <ul className="mt-1 flex list-none flex-col gap-1 border-t border-[color:var(--hairline)] pt-2 text-[11px] text-[color:var(--bone3)]">
-              <li>Fires: NASA FIRMS, MODIS (Terra, Aqua) and VIIRS 375 m (NOAA-20, NOAA-21), {WINDOW.start} to {WINDOW.end} UTC. The files hold {fmtInt(TOTALS.reduce((a, b) => a + b, 0))} daytime detections; the map draws {fmtInt(DOTS)}, the strongest per satellite in each 2 km square.</li>
+              <li>Fires: NASA FIRMS, MODIS (Terra, Aqua) and VIIRS 375 m (NOAA-20, NOAA-21), {WINDOW.start} to {WINDOW.end} UTC. The files hold {fmtInt(TOTALS.reduce((a, b) => a + b, 0))} daytime detections; the map draws {fmtInt(DOTS)}, the strongest per satellite in each 2 km square{live ? '; close up, every detection as a square' : ''}.</li>
               <li>Map: NASA Blue Marble{live ? ', through NASA GIBS' : ''}.</li>
               {live ? <li>Close up: Sentinel-2 cloudless 2016 by EOX (s2maps.eu), contains modified Copernicus Sentinel data 2016, CC BY 4.0.</li> : null}
               <li>Aqua 2012–20: the team’s drift files. Countries: mledoze/countries, ODbL.</li>
@@ -1360,7 +1360,7 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
     <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[color:var(--ground)] text-left', docked ? 'w-full' : 'w-[300px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
       <div className="flex items-center gap-2 pl-3 pr-1.5 pt-1.5">
         <Mark g={g} size={12} />
-        <p className="text-[15px] font-medium text-[color:var(--bone)]">
+        <p className="text-sm font-medium text-[color:var(--bone)]">
           {SAT_NAMES[SAT[i]]}<span className="text-sm font-normal text-[color:var(--bone3)]"> · {SENSOR[SAT[i]]}</span>
         </p>
         <button type="button" aria-label="Close" onClick={onClose} className={cn('ml-auto grid size-8 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
@@ -1373,7 +1373,7 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
           <span className="text-xs text-[color:var(--bone3)]">Daylight left</span>
           <span className="text-xs tabular-nums text-[color:var(--bone3)]">seen <span className="font-medium text-[color:var(--bone)]">{fmtHM(lst)}</span> local sun time</span>
         </p>
-        <p className="mt-1 text-[28px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{left > 0 ? fmtLeft(left) : 'None'}</p>
+        <p className="mt-1 text-[22px] font-medium leading-[1.25] tracking-[-0.01em] tabular-nums text-[color:var(--bone)]">{left > 0 ? fmtLeft(left) : 'None'}</p>
         <span aria-hidden className="relative mt-3 block h-1.5 w-full rounded-full bg-[color:var(--hairline)]">
           <span className="absolute inset-y-0 right-0 rounded-full" style={{ left: `${seenAt * 100}%`, background: COLOR[g] }} />
           <span className="absolute -top-[4px] h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-[color:var(--bone)]" style={{ left: `${seenAt * 100}%` }} />
