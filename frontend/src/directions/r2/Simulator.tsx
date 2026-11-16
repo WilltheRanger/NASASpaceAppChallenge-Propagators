@@ -101,7 +101,6 @@ const LIST = REGIONS.map((r) => ({ id: r.id, name: short(r.name), f: regionFacts
 const SHIFTS = LIST.map((r) => (r.f.look.old && r.f.look.now ? Math.round((hm(r.f.look.now) - hm(r.f.look.old)) * 60) : null)).filter((v): v is number => v != null)
 const SHIFT = SHIFTS.length ? `${Math.min(...SHIFTS)} to ${Math.max(...SHIFTS)} minutes` : 'over an hour'
 /** said next to every finding */
-const CAVEAT = 'Aqua’s later look and its higher count line up. Anchor shows where the official trend deserves a second look; counts alone can’t split out the timing’s exact share.'
 const FOOTER = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 /** Aqua's 2012–2020 look time across the six regions (drift files): the chart's reference when no region is picked */
 const BASES = LIST.map((r) => r.f.look.old).filter((v): v is string => v != null).map(hm)
@@ -889,7 +888,7 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
         <p className="mt-3 text-sm text-[color:var(--bone2)]">
           INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </p>
-        <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map.</p>
+        <p className="mt-3 text-sm text-[color:var(--bone3)]">Daytime detections, {WHEN}.</p>
         {/* how a mark's size reads: its area is the heat measured, not the ground burned */}
         <div className="mt-3 flex items-end gap-4 text-xs text-[color:var(--bone3)]">
           {[7, 70, 400].map((mw) => {
@@ -901,7 +900,7 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
               </span>
             )
           })}
-          <span className="max-w-[11rem] pb-0.5 leading-4">A dot’s area is the heat the satellite measured, not the ground burned.</span>
+          <span className="max-w-[11rem] pb-0.5 leading-4">Dot size is fire power, not area burned.</span>
         </div>
       </div>
       <div data-tour="places">
@@ -930,7 +929,6 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-xs leading-5 text-[color:var(--bone3)]">{CAVEAT}</p>
       </div>
       <DaySection onPlay={onPlayDay} active={false} />
     </div>
@@ -943,7 +941,7 @@ function DaySection({ onPlay, onYears, active }: { onPlay?: () => void; onYears?
   return (
     <section aria-labelledby="day-h" className="flex flex-col gap-2 border-t border-[color:var(--hairline)] pt-4">
       <h3 id="day-h" className="text-sm font-medium text-[color:var(--bone)]">Daylight for firefighters</h3>
-      <p className="text-sm text-[color:var(--bone2)]">{onPlay ? 'One real fire day in the Amazon: which fires each satellite saw, and how much daylight was left.' : 'How much daylight is left after each satellite’s alert, year by year.'}</p>
+      <p className="text-sm text-[color:var(--bone2)]">{onPlay ? 'One real fire day in the Amazon.' : 'Daylight left after each alert, by year.'}</p>
       <div className="flex flex-wrap gap-2">
         {onPlay ? <button type="button" onClick={onPlay} disabled={active} className={cn(secondary, 'disabled:opacity-50')}><Play size={15} strokeWidth={1.75} aria-hidden /> {active ? 'Playing below the map' : 'Play one fire day'}</button> : null}
         {onYears ? <button type="button" onClick={onYears} className={secondary}>Daylight by year <ArrowRight size={14} strokeWidth={1.75} aria-hidden /></button> : null}
@@ -976,7 +974,6 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, alert,
           {f.count ? (
             <p className="text-sm leading-6 text-[color:var(--bone2)]">
               <span className="text-[color:var(--bone)]">In {f.count.year}, Aqua counted <span className="tabular-nums">{fmtInt(f.count.now)}</span> hotspots; the VIIRS-based benchmark is <span className="tabular-nums">{fmtInt(f.count.old)}</span> ({signed(Math.round(f.count.gap))}%).</span>{' '}
-              {CAVEAT}
             </p>
           ) : f.nov ? (
             <p className="text-sm leading-6 text-[color:var(--bone2)]">Our test case: 2023–2025 have too few hotspots to read.</p>
@@ -1143,7 +1140,7 @@ const pctOf = (L: number) => `${signed((L - 1) * 100)}%`
 function CellReading({ cell, year, className }: { cell: GlobalCell | null; year: 2024 | 2025; className?: string }) {
   const r = cell ? reading(cell, year) : null
   if (!cell || !r || !r.ok || r.L == null || r.lo == null || r.hi == null) {
-    return <p className={cn('text-sm text-[color:var(--bone2)]', className)}>Too few fires to read in {year}. That is not the same as no change.</p>
+    return <p className={cn('text-sm text-[color:var(--bone2)]', className)}>Too few fires to read in {year}.</p>
   }
   const usual = cell.placebo_min != null && cell.placebo_max != null ? ` (its usual range: ${pctOf(cell.placebo_min)} to ${pctOf(cell.placebo_max)})` : ''
   return (
@@ -1172,7 +1169,6 @@ function CellRail({ cell, year, headRef, onBack, onCalendar, onZoom, zoomed }: {
       </div>
       <div>
         <CellReading cell={cell} year={year} />
-        <p className="mt-3 text-xs leading-5 text-[color:var(--bone2)]">{CAVEAT}</p>
         <p className="mt-2 text-xs leading-5 text-[color:var(--bone3)]">{EXPLORATORY}</p>
       </div>
       <dl className="flex flex-col">
