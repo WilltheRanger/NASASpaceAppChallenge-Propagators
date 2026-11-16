@@ -24,7 +24,7 @@ import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import { cn } from '@/lib/utils'
 import {
   CAVEAT, FEATURED, IMG, JETHVA, More, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
-  useMedia, useMotion, type Leave, type Links,
+  primaryButton, useMedia, useMotion, type Leave, type Links,
 } from './common'
 
 /** The audit's last year, across the six files. */
@@ -88,7 +88,7 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
     <>
       <SiteBar page="overview" links={links} leave={leave} />
       <main>
-        <Park />
+        <Park links={links} leave={leave} />
         <Later />
         <OneDay />
         <Finding />
@@ -107,7 +107,7 @@ const WIDE_SCRIM = 'linear-gradient(90deg, rgba(11,13,11,0.9) 0%, rgba(11,13,11,
 
 /** The opening: the framed photograph with the question already on it. No scroll effect; it is a little shorter than
  *  the screen so the next section shows below it. */
-function Park() {
+function Park({ links, leave }: { links: Links; leave: Leave }) {
   const p = OVERVIEW_PHOTO
   return (
     <section aria-labelledby="park-h" className="relative pt-14">
@@ -130,9 +130,15 @@ function Park() {
           <div aria-hidden className="absolute inset-0 -z-10 lg:hidden" style={{ background: LOW_SCRIM }} />
           <div aria-hidden className="absolute inset-0 -z-10 hidden lg:block" style={{ background: WIDE_SCRIM }} />
           <div className="relative flex h-full items-end p-5 pb-10 sm:p-10 lg:p-14">
+            <div>
             <h1 id="park-h" className="max-w-[15ch] text-balance text-[clamp(40px,5.8vw,92px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]">
               Imagine counting people in a park every day at <span className="tabular-nums">1:30</span>.
             </h1>
+            <p className="mt-5 max-w-lg text-base text-[color:var(--bone2)]">Compare monthly burning activity across six regions, then inspect the satellite record behind it.</p>
+            <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-5')}>
+              Open burning calendar <ArrowUpRight size={16} aria-hidden />
+            </a>
+            </div>
           </div>
         </div>
       </div>
