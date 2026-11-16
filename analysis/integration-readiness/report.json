@@ -1,0 +1,53 @@
+{
+  "source_commit": "74f24634c5a9ab6341417bde4673be4c9de3e716",
+  "regions": [
+    {
+      "region": "br-amazon",
+      "start": "2002-01",
+      "end": "2025-12",
+      "months": 288,
+      "provisional_2026_months": 0
+    },
+    {
+      "region": "br-cerrado",
+      "start": "2002-01",
+      "end": "2025-12",
+      "months": 288,
+      "provisional_2026_months": 0
+    },
+    {
+      "region": "br-pantanal",
+      "start": "2002-01",
+      "end": "2025-12",
+      "months": 288,
+      "provisional_2026_months": 0
+    },
+    {
+      "region": "ar-argentina",
+      "start": "2002-01",
+      "end": "2025-12",
+      "months": 288,
+      "provisional_2026_months": 0
+    },
+    {
+      "region": "in-punjab-haryana",
+      "start": "2002-01",
+      "end": "2025-12",
+      "months": 288,
+      "provisional_2026_months": 0
+    },
+    {
+      "region": "us-california",
+      "start": "2002-01",
+      "end": "2025-12",
+      "months": 288,
+      "provisional_2026_months": 0
+    }
+  ],
+  "facts_reproduce": true,
+  "issues": [],
+  "slide_deck_verified": false,
+  "slide_deck_note": "No actual presentation deck found in this checkout; facts.json/FACTS.md are verified source sheets, not proof of slide wording.",
+  "live_api_required": false,
+  "api_note": "Current frontend bundles committed JSON and needs no NASA API key. 2026 historical ingestion is separate."
+}
