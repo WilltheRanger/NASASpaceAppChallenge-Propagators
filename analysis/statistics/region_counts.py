@@ -1,4 +1,4 @@
-"""Daily FIRMS counts and look times for the non-Brazil presets, in the same format as brady/brazil-data.
+"""Daily FIRMS counts and look times for the non-Brazil presets, in the same format as the Brazil biome files (analysis/brazil-data).
 
 Usage: python3 analysis/statistics/region_counts.py RAW_DIR analysis/statistics/out
 Inputs : RAW_DIR/<Country>/{modis,viirs-snpp,viirs-jpss1}_YYYY_<Country>.csv  (FIRMS yearly country files,

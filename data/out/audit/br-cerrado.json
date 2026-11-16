@@ -1,74 +1,117 @@
 {
  "mock": false,
- "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (brady/brazil-data).",
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (Brazil biome files, analysis/brazil-data).",
  "region": "br-cerrado",
- "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month), all daytime detections; 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
+ "method": "L = Aqua daytime hotspot detections / (S-NPP detections x 2012-2020 Aqua/S-NPP ratio by calendar month), on days both satellites returned data; 95% 16-day block bootstrap (1000). gap_pct = (L - 1) x 100, Aqua's excess over the benchmark; share_of_observed_pct = (1 - 1/L) x 100, the part of Aqua's own count above the benchmark. Neither attributes the gap to orbit drift alone.",
  "baseline": {
   "years": "2012-2020",
   "ratio": 0.172,
-  "noise_floor": 0.028,
-  "placebo_min": 0.972,
-  "placebo_max": 1.021
+  "noise_floor": 0.027,
+  "placebo_min": 0.973,
+  "placebo_max": 1.024,
+  "placebo_years": [
+   {
+    "year": 2012,
+    "L": 0.973
+   },
+   {
+    "year": 2013,
+    "L": 0.997
+   },
+   {
+    "year": 2014,
+    "L": 1.024
+   },
+   {
+    "year": 2015,
+    "L": 1.012
+   },
+   {
+    "year": 2016,
+    "L": 0.981
+   },
+   {
+    "year": 2017,
+    "L": 1.02
+   },
+   {
+    "year": 2018,
+    "L": 0.984
+   },
+   {
+    "year": 2019,
+    "L": 1.001
+   },
+   {
+    "year": 2020,
+    "L": 1.007
+   }
+  ]
  },
  "years": [
   {
    "year": 2021,
    "status": "ok",
-   "L": 1.019,
-   "L_lo": 0.966,
-   "L_hi": 1.061,
-   "L_strat": 0.991,
-   "aqua_count": 60180,
-   "fixed_count": 59033,
-   "gap_pct": 1.9,
+   "L": 1.014,
+   "L_lo": 0.963,
+   "L_hi": 1.056,
+   "L_strat": 0.987,
+   "aqua_count": 61072,
+   "fixed_count": 60212,
+   "gap_pct": 1.4,
+   "share_of_observed_pct": 1.4,
    "outside_noise": false
   },
   {
    "year": 2022,
    "status": "ok",
-   "L": 1.022,
-   "L_lo": 0.97,
-   "L_hi": 1.071,
-   "L_strat": 1.017,
-   "aqua_count": 47613,
-   "fixed_count": 46587,
-   "gap_pct": 2.2,
-   "outside_noise": true
+   "L": 1.0,
+   "L_lo": 0.938,
+   "L_hi": 1.059,
+   "L_strat": 0.996,
+   "aqua_count": 52926,
+   "fixed_count": 52949,
+   "gap_pct": -0.0,
+   "share_of_observed_pct": -0.0,
+   "outside_noise": false
   },
   {
    "year": 2023,
    "status": "ok",
-   "L": 1.017,
+   "L": 1.018,
    "L_lo": 0.976,
    "L_hi": 1.059,
-   "L_strat": 1.037,
-   "aqua_count": 49913,
-   "fixed_count": 49061,
-   "gap_pct": 1.7,
+   "L_strat": 1.039,
+   "aqua_count": 49945,
+   "fixed_count": 49068,
+   "gap_pct": 1.8,
+   "share_of_observed_pct": 1.8,
    "outside_noise": false
   },
   {
    "year": 2024,
    "status": "ok",
-   "L": 1.181,
-   "L_lo": 1.103,
-   "L_hi": 1.279,
-   "L_strat": 1.176,
-   "aqua_count": 75164,
-   "fixed_count": 63627,
-   "gap_pct": 18.1,
+   "L": 1.179,
+   "L_lo": 1.101,
+   "L_hi": 1.273,
+   "L_strat": 1.172,
+   "aqua_count": 75569,
+   "fixed_count": 64073,
+   "gap_pct": 17.9,
+   "share_of_observed_pct": 15.2,
    "outside_noise": true
   },
   {
    "year": 2025,
    "status": "ok",
-   "L": 1.111,
-   "L_lo": 1.039,
+   "L": 1.11,
+   "L_lo": 1.04,
    "L_hi": 1.227,
    "L_strat": 1.102,
    "aqua_count": 55250,
-   "fixed_count": 49749,
-   "gap_pct": 11.1,
+   "fixed_count": 49753,
+   "gap_pct": 11.0,
+   "share_of_observed_pct": 9.9,
    "outside_noise": true
   }
  ]

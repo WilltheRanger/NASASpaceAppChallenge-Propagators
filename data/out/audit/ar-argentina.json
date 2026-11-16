@@ -2,13 +2,51 @@
  "mock": false,
  "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS Argentina country files).",
  "region": "ar-argentina",
- "method": "L = Aqua count / (S-NPP count x 2012-2020 Aqua/S-NPP ratio by calendar month), all daytime detections; 95% 16-day block bootstrap (1000); noise floor = max |L - 1| over leave-one-out placebo years 2012-2020",
+ "method": "L = Aqua daytime hotspot detections / (S-NPP detections x 2012-2020 Aqua/S-NPP ratio by calendar month), on days both satellites returned data; 95% 16-day block bootstrap (1000). gap_pct = (L - 1) x 100, Aqua's excess over the benchmark; share_of_observed_pct = (1 - 1/L) x 100, the part of Aqua's own count above the benchmark. Neither attributes the gap to orbit drift alone.",
  "baseline": {
   "years": "2012-2020",
   "ratio": 0.234,
-  "noise_floor": 0.066,
-  "placebo_min": 0.934,
-  "placebo_max": 1.063
+  "noise_floor": 0.067,
+  "placebo_min": 0.933,
+  "placebo_max": 1.064,
+  "placebo_years": [
+   {
+    "year": 2012,
+    "L": 1.025
+   },
+   {
+    "year": 2013,
+    "L": 0.976
+   },
+   {
+    "year": 2014,
+    "L": 0.984
+   },
+   {
+    "year": 2015,
+    "L": 0.995
+   },
+   {
+    "year": 2016,
+    "L": 1.064
+   },
+   {
+    "year": 2017,
+    "L": 1.017
+   },
+   {
+    "year": 2018,
+    "L": 1.009
+   },
+   {
+    "year": 2019,
+    "L": 1.062
+   },
+   {
+    "year": 2020,
+    "L": 0.933
+   }
+  ]
  },
  "years": [
   {
@@ -17,58 +55,63 @@
    "L": 0.961,
    "L_lo": 0.919,
    "L_hi": 0.993,
-   "L_strat": 0.961,
-   "aqua_count": 33580,
-   "fixed_count": 34957,
+   "L_strat": 0.962,
+   "aqua_count": 33655,
+   "fixed_count": 35022,
    "gap_pct": -3.9,
+   "share_of_observed_pct": -4.1,
    "outside_noise": false
   },
   {
    "year": 2022,
    "status": "ok",
    "L": 0.925,
-   "L_lo": 0.863,
-   "L_hi": 0.979,
-   "L_strat": 0.915,
-   "aqua_count": 42249,
-   "fixed_count": 45660,
+   "L_lo": 0.864,
+   "L_hi": 0.976,
+   "L_strat": 0.913,
+   "aqua_count": 43336,
+   "fixed_count": 46864,
    "gap_pct": -7.5,
+   "share_of_observed_pct": -8.1,
    "outside_noise": true
   },
   {
    "year": 2023,
    "status": "ok",
    "L": 0.998,
-   "L_lo": 0.923,
-   "L_hi": 1.058,
+   "L_lo": 0.922,
+   "L_hi": 1.057,
    "L_strat": 0.996,
-   "aqua_count": 26572,
-   "fixed_count": 26625,
+   "aqua_count": 26632,
+   "fixed_count": 26693,
    "gap_pct": -0.2,
+   "share_of_observed_pct": -0.2,
    "outside_noise": false
   },
   {
    "year": 2024,
    "status": "ok",
-   "L": 1.166,
-   "L_lo": 1.077,
-   "L_hi": 1.237,
+   "L": 1.171,
+   "L_lo": 1.083,
+   "L_hi": 1.241,
    "L_strat": 1.155,
-   "aqua_count": 29262,
-   "fixed_count": 25088,
-   "gap_pct": 16.6,
+   "aqua_count": 29709,
+   "fixed_count": 25380,
+   "gap_pct": 17.1,
+   "share_of_observed_pct": 14.6,
    "outside_noise": true
   },
   {
    "year": 2025,
    "status": "ok",
-   "L": 1.138,
+   "L": 1.137,
    "L_lo": 1.022,
-   "L_hi": 1.226,
-   "L_strat": 1.151,
+   "L_hi": 1.225,
+   "L_strat": 1.15,
    "aqua_count": 31286,
-   "fixed_count": 27497,
-   "gap_pct": 13.8,
+   "fixed_count": 27525,
+   "gap_pct": 13.7,
+   "share_of_observed_pct": 12.0,
    "outside_noise": true
   }
  ]
