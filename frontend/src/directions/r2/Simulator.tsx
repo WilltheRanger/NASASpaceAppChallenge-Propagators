@@ -23,7 +23,6 @@ import { guideSeen, startGuide } from './tour'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
-import { KeyValueList, type KeyValueListItem } from '@/components/ui/key-value-list'
 import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, N as DOTS, SAT, SAT_NAMES, SENSOR, TOTALS, WINDOW, groupOf, heatShare, histogram, lstOf, near, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
 import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, nameAt, nameNear, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
@@ -1375,24 +1374,21 @@ const fmtMW = (v: number) => (v < 10 ? v.toFixed(1) : fmtInt(v))
 const fmtLeft = (h: number) => { let hh = Math.floor(h), mm = Math.round((h - hh) * 60); if (mm === 60) { hh += 1; mm = 0 } return hh ? `${hh} h ${String(mm).padStart(2, '0')} min` : `${mm} min` }
 const DAY_A = 5, DAY_B = 20
 /** about how tall the fire card is, for making room on the map */
-const CARD_H = 450
-const dayAt = (h: number) => `${((Math.min(DAY_B, Math.max(DAY_A, h)) - DAY_A) / (DAY_B - DAY_A)) * 100}%`
+const CARD_H = 340
 
-/** One detection, read out like an instrument: the satellite and its camera; the time and the heat, with where that heat
- *  ranks among the day's detections; the day as a strip (daylight, sunset, and when each satellite saw this spot); who
- *  missed it; then the daylight left, the UTC time, where it is, how wide the pixel is, what else burned nearby, and the
- *  2-degree square's 2025 reading. Every value is real: the day file (NASA FIRMS), NOAA's solar equations, the world map. */
-function FireCard({ i, onClose, square, below = false, docked = false }: { i: number; onClose: () => void; square: SquareReading | null; below?: boolean; docked?: boolean }) {
+/** One detection, in the few lines a responder needs: which satellite saw it and when, the daylight left after that
+ *  pass, whether the other satellites saw the same spot, and where it is. The fire's reported power closes the card,
+ *  with the note that sensors differ. Every value is real: the saved fire file (NASA FIRMS) and NOAA's sun equations. */
+function FireCard({ i, onClose, below = false, docked = false }: { i: number; onClose: () => void; square?: SquareReading | null; below?: boolean; docked?: boolean }) {
   const who = sightings(i)
-  const rows = [0, 3, 2, 1].map((s) => who[s]) // Terra, NOAA-21, NOAA-20, Aqua: about the order they look
   const g = groupOf(SAT[i])
   const lst = lstOf(i)
   const utc = utcOf(i)
   const sun = sunTimes(utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate(), LAT[i])
   const left = sun.set - lst
   const frpPercentile = Math.round(heatShare(i) * 100)
-  const others = Math.max(0, near(LON[i], LAT[i], 3).length - 1)
-  const modis = SAT[i] <= 1
+  // the other satellites that saw this spot (within 3 km) that day, in the order they pass
+  const also = [0, 3, 2, 1].map((s) => who[s]).filter((r) => r.i != null && r.i !== i)
   const [where, setWhere] = useState<string | null>(() => nameNear(LON[i], LAT[i]))
   useEffect(() => {
     let on = true
@@ -1400,20 +1396,10 @@ function FireCard({ i, onClose, square, below = false, docked = false }: { i: nu
     nameAt(LON[i], LAT[i]).then((n) => { if (on && n) setWhere(n) })
     return () => { on = false }
   }, [i])
-  const items: KeyValueListItem[] = [
-    { label: 'Daylight left', value: left > 0 ? `${fmtLeft(left)}, sunset ${fmtHM(sun.set)}` : `None, sunset was ${fmtHM(sun.set)}` },
-    { label: 'UTC', value: `${String(utc.getUTCHours()).padStart(2, '0')}:${String(utc.getUTCMinutes()).padStart(2, '0')}, ${utc.getUTCDate()} ${MONTHS_SHORT[utc.getUTCMonth()]}` },
-    { label: 'Where', value: where ? <>{where}<span className="block text-[color:var(--bone3)]">{coords(LAT[i], LON[i])}</span></> : coords(LAT[i], LON[i]) },
-    { label: 'Pixel', value: modis ? 'About 1 km across' : 'About 375 m across' },
-    { label: 'Nearby', value: others ? `${others} more within 3 km` : 'None within 3 km' },
-  ]
-  if (square) items.push({
-    label: 'Its 2° square',
-    value: square.ok && square.gap != null ? `${square.gap >= 0 ? '+' : '−'}${Math.abs(square.gap).toFixed(0)}% vs what we’d expect` : 'Too few fires to read',
-    description: square.ok ? `2025, ${square.outside ? 'unusual' : 'not unusual'}` : '2025',
-  })
+  const big = 'block text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]'
+  const small = 'mt-1 block text-xs text-[color:var(--bone3)]'
   return (
-    <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)] text-left', docked ? 'w-full' : 'w-[332px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
+    <div role="group" aria-label={`${SAT_NAMES[SAT[i]]} fire detection`} className={cn('relative rounded-[4px] border border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)] text-left', docked ? 'w-full' : 'w-[300px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]')}>
       <div className="flex items-center gap-2 pl-3 pr-1.5 pt-1.5">
         <Mark g={g} />
         <p className="text-sm font-medium text-[color:var(--bone)]">
@@ -1423,55 +1409,37 @@ function FireCard({ i, onClose, square, below = false, docked = false }: { i: nu
           <X size={15} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-3 px-3">
+      <div className="grid grid-cols-2 gap-3 px-3 pb-3">
         <p>
-          <span className="block text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{fmtHM(lst)}</span>
-          <span className="mt-1 block text-xs text-[color:var(--bone3)]">local sun time</span>
+          <span className={small}>Seen at</span>
+          <span className={cn(big, 'mt-1')}>{fmtHM(lst)}</span>
+          <span className={small}>local sun time</span>
         </p>
         <p>
-          <span className="block text-[24px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">
-            {fmtMW(FRP[i])}<span className="text-sm font-normal text-[color:var(--bone2)]"> MW</span>
-          </span>
-          <span className="mt-1 block text-xs text-[color:var(--bone3)]">fire radiative power</span>
+          <span className={small}>Daylight left</span>
+          <span className={cn(big, 'mt-1')}>{left > 0 ? fmtLeft(left) : 'None'}</span>
+          <span className={small}>sunset {fmtHM(sun.set)}</span>
         </p>
       </div>
-      {/* where that heat sits among the day's detections */}
-      <div className="flex items-center gap-3 px-3 pt-2.5">
-        <span aria-hidden className="relative block h-1 flex-1 rounded-full bg-[color:var(--bone-20)]">
-          <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--bone2)]" style={{ width: `${Math.max(2, frpPercentile)}%` }} />
-        </span>
-        <span className="text-[11px] text-[color:var(--bone3)]">Higher FRP than {frpPercentile}% of snapshot detections</span>
-      </div>
-      <p className="px-3 pt-1 text-[11px] text-[color:var(--bone3)]">Mixed sensors and observation times; not temperature or a ranking of unique fires.</p>
-      {/* the day as a strip: daylight, sunset, and when each satellite saw this spot */}
-      <div className="px-3 pt-3" aria-hidden>
-        <div className="relative h-5">
-          <span className="absolute inset-x-0 top-1/2 h-px bg-[color:var(--bone-20)]" />
-          <span className="absolute top-1/2 h-2.5 -translate-y-1/2 rounded-[2px] bg-[rgba(236,233,225,0.16)]" style={{ left: dayAt(sun.rise), width: `calc(${dayAt(sun.set)} - ${dayAt(sun.rise)})` }} />
-          <span className="absolute top-0 h-5 w-px bg-[color:var(--bone-30)]" style={{ left: dayAt(sun.set) }} />
-          {rows.filter((r) => r.i != null).map((r) => (
-            <span key={r.sat} className="absolute top-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center" style={{ left: dayAt(lstOf(r.i!)) }}>
-              <Mark g={groupOf(r.sat)} size={r.i === i ? 11 : 8} />
-            </span>
-          ))}
+      <dl className="flex flex-col gap-1.5 border-t border-[color:var(--hairline)] px-3 py-2.5 text-sm">
+        <div className="flex gap-2">
+          <dt className="w-[4.5rem] shrink-0 text-[color:var(--bone3)]">Also seen</dt>
+          <dd className="flex flex-col gap-0.5 text-[color:var(--bone)]">
+            {also.length ? also.map((r) => (
+              <span key={r.sat} className="flex items-center gap-1.5 tabular-nums"><Mark g={groupOf(r.sat)} size={8} />{SAT_NAMES[r.sat]} at {fmtHM(lstOf(r.i!))}</span>
+            )) : <span className="text-[color:var(--bone2)]">No other satellite, within 3 km</span>}
+          </dd>
         </div>
-        <div className="relative mt-0.5 h-3.5 text-[11px] tabular-nums text-[color:var(--bone3)]">
-          {[6, 12, 18].map((h) => <span key={h} className="absolute -translate-x-1/2" style={{ left: dayAt(h) }}>{String(h).padStart(2, '0')}:00</span>)}
+        <div className="flex gap-2">
+          <dt className="w-[4.5rem] shrink-0 text-[color:var(--bone3)]">Where</dt>
+          <dd className="text-[color:var(--bone)]">{where ? <>{where} <span className="text-[color:var(--bone3)]">· {coords(LAT[i], LON[i])}</span></> : coords(LAT[i], LON[i])}</dd>
         </div>
-      </div>
-      <p className="px-3 pt-2 text-xs text-[color:var(--bone3)]">The same spot, within 3 km, that day</p>
-      <ul className="grid grid-cols-2 gap-x-3 px-3 pt-1">
-        {rows.map(({ sat, i: j }) => (
-          <li key={sat} className="flex h-6 items-center gap-2 text-xs">
-            <Mark g={groupOf(sat)} size={8} off={j == null} />
-            <span className={j === i ? 'font-medium text-[color:var(--bone)]' : j == null ? 'text-[color:var(--bone3)]' : 'text-[color:var(--bone2)]'}>{SAT_NAMES[sat]}</span>
-            <span className={cn('ml-auto tabular-nums', j == null ? 'text-[color:var(--bone3)]' : 'text-[color:var(--bone)]')}>{j == null ? 'not seen' : fmtHM(lstOf(j))}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-2 border-t border-[color:var(--hairline)] px-3 pb-1.5 pt-0.5">
-        <KeyValueList items={items} variant="ruled" labelWidth="6.5rem" />
-      </div>
+      </dl>
+      <p className="border-t border-[color:var(--hairline)] px-3 py-2 text-[11px] leading-4 text-[color:var(--bone3)]">
+        <span className="tabular-nums text-[color:var(--bone2)]">{fmtMW(FRP[i])} MW</span> <span>fire radiative power</span>.{' '}
+        <span>Higher FRP than {frpPercentile}% of snapshot detections</span>.{' '}
+        Mixed sensors and observation times; not temperature or a ranking of unique fires.
+      </p>
       {docked ? null : <span aria-hidden className={cn('absolute left-1/2 size-3 -translate-x-1/2 rotate-45 border-[color:var(--bone-20)] bg-[rgba(11,13,11,0.96)]', below ? '-top-[7px] border-l border-t' : '-bottom-[7px] border-b border-r')} />}
     </div>
   )
