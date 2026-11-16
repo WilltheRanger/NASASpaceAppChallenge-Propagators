@@ -4,6 +4,37 @@
 
 **Live site:** https://willtheranger.github.io/NASASpaceAppChallenge-Propagators/ · A NASA Space Apps Challenge 2026 team project, not an official NASA product.
 
+## For judges: Anchor in two minutes
+
+**Open the site:** https://willtheranger.github.io/NASASpaceAppChallenge-Propagators/ (no sign-in; works on a phone).
+
+**What it is.** A burning-activity calendar that harmonizes NASA's MODIS and VIIRS hotspot records into one steady series for six regions (Amazon, Cerrado, Pantanal, Argentina, Punjab + Haryana, California), every month from 2002 to 2025. Before 2012 it uses Aqua's own MODIS count; from 2012 it uses VIIRS, whose overpass time has stayed constant, scaled to Aqua with the 2012–2020 ratio.
+
+**Why it matters.** Brazil's official fire count (INPE) follows one satellite, Aqua, and Aqua now passes over the Amazon about 80 minutes later than it did in 2012–2020 (13:37 → 14:57 local sun time; 68 to 80 minutes later across the six regions). Fires change through the day, so a later look can change the count.
+
+**The finding.**
+- From 2024 to 2025, INPE's official Amazon count fell 69%; our VIIRS-based benchmark fell 74%.
+- On days both satellites saw the Amazon, Aqua's 2025 count was 30% above the benchmark (43,002 vs 33,172).
+- Our tests point to Aqua's later look as the main cause: clouds and changes in viewing angle were checked and don't explain the gap. A smaller share isn't pinned down yet.
+
+**What to click, in order.**
+1. **Overview:** the finding and the six-place table (unusual, close call or not unusual, and how far past the usual range).
+2. **Regions → fire calendar:** each row a year, each cell a month; switch between the benchmark counts and "compared with a typical year"; the fire season is marked; download the months as CSV.
+3. **Explore:** "If a fire started here, when could a satellite alert me, and how much daylight would be left?" A what-if with an assumed alert delay (real alert delivery wasn't measured). Zoom in on the map and each detection grows to its true ground footprint.
+4. **Method:** how the comparison works, the tests behind the finding, and the limits.
+
+**How it answers the challenge.**
+
+| The challenge asks for | Where it is in Anchor |
+|---|---|
+| Harmonize records from sensors that can't be compared directly | The fire calendar: Aqua (MODIS) before 2012, VIIRS scaled to Aqua after |
+| A burning-activity calendar from active fire hotspots | Regions → fire calendar, every month 2002–2025 |
+| Historical patterns, unusual conditions, critical periods | One row per year; "compared with a typical year"; the marked fire season |
+| For responders, scientists and land managers | Explore (responders), the calendar (managers), Method and the data files (scientists) |
+| A selected area of interest | Six studied regions, plus any 2° square on Explore's world map (exploratory) |
+
+**Check our numbers.** Every figure on the site is read from the JSON files in `data/out/`, which the code in `analysis/` produces. `scripts/test_all.sh` runs every test suite; the site's source is in `frontend/`.
+
 Anchor is a web app that turns NASA's MODIS and VIIRS hotspot records into one burning-activity calendar per region, counted on a **fixed observation clock**. It also checks an official national fire statistic: Brazil's fire program (INPE) still counts fires with NASA's Aqua satellite as its "reference satellite", but Aqua's afternoon pass has drifted later every year since 2021. Over the Amazon its median look time moved from **13:37 (2012 to 2020) to 14:57 (2025)**.
 
 Every number in the app comes from the JSON files in `data/out/`, which are produced by the code in `analysis/`. All of it is real data, except files marked `"mock": true`.
@@ -29,9 +60,9 @@ Every number in the app comes from the JSON files in `data/out/`, which are prod
 - **Two clocks:** Aqua drifted later and Terra drifted earlier. Comparing them separates the clock from changes both satellites share.
 - **Detection limits:** what share of California's agency-recorded fires each satellite detected, by fire size.
 - **Daylight left after the alert:** how much daylight remains when each satellite's alert arrives, before and after the drift.
-- **Ten written predictions:** each checked against the data, with failures reported as written.
+- **Written predictions:** each checked against the data, with failures reported as written (in `data/out/checks.json`).
 - **A world map (exploratory):** the same clock audit on every 2° cell of the map with enough fires, with a calendar per cell. It is not checked against a national reference series.
-- **Explore, a globe for any place:** far out, the world map's 2° cells; click one for its reading and calendar. Close in, a saved snapshot of recent NASA FIRMS detections; click one to see which satellites saw that spot, and when. A searched place shows the reading of the cell it sits in. One real fire day (Pará, 2 Sep 2024) shows which fires each pass saw and the daylight left when its alert arrives; the alert delays are an assumed what-if (0 to 3 hours), and real alert delivery was not measured.
+- **Explore, a map for any place:** far out, the world map's 2° cells; click one for its reading and calendar. Close in, a saved snapshot of recent NASA FIRMS detections, each growing to its true ground footprint as you zoom; click one to see which satellites saw that spot, and when. A searched place shows the reading of the cell it sits in. One real fire day (Pará, 2 Sep 2024) shows which fires each pass saw and the daylight left when its alert arrives; the alert delays are an assumed what-if (0 to 3 hours), and real alert delivery was not measured.
 - **A limits section:** in the app and below.
 
 ## Method in brief
