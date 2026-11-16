@@ -24,7 +24,7 @@ import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import { cn } from '@/lib/utils'
 import {
   CAVEAT, FEATURED, IMG, JETHVA, More, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
-  useMedia, useMotion, type Leave, type Links,
+  primaryButton, useMedia, useMotion, type Leave, type Links,
 } from './common'
 
 /** The audit's last year, across the six files. */
@@ -91,7 +91,7 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
         <Park />
         <Later />
         <OneDay />
-        <Finding />
+        <Finding links={links} leave={leave} />
         <Doors links={links} leave={leave} />
       </main>
     </>
@@ -363,7 +363,7 @@ function DayLine({ step }: { step: number }) {
 
 /* ---------- The finding, the caveat beside it, and the six places on shared scales ---------- */
 
-function Finding() {
+function Finding({ links, leave }: { links: Links; leave: Leave }) {
   return (
     <section id="finding" aria-labelledby="finding-h" className="scroll-mt-14">
       {/* the page's one change of ground: the finding on bone, the way their key statements sit on a lighter band */}
@@ -379,6 +379,12 @@ function Finding() {
       </div>
       <div className={cn(shell, 'pb-16 lg:pb-24')}>
         <Places />
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          <a href={`${links.regions()}#calendar`} onClick={leave} className={primaryButton}>
+            Open burning calendar <ArrowUpRight size={16} aria-hidden />
+          </a>
+          <p className="max-w-lg text-sm text-[color:var(--bone2)]">Each place’s fires month by month, 2002 to 2025, against a normal month. You can download it.</p>
+        </div>
       </div>
     </section>
   )

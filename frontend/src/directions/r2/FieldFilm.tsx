@@ -233,6 +233,10 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
             {wide ? <ScrollSpy sections={spy} offset={128} label="Sections" motion={motion.on} onNavigate={(el) => glideTo(el, motion.on)} className="shrink-0" /> : null}
           </div>
         </div>
+        <div className={cn(shell, 'flex flex-wrap items-center gap-4 py-6')}>
+          <a href="#calendar" className={primaryButton}>Open burning calendar <ArrowRight size={16} aria-hidden /></a>
+          <p className="max-w-xl text-sm text-[color:var(--bone2)]">Choose a region above, compare months with their usual activity, or download the monthly record.</p>
+        </div>
         <Result d={d} links={links} leave={leave} />
         <LookTimes key={d.id} d={d} />
         <YearByYear d={d} year={year} onYear={setYear} small={small} />
@@ -855,6 +859,15 @@ function MonthField({ label, value, years, onChange }: { label: string; value: s
 }
 
 function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; mode: CalendarMode; onMode: (m: CalendarMode) => void; range: MonthRange; onRange: (r: MonthRange) => void; small: boolean }) {
+  // The page is lazy-loaded: resolve a direct calendar link after its target mounts.
+  useEffect(() => {
+    if (window.location.hash !== '#calendar') return
+    const frame = requestAnimationFrame(() => {
+      const el = document.getElementById('calendar')
+      if (el) glideTo(el, false)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [])
   const full = calendarSpan(d)
   const grid = useMemo(() => calendarGrid(d, range), [d, range])
   const f = calendarFinding(d, range)
@@ -867,14 +880,16 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
   const highlight = f ? { year: Number(yr), month: MONTHS.indexOf(mon) } : null
   const heading = f ? `${MONTH_LONG[MONTHS.indexOf(mon)]} ${yr} was the furthest above normal for its month: ${pct(f.anomaly, 0)}` : 'Every month in this range sits near normal'
   const sentence = mode === 'anomaly'
-    ? 'Each square is a month: the fires we’d expect Aqua to count at its old time. Sand: more than normal for that month. Slate: fewer.'
-    : 'Each square is a month: the fires we’d expect Aqua to count at its old time. Brighter: more fires.'
+    ? 'Each square is a month: the daytime detections we’d expect from Aqua at its old time. Sand: more than normal for that month. Slate: fewer.'
+    : 'Each square is a month: the daytime detections we’d expect from Aqua at its old time. Brighter: more detections.'
   return (
     <section id="calendar" aria-labelledby="calendar-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="calendar-h" className={title}>{heading}</h2>
+          <h2 id="calendar-h" className={title}>Burning activity calendar</h2>
+          <p className="mt-4 text-lg text-[color:var(--bone)]">{heading}</p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{sentence}</p>
+          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">This is a historical comparison, not a forecast, a count of unique fires, or proof of what Aqua would have seen at a different time.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
