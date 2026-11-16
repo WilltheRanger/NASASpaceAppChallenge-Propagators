@@ -386,7 +386,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
   return (
     <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-8">
           <h2 id="verdict-h" className={title}>Aqua against the benchmark</h2>
           <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">In {y.year}, Aqua counted {moreFewer(y.gap)} fires over {d.phrase.the} than the VIIRS-based benchmark.</p>
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
@@ -400,9 +400,8 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
               <Download size={16} strokeWidth={1.5} aria-hidden /> Download summary
             </button>
           </div>
-        </div>
-        <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
-          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
+          <More label="Show the numbers" className="mt-6">
+          <dl className="mt-3 grid max-w-sm grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
             <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
             <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
             <dt className="text-[color:var(--bone3)]">Benchmark</dt>
@@ -418,6 +417,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
               </>
             ) : null}
           </dl>
+          </More>
           {d.id === 'us-california' ? (
             <p className="mt-4 text-sm text-[color:var(--bone2)]">
               <a href={links.method('detection')} onClick={leave} className={textLink}>How well each satellite sees small fires</a>
@@ -782,7 +782,7 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           </p>
           {failed.length ? (
             <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
-              {failed.length === 2 ? 'Two tests of this idea didn’t hold up' : 'A test of this idea didn’t hold up'}, so read it as a description, not proof.
+              {failed.length === 2 ? 'Two tests of this idea weren’t confirmed' : 'A test of this idea wasn’t confirmed'}, so we use it to describe the pattern, not to prove it.
             </p>
           ) : null}
           {t ? (
