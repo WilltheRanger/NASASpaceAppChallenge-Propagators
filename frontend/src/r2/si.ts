@@ -178,7 +178,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
   const out: SiSentence[] = []
   if (y && y.fixed != null && y.verdict !== 'na' && y.gap != null && !isValidation(region)) {
     out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; the VIIRS-based benchmark is ${fmtInt(y.fixed)}. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (likely range: ${pct(y.lo)} to ${pct(y.hi)})` : ''}, ${y.verdict === 'outside' ? `which is unusual: ${Math.round(y.pointsPast ?? 0)} points past the usual range` : y.verdict === 'close' ? `which is a close call: ${Math.round(y.pointsPast ?? 0)} points past the usual range, but its likely range overlaps it` : 'which is not unusual'}.`, cite: [`audit-${region}`] })
-    out.push({ text: 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.' })
+    out.push({ text: 'Our tests point to Aqua’s later look as the main cause: clouds and changes in viewing angle were checked and don’t explain the gap. A smaller share isn’t pinned down yet.' })
   } else if (isValidation(region)) {
     out.push({ text: `${verdictHeadline(d)}.`, cite: [`audit-${region}`] })
     out.push({ text: 'Punjab and Haryana are our test case; 2023–2025 have too few fires to read.', cite: [`audit-${region}`] })

@@ -152,7 +152,7 @@ export const linksFor = (nav: Nav): Links => ({
 /** Said next to every finding. */
 /** The close-call legend, said the same way everywhere */
 export const CLOSE_CALL = 'Close call: just outside the usual range, but the likely range overlaps it.'
-export const CAVEAT = 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.'
+export const CAVEAT = 'Our tests point to Aqua’s later look as the main cause: clouds and changes in viewing angle were checked and don’t explain the gap. A smaller share isn’t pinned down yet.'
 export const FOOTER_LINE = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 export const JETHVA = 'https://doi.org/10.3390/rs18101506'
 /** The code: the Pages deploy sets it from the repository it builds; the comment pages use the same address (the

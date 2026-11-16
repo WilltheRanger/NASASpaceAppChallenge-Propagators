@@ -549,9 +549,9 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
   const items: { t: string; b: ReactNode; done?: string; next?: string }[] = [
     {
-      t: 'It can’t say how much of a difference the timing caused.',
-      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together, and the data don’t separate the timing’s share. The benchmark is an estimate; it does not replace INPE’s official count.',
-      next: 'Next: separate the timing’s share from other changes, using observations that don’t depend on Aqua’s pass time.',
+      t: 'It can’t fully separate the timing from everything else.',
+      b: 'The comparison sets Aqua’s count beside what we’d expect from VIIRS. We then tested the other explanations. Clouds: a geostationary cloud mask shows Aqua’s old and new look times are equally clear. Viewing angle: NASA’s swath outlines show Aqua didn’t look at the Amazon from overhead more often. Fire size: for large fires, the geostationary satellite predicts the change. None of them explains the gap. Across 80 region-years, about 90% of the Amazon’s 2025 gap traces to the later look (likely range 43–137%). Still open: the excess is similar in the deforestation arc and the interior, where timing predicts a difference, and months outside the fire season aren’t tested. The benchmark is an estimate; it does not replace INPE’s official count.',
+      next: 'Tested in nine ways (analysis/attribution in the repository). Next: the fire-regime split, the off-season months, and MODIS per-pixel fire masks.',
     },
     {
       t: '“Unusual” is a rough threshold. It is not proof.',

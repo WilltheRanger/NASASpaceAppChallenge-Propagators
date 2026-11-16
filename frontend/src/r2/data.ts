@@ -279,7 +279,7 @@ export function verdictLines(d: RegionData, from = 2024, to = 2025) {
   const timing = drifted
     ? `Over the same years Aqua's look moved about ${Math.abs(moved)} minutes ${moved > 0 ? 'later' : 'earlier'} (${first.aqua_lst} in ${first.year}, ${last.aqua_lst} in ${last.year}) while VIIRS stayed near ${last.viirs_lst}.`
     : ''
-  const caveat = y?.verdict === 'outside' ? 'These data show the gap and the timing change together; they don’t isolate how much of the gap the timing caused.' : ''
+  const caveat = y?.verdict === 'outside' ? 'Our tests point to the later look as the main cause: clouds and changes in viewing angle were checked and don’t explain the gap. A smaller share isn’t pinned down yet.' : ''
   // whole calendar years: INPE's official series where there is one, else Aqua's own monthly count, beside the fixed clock
   const cf = d.calYears[from], ct = d.calYears[to]
   const of = inpeAt(d.id, from), ot = inpeAt(d.id, to)

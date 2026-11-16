@@ -47,7 +47,7 @@ export function downloadSummary(d: RegionData) {
         : `  ${y.year}  ${pct(y.gap!)} (${fmtRange(y.lo!, y.hi!)})  ${y.verdict === 'outside' ? 'outside' : y.verdict === 'close' ? 'just outside (close call: the 95% interval overlaps)' : 'within'} the placebo range  Aqua ${fmtInt(y.aqua)}, benchmark ${y.fixed != null ? fmtInt(y.fixed) : '—'}`,
     ),
     'Counts are daytime hotspot detections on the days both Aqua and S-NPP returned data.',
-    'The flag describes; it is not a significance test, and these data don’t isolate how much of any gap the timing caused.',
+    'The flag describes; it is not a significance test. Tests of clouds, viewing angle and fire size point to Aqua’s later look as the main cause of the gap; a smaller share is not pinned down (analysis/attribution in the repository).',
     '',
     ...SOURCES,
     d.id.startsWith('br-') ? 'INPE Programa Queimadas, Brazil’s official fire series (reference satellite Aqua).' : '',
