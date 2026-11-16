@@ -61,6 +61,12 @@ const DECLINE = (factsJson as { facts: { id: string; value: unknown }[] }).facts
 const AMAZON_2025 = regionData('br-amazon').latestOk
 const int = (n: number) => Math.round(n).toLocaleString('en-US')
 const RANGE = LOOK_RANGE ? `${LOOK_RANGE.min} to ${LOOK_RANGE.max} minutes` : 'more than an hour'
+/** The first screen's finding, read from the Amazon's row: how much later Aqua looks, and its last audit year
+ *  against the benchmark with the likely range (data/out/drift and data/out/audit, matched days). */
+const HERO_ROW = ROWS.find((r) => r.id === 'br-amazon')
+const HERO_LINE = HERO_ROW?.look && HERO_ROW.read && HERO_ROW.look.minutes > 0 && HERO_ROW.read.gap > 0
+  ? `Aqua, the NASA satellite behind Brazil’s official fire count, now passes about ${HERO_ROW.look.minutes} minutes later over the Amazon than in 2012–2020. On matched days in ${YEAR}, Aqua’s count ran ${Math.round(HERO_ROW.read.gap)}% above a steady VIIRS-based benchmark (likely range ${fmtRange(HERO_ROW.read.lo, HERO_ROW.read.hi, 0)}). The data can’t say how much of that gap the timing caused.`
+  : null
 
 /** One scale for every row's strip, in whole tens of percent around the widest reading. */
 const SCALE = (() => {
@@ -155,6 +161,8 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
                 Anchor
               </h1>
               <p className="mt-4 max-w-[28rem] text-[24px] leading-[1.25] text-[color:var(--bone)]">A fire calendar for six regions.</p>
+              {HERO_LINE ? <p className="mt-4 max-w-[36rem] text-base leading-[1.45] text-[color:var(--bone)] sm:text-lg">{HERO_LINE}</p> : null}
+              <p className="mt-3 max-w-[36rem] text-sm leading-[1.45] text-[color:var(--bone)] sm:text-base">For fire analysts, reporters, land managers and responders who need to know when fires peak and whether a year was unusual.</p>
               <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-6')}>
                 Open the fire calendar <ArrowUpRight size={16} aria-hidden />
               </a>
