@@ -164,7 +164,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
     return {
       sentences: [
         { text: 'Aqua now looks later in the day. The VIIRS satellites kept their time. The benchmark is VIIRS’s count scaled by the 2012–2020 Aqua-to-VIIRS rate: a steady reference to read Aqua’s count against.', cite: ['method'] },
-        { text: 'We compare what Aqua counted with what we’d expect. A gap bigger than any from 2012 to 2020 is unusual.', cite: ['method'] },
+        { text: 'We compare what Aqua counted with what we’d expect. A gap outside the 2012–2020 range is unusual only when its likely range does not overlap that range; otherwise it is a close call.', cite: ['method'] },
         { text: 'Pick a place to see both.' },
       ],
       sources: [SRC.method],
@@ -175,7 +175,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
   const y = d.latestOk
   const out: SiSentence[] = []
   if (y && y.fixed != null && y.verdict !== 'na' && y.gap != null && !isValidation(region)) {
-    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; the VIIRS-based benchmark is ${fmtInt(y.fixed)}. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (likely range: ${pct(y.lo)} to ${pct(y.hi)})` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
+    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; the VIIRS-based benchmark is ${fmtInt(y.fixed)}. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (likely range: ${pct(y.lo)} to ${pct(y.hi)})` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : y.verdict === 'close' ? 'which is a close call: its likely range overlaps the usual range' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
     out.push({ text: 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.' })
   } else if (isValidation(region)) {
     out.push({ text: `${verdictHeadline(d)}.`, cite: [`audit-${region}`] })
@@ -225,7 +225,7 @@ function regionsAnswer(): SiAnswer {
     const d = regionData(r.id)
     const y = d.latestOk
     if (isValidation(r.id) || !y || y.gap == null) return `${short(r.name)}: our test case`
-    return `${short(r.name)}: ${y.gap >= 0 ? '+' : '−'}${Math.abs(Math.round(y.gap))}% in ${y.year}, ${y.verdict === 'outside' ? 'unusual' : 'not unusual'}`
+    return `${short(r.name)}: ${y.gap >= 0 ? '+' : '−'}${Math.abs(Math.round(y.gap))}% in ${y.year}, ${y.verdict === 'outside' ? 'unusual' : y.verdict === 'close' ? 'close call' : 'not unusual'}`
   })
   return {
     sentences: [

@@ -88,7 +88,7 @@ function regionFacts(id: string) {
       now: (lvl2 ? head?.level2a_aqua_D15_2025 : head?.aqua_D15_2025) ?? null,
     },
     count: y && y.verdict !== 'na' && !validation && y.fixed != null && y.gap != null && y.lo != null && y.hi != null
-      ? { year: y.year, old: y.fixed, now: y.aqua, gap: y.gap, lo: y.lo, hi: y.hi, outside: y.verdict === 'outside' }
+      ? { year: y.year, old: y.fixed, now: y.aqua, gap: y.gap, lo: y.lo, hi: y.hi, outside: y.verdict === 'outside', close: y.verdict === 'close' }
       : null,
     nov: nFrom && nTo ? { from: nFrom, to: nTo } : null,
   }
@@ -926,7 +926,7 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
                 {f.count ? (
                   <span className="text-right tabular-nums">
                     <span className={cn('block text-base font-medium', f.count.outside ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone3)]')}>{signed(f.count.gap)}%</span>
-                    <span className="block text-xs text-[color:var(--bone3)]">{f.count.outside ? 'unusual' : 'not unusual'}</span>
+                    <span className="block text-xs text-[color:var(--bone3)]">{f.count.outside ? 'unusual' : f.count.close ? 'close call' : 'not unusual'}</span>
                   </span>
                 ) : (
                   <span className="text-sm text-[color:var(--bone3)]">Test case</span>
