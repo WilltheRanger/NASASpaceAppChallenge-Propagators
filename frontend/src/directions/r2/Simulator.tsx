@@ -1217,7 +1217,7 @@ function FireCard({ i, onClose, square, below = false }: { i: number; onClose: (
   const utc = utcOf(i)
   const sun = sunTimes(utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate(), LAT[i])
   const left = sun.set - lst
-  const hotter = Math.round(heatShare(i) * 100)
+  const frpPercentile = Math.round(heatShare(i) * 100)
   const others = Math.max(0, near(LON[i], LAT[i], 3).length - 1)
   const modis = SAT[i] <= 1
   const items: KeyValueListItem[] = [
@@ -1252,16 +1252,17 @@ function FireCard({ i, onClose, square, below = false }: { i: number; onClose: (
           <span className="block text-[26px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">
             {fmtMW(FRP[i])}<span className="text-sm font-normal text-[color:var(--bone2)]"> MW</span>
           </span>
-          <span className="mt-1 block text-xs text-[color:var(--bone3)]">heat it gave off</span>
+          <span className="mt-1 block text-xs text-[color:var(--bone3)]">fire radiative power</span>
         </p>
       </div>
       {/* where that heat sits among the day's detections */}
       <div className="flex items-center gap-3 px-3 pt-2.5">
         <span aria-hidden className="relative block h-1 flex-1 rounded-full bg-[color:var(--bone-20)]">
-          <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--bone2)]" style={{ width: `${Math.max(2, hotter)}%` }} />
+          <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--bone2)]" style={{ width: `${Math.max(2, frpPercentile)}%` }} />
         </span>
-        <span className="shrink-0 text-[11px] text-[color:var(--bone3)]">Hotter than {hotter}% of the day’s fires</span>
+        <span className="text-[11px] text-[color:var(--bone3)]">Higher FRP than {frpPercentile}% of snapshot detections</span>
       </div>
+      <p className="px-3 pt-1 text-[10px] text-[color:var(--bone3)]">Mixed sensors and observation times; not temperature or a ranking of unique fires.</p>
       {/* the day as a strip: daylight, sunset, and when each satellite saw this spot */}
       <div className="px-3 pt-3" aria-hidden>
         <div className="relative h-5">

@@ -30,9 +30,9 @@ export const TOTALS = DAY.counts as [number, number, number, number]
 
 export const utcOf = (i: number) => new Date(START + MIN[i] * 60000)
 
-/** the day's heat readings, sorted, for ranking one detection against the rest */
+/** Snapshot FRP readings across sensors/times, sorted; not temperatures or unique fires. */
 const FRP_SORTED = Float32Array.from(FRP).sort()
-/** the share of the day's detections that gave off less heat than this one (0 to 1) */
+/** Share of snapshot detections with strictly lower reported FRP (0 to 1). */
 export function heatShare(i: number) {
   let lo = 0, hi = FRP_SORTED.length
   while (lo < hi) { const mid = (lo + hi) >> 1; if (FRP_SORTED[mid] < FRP[i]) lo = mid + 1; else hi = mid }
