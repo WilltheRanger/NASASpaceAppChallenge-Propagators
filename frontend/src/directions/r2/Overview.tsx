@@ -101,8 +101,8 @@ const PASSES: Record<PassKey, { name: string; when: string; alt: string; fit?: s
 }
 /** What the one big picture says about itself: VIIRS's picture stands for Aqua's old time of day. */
 const PLATE: Record<'viirs' | 'aqua', string> = {
-  viirs: 'Early afternoon, near Aqua’s 2012–2020 time · seen by VIIRS',
-  aqua: 'Later afternoon, Aqua’s time now · seen by Aqua',
+  viirs: 'Near Aqua’s 2012–2020 time · seen by VIIRS',
+  aqua: 'Aqua’s time now · seen by Aqua',
 }
 const wide = (k: PassKey) => `${IMG}amazon-${k}-2026-09-04.jpg`
 const square = (k: PassKey) => `${IMG}prints/amazon-${k}-sq.jpg`
@@ -203,7 +203,7 @@ function WhatsNew({ links, leave }: { links: Links; leave: Leave }) {
   return (
     <section aria-labelledby="new-h" className="border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'py-12 lg:py-16')}>
-        <h2 id="new-h" className="text-xs uppercase tracking-[0.1em] text-[color:var(--bone3)]">What’s new</h2>
+        <h2 id="new-h" className="text-sm text-[color:var(--bone3)]">What’s new</h2>
         <ol className="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-3">
           {items.map((t, i) => (
             <li key={t} className="border-t border-[color:var(--bone-30)] pt-4">
@@ -279,11 +279,12 @@ function OneDay({ links, leave }: { links: Links; leave: Leave }) {
   const wideScreen = useMedia('(min-width: 1024px)')
   const look = DAY_LOOK
   if (!look) return null
+  // Terra drifted too (earlier), so only VIIRS is said to have kept its time
   const steps: StickyStep[] = [
-    { mark: look.old, title: 'Aqua used to look here', description: <>About {look.old}, local sun time, from 2012 to 2020.</> },
-    { mark: look.now, title: `In ${look.year} it looked ${look.minutes} minutes later`, description: <>Across our six places, Aqua now looks {RANGE} later.</> },
+    { mark: look.old, title: 'Aqua used to look here', description: 'Local sun time, 2012–2020.' },
+    { mark: look.now, title: `In ${look.year} it looked ${look.minutes} minutes later`, description: <>Across our six places: {RANGE} later.</> },
     { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change through the day.' },
-    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}, so we use it as the benchmark.</> },
+    { mark: look.viirs, title: 'VIIRS kept its time', description: 'So we use it as the benchmark.' },
   ]
   // the panel's pictures: Aqua then, Aqua now, VIIRS (the panel's step 2, all three satellites side by side, is no longer a step)
   const pic = [0, 1, 3]
@@ -292,12 +293,12 @@ function OneDay({ links, leave }: { links: Links; leave: Leave }) {
       <div className={cn(shell, 'pb-6 lg:pb-12')}>
         <div className="flex flex-col gap-5 pt-8 lg:pt-12">
           <h2 id="day-h" className="max-w-[22ch] text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.02em]">
-            Aqua, a NASA satellite that spots fires from space, faces the same question.
+            Aqua, a NASA satellite that spots fires from space, faces the same question
           </h2>
           <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official count (INPE) relies on Aqua, which now flies over the Amazon {look.minutes} minutes later than in 2012–2020.</p>
           {TERRA_EARLIER ? (
             <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">
-              Terra, Aqua’s morning twin, drifted the other way: about {TERRA_EARLIER} minutes earlier.{' '}
+              Terra, Aqua’s morning twin, drifted the other way: {TERRA_EARLIER} minutes earlier.{' '}
               <a href={links.method('two-clocks')} onClick={leave} className={textLink}>See both clocks</a>
             </p>
           ) : null}
@@ -377,7 +378,7 @@ function DayPanel({ step, picture = true, caption = true }: { step: number; pict
       <DayLine step={step} />
       {caption ? (
         <figcaption className="mt-3 text-xs text-[color:var(--bone3)]">
-          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026. Times shown are usual looks in {DAY_LOOK?.year}, not the image-day pass times.
+          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026
         </figcaption>
       ) : null}
     </figure>
@@ -451,21 +452,16 @@ function DayLine({ step }: { step: number }) {
 function Finding({ links, leave }: { links: Links; leave: Leave }) {
   return (
     <section id="finding" aria-labelledby="finding-h" className="scroll-mt-14">
-      {/* the page's one change of ground: the finding on bone, the way their key statements sit on a lighter band */}
+      {/* the page's one change of ground: the finding on bone, then the reason in one line, then the way to the proof */}
       <div className="bg-[color:var(--bone)] text-[color:var(--ink)]">
-        <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
-          <div className="lg:col-span-8">
-            <h2 id="finding-h" tabIndex={-1} className="text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em] outline-none">
-              {DECLINE
-                ? <>Brazil’s official Amazon count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025; the VIIRS-based benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
-                : FINDING.join(' ')}
-            </h2>
-            <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
-            <a href={links.method('overview-figures')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>How we know <ArrowUpRight size={14} aria-hidden /></a>
-          </div>
-          <Reveal className="lg:col-span-3 lg:col-start-10 lg:self-start lg:pt-2">
-            <p className="rounded-[4px] border border-[color:var(--ink-20)] p-4 text-base text-[color:var(--ink)] lg:p-5 lg:text-lg">{CAVEAT}</p>
-          </Reveal>
+        <div className={cn(shell, 'py-16 lg:py-24')}>
+          <h2 id="finding-h" tabIndex={-1} className="max-w-[26ch] text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em] outline-none">
+            {DECLINE
+              ? <>Brazil’s official Amazon fire count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025. The benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
+              : FINDING.join(' ')}
+          </h2>
+          <p className="mt-6 max-w-[40rem] text-lg leading-[1.56]">{CAVEAT}</p>
+          <a href={links.method('overview-figures')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center gap-1 text-sm text-[color:var(--ink)]')}>How we know <ArrowUpRight size={14} aria-hidden /></a>
         </div>
       </div>
       <div className={cn(shell, 'pb-16 lg:pb-24')}>
@@ -518,9 +514,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
       </span>
       {r.read.past != null ? <span className="mt-1.5 block text-xs tabular-nums text-[color:var(--bone3)]">{Math.round(r.read.past)} points past the usual range</span> : null}
     </span>
-  ) : (
-    <span className="text-sm text-[color:var(--bone2)]">Our test case</span>
-  )
+  ) : null
   return (
     <Reveal as="li" delay={i * 80}>
       <div className={cn('grid grid-cols-2 items-center gap-x-4 gap-y-3 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
@@ -635,24 +629,23 @@ export function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) 
         <div className="lg:col-span-4">
           <h2 id="overview-figures-h" className="text-3xl font-medium tracking-[-0.02em]">The figures behind the Overview</h2>
           <p className="mt-4 text-sm text-[color:var(--bone2)]">Full-year totals and matched-day audit counts answer different questions.</p>
-          <a href={links.method('sources')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center')}>All product versions and sources <ArrowUpRight size={14} aria-hidden /></a>
         </div>
         <dl className="space-y-6 text-sm leading-6 text-[color:var(--bone2)] lg:col-span-8">
           {DECLINE ? <div>
             <dt className="font-medium text-[color:var(--bone)]">Full-year Amazon totals · 2024 → 2025</dt>
-            <dd>Official INPE: {int(DECLINE.inpe_2024)} → {int(DECLINE.inpe_2025)} detections ({Math.abs(Math.round(DECLINE.inpe_pct))}% decline). VIIRS-based annual benchmark: {int(DECLINE.fixed_2024)} → {int(DECLINE.fixed_2025)} ({Math.abs(Math.round(DECLINE.fixed_pct))}% decline). These compare whole calendar years, not just the audit’s matched days. Source: data/out/facts.json, amazon_decline_2024_2025; <a href="https://data.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer" className={textLink}>INPE Programa Queimadas</a>.</dd>
+            <dd>Official INPE: {int(DECLINE.inpe_2024)} → {int(DECLINE.inpe_2025)} detections ({pct(DECLINE.inpe_pct, 0)}). VIIRS-based benchmark: {int(DECLINE.fixed_2024)} → {int(DECLINE.fixed_2025)} ({pct(DECLINE.fixed_pct, 0)}). Whole calendar years, not only the audit’s matched days. Source: <a href="https://data.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer" className={textLink}>INPE Programa Queimadas</a>.</dd>
           </div> : null}
           {AMAZON_2025 && AMAZON_2025.fixed != null ? <div>
             <dt className="font-medium text-[color:var(--bone)]">Matched-day Amazon audit · {AMAZON_2025.year}</dt>
-            <dd>Aqua: {int(AMAZON_2025.aqua)} daytime detections; benchmark: {int(AMAZON_2025.fixed)}. That is {int(AMAZON_2025.aqua - AMAZON_2025.fixed)} more detections (about {int(Math.round((AMAZON_2025.aqua - AMAZON_2025.fixed) / 1000) * 1000)}), on days both satellites returned data. These are not the full-year totals above. Source: data/out/audit/br-amazon.json. {CAVEAT}</dd>
+            <dd>Aqua: {int(AMAZON_2025.aqua)} daytime detections; benchmark: {int(AMAZON_2025.fixed)}; {int(AMAZON_2025.aqua - AMAZON_2025.fixed)} more, on days both satellites returned data. These are not the full-year totals above.</dd>
           </div> : null}
           <div>
             <dt className="font-medium text-[color:var(--bone)]">Six-place comparison and uncertainty</dt>
-            <dd>Look times are local sun time, 2012–2020 against {YEAR}. The usual range comes from nine 2012–2020 years. The amber line is a 95% bootstrap interval (the days are resampled), not a probability that a causal timing effect lies within it. Unusual means the likely interval does not overlap the usual range; close calls overlap it. Sources: data/out/drift and data/out/audit. Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.</dd>
+            <dd>Look times are local sun time, 2012–2020 against {YEAR}. The usual range spans nine years, 2012–2020. The amber line is a 95% bootstrap interval (days resampled), not the probability of a timing effect. Unusual: the interval clears the usual range; close calls overlap it. Punjab + Haryana checks the drift against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.</dd>
           </div>
           <div>
             <dt className="font-medium text-[color:var(--bone)]">Satellite images and illustrated times</dt>
-            <dd>Central Amazon, 4 September 2026, with each satellite’s fire detections: <a href="https://worldview.earthdata.nasa.gov" target="_blank" rel="noreferrer" className={textLink}>NASA Worldview / GIBS</a>. The clock diagram uses usual look times in {DAY_LOOK?.year}, not measured pass times for that image date. VIIRS imagery stands for the earlier observation time.</dd>
+            <dd>Central Amazon, 4 September 2026, with each satellite’s fire detections (<a href="https://worldview.earthdata.nasa.gov" target="_blank" rel="noreferrer" className={textLink}>NASA Worldview / GIBS</a>). The clock shows usual {DAY_LOOK?.year} look times, not that day’s passes. The VIIRS picture is the early afternoon, near Aqua’s 2012–2020 time.</dd>
           </div>
         </dl>
       </div>

@@ -92,7 +92,7 @@ export function AlertPanel({ place, when, rows, rise, set, delay, onDelay, aquaB
     <section aria-labelledby="alert-h" className="flex flex-col gap-5">
       <div>
         <H id="alert-h" tabIndex={-1} className="text-[18px] font-medium leading-[1.3] tracking-[-0.015em] text-[color:var(--bone)] outline-none [text-wrap:balance]">
-          If a fire started in {place}{when ? ` on ${when}` : ''}, when could a satellite alert me, and how much daylight would I have left to act?
+          If a fire started in {place}{when ? ` on ${when}` : ''}, when could a satellite alert me, and how much daylight would be left?
         </H>
         <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {onHelp ? (

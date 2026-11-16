@@ -149,9 +149,10 @@ export const linksFor = (nav: Nav): Links => ({
 
 /* ---------- Words said the same way on every page ---------- */
 
-/** Said next to every finding. */
 /** The close-call legend, said the same way everywhere */
 export const CLOSE_CALL = 'Close call: just outside the usual range, but the likely range overlaps it.'
+/** Said next to every finding: the gap and the later look moved together; the data don't isolate the cause
+ *  (analysis/statistics/README.md). What is still open is on the Method page's limits. */
 export const CAVEAT = 'The gap appeared as Aqua’s look moved later. Clouds and viewing angle were checked and don’t explain it, but these data can’t say how much of it the timing caused.'
 export const FOOTER_LINE = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 export const JETHVA = 'https://doi.org/10.3390/rs18101506'
@@ -591,8 +592,8 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
         <div className="border-t border-[color:var(--hairline)] pt-4">
           <More label="Thank you">
             <div className="mt-3 grid gap-x-6 gap-y-3 lg:grid-cols-2">
-            <p className="max-w-[var(--measure)] leading-6">To NASA and the 2026 NASA International Space Apps Challenge, funded by NASA’s Science Mission Directorate through a contract with Booz Allen Hamilton, Mindgrub and SecondMuse, and to its 17 space agency partners, especially the Brazilian Space Agency (AEB), Argentina’s CONAE and India’s ISRO.</p>
-            <p className="max-w-[var(--measure)] leading-6">To Build Future Mind Foundation for hosting the Chino Hills, CA local event on 14–15 November 2026, and to Local Lead Allen West and the organizing team.</p>
+            <p className="max-w-[var(--measure)] leading-6">To NASA, the Space Apps Challenge and its partner agencies, especially the Brazilian Space Agency (AEB), Argentina’s CONAE and India’s ISRO.</p>
+            <p className="max-w-[var(--measure)] leading-6">To Build Future Mind Foundation, Local Lead Allen West and the organizing team for the Chino Hills, CA event, 14–15 November 2026.</p>
             </div>
           </More>
         </div>
