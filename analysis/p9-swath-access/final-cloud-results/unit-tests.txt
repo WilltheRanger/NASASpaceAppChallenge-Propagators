@@ -1,0 +1,20 @@
+test_no_data_is_not_pass (test_fit_calibration.FitTests.test_no_data_is_not_pass) ... ok
+test_rank_deficiency_rejected (test_fit_calibration.FitTests.test_rank_deficiency_rejected) ... ok
+test_recovers_known_conditional_slope (test_fit_calibration.FitTests.test_recovers_known_conditional_slope) ... ok
+test_clear_nonfire_in_denominator (test_masks.TestMasks.test_clear_nonfire_in_denominator) ... ok
+test_cloud_not_zero (test_masks.TestMasks.test_cloud_not_zero) ... ok
+test_mismatched_shape (test_masks.TestMasks.test_mismatched_shape) ... ok
+test_missing_all_unknown (test_masks.TestMasks.test_missing_all_unknown) ... ok
+test_no_inherited_or_browse_links (test_masks.TestMasks.test_no_inherited_or_browse_links) ... ok
+test_requires_registration (test_masks.TestMasks.test_requires_registration) ... ok
+test_unknown_class (test_masks.TestMasks.test_unknown_class) ... ok
+test_empty_day_is_not_a_pass (test_pair_day.PairTests.test_empty_day_is_not_a_pass) ... ok
+test_nonfire_kept_and_closest_pair_selected (test_pair_day.PairTests.test_nonfire_kept_and_closest_pair_selected) ... ok
+test_distinct_provenanced_inputs (test_pilot.PilotTests.test_distinct_provenanced_inputs) ... ok
+test_result_reconciles (test_pilot.PilotTests.test_result_reconciles) ... ok
+test_spherical_distance (test_pilot.PilotTests.test_spherical_distance) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.058s
+
+OK

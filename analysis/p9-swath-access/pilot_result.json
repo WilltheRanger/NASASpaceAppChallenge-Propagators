@@ -1,0 +1,90 @@
+{
+  "status": "engineering_pilot_not_formal_P9",
+  "bbox": [
+    -61,
+    -13,
+    -59,
+    -11
+  ],
+  "grid_spacing_degrees": 0.01,
+  "grid_centers": 40000,
+  "nearest_max_m": 375,
+  "max_sensor_zenith_degrees": 45,
+  "valid_classes": [
+    5,
+    8,
+    9
+  ],
+  "fire_classes": [
+    8,
+    9
+  ],
+  "common_usable_centers": 376,
+  "counts": {
+    "both_fire": 0,
+    "snpp_only_fire": 0,
+    "noaa20_only_fire": 0,
+    "both_clear_nonfire": 376
+  },
+  "satellites": {
+    "snpp": {
+      "shape": [
+        6464,
+        6400
+      ],
+      "regional_native_pixels": 265583,
+      "grid_usable": 407,
+      "time_start": "2020-08-01 17:00:00.000",
+      "time_end": "2020-08-01 17:06:00.000",
+      "regional_class_counts": {
+        "1": 40292,
+        "3": 141,
+        "4": 252,
+        "5": 224888,
+        "8": 10
+      }
+    },
+    "noaa20": {
+      "shape": [
+        6432,
+        6400
+      ],
+      "regional_native_pixels": 290977,
+      "grid_usable": 38024,
+      "time_start": "2020-08-01 17:48:00.000",
+      "time_end": "2020-08-01 17:54:00.000",
+      "regional_class_counts": {
+        "1": 23555,
+        "3": 181,
+        "4": 740,
+        "5": 266485,
+        "7": 7,
+        "8": 9
+      }
+    }
+  },
+  "files": {
+    "VNP14IMG.A2020214.1700.002.2024065171651.nc": {
+      "bytes": 4324976,
+      "sha256": "fe409ac40941547e22dca1df211a2ceb6ad07b6670589f7ff7a4333948d2bf04"
+    },
+    "VNP03IMG.A2020214.1700.002.2021124181008.nc": {
+      "bytes": 186743965,
+      "sha256": "099e4593331b90d837b1f224b086504103b59c1c5eef1c701552c80d25616280"
+    },
+    "VJ114IMG.A2020214.1748.002.2024070022503.nc": {
+      "bytes": 3876220,
+      "sha256": "f3422046a76a29835a32486927838774c9a207b62a640de5eaf211f5e3c5232a"
+    },
+    "VJ103IMG.A2020214.1748.021.2021067193710.nc": {
+      "bytes": 179278805,
+      "sha256": "b9469cef0499dc9b003b537be7e2d815968f6161ba212338f00e42f560b609fa"
+    }
+  },
+  "limitations": [
+    "Nearest-center sampling approximates, not exact footprint intersection.",
+    "Single date/region cannot estimate timing slope with satellite intercept or regional seasonal controls.",
+    "Grid samples are spatially dependent, not independent statistical replicates.",
+    "Original P9 and existing MODIS surrogate outcomes are unchanged."
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "status": "acquisition_paused_disk_guard_not_final_P9",
+  "reason": "No temporary geometry remains; free disk about5.26GiB below5.5GiB pre-batch guard. Preserve5GiB absolute floor.",
+  "grid_sha256": "eb3a6620036aeff19f05f3fba51c5216970f59210354590067d3de89fc94396a",
+  "dates": [
+    {
+      "date": "2018-01-15",
+      "expected_fire_swaths": 18,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2018-03-15",
+      "expected_fire_swaths": 9,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2018-05-15",
+      "expected_fire_swaths": 10,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2018-07-15",
+      "expected_fire_swaths": 19,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2018-09-15",
+      "expected_fire_swaths": 19,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2018-11-15",
+      "expected_fire_swaths": 18,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2019-01-15",
+      "expected_fire_swaths": 18,
+      "primary45_extracted": 18,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2019-03-15",
+      "expected_fire_swaths": 19,
+      "primary45_extracted": 19,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2019-05-15",
+      "expected_fire_swaths": 18,
+      "primary45_extracted": 15,
+      "sensitivity85_extracted": 12
+    },
+    {
+      "date": "2019-07-15",
+      "expected_fire_swaths": 17,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2019-09-15",
+      "expected_fire_swaths": 18,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2019-11-15",
+      "expected_fire_swaths": 19,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2020-01-15",
+      "expected_fire_swaths": 17,
+      "primary45_extracted": 17,
+      "sensitivity85_extracted": 13
+    },
+    {
+      "date": "2020-03-15",
+      "expected_fire_swaths": 18,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2020-05-15",
+      "expected_fire_swaths": 18,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2020-07-15",
+      "expected_fire_swaths": 19,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2020-09-15",
+      "expected_fire_swaths": 20,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    },
+    {
+      "date": "2020-11-15",
+      "expected_fire_swaths": 18,
+      "primary45_extracted": 0,
+      "sensitivity85_extracted": 0
+    }
+  ],
+  "test_status": "15 tests passed; no fitted regional slope claimed",
+  "formal_P9": "pending"
+}

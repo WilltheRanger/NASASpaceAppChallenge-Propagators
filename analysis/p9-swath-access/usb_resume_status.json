@@ -1,0 +1,1027 @@
+{
+  "status": "resumed_on_neo_acquisition_not_calibrated",
+  "recorded_utc": "2026-11-15T16:14:24.704021+00:00",
+  "storage": "dedicated NASA-P9 folder on user-authorized external exFAT volume",
+  "raw_geometry_retained": true,
+  "original_local_data_preserved": true,
+  "credentials_on_usb": false,
+  "internal_minimum_free_gib": 5,
+  "complete_dates": {
+    "primary45": [
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019015",
+        "common_time_eligible_candidate_pairs": 5012,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 19,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019074",
+        "common_time_eligible_candidate_pairs": 3421,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019135",
+        "common_time_eligible_candidate_pairs": 3479,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 17,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019196",
+        "common_time_eligible_candidate_pairs": 5451,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019258",
+        "common_time_eligible_candidate_pairs": 5798,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 17,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020015",
+        "common_time_eligible_candidate_pairs": 6303,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020075",
+        "common_time_eligible_candidate_pairs": 2833,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020136",
+        "common_time_eligible_candidate_pairs": 1854,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 19,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020197",
+        "common_time_eligible_candidate_pairs": 5580,
+        "afternoon_candidate_pairs": 0,
+        "unique_eligible_centers": 0,
+        "biomes": {
+          "amazon": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "cerrado": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "caatinga": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          }
+        }
+      }
+    ],
+    "sensitivity85": [
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019135",
+        "common_time_eligible_candidate_pairs": 110479,
+        "afternoon_candidate_pairs": 17315,
+        "unique_eligible_centers": 17257,
+        "biomes": {
+          "amazon": {
+            "centers": 3091,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2154,
+            "negative_order": 937
+          },
+          "cerrado": {
+            "centers": 6213,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2410,
+            "negative_order": 3803
+          },
+          "caatinga": {
+            "centers": 703,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 703
+          },
+          "mata_atlantica": {
+            "centers": 3036,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2319,
+            "negative_order": 717
+          },
+          "pantanal": {
+            "centers": 2234,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2234,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 1980,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 1980,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 17,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019196",
+        "common_time_eligible_candidate_pairs": 191387,
+        "afternoon_candidate_pairs": 26416,
+        "unique_eligible_centers": 26318,
+        "biomes": {
+          "amazon": {
+            "centers": 5590,
+            "snpp_fire": 1,
+            "noaa20_fire": 1,
+            "both_fire": 1,
+            "discordant_fire_centers": 0,
+            "positive_order": 1565,
+            "negative_order": 4025
+          },
+          "cerrado": {
+            "centers": 11064,
+            "snpp_fire": 1,
+            "noaa20_fire": 3,
+            "both_fire": 0,
+            "discordant_fire_centers": 4,
+            "positive_order": 10169,
+            "negative_order": 895
+          },
+          "caatinga": {
+            "centers": 306,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 22,
+            "negative_order": 284
+          },
+          "mata_atlantica": {
+            "centers": 3941,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2963,
+            "negative_order": 978
+          },
+          "pantanal": {
+            "centers": 1298,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 1298
+          },
+          "pampa": {
+            "centers": 4119,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 4119
+          }
+        }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2019258",
+        "common_time_eligible_candidate_pairs": 205447,
+        "afternoon_candidate_pairs": 39676,
+        "unique_eligible_centers": 39528,
+        "biomes": {
+          "amazon": {
+            "centers": 5214,
+            "snpp_fire": 6,
+            "noaa20_fire": 2,
+            "both_fire": 2,
+            "discordant_fire_centers": 4,
+            "positive_order": 3161,
+            "negative_order": 2053
+          },
+          "cerrado": {
+            "centers": 11521,
+            "snpp_fire": 4,
+            "noaa20_fire": 5,
+            "both_fire": 2,
+            "discordant_fire_centers": 5,
+            "positive_order": 6984,
+            "negative_order": 4537
+          },
+          "caatinga": {
+            "centers": 3297,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 3297
+          },
+          "mata_atlantica": {
+            "centers": 11934,
+            "snpp_fire": 0,
+            "noaa20_fire": 2,
+            "both_fire": 0,
+            "discordant_fire_centers": 2,
+            "positive_order": 7828,
+            "negative_order": 4106
+          },
+          "pantanal": {
+            "centers": 2650,
+            "snpp_fire": 1,
+            "noaa20_fire": 1,
+            "both_fire": 0,
+            "discordant_fire_centers": 2,
+            "positive_order": 2650,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 4912,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 4912,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 17,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020015",
+        "common_time_eligible_candidate_pairs": 113401,
+        "afternoon_candidate_pairs": 13449,
+        "unique_eligible_centers": 13392,
+        "biomes": {
+          "amazon": {
+            "centers": 2812,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2413,
+            "negative_order": 399
+          },
+          "cerrado": {
+            "centers": 6720,
+            "snpp_fire": 1,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 1,
+            "positive_order": 1645,
+            "negative_order": 5075
+          },
+          "caatinga": {
+            "centers": 327,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 299,
+            "negative_order": 28
+          },
+          "mata_atlantica": {
+            "centers": 2214,
+            "snpp_fire": 1,
+            "noaa20_fire": 1,
+            "both_fire": 1,
+            "discordant_fire_centers": 0,
+            "positive_order": 517,
+            "negative_order": 1697
+          },
+          "pantanal": {
+            "centers": 1286,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 1286,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 33,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 33,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020075",
+        "common_time_eligible_candidate_pairs": 64417,
+        "afternoon_candidate_pairs": 10593,
+        "unique_eligible_centers": 10576,
+        "biomes": {
+          "amazon": {
+            "centers": 1248,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 534,
+            "negative_order": 714
+          },
+          "cerrado": {
+            "centers": 2417,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2334,
+            "negative_order": 83
+          },
+          "caatinga": {
+            "centers": 76,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 76
+          },
+          "mata_atlantica": {
+            "centers": 6711,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 5626,
+            "negative_order": 1085
+          },
+          "pantanal": {
+            "centers": 0,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 124,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 124,
+            "negative_order": 0
+          }
+        }
+      },
+      {
+        "expected_swaths": 18,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020136",
+        "common_time_eligible_candidate_pairs": 107560,
+        "afternoon_candidate_pairs": 19032,
+        "unique_eligible_centers": 18955,
+        "biomes": {
+          "amazon": {
+            "centers": 2230,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 181,
+            "negative_order": 2049
+          },
+          "cerrado": {
+            "centers": 3134,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 1088,
+            "negative_order": 2046
+          },
+          "caatinga": {
+            "centers": 2967,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2967,
+            "negative_order": 0
+          },
+          "mata_atlantica": {
+            "centers": 8429,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 1660,
+            "negative_order": 6769
+          },
+          "pantanal": {
+            "centers": 209,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 209
+          },
+          "pampa": {
+            "centers": 1986,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 0,
+            "negative_order": 1986
+          }
+        }
+      },
+      {
+        "expected_swaths": 19,
+        "missing_swaths": [],
+        "input_complete": true,
+        "datecode": "A2020197",
+        "common_time_eligible_candidate_pairs": 222864,
+        "afternoon_candidate_pairs": 37880,
+        "unique_eligible_centers": 37767,
+        "biomes": {
+          "amazon": {
+            "centers": 6591,
+            "snpp_fire": 0,
+            "noaa20_fire": 1,
+            "both_fire": 0,
+            "discordant_fire_centers": 1,
+            "positive_order": 4423,
+            "negative_order": 2168
+          },
+          "cerrado": {
+            "centers": 10935,
+            "snpp_fire": 1,
+            "noaa20_fire": 1,
+            "both_fire": 0,
+            "discordant_fire_centers": 2,
+            "positive_order": 5916,
+            "negative_order": 5019
+          },
+          "caatinga": {
+            "centers": 3523,
+            "snpp_fire": 1,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 1,
+            "positive_order": 0,
+            "negative_order": 3523
+          },
+          "mata_atlantica": {
+            "centers": 9509,
+            "snpp_fire": 2,
+            "noaa20_fire": 4,
+            "both_fire": 2,
+            "discordant_fire_centers": 2,
+            "positive_order": 7892,
+            "negative_order": 1617
+          },
+          "pantanal": {
+            "centers": 2202,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 2202,
+            "negative_order": 0
+          },
+          "pampa": {
+            "centers": 5007,
+            "snpp_fire": 0,
+            "noaa20_fire": 0,
+            "both_fire": 0,
+            "discordant_fire_centers": 0,
+            "positive_order": 5007,
+            "negative_order": 0
+          }
+        }
+      }
+    ]
+  },
+  "resume_notes": [
+    "Neo project /Users/brady/Code/Anchor-dot; Python /Users/brady/.venvs/nasa-p9/bin/python.",
+    "July2020 complete19/19 both specifications; original45 has zero afternoon pairs.",
+    "November2019 acquisition underway:13/19 swaths extracted.",
+    "Next2020 worker date September2020.",
+    "Still need fixed2018 and2019 Jan/Mar sensitivity backfill.",
+    "No timing slope identified yet; partial dates excluded; original P9 outcome unchanged."
+  ]
+}
