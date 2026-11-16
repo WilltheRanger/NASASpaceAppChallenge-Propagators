@@ -101,7 +101,7 @@ const LIST = REGIONS.map((r) => ({ id: r.id, name: short(r.name), f: regionFacts
 const SHIFTS = LIST.map((r) => (r.f.look.old && r.f.look.now ? Math.round((hm(r.f.look.now) - hm(r.f.look.old)) * 60) : null)).filter((v): v is number => v != null)
 const SHIFT = SHIFTS.length ? `${Math.min(...SHIFTS)} to ${Math.max(...SHIFTS)} minutes` : 'over an hour'
 /** said next to every finding */
-const CAVEAT = 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.'
+const CAVEAT = 'Aqua’s later look and its higher count line up. Anchor shows where the official trend deserves a second look; counts alone can’t split out the timing’s exact share.'
 const FOOTER = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 /** Aqua's 2012–2020 look time across the six regions (drift files): the chart's reference when no region is picked */
 const BASES = LIST.map((r) => r.f.look.old).filter((v): v is string => v != null).map(hm)

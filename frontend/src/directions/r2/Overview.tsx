@@ -214,11 +214,12 @@ function OneDay() {
     {
       mark: look.now,
       title: `In ${look.year} it looked ${look.minutes} minutes later`,
-      description: <>{DAY.driftStart ? <>Here the move started in {DAY.driftStart}. </> : null}Across our six places, Aqua now looks {RANGE} later.</>,
+      description: <>{DAY.driftStart ? <>The move started in {DAY.driftStart}. </> : null}Clouds, smoke and fires change during the day, so a later look can count more fires or fewer.</>,
     },
-    { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change during the day, so a later look can count more fires or fewer.' },
     { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
   ]
+  // the panel's pictures: Aqua then, Aqua now, VIIRS (the panel's step 2, all three satellites side by side, is no longer a step)
+  const pic = [0, 1, 3]
   return (
     <section id="day" aria-labelledby="day-h" className="border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'pb-6 lg:pb-12')}>
@@ -232,7 +233,7 @@ function OneDay() {
           <StickyScroll
             className="mt-16"
             steps={steps}
-            panel={(i) => <DayPanel step={i} />}
+            panel={(i) => <DayPanel step={pic[i]} />}
             top="5.5rem"
             motion={motion.on}
             label={`Aqua’s day over ${phrase(FEATURED).the}, step by step`}
@@ -248,7 +249,7 @@ function OneDay() {
                 <p className="mt-2 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{s.description}</p>
                 <div className="mt-5">
                   {/* the last step's picture is the first one again, so it keeps only the clock */}
-                  <DayPanel step={i} picture={i !== steps.length - 1} caption={i === steps.length - 1} />
+                  <DayPanel step={pic[i]} picture={i !== steps.length - 1} caption={i === steps.length - 1} />
                 </div>
               </li>
             ))}
@@ -606,7 +607,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
           href={links.method()}
           leave={leave}
           title="How we know"
-          line="How the comparison works, and what it can’t tell you."
+          line="How the comparison works, and how far it goes."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}daylight/br-amazon-2024-09-02.jpg`} alt="" loading="lazy" className={pic} />}
         />

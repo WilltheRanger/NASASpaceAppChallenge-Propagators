@@ -150,7 +150,7 @@ export const linksFor = (nav: Nav): Links => ({
 /* ---------- Words said the same way on every page ---------- */
 
 /** Said next to every finding. */
-export const CAVEAT = 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.'
+export const CAVEAT = 'Aqua’s later look and its higher count line up. Anchor shows where the official trend deserves a second look; counts alone can’t split out the timing’s exact share.'
 export const FOOTER_LINE = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 export const JETHVA = 'https://doi.org/10.3390/rs18101506'
 /** The code: the Pages deploy sets it from the repository it builds; the comment pages use the same address (the

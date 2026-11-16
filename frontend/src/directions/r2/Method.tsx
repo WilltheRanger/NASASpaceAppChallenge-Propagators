@@ -12,7 +12,6 @@ import p9Followup from '../../../../data/out/p9-followup.json'
 import { ArrowRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion-ghost'
 import { CompareSlider, CompareSliderAfter, CompareSliderBefore, CompareSliderHandle } from '@/components/ui/compare-slider'
-import { HowItWorks } from '@/components/ui/how-it-works'
 import { ScrollSpy } from '@/components/ui/scroll-spy'
 import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { CHECKS, DETECTION, fmtInt, fmtRange, hm, inpeReproduction, pct, phrase, regionData, type Check } from '@/r2/data'
@@ -29,7 +28,7 @@ const SECTIONS = [
   { id: 'two-clocks', label: 'Two clocks' },
   { id: 'detection', label: 'Small fires' },
   { id: 'inpe', label: 'Matching INPE' },
-  { id: 'limits', label: 'Limits' },
+  { id: 'limits', label: 'Scope' },
   { id: 'sources', label: 'Sources' },
 ]
 
@@ -48,7 +47,7 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
       <main className="pt-14">
         <div className={cn(shell, 'pb-8 pt-14 sm:pt-20')}>
           <h1 className="max-w-[18ch] text-balance text-[clamp(40px,5.4vw,80px)] font-medium leading-[1] tracking-[-0.035em]">How we know</h1>
-          <p className="mt-5 max-w-[34rem] text-lg text-[color:var(--bone2)]">What we compare, how we tested it, and what it can’t tell you.</p>
+          <p className="mt-5 max-w-[34rem] text-lg text-[color:var(--bone2)]">What we compare, how we tested it, and how far the result goes.</p>
         </div>
         <div className="sticky top-14 z-30 border-b border-[color:var(--hairline)] bg-[color:var(--ground)]">
           <div className={cn(shell, 'py-1')}>
@@ -120,96 +119,33 @@ function OneDay() {
 
 /* ---------- How the comparison works, in four steps ---------- */
 
-/** Aqua's and VIIRS's look time by year over the Amazon: Aqua climbs later, VIIRS holds. */
-function LookLines() {
-  const d = regionData('br-amazon')
-  const ref = useRef<HTMLDivElement | null>(null)
-  const W = useMeasuredWidth(ref)
-  const rows = d.drift
-  if (!rows.length) return null
-  const H = 92, L = 4, R = 64, T = 8, B = 20
-  const lo = Math.min(...rows.flatMap((r) => [hm(r.aqua_lst), hm(r.viirs_lst)])) - 0.1
-  const hi = Math.max(...rows.flatMap((r) => [hm(r.aqua_lst), hm(r.viirs_lst)])) + 0.1
-  const x = (i: number) => L + (i / (rows.length - 1)) * Math.max(0, W - L - R)
-  const y = (h: number) => T + (1 - (h - lo) / (hi - lo)) * (H - T - B)
-  const a = rows.map((r, i) => `${x(i).toFixed(1)},${y(hm(r.aqua_lst)).toFixed(1)}`).join(' ')
-  const v = rows.map((r, i) => `${x(i).toFixed(1)},${y(hm(r.viirs_lst)).toFixed(1)}`).join(' ')
-  const last = rows[rows.length - 1]
-  return (
-    <div ref={ref} role="img" aria-label={`Over the Amazon, Aqua looked at ${rows[0].aqua_lst} in ${rows[0].year} and ${last.aqua_lst} in ${last.year}; VIIRS at ${rows[0].viirs_lst} and ${last.viirs_lst}.`} style={{ height: H }}>
-      {W > 0 ? (
-        <svg width={W} height={H} aria-hidden className="block overflow-visible" fontSize={11}>
-          <polyline points={v} fill="none" stroke="var(--sat-viirs)" strokeWidth={1.5} strokeDasharray="3 3" />
-          <polyline points={a} fill="none" stroke="var(--sat-aqua)" strokeWidth={2} />
-          <DetMark shape="diamond" color="var(--sat-viirs)" x={x(rows.length - 1)} y={y(hm(last.viirs_lst))} r={4} />
-          <DetMark shape="filled" color="var(--sat-aqua)" x={x(rows.length - 1)} y={y(hm(last.aqua_lst))} r={4} />
-          <text x={x(rows.length - 1) + 8} y={y(hm(last.aqua_lst))} dominantBaseline="central" fill="var(--bone)">Aqua {last.aqua_lst}</text>
-          <text x={x(rows.length - 1) + 8} y={y(hm(last.viirs_lst))} dominantBaseline="central" fill="var(--bone2)">VIIRS {last.viirs_lst}</text>
-          <text x={L} y={H - 4} fill="var(--bone3)">{rows[0].year}</text>
-          <text x={x(rows.length - 1)} y={H - 4} textAnchor="middle" fill="var(--bone3)">{last.year}</text>
-        </svg>
-      ) : null}
-    </div>
-  )
-}
-
-/** One year's reading against the usual range: the grey band, zero, and Aqua's dot with the likely range. */
-function RangeStrip({ gap, lo, hi, band }: { gap: number; lo: number; hi: number; band: [number, number] }) {
-  const ref = useRef<HTMLDivElement | null>(null)
-  const W = useMeasuredWidth(ref)
-  const min = Math.min(-20, band[0], lo) - 5, max = Math.max(60, hi) + 5
-  const x = (v: number) => 4 + ((v - min) / (max - min)) * Math.max(0, W - 8)
-  const H = 64, cy = 26
-  return (
-    <div ref={ref} role="img" aria-label={`Aqua ${pct(gap)} against what we’d expect, likely range ${fmtRange(lo, hi)}; usual range ${fmtRange(band[0], band[1])}.`} style={{ height: H }}>
-      {W > 0 ? (
-        <svg width={W} height={H} aria-hidden className="block overflow-visible" fontSize={11}>
-          <rect x={x(band[0])} y={cy - 12} width={x(band[1]) - x(band[0])} height={24} fill="rgba(236, 233, 225, 0.12)" rx={2} />
-          <line x1={x(0)} x2={x(0)} y1={cy - 16} y2={cy + 16} stroke="var(--bone-30)" />
-          <line x1={x(lo)} x2={x(hi)} y1={cy} y2={cy} stroke="var(--sat-aqua)" strokeWidth={2} strokeLinecap="round" />
-          <DetMark shape="filled" color="var(--sat-aqua)" x={x(gap)} y={cy} r={5} />
-          <text x={x(0)} y={H - 6} textAnchor="middle" fill="var(--bone3)">Usual</text>
-          <text x={x(gap)} y={H - 6} textAnchor="middle" fill="var(--bone)">{pct(gap)}</text>
-        </svg>
-      ) : null}
-    </div>
-  )
-}
-
 function Steps() {
-  const motion = useMotion()
   const d = regionData('br-amazon')
   const y = d.latestOk
   const ratio = d.ratio
-  const big = 'block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]'
-  const steps = [
-    {
-      title: 'Find when each satellite looked',
-      description: 'Every fire detection carries its time of day. The middle of those times is the satellite’s look time for the year.',
-      figure: <LookLines />,
-    },
-    {
-      title: 'Learn how Aqua and VIIRS compare',
-      description: 'From 2012 to 2020 they looked at about the same time. That tells us how many daytime detections Aqua records for every 100 by VIIRS on the same days.',
-      figure: ratio != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{Math.round(ratio * 100)}</span>Aqua detections for every 100 VIIRS detections</p> : null,
-    },
-    {
-      title: 'Work out what we’d expect',
-      description: 'For each later year, VIIRS’s count times that rate is the benchmark. It is an estimate.',
-      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}</p> : null,
-    },
-    {
-      title: 'Compare',
-      description: y && y.gap != null ? `Aqua recorded ${fmtInt(y.aqua)} detections, which is ${pct(y.gap)} against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.',
-      figure: y && y.gap != null && y.lo != null && y.hi != null ? <RangeStrip gap={y.gap} lo={y.lo} hi={y.hi} band={d.placebo} /> : null,
-    },
+  const last = d.lastDrift
+  // one line per step: what we do, and the Amazon's number for it
+  const steps: { title: string; text: string; value: string | null }[] = [
+    { title: 'Find when each satellite looked', text: 'The middle time of its fire detections that year.', value: last ? `Aqua ${last.aqua_lst} · VIIRS ${last.viirs_lst}` : null },
+    { title: 'Learn how Aqua and VIIRS compare', text: 'Aqua detections per 100 VIIRS detections, 2012–2020.', value: ratio != null ? `${Math.round(ratio * 100)} per 100` : null },
+    { title: 'Work out what we’d expect', text: `VIIRS’s count times that rate: the benchmark${y ? ` for ${y.year}` : ''}.`, value: y && y.fixed != null ? fmtInt(y.fixed) : null },
+    { title: 'Compare', text: 'Aqua’s count against the benchmark. Further out than any year from 2012 to 2020 is unusual.', value: y && y.gap != null ? pct(y.gap) : null },
   ]
   return (
     <section id="steps" aria-labelledby="steps-h" className={section}>
       <div className={cn(shell, 'py-16 lg:py-24')}>
         <h2 id="steps-h" className={title}>What we compare, in four steps</h2>
         <p className={lead}>Shown for the Amazon.</p>
-        <HowItWorks steps={steps} motion={motion.on} className="mt-10" />
+        <ol className="mt-10 border-t border-[color:var(--hairline)]">
+          {steps.map((st, k) => (
+            <li key={st.title} className="grid grid-cols-[2rem_1fr] items-baseline gap-x-4 gap-y-1 border-b border-[color:var(--hairline)] py-4 sm:grid-cols-[2.5rem_minmax(0,18rem)_1fr_auto] sm:gap-x-6">
+              <span className="text-sm tabular-nums text-[color:var(--bone3)]">{k + 1}</span>
+              <span className="text-lg font-medium leading-snug text-[color:var(--bone)]">{st.title}</span>
+              <span className="col-start-2 row-start-2 text-sm text-[color:var(--bone2)] sm:col-start-3 sm:row-start-1">{st.text}</span>
+              <span className="col-start-2 row-start-3 text-base tabular-nums text-[color:var(--bone)] sm:col-start-4 sm:row-start-1 sm:text-right sm:text-lg">{st.value ?? '—'}</span>
+            </li>
+          ))}
+        </ol>
         <p className="mt-8 max-w-[var(--measure)] text-base text-[color:var(--bone)]">{CAVEAT}</p>
         <More label="Technical notes" className="mt-4">
           <ul className="mt-2 flex max-w-[44rem] list-disc flex-col gap-2 pl-5 text-sm text-[color:var(--bone2)]">
@@ -551,19 +487,19 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
   const items: { t: string; b: ReactNode }[] = [
     {
-      t: 'It can’t say how much of a difference the timing caused.',
-      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together, and the data don’t separate the timing’s share. The benchmark is an estimate; it does not replace INPE’s official count.',
+      t: 'It measures the gap, not its cause.',
+      b: 'Anchor sets Aqua’s count beside what VIIRS leads us to expect. The timing and the count moved together; counts alone can’t split the timing’s share from real change in fire. The benchmark is an estimate that sits alongside INPE’s official count, not a replacement for it.',
     },
     {
-      t: '“Unusual” is a rough threshold. It is not proof.',
-      b: 'Nine years set the usual range, so a tenth ordinary year would fall outside it about one time in five. A flag describes a year. It isn’t a significance test.',
+      t: '“Unusual” is a screen, not a verdict.',
+      b: 'Nine years, 2012 to 2020, set the usual range, so an ordinary year lands outside it about one time in five. A flag marks a year worth a closer look; it isn’t a significance test.',
     },
     {
-      t: weak.length ? `Some flags are close calls: ${andList(weak.map((w) => `${phrase(w.id).the} in ${w.year}`))} ${weak.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is a close call.',
-      b: 'A year just outside a narrow range is not a finding. Argentina’s 2025 range takes in no change when days are resampled in 32-day blocks.',
+      t: weak.length ? `Close calls are marked: ${andList(weak.map((w) => `${phrase(w.id).the} in ${w.year}`))} ${weak.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is treated as a close call.',
+      b: 'Years just outside a narrow range are read as borderline, not as findings. Argentina’s 2025 range takes in no change when days are resampled in 32-day blocks.',
     },
     {
-      t: 'Some satellite days are missing or filled in.',
+      t: 'Missing satellite days are handled openly.',
       b: (
         <>
           A day with no daytime detection anywhere in Brazil counts as an outage and is dropped for every region. A partial loss over one region isn’t caught.
@@ -573,17 +509,17 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       ),
     },
     {
-      t: 'NASA reprocessed VIIRS files in May 2025.',
-      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Product versions aren’t yet recorded per file.',
+      t: 'NASA’s May 2025 VIIRS reprocessing leaves the counts alone.',
+      b: 'It changed the timing and fire-size inputs, not the counts the comparison uses. Product versions aren’t yet recorded per file.',
     },
-    { t: `The historical calendar ends in ${lastYear}.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files. A separate rolling seven-day 2026 snapshot has been acquired, but it cannot complete the year and is not part of this calendar.` },
+    { t: `The calendar runs through ${lastYear}.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files. A separate rolling seven-day 2026 snapshot has been acquired, but it cannot complete the year and is not part of this calendar.` },
     {
-      t: 'Aqua and Terra are near the end of their missions.',
+      t: 'Aqua and Terra are nearing the end of their missions, and the method carries on.',
       b: (
         <>
           NASA has planned <a href={NASA_TERRA} target="_blank" rel="noreferrer" className={link}>Terra’s last operations</a> and{' '}
           <a href={NASA_AQUA_LIFE} target="_blank" rel="noreferrer" className={link}>Aqua’s end of life</a>, so counts that follow Aqua, as INPE’s does, will need a new reference.{' '}
-          <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 and NOAA-21 carry the same camera and keep their time, so what we’d expect can still be worked out.
+          <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 and NOAA-21 carry the same camera and keep their time, so the benchmark carries on without them.
         </>
       ),
     },
@@ -592,8 +528,8 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
     <section id="limits" aria-labelledby="limits-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="limits-h" className={title}>What Anchor can’t tell you</h2>
-          <p className={lead}>Comparing one year’s fire count with another’s? Check how far Aqua sat from what we’d expect in both years before you do.</p>
+          <h2 id="limits-h" className={title}>How far the result goes</h2>
+          <p className={lead}>Before comparing one year’s count with another’s, check how far Aqua sat from the benchmark in both years.</p>
           <p className="mt-4 text-sm"><a href={links.regions()} onClick={leave} className={textLink}>The six places</a></p>
         </div>
         <div className="min-w-0 lg:col-span-8">
