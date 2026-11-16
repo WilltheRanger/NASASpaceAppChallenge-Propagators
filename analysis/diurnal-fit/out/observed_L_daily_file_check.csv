@@ -1,0 +1,17 @@
+biome,sat,year,L_daily_file
+amazon,Aqua,2022,1.037
+amazon,Aqua,2023,1.037
+amazon,Aqua,2024,1.077
+amazon,Aqua,2025,1.124
+amazon,Terra,2022,0.8172
+amazon,Terra,2023,0.8682
+amazon,Terra,2024,0.8076
+amazon,Terra,2025,0.5385
+cerrado,Aqua,2022,1.002
+cerrado,Aqua,2023,1.041
+cerrado,Aqua,2024,1.166
+cerrado,Aqua,2025,1.056
+cerrado,Terra,2022,0.9881
+cerrado,Terra,2023,0.9206
+cerrado,Terra,2024,0.7847
+cerrado,Terra,2025,0.7196

@@ -164,7 +164,13 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
     - So at its later look Aqua sees more, smaller fires. MODIS can only detect a small fire near nadir, which is why the excess stops around 33°. That points to a real time-of-day effect, not only a change in viewing geometry. The Cerrado shows the same pattern.
     - Terra, which now looks earlier, loses detections at every view angle (L 0.45 to 0.71 in 2025), and its fires also got smaller.
     - With NOAA-20 in place of S-NPP as the reference, Amazon 2025 L is 1.34 (1.15 to 1.58), against 1.30 with S-NPP.
-  - **Still open:** a sampling change can't be ruled out. It just isn't needed to explain the pattern, and these files can't measure it directly. Read L as Aqua departing from the fixed clock, mainly because it now looks later in the day.
+  - **Attribution tested** ([`analysis/attribution/`](analysis/attribution/README.md), nine tests).
+    - Clouds are ruled out (GOES cloud mask).
+    - Changed viewing geometry is ruled out: NASA granule footprints show Aqua's near-nadir viewing share flat at about 40% from 2016 to 2025.
+    - GOES predicts the large-fire change for both satellites.
+    - A regression across 80 region-years attributes about 90% of Aqua's 2025 Amazon excess to the look-time shift.
+    - **Read L as Aqua departing from the fixed clock mainly because it now looks later.**
+    - Still open: the fire-regime test and the off-season months.
 - **The reference clock is ending.** NASA stopped delivering new Suomi NPP data on 2 November 2026, and S-NPP is the fixed clock that L is measured against. MODIS itself is scheduled to stop collecting data on Terra in January 2027 and on Aqua around September 2027 (CAMS, 2026).
   - Any audit after 2026 has to be rebuilt on NOAA-20 and NOAA-21 VIIRS.
   - **Done:** [`analysis/handover/`](analysis/handover/README.md) chains the 2012–2020 baseline through the 2018–2025 S-NPP/NOAA-20 overlap. Tested out of sample, it reproduces the published L (Amazon 2025: 1.29 vs 1.30), and no 2024–2025 verdict changes. The audit can continue on NOAA-20.
