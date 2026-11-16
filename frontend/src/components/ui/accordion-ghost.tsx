@@ -77,12 +77,12 @@ export function AccordionTrigger({ number, after, className, children }: { numbe
         aria-controls={`${item.id}-p`}
         onClick={() => toggle(item.value)}
         className={cn(
-          'group flex min-h-11 flex-1 items-start gap-3 rounded py-3 text-left text-sm text-[color:var(--bone)] outline-none sm:gap-4',
+          'group flex min-h-11 flex-1 items-start gap-3 rounded py-3 text-left text-sm text-[color:var(--bone)] sm:text-base lg:text-lg outline-none sm:gap-4',
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--bone)]',
           className,
         )}
       >
-        {number != null ? <span className="w-8 shrink-0 pt-px text-xs tabular-nums leading-5 text-[color:var(--bone3)] group-hover:text-[color:var(--bone2)]">{number}</span> : null}
+        {number != null ? <span className="w-8 shrink-0 pt-px text-xs tabular-nums leading-5 sm:pt-1 sm:text-sm text-[color:var(--bone3)] group-hover:text-[color:var(--bone2)]">{number}</span> : null}
         <span className="min-w-0 flex-1 leading-5">{children}</span>
         {after != null ? <span className="shrink-0 leading-5">{after}</span> : null}
         <span aria-hidden className="relative mt-0.5 grid size-4 shrink-0 place-items-center text-[color:var(--bone2)] group-hover:text-[color:var(--bone)]">
@@ -111,7 +111,7 @@ export function AccordionContent({ className, children }: { className?: string; 
           transition={still ? { duration: 0 } : { height: { duration: 0.32, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.2 } }}
           className="overflow-hidden"
         >
-          <div className={cn('pb-5 pl-11 pr-7 text-sm text-[color:var(--bone2)] sm:pl-12', className)}>{children}</div>
+          <div className={cn('pb-5 pl-11 pr-7 text-sm text-[color:var(--bone2)] sm:pl-12 sm:text-base', className)}>{children}</div>
         </m.div>
       ) : null}
     </AnimatePresence>

@@ -393,7 +393,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             <RollingDigits text={pct(y.gap, 0)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
           </p>
-          <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{CAVEAT}</p>
+          <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)] lg:text-lg">{CAVEAT}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
@@ -655,7 +655,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h3 id="years-h" className={title}>{yearsHeading(d)}</h3>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
             Each year since 2021: Aqua’s count against the benchmark. The line is the likely range; the grey band is the usual range, from 2012 to 2020.
           </p>
         </div>
@@ -777,11 +777,11 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="two-h" className={title}>{heading}</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
             Terra and Aqua carry the same kind of camera. Terra drifted earlier in the day and Aqua later, so if the time of day matters, their counts should move apart.
           </p>
           {failed.length ? (
-            <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone)]">
+            <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone)]">
               {failed.length === 2 ? 'Two tests of this idea weren’t confirmed' : 'A test of this idea wasn’t confirmed'}, so we use it to describe the pattern, not to prove it.
             </p>
           ) : null}
@@ -800,7 +800,7 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           <figure className="m-0">
             <figcaption className="mb-4">
               <span className="block text-lg font-medium">Aqua and Terra, each compared with VIIRS</span>
-              <span className="mt-1 block max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Change since 2012–2020; 0 means no change. The lines are the likely range.</span>
+              <span className="mt-1 block max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">Change since 2012–2020; 0 means no change. The lines are the likely range.</span>
             </figcaption>
             <SeriesChart
               labels={two.map((x) => String(x.year))}
@@ -820,7 +820,7 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           </figure>
           <More label="More detail: Aqua’s change minus Terra’s">
             <figure className="m-0 mt-3" style={diffVars}>
-              <figcaption className="mb-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+              <figcaption className="mb-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
                 A range clear of zero means the two moved apart; it doesn’t say why. Each satellite is counted near the middle of its view.
               </figcaption>
               <AnomalyChart
@@ -903,7 +903,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
           <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">{headline}</p>
-          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">One row per year, one cell per month. Brighter means more hotspots.</p>
+          <p className="mt-3 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">One row per year, one cell per month. Brighter means more hotspots.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">

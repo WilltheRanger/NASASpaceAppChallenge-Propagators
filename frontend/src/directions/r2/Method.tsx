@@ -92,7 +92,7 @@ function OneDay() {
         <div className="lg:col-span-4">
           <h2 id="day-h" className={title}>One afternoon, two looks at the same forest</h2>
           <p className={lead}>VIIRS looked early in the afternoon. Aqua looked later. The clouds, the smoke and the fires had changed.</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">A single day measures nothing on its own. The yearly counts are the measurement.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">A single day measures nothing on its own. The yearly counts are the measurement.</p>
         </div>
         <figure className="m-0 lg:col-span-8">
           <CompareSlider
@@ -139,10 +139,10 @@ function Steps() {
         <ol className="mt-10 border-t border-[color:var(--hairline)]">
           {steps.map((st, k) => (
             <li key={st.title} className="grid grid-cols-[2rem_1fr] items-baseline gap-x-4 gap-y-1 border-b border-[color:var(--hairline)] py-4 sm:grid-cols-[2.5rem_minmax(0,18rem)_1fr_auto] sm:gap-x-6">
-              <span className="text-sm tabular-nums text-[color:var(--bone3)]">{k + 1}</span>
-              <span className="text-lg font-medium leading-snug text-[color:var(--bone)]">{st.title}</span>
-              <span className="col-start-2 row-start-2 text-sm text-[color:var(--bone2)] sm:col-start-3 sm:row-start-1">{st.text}</span>
-              <span className="col-start-2 row-start-3 text-base tabular-nums text-[color:var(--bone)] sm:col-start-4 sm:row-start-1 sm:text-right sm:text-lg">{st.value ?? '—'}</span>
+              <span className="text-sm tabular-nums text-[color:var(--bone3)] lg:text-base">{k + 1}</span>
+              <span className="text-lg font-medium leading-snug text-[color:var(--bone)] lg:text-xl">{st.title}</span>
+              <span className="col-start-2 row-start-2 text-sm text-[color:var(--bone2)] sm:col-start-3 sm:row-start-1 sm:text-base lg:text-lg">{st.text}</span>
+              <span className="col-start-2 row-start-3 text-base tabular-nums text-[color:var(--bone)] sm:col-start-4 sm:row-start-1 sm:text-right sm:text-lg lg:text-xl">{st.value ?? '—'}</span>
             </li>
           ))}
         </ol>
@@ -209,7 +209,7 @@ function Checks() {
           <h2 id="checks-h" className={title}>{heading}</h2>
           <p className={lead}>Each one says what should be true if the timing matters. The failures stay on the page.</p>
           {before ? (
-            <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">For {numWord(before)} of them we had already seen the result when we wrote the rule. Those are marked, because they aren’t true predictions.</p>
+            <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">For {numWord(before)} of them we had already seen the result when we wrote the rule. Those are marked, because they aren’t true predictions.</p>
           ) : null}
           {REPO_URL ? (
             <p className="mt-4 text-sm"><a href={REPO_URL} target="_blank" rel="noreferrer" className={textLink}>The rules and full results are in the code</a></p>
@@ -337,9 +337,9 @@ function Detection() {
         <div className="lg:col-span-4">
           <h2 id="detection-h" className={title}>VIIRS picks up small fires that Aqua misses</h2>
           <p className={lead}>California keeps a record of its fires. We checked which of them each satellite picked up. VIIRS found more of the small ones, so we use it as the yardstick.</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">This is one way of matching fires in one state. It doesn’t give the cameras’ limits everywhere.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">This is one way of matching fires in one state. It doesn’t give the cameras’ limits everywhere.</p>
           <More label="How we matched" className="mt-3">
-            <p className="mt-1 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            <p className="mt-1 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
               Each fire in the US Forest Service’s record was matched to the satellites’ detections. {matchingRule(DETECTION.rule)}
             </p>
           </More>
@@ -354,8 +354,7 @@ function Detection() {
             <DetectionChart small={small} />
           </figure>
           {a50.length ? (
-            <div>
-              <p className="text-lg font-medium">The fire size each satellite picks up half the time</p>
+            <More label="The fire size each satellite picks up half the time">
               <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 border-t border-[color:var(--hairline)] pt-4 sm:grid-cols-3">
                 {a50.map((s) => (
                   <div key={s.key}>
@@ -365,7 +364,7 @@ function Detection() {
                   </div>
                 ))}
               </dl>
-            </div>
+            </More>
           ) : null}
         </div>
       </div>
@@ -442,7 +441,7 @@ function InpeMatch() {
               From 2012 to 2020 our monthly count was within 10% of INPE’s official count {all}% of the time{study ? `, and ${study[3]}% of the time from 2021 to 2025` : ''}.
             </p>
           ) : null}
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">INPE uses the same NASA fire data, so this shows we follow the same series. It isn’t an independent test.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">INPE uses the same NASA fire data, so this shows we follow the same series. It isn’t an independent test.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <p className="mb-4 text-lg font-medium">The Amazon’s hotspot detections by year</p>
@@ -551,6 +550,14 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
 
 function Sources() {
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
+  const sourceRow = (c: (typeof CREDITS)[number]) => (
+            <li key={c.name} className="flex flex-col gap-1 border-b border-[color:var(--hairline)] py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
+              <span className="text-base text-[color:var(--bone)]">{c.name}</span>
+              <span className="shrink-0">
+                {c.links.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={cn(link, 'text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}>{l.text}</a>)}
+              </span>
+            </li>
+  )
   return (
     <section id="sources" aria-labelledby="sources-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
@@ -563,16 +570,17 @@ function Sources() {
             </p>
           ) : null}
         </div>
-        <ul className="min-w-0 border-t border-[color:var(--hairline)] lg:col-span-8">
-          {CREDITS.map((c) => (
-            <li key={c.name} className="flex flex-col gap-1 border-b border-[color:var(--hairline)] py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
-              <span className="text-base text-[color:var(--bone)]">{c.name}</span>
-              <span className="shrink-0">
-                {c.links.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={cn(link, 'text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]')}>{l.text}</a>)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/* the four primary data sources open; the rest one click down */}
+        <div className="min-w-0 lg:col-span-8">
+          <ul className="border-t border-[color:var(--hairline)]">
+            {CREDITS.slice(0, 4).map(sourceRow)}
+          </ul>
+          {CREDITS.length > 4 ? (
+            <More label={`${CREDITS.length - 4} more sources`} className="mt-4">
+              <ul className="mt-2 border-t border-[color:var(--hairline)]">{CREDITS.slice(4).map(sourceRow)}</ul>
+            </More>
+          ) : null}
+        </div>
       </div>
     </section>
   )
