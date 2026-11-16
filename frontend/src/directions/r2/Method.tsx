@@ -1,7 +1,7 @@
 import p9Followup from '../../../../data/out/p9-followup.json'
 /*
  * THESIS: How we know, in plain steps, with every technical detail one click deeper.
- * OWN-WORLD: Anchor dark, bone text, Albert Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
+ * OWN-WORLD: Anchor dark, bone text, IBM Plex Sans; Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
  * STORY: one Amazon day seen three times; the comparison in four steps; the ten checks, failures and all; the
  *   California real-fires test; how closely we match INPE; what Anchor can't do; sources, the AI disclosure, the code.
  * FIRST VIEWPORT: the page's question, its section bar, and the three looks at one day.
@@ -112,7 +112,7 @@ function OneDay() {
           <div className="lg:col-span-4">
             <h3 className="text-2xl font-medium leading-tight tracking-[-0.01em]">Slide between the two afternoon looks</h3>
             <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-              VIIRS looks near Aqua’s old time; Aqua now looks later. Same place, same day, a different afternoon. One day doesn’t measure anything: the yearly counts do.
+              VIIRS looks near Aqua’s old time; Aqua now looks later. The place and the day are the same; only the hour differs. A single day measures nothing on its own. The yearly counts are the measurement.
             </p>
           </div>
           <figure className="m-0 lg:col-span-8">
@@ -245,7 +245,7 @@ function Steps() {
     <section id="steps" aria-labelledby="steps-h" className={section}>
       <div className={cn(shell, 'py-16 lg:py-24')}>
         <h2 id="steps-h" className={title}>How the comparison works</h2>
-        <p className={lead}>Four steps, shown for the Amazon. Each opens one click deeper.</p>
+        <p className={lead}>Four steps, shown for the Amazon. Open a step for its details.</p>
         <HowItWorks steps={steps} motion={motion.on} className="mt-10" />
         <p className="mt-10 max-w-[var(--measure)] rounded-md border border-[color:var(--bone-20)] px-4 py-3 text-base text-[color:var(--bone)]">{CAVEAT}</p>
       </div>
@@ -616,7 +616,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together; the data don’t separate the timing’s share. What we’d expect is an estimate, not a corrected version of INPE’s official count.',
     },
     {
-      t: '“Unusual” is a rough line, not a proof.',
+      t: '“Unusual” is a rough threshold. It is not proof.',
       b: 'Nine years, 2012 to 2020, set the usual range; a tenth ordinary year would fall outside it about one time in five. “How sure we are” resamples days, not years, so year-to-year weather shows only in the usual range. A flag describes; it isn’t a significance test.',
     },
     {
@@ -658,9 +658,9 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
         <div className="lg:col-span-4">
           <h2 id="limits-h" className={title}>What Anchor can’t do</h2>
           <p className="mt-4 max-w-[var(--measure)] rounded-md border border-[color:var(--bone-20)] px-4 py-3 text-base text-[color:var(--bone)]">{CAVEAT}</p>
-          <p className={lead}>One line each; open a line for the detail.</p>
+          <p className={lead}>Open a line for the detail.</p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Who it’s for: anyone quoting a fire count from one year to the next. Check how far Aqua sat from what we’d expect in both years first.{' '}
+            If you quote a fire count from one year to the next, first check how far Aqua sat from what we’d expect in both years.{' '}
             <a href={links.regions()} onClick={leave} className={textLink}>The six places</a>
           </p>
         </div>

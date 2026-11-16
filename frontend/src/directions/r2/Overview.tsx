@@ -2,7 +2,7 @@
  * THESIS: The overview is one day. Anchor's idea is a count taken later in the day, so the page moves along the clock:
  *   the park at 1:30, then 3:00; Aqua's look sliding from 13:37 to 14:57 over one real Amazon day; then six places on
  *   the same afternoon. It refuses the stat-row-and-cards landing.
- * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, Albert Sans, hairlines, 4 px corners; photographs carry the colour.
+ * OWN-WORLD: Anchor dark: ground #0B0D0B, bone text, IBM Plex Sans, hairlines, 4 px corners; photographs carry the colour.
  *   Terra a blue ring, VIIRS a green diamond, Aqua amber; a ring is the old time, a dot the new; amber means Aqua only.
  * STORY: the park question; the same question for fires, one step per scroll; the finding with its caveat beside it;
  *   six places on shared scales, each a door to its page; three picture doors on.
@@ -184,7 +184,7 @@ function Later() {
             Years later you count at <span className="tabular-nums">3:00</span> and find more people.
           </h2>
           <p className="mt-5 max-w-[28ch] text-balance text-[clamp(22px,2.2vw,32px)] leading-[1.2] tracking-[-0.01em] text-[color:var(--bone2)]">
-            Did more people come, or did you just show up at a busier time?
+            Did more people come, or did you arrive at a busier time?
           </p>
         </div>
         <div ref={ref} className="lg:col-span-4 lg:self-end">
@@ -237,7 +237,7 @@ function OneDay() {
       <div className={cn(shell, 'pb-6 pt-10 lg:pb-12 lg:pt-12')}>
         <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
           <h2 id="day-h" className="text-balance text-[clamp(30px,3.6vw,52px)] font-medium leading-[1.05] tracking-[-0.025em] lg:col-span-7">
-            Aqua, a NASA satellite that spots fires from space, faces the same question.
+            Aqua, a NASA satellite that detects fires, has the same problem.
           </h2>
           <p className="max-w-[30ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">INPE’s official fire count for Brazil follows Aqua.</p>
         </div>
@@ -598,7 +598,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
           href={links.sim()}
           leave={leave}
           title="Explore any place"
-          line="Search the globe for any 2° square's count. Switch Aqua between its two times. Play one real fire day."
+          line="Search any 2° square's count, switch Aqua between its two times, or replay one real fire day."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}sim/${FEATURED}-context.jpg`} alt="" loading="lazy" className={pic} style={{ objectPosition: '30% 62%' }} />}
         />
@@ -606,7 +606,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
           href={links.method()}
           leave={leave}
           title="How we know"
-          line="The checks we set ourselves, the ones that failed, and the limits."
+          line="Our checks, including the ones that failed, and the method’s limits."
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}daylight/br-amazon-2024-09-02.jpg`} alt="" loading="lazy" className={pic} />}
         />

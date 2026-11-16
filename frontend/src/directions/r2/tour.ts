@@ -62,7 +62,7 @@ export function startGuide(shift: string, motion: boolean) {
     progressText: '{{current}} of {{total}}',
     nextBtnText: 'Next',
     prevBtnText: 'Back',
-    doneBtnText: 'Start exploring',
+    doneBtnText: 'Done',
     overlayOpacity: 0.6,
     stagePadding: 6,
     stageRadius: 6,
