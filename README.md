@@ -167,7 +167,7 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
   - **Still open:** a sampling change can't be ruled out. It just isn't needed to explain the pattern, and these files can't measure it directly. Read L as Aqua departing from the fixed clock, mainly because it now looks later in the day.
 - **The reference clock is ending.** NASA stopped delivering new Suomi NPP data on 2 November 2026, and S-NPP is the fixed clock that L is measured against. MODIS itself is scheduled to stop collecting data on Terra in January 2027 and on Aqua around September 2027 (CAMS, 2026).
   - Any audit after 2026 has to be rebuilt on NOAA-20 and NOAA-21 VIIRS.
-  - NOAA-20 overlaps S-NPP from 2018, so its exchange rate can be estimated before S-NPP's record ends. We have not done this yet.
+  - **Done:** [`analysis/handover/`](analysis/handover/README.md) chains the 2012–2020 baseline through the 2018–2025 S-NPP/NOAA-20 overlap. Tested out of sample, it reproduces the published L (Amazon 2025: 1.29 vs 1.30), and no 2024–2025 verdict changes. The audit can continue on NOAA-20.
 - **A hotspot is a detection, not a count of fires.** One large fire makes many hotspots; a small one may make none.
 - **Small regions are noisy:** Punjab + Haryana has too few fires after 2022 for an audit.
 - **No 2026 calendar yet:** there are no 2026 yearly FIRMS files; the calendar ends in December 2025.
