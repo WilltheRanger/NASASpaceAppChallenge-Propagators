@@ -538,8 +538,7 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
         ) : null}
         <section aria-labelledby="foot-data" className="lg:col-span-4">
           <h2 id="foot-data" className={h}>Data</h2>
-          <p className="mt-3 max-w-[var(--measure)] leading-6">{DATA_LINE}</p>
-          <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
+          <p className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
             <a href={links.method('sources')} onClick={leave} className={link}>All sources</a>
             {REPO_URL ? <a href={REPO_URL} target="_blank" rel="noreferrer" className={link}>Code</a> : null}
           </p>
