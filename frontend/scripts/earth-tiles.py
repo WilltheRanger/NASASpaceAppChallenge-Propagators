@@ -4,10 +4,10 @@ Usage: python3 frontend/scripts/earth-tiles.py <cache-dir>
 Source : NASA GIBS, Blue Marble Shaded Relief and Bathymetry (public domain), web-mercator tiles
          https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg
 Inputs : frontend/src/r2/earth/fires-day.json (where the day's fire dots are)
-Output : frontend/public/img/earth/tiles/w-{x}-{y}.webp   the whole world at zoom 5, as 16 pictures of 2048 px
-                                                          (each is 8 x 8 tiles; x, y on the zoom-2 grid)
-         frontend/public/img/earth/tiles/f-{x}-{y}.webp   zoom 8 (about 600 m a pixel) over the zoom-5 squares that hold
-                                                          95% of the day's dots, one 2048 px picture each
+Output : frontend/public/img/earth/tiles/w-{x}-{y}.webp   the whole world at zoom 7 (about 1.2 km a pixel), as 256
+                                                          pictures of 2048 px (each is 8 x 8 tiles; x, y on the zoom-4 grid)
+         frontend/public/img/earth/tiles/f-{x}-{y}.webp   zoom 8 (about 600 m a pixel) over every zoom-5 square that
+                                                          holds one of the day's dots, one 2048 px picture each
          frontend/src/r2/earth/tiles.json                 which pictures exist
 The downloaded tiles are kept in <cache-dir> (outside the repository) so a rerun fetches nothing twice.
 """
@@ -19,9 +19,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.abspath(sys.argv[1])
 OUT = os.path.join(HERE, '..', 'public', 'img', 'earth', 'tiles')
 URL = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg'
-WORLD_Z, FIRE_Z, SHARE, QUALITY = 5, 8, 0.95, 74
+WORLD_Z, FIRE_Z, SHARE, QUALITY = 7, 8, 1.0, 72
 os.makedirs(CACHE, exist_ok=True)
 os.makedirs(OUT, exist_ok=True)
+for old in os.listdir(OUT):
+    if old.endswith('.webp'): os.remove(os.path.join(OUT, old))
 
 
 def cell(lon, lat, z):
@@ -54,7 +56,7 @@ def stitch(z, gx, gy, name):
             with Image.open(os.path.join(CACHE, f'{z}-{gx * 8 + i}-{gy * 8 + j}.jpeg')) as t:
                 big.paste(t.convert('RGB'), (i * 256, j * 256))
     path = os.path.join(OUT, name)
-    big.save(path, 'WEBP', quality=QUALITY, method=5)
+    big.save(path, 'WEBP', quality=QUALITY, method=4)
     return os.path.getsize(path)
 
 
@@ -64,16 +66,16 @@ n = len(pts) // 5
 count = collections.Counter(cell(pts[i * 5] / 100, pts[i * 5 + 1] / 100, FIRE_Z - 3) for i in range(n))
 fire, got = [], 0
 for key, c in count.most_common():
-    if got >= SHARE * n: break
+    if got >= SHARE * n and SHARE < 1: break
     fire.append(key); got += c
 world = [(x, y) for x in range(2 ** (WORLD_Z - 3)) for y in range(2 ** (WORLD_Z - 3))]
 
 jobs = [(WORLD_Z, gx * 8 + i, gy * 8 + j) for gx, gy in world for i in range(8) for j in range(8)]
 jobs += [(FIRE_Z, gx * 8 + i, gy * 8 + j) for gx, gy in fire for i in range(8) for j in range(8)]
 print(f'{len(world)} world pictures, {len(fire)} fire pictures holding {got} of {n} dots; {len(jobs)} tiles to have', flush=True)
-with ThreadPoolExecutor(10) as pool:
+with ThreadPoolExecutor(16) as pool:
     for k, _ in enumerate(pool.map(fetch, jobs)):
-        if k % 500 == 0: print(f'  tile {k} of {len(jobs)}', flush=True)
+        if k % 2000 == 0: print(f'  tile {k} of {len(jobs)}', flush=True)
 
 size = 0
 for gx, gy in world: size += stitch(WORLD_Z, gx, gy, f'w-{gx}-{gy}.webp')

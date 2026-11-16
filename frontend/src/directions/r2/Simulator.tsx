@@ -895,7 +895,20 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
         <p className="mt-3 text-sm text-[color:var(--bone2)]">
           INPE’s official fire count for Brazil follows one satellite, Aqua. Aqua now looks {SHIFT} later than it used to.
         </p>
-        <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map. A bigger dot gave off more heat.</p>
+        <p className="mt-3 text-sm text-[color:var(--bone3)]">The dots are what the satellites detected in daylight on {WHEN}. A fire under cloud, at night or between passes isn’t on the map.</p>
+        {/* how a mark's size reads: its area is the heat measured, not the ground burned */}
+        <div className="mt-3 flex items-end gap-4 text-xs text-[color:var(--bone3)]">
+          {[7, 70, 400].map((mw) => {
+            const r = 3 * Math.sqrt(mw / 7)
+            return (
+              <span key={mw} className="flex flex-col items-center gap-1">
+                <span aria-hidden className="block rounded-full border border-[color:var(--bone2)]" style={{ width: r * 2, height: r * 2 }} />
+                <span className="tabular-nums">{mw}{mw === 400 ? '+' : ''} MW</span>
+              </span>
+            )
+          })}
+          <span className="max-w-[11rem] pb-0.5 leading-4">A dot’s area is the heat the satellite measured, not the ground burned.</span>
+        </div>
       </div>
       <div data-tour="places">
         <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--hairline)] pb-2">
