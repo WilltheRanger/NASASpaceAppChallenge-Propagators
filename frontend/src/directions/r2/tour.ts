@@ -25,7 +25,7 @@ export function startGuide(shift: string, motion: boolean) {
       element: '#alert-h',
       popover: {
         title: 'What this page is for',
-        description: 'A what-if for responders: if a fire starts here today, when each satellite could alert you and how much daylight would be left. It uses typical pass times, an assumed delay and sunset on a mid-season day; it is not measured alert performance.',
+        description: 'A what-if for responders: when each satellite could alert you to a fire here, and how much daylight would be left. Typical pass times and an assumed delay, not measured alert performance.',
         side: side('right'), align: 'start',
       },
     },
@@ -33,7 +33,7 @@ export function startGuide(shift: string, motion: boolean) {
       element: '[data-tour="inputs"]',
       popover: {
         title: '1. Set it up',
-        description: 'Choose a place, or search any place on the map. Then set the alert delay: the time between a satellite passing over and its alert reaching you. NASA delivers within 3 hours.',
+        description: 'Pick or search a place, then set the alert delay: the time from a satellite’s pass to its alert. NASA FIRMS delivers within 3 hours.',
         side: side('right'), align: 'start',
       },
     },
@@ -41,7 +41,7 @@ export function startGuide(shift: string, motion: boolean) {
       element: '[data-tour="answer"]',
       popover: {
         title: '2. Read the answer',
-        description: 'One row per satellite: when it passes over, when its alert reaches you, and how much daylight is left until sunset. The highlighted row alerts you first and leaves the most daylight.',
+        description: 'One row per satellite: when it passes, when its alert arrives, and the daylight left until sunset. The highlighted row alerts first.',
         side: side('right'), align: 'start',
       },
     },
@@ -57,7 +57,7 @@ export function startGuide(shift: string, motion: boolean) {
       element: '[data-tour="ask"]',
       popover: {
         title: 'Ask Anchor',
-        description: 'Ask about the map in plain words, for example “When does Aqua pass here?” Answers come from our data, with sources. Close it any time.',
+        description: 'Ask about the map in plain words, for example “When does Aqua pass here?” Answers come from our data, with sources.',
         side: 'left', align: 'start',
       },
     },
@@ -65,7 +65,7 @@ export function startGuide(shift: string, motion: boolean) {
       element: '[data-tour="map"]',
       popover: {
         title: 'The fires on the map',
-        description: 'Real fires from the saved data, with their dates in the corner. Click or tap a fire to see which satellite saw it, and when. Replay this guide from “How it works”.',
+        description: 'Real fires from a saved snapshot, dated in the corner. Tap a fire to see which satellite saw it, and when. Replay this guide from “How it works”.',
         side: wide ? 'left' : 'bottom', align: 'center',
       },
     },

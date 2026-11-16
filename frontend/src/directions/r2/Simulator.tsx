@@ -101,7 +101,7 @@ const LIST = REGIONS.map((r) => ({ id: r.id, name: short(r.name), f: regionFacts
 const SHIFTS = LIST.map((r) => (r.f.look.old && r.f.look.now ? Math.round((hm(r.f.look.now) - hm(r.f.look.old)) * 60) : null)).filter((v): v is number => v != null)
 const SHIFT = SHIFTS.length ? `${Math.min(...SHIFTS)} to ${Math.max(...SHIFTS)} minutes` : 'over an hour'
 /** said next to every finding */
-const CAVEAT = 'Our tests point to Aqua’s later look as the main cause: clouds and changes in viewing angle were checked and don’t explain the gap. A smaller share isn’t pinned down yet.'
+const CAVEAT = 'Our tests point to Aqua’s later look as the main cause. Clouds and viewing angle don’t explain it.'
 const FOOTER = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 /** Aqua's 2012–2020 look time across the six regions (drift files): the chart's reference when no region is picked */
 const BASES = LIST.map((r) => r.f.look.old).filter((v): v is string => v != null).map(hm)

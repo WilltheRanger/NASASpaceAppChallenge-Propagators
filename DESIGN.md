@@ -162,7 +162,7 @@ components:
 
 Anchor is a dark, quiet field document about time of day. The ground is near-black, the text is bone, and the only strong colour on the page comes from real photographs and from three satellite marks. Everything else is hairlines, 4 px corners and one typeface in two weights. The pages read as a sequence of framed pictures and plain sentences, with the evidence one step below each sentence.
 
-Density is low at the top of each page and rises toward the evidence: a full-height framed photograph or a region's name over its footage first, then a finding stated in one sentence with its caveat beside it, then shared-scale rows, charts and tables. Motion is slow on arrival and quick on response, and the reader can turn all of it off from the footer.
+Density is low at the top of each page and rises toward the evidence: a full-height framed photograph or a region's name over its footage first, then a finding stated in one sentence with its caveat as the next line, then shared-scale rows, charts and tables. Motion is slow on arrival and quick on response, and the reader can turn all of it off from the footer.
 
 The site covers four pages, Overview, Regions, Explore and Method, built from one shared set of tokens and parts. Every number on screen comes from the team's data files, and mock data is always labelled.
 
@@ -221,7 +221,7 @@ A near-monochrome dark palette in which colour is information, never decoration.
 - **Display** (500, clamp(56px, 11vw, 168px), 0.92, -0.04em): a region's name over its footage on the Regions page.
 - **Headline** (500, 40px, 1.02, -0.03em): section headings on the Regions page and Method page. The Overview sets its chapters in a fluid band of the same style (500, from clamp(28px, 3vw, 44px) for door titles up to clamp(38px, 5.6vw, 88px) for the opening line, line height 1 to 1.05, tracking -0.02em to -0.035em), always balanced and capped near 15ch for the opening.
 - **Title** (500, 24px, 1.25, -0.01em): step titles and sub-section heads.
-- **Body large** (400, 18px): lead lines beside headings, place names in rows, the caveat on wide screens; held to about 30ch beside a heading.
+- **Body large** (400, 18px): lead lines beside headings, place names in rows, the caveat under a finding; held to about 30ch beside a heading and 40rem under one.
 - **Body** (400, 14px): the working size for links, buttons, nav, chips and paragraphs; paragraphs are held to the 36rem measure.
 - **Label** (400, 12px, tabular figures): axis ticks, column heads, captions, footnotes, plates, credits.
 - **Explore instrument steps:** the Explore page's docked panels run one step denser. **Readout** (500, 22px, 1.25, -0.01em) carries its page title and the big figures in each panel; **Label small** (400, 11px, tabular figures) carries map tags, legends, pass times and panel fine print; **Nav compact** (400, 13px) is its bar's links on phones, where the Motion switch shares the row.
@@ -285,7 +285,7 @@ Quiet and solid; one primary per view.
 ### Cards / Containers
 - **Picture door:** a whole photograph is the link: 4px corners, surface behind the image, a bottom scrim, title in the headline band and one line of body text at the bottom, an arrow-up-right in a round plate at the top right. On hover the picture grows to 1.03 over 700ms and the arrow nudges up and right.
 - **Place row:** a full-width link row between hairlines: thumbnail (3px corners), name, the shift on a short stretch of afternoon, the count on the shared strip, the chip, an arrow. Hover fills surface and grows the thumbnail to 1.05.
-- **Caveat box:** next to every finding, a 1px border box (hairline on dark, ink-20 on bone) with 4px corners and 16 to 20px padding.
+- **Caveat line:** directly under every finding, one plain body-large line with no box or border, then the link to the proof. Two short sentences at most; what is still open lives in the Method page's Limits.
 
 ### Inputs / Fields
 - **Toggle group:** raised track, 4px corners, 44px tall on phones and 36px from 640px; the selected item fills bone with ink text.
@@ -317,7 +317,8 @@ Quiet and solid; one primary per view.
 - **Do** use real photographs (Unsplash, credited by photographer in the footer) and real NASA Worldview / GIBS satellite pictures, credited "NASA Worldview / GIBS".
 - **Do** keep every satellite colour attached to its shape: Terra a blue ring, VIIRS a green diamond, Aqua an amber dot.
 - **Do** draw any moved time as a ring (old time) joined to a dot (new time).
-- **Do** put the caveat beside every finding: the timing and the count changed together, but we can't say how much of the difference the timing caused.
+- **Do** put the caveat with every finding, as the line under it: our tests point to Aqua's later look as the main cause; clouds and viewing angle don't explain it.
+- **Do** cut any line a judge doesn't need: no hedge under a headline, no how-to-read text a legend already gives, no file paths or review-status labels on screen, no caption that repeats its chart.
 - **Do** write in plain words outside the Method page: "what we'd expect", "unusual", "how sure we are", "too few fires to read".
 - **Do** set every time and number in tabular figures, and give satellite look times in 24-hour local sun time (the park analogy alone uses 1:30 and 3:00).
 - **Do** label mock data wherever it appears.
