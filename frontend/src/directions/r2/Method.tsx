@@ -225,8 +225,8 @@ function Steps() {
     },
     {
       title: 'Estimate what we’d expect',
-      description: 'For each later year, VIIRS’s count and that earlier relationship give an Aqua-equivalent benchmark. It does not establish what Aqua would have counted if only its look time changed.',
-      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className="block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]">{fmtInt(y.fixed)}</span>daytime detections in the Aqua-equivalent benchmark over the Amazon in {y.year}</p> : null,
+      description: 'For each later year, VIIRS’s count and that earlier relationship give what we’d expect from Aqua. It does not show what Aqua would have counted if only its look time had changed.',
+      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className="block text-[length:var(--fs-40)] font-medium leading-none tabular-nums text-[color:var(--bone)]">{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua over the Amazon in {y.year}</p> : null,
       details: detail('Details', <p>The fixed-clock benchmark: S-NPP’s count times the 2012–2020 exchange rate, on the same days, in Aqua-equivalent units. A day when either satellite returned no data is dropped. The monthly calendar uses the same rate, filled from NOAA-20 where S-NPP is missing.</p>),
     },
     {

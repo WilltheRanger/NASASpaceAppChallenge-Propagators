@@ -190,7 +190,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   home: string; regionsHref: (id: string) => string; overviewHref?: string; methodHref?: string; leave: Leave; motion: boolean; setMotion: (on: boolean) => void; nav: Nav
 }) {
   const wide = useMedia('(min-width: 1024px)')
-  const xl = useMedia('(min-width: 1280px)')
+  // SI keeps a column of its own only on very wide screens; below that it opens over the map, so the map keeps its room
+  const xl = useMedia('(min-width: 1600px)')
   const live = nav !== 'artifact'
   const [place, setPlace] = useState<Place | null>(restorePlace)
   const [arrived, setArrived] = useState(false)
@@ -205,6 +206,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const [fireBelow, setFireBelow] = useState(false)
   const [turns, setTurns] = useState<SiTurn[]>([])
   const [siOpen, setSiOpen] = useState(false)
+  // the timing chart under the map can fold down to a bar, for a clear map
+  const [chartOpen, setChartOpen] = useState(true)
   const [tab, setTab] = useState<'info' | 'si'>('info')
   const [clock, setClockState] = useState<Clock>('new')
   /** one real fire day: which satellite's pass raises the alert, and the alert's delay (NASA's published range) */
@@ -377,7 +380,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} cell={placeCell} year={mapYear} onCell={grid ? (id) => pickCell(id) : undefined} />
   )
   const footer = <p className="px-5 pb-5 pt-1 text-[11px] leading-4 text-[color:var(--bone3)]">{FOOTER}</p>
-  const chart = day ? <FireDayPanel day={day} setDay={setDay} onClose={endDay} motion={motion} /> : <LookChart box={view} show={show} setShow={setShow} fire={fire} near={near} oldClock={facts?.look.old ? { from: hm(facts.look.old), to: hm(facts.look.old) } : OLD_CLOCK} live={live} motion={motion} />
+  const chart = day ? <FireDayPanel day={day} setDay={setDay} onClose={endDay} motion={motion} /> : <LookChart onFold={wide ? () => setChartOpen(false) : undefined} box={view} show={show} setShow={setShow} fire={fire} near={near} oldClock={facts?.look.old ? { from: hm(facts.look.old), to: hm(facts.look.old) } : OLD_CLOCK} live={live} motion={motion} />
   const si = (onClose?: () => void, className?: string) => (
     <SiChat turns={turns} onAsk={onAsk} onAction={onAction} starters={STARTERS} motion={motion} onClose={onClose} className={className} />
   )
@@ -480,7 +483,13 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           ) : null}
 
           {wide ? (
-            <div ref={chartRef} className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2">{chart}</div>
+            <div ref={chartRef} className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2">
+              {chartOpen || day ? chart : (
+                <button type="button" onClick={() => setChartOpen(true)} className={cn(glass, 'mx-auto flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
+                  <ChevronDown size={15} strokeWidth={1.75} aria-hidden className="rotate-180" /> When each satellite saw fires
+                </button>
+              )}
+            </div>
           ) : null}
 
           {lightOpen && region ? (
@@ -1111,14 +1120,23 @@ function WorldControl({ grid, layer, setLayer, year, setYear, hover, closeIn, wi
                 </span>
                 <span>above</span>
               </div>
-              <p className="mt-1.5 text-[11px] leading-4 text-[color:var(--bone3)]" title={`Colour steps at ${L_STEPS.map((t) => Math.round(t * 100)).join(', ')}% from what we’d expect; grey is within ${Math.round(L_STEPS[0] * 100)}%.`}>Strong colour: unusual for that square. Faint: not unusual. Outline only: too few fires to read.</p>
-              <p className="mt-1.5 text-[11px] leading-4 tabular-nums text-[color:var(--bone2)]">{fmtInt(tally.ok)} squares can be read; {fmtInt(tally.up + tally.down)} are unusual ({fmtInt(tally.up)} above, {fmtInt(tally.down)} below).</p>
-              <p className="mt-1.5 min-h-8 text-[11px] leading-4 tabular-nums text-[color:var(--bone)]" aria-live="off">
+              <p className="mt-2 min-h-8 text-[11px] leading-4 tabular-nums text-[color:var(--bone)]" aria-live="off">
                 {hover ? `${cellName(hover)}: ${h && h.ok && h.L != null && h.lo != null && h.hi != null ? `${pctOf(h.L)} (${pctOf(h.lo)} to ${pctOf(h.hi)}), ${h.outside ? 'unusual' : 'not unusual'}` : 'too few fires to read'}` : 'Point at a square to read it; click for its numbers.'}
               </p>
             </>
           ) : null}
           <p className="mt-1.5 text-[11px] leading-4 text-[color:var(--bone3)]">{EXPLORATORY}</p>
+          {wide ? (
+            <details className="group mt-1">
+              <summary className={cn('flex min-h-6 cursor-pointer list-none items-center gap-1 rounded text-[11px] text-[color:var(--bone2)] hover:text-[color:var(--bone)] [&::-webkit-details-marker]:hidden', focusRing)}>
+                <ChevronDown size={12} strokeWidth={1.5} aria-hidden className="transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none" /> How to read it
+              </summary>
+              <p className="mt-1 text-[11px] leading-4 text-[color:var(--bone3)]">
+                Strong colour: unusual for that square. Faint: not unusual. Outline only: too few fires to read. Colour steps at {L_STEPS.map((t) => Math.round(t * 100)).join(', ')}% from what we’d expect.
+              </p>
+              <p className="mt-1 text-[11px] leading-4 tabular-nums text-[color:var(--bone2)]">{fmtInt(tally.ok)} squares can be read; {fmtInt(tally.up + tally.down)} are unusual ({fmtInt(tally.up)} above, {fmtInt(tally.down)} below).</p>
+            </details>
+          ) : null}
         </>
       ) : null}
     </div>
@@ -1134,8 +1152,10 @@ const TICKS = [6, 9, 12, 15, 18].map((h) => ({ x: h, label: h === 12 ? 'Noon' : 
 /** Each satellite's fires by time of day, as one hump per satellite (21st.dev's Chart Line), with Aqua's 2012–20
  *  clock marked and an arrow to where Aqua looks now. Each hump is scaled to its own peak: it shows when, not how many;
  *  the tooltip gives the counts. */
-function LookChart({ box, show, setShow, fire, near, oldClock, live, motion }: {
+function LookChart({ box, show, setShow, fire, near, oldClock, live, motion, onFold }: {
   box: Box | null; show: Show; setShow: (s: Show) => void; fire: number | null; near: number[]; oldClock: { from: number; to: number } | null; live: boolean; motion: boolean
+  /** folds the chart down to a bar */
+  onFold?: () => void
 }) {
   const key = box ? box.map((v) => v.toFixed(2)).join(',') : 'world'
   const hist = useMemo(() => histogram(box), [key]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -1157,11 +1177,20 @@ function LookChart({ box, show, setShow, fire, near, oldClock, live, motion }: {
       domain={[BIN_FROM, BIN_TO]}
       ticks={TICKS}
       hidden={hidden}
-      action={hidden.size ? (
-        <button type="button" onClick={() => setShow({ terra: true, viirs: true, aqua: true })} className={cn('min-h-8 rounded px-1 text-xs text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-2 hover:text-[color:var(--bone)]', focusRing)}>
-          Show all three
-        </button>
-      ) : null}
+      action={
+        <span className="flex items-center gap-1">
+          {hidden.size ? (
+            <button type="button" onClick={() => setShow({ terra: true, viirs: true, aqua: true })} className={cn('min-h-8 rounded px-1 text-xs text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-2 hover:text-[color:var(--bone)]', focusRing)}>
+              Show all three
+            </button>
+          ) : null}
+          {onFold ? (
+            <button type="button" aria-label="Fold the chart away" title="Fold the chart away" onClick={onFold} className={cn('grid size-8 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
+              <ChevronDown size={16} strokeWidth={1.75} aria-hidden />
+            </button>
+          ) : null}
+        </span>
+      }
       bands={oldClock ? [{ from: oldClock.from, to: oldClock.to, label: 'Aqua’s old time', arrowTo: show.aqua && sum.aqua.n ? sum.aqua.lst : null }] : []}
       markers={near.map((j) => ({ key: String(j), series: groupOf(SAT[j]), x: lstOf(j), strong: j === fire }))}
       tooltip={(k) => ({
