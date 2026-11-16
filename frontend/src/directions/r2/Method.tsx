@@ -146,6 +146,7 @@ function Steps() {
             </li>
           ))}
         </ol>
+        <p className="mt-8 max-w-[var(--measure)] text-base text-[color:var(--bone)]">{CAVEAT}</p>
         <More label="Technical notes" className="mt-4">
           <ul className="mt-2 flex max-w-[44rem] list-disc flex-col gap-2 pl-5 text-sm text-[color:var(--bone2)]">
             <li>Look time: the median local solar time of daytime vegetation-fire detections near the middle of the satellite’s view, from NASA FIRMS’s yearly files. VIIRS here is the S-NPP satellite.</li>

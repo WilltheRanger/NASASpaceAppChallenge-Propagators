@@ -47,7 +47,7 @@ export function ElasticSwitch({ checked: on, onCheckedChange, label, className }
   const spring = reduced ? { duration: 0 } : { type: 'spring' as const, stiffness: 520, damping: pressed ? 30 : 17, mass: 0.8 }
   return (
     <span className={cn('inline-flex min-h-11 items-center gap-2', className)}>
-      {label ? <label htmlFor={id} className="hidden cursor-pointer select-none text-sm text-[color:var(--bone2)] sm:inline">{label}</label> : null}
+      {label ? <label htmlFor={id} className="cursor-pointer select-none text-sm text-[color:var(--bone2)]">{label}</label> : null}
       <button
         id={id}
         type="button"

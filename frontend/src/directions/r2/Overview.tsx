@@ -403,6 +403,7 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
                 ? <>Brazil’s official Amazon count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025; the VIIRS-based benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
                 : FINDING.join(' ')}
             </h2>
+            {DECLINE ? <p className="mt-4 max-w-[40rem] text-base text-[color:var(--ink)]">{UNUSUAL_LINE}</p> : null}
             <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
             <a href={links.method('overview-figures')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>How we know <ArrowUpRight size={14} aria-hidden /></a>
           </div>
@@ -580,7 +581,8 @@ export function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) 
           <p className="mt-4 text-sm text-[color:var(--bone2)]">Full-year totals and matched-day audit counts answer different questions.</p>
           <a href={links.method('sources')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center')}>All product versions and sources <ArrowUpRight size={14} aria-hidden /></a>
         </div>
-        <dl className="space-y-6 text-sm leading-6 text-[color:var(--bone2)] lg:col-span-8">
+        <More label="Show the figures and notes" className="lg:col-span-8 lg:pt-2">
+        <dl className="mt-4 space-y-6 text-sm leading-6 text-[color:var(--bone2)]">
           {DECLINE ? <div>
             <dt className="font-medium text-[color:var(--bone)]">Full-year Amazon totals · 2024 → 2025</dt>
             <dd>Official INPE: {int(DECLINE.inpe_2024)} → {int(DECLINE.inpe_2025)} detections ({Math.abs(Math.round(DECLINE.inpe_pct))}% decline). VIIRS-based annual benchmark: {int(DECLINE.fixed_2024)} → {int(DECLINE.fixed_2025)} ({Math.abs(Math.round(DECLINE.fixed_pct))}% decline). These compare whole calendar years, not just the audit’s matched days. Source: data/out/facts.json, amazon_decline_2024_2025; <a href="https://data.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer" className={textLink}>INPE Programa Queimadas</a>.</dd>
@@ -598,6 +600,7 @@ export function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) 
             <dd>Central Amazon, 4 September 2026, with each satellite’s fire detections: <a href="https://worldview.earthdata.nasa.gov" target="_blank" rel="noreferrer" className={textLink}>NASA Worldview / GIBS</a>. The clock diagram uses usual look times in {DAY_LOOK?.year}, not measured pass times for that image date. VIIRS imagery stands for the earlier observation time.</dd>
           </div>
         </dl>
+        </More>
       </div>
     </section>
   )
