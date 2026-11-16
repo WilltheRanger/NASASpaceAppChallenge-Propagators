@@ -32,6 +32,8 @@ const SRC = {
   audit: (id: string) => ({ id: `audit-${id}`, title: `Aqua’s count vs what we’d expect, ${regionData(id).name}`, domain: `data/out/audit/${id}.json` }),
   daylight: (id: string) => ({ id: `daylight-${id}`, title: `Daylight after the alert, ${regionData(id).name}`, domain: `data/out/daylight/${id}.json` }),
   method: { id: 'method', title: 'How the audit reads a fire count', domain: 'Anchor method notes' },
+  attrs: { id: 'attrs', title: 'NASA FIRMS: active fire data attributes (MODIS and VIIRS)', domain: 'earthdata.nasa.gov', url: 'https://earthdata.nasa.gov/data/tools/firms/active-fire-data-attributes-modis-viirs' },
+  amazonFire: { id: 'amazon-fire', title: 'NASA Earth Observatory: From forest to field, how fire is transforming the Amazon', domain: 'earthobservatory.nasa.gov', url: 'https://earthobservatory.nasa.gov/features/AmazonFire' },
 } as const
 
 /** The audit question, in plain words (it used to read "What is the fix?", which nobody understood). */
@@ -164,7 +166,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
     return {
       sentences: [
         { text: 'Aqua now looks later in the day. The VIIRS satellites kept their time. The benchmark is VIIRS’s count scaled by the 2012–2020 Aqua-to-VIIRS rate: a steady reference to read Aqua’s count against.', cite: ['method'] },
-        { text: 'We compare what Aqua counted with what we’d expect. A gap bigger than any from 2012 to 2020 is unusual.', cite: ['method'] },
+        { text: 'We compare what Aqua counted with what we’d expect. A gap outside the 2012–2020 range is unusual only when its likely range does not overlap that range; otherwise it is a close call.', cite: ['method'] },
         { text: 'Pick a place to see both.' },
       ],
       sources: [SRC.method],
@@ -175,7 +177,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
   const y = d.latestOk
   const out: SiSentence[] = []
   if (y && y.fixed != null && y.verdict !== 'na' && y.gap != null && !isValidation(region)) {
-    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; the VIIRS-based benchmark is ${fmtInt(y.fixed)}. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (likely range: ${pct(y.lo)} to ${pct(y.hi)})` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
+    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; the VIIRS-based benchmark is ${fmtInt(y.fixed)}. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (likely range: ${pct(y.lo)} to ${pct(y.hi)})` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : y.verdict === 'close' ? 'which is a close call: its likely range overlaps the usual range' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
     out.push({ text: 'Aqua’s later look and its higher count line up. Anchor shows where the official trend deserves a second look; counts alone can’t split out the timing’s exact share.' })
   } else if (isValidation(region)) {
     out.push({ text: `${verdictHeadline(d)}.`, cite: [`audit-${region}`] })
@@ -225,7 +227,7 @@ function regionsAnswer(): SiAnswer {
     const d = regionData(r.id)
     const y = d.latestOk
     if (isValidation(r.id) || !y || y.gap == null) return `${short(r.name)}: our test case`
-    return `${short(r.name)}: ${y.gap >= 0 ? '+' : '−'}${Math.abs(Math.round(y.gap))}% in ${y.year}, ${y.verdict === 'outside' ? 'unusual' : 'not unusual'}`
+    return `${short(r.name)}: ${y.gap >= 0 ? '+' : '−'}${Math.abs(Math.round(y.gap))}% in ${y.year}, ${y.verdict === 'outside' ? 'unusual' : y.verdict === 'close' ? 'close call' : 'not unusual'}`
   })
   return {
     sentences: [
@@ -272,6 +274,56 @@ const SAFETY: SiAnswer = {
   followUps: ['Which satellite saw this fire?', 'How much daylight is left?'],
 }
 
+/** Background questions a first-time visitor asks: what a hotspot is, why fires happen, what FRP is. */
+function background(q: string): SiAnswer | null {
+  if (/hot ?spot|active fire|what (is|are) (a |the |these |those )?(fire )?(dot|detection|point)s?\b|what counts as a fire/.test(q)) return {
+    sentences: [
+      { text: 'A hotspot is one satellite pixel where the sensor measured heat from at least one fire burning during the pass.' },
+      { text: 'A MODIS hotspot (Terra, Aqua) marks a pixel about 1 km across; a VIIRS hotspot, 375 m. One large fire can light several pixels, so hotspots count detections, not separate fires.' },
+    ],
+    sources: [SRC.attrs],
+    followUps: ['What is FRP?', 'How do these fires happen?'],
+  }
+  if (/(how|why) (do|did|are|does) .*(fire|burn)|what (causes|starts)|caus|who (sets|starts|lights)|start(ed)? (the |these )?fires|fires happen/.test(q)) return {
+    sentences: [
+      { text: 'Most fires on this map are set by people: to clear forest, renew pasture, or burn crop stubble after harvest (as in Punjab and Haryana).' },
+      { text: 'In the Amazon, natural fires are rare because lightning usually comes with rain. Burning rises in the dry season, July to November, and peaks in September.' },
+      { text: 'Lightning starts many boreal forest fires and some of California’s largest. The satellites record heat; they cannot tell how a fire started.' },
+    ],
+    sources: [SRC.amazonFire],
+    followUps: ['What is a hotspot?', 'What am I looking at?'],
+  }
+  if (/\bfrp\b|megawatt|\bmw\b|radiative|how (hot|strong|intense)/.test(q)) return {
+    sentences: [
+      { text: 'FRP, fire radiative power, is the heat a fire gives off as radiation during the pass, summed over the pixel and given in megawatts (MW).' },
+      { text: 'Higher FRP means more fuel burning at that moment. It is a snapshot: the same fire can read higher or lower at another hour.' },
+    ],
+    sources: [SRC.attrs],
+    followUps: ['What is the strongest fire in the world?'],
+  }
+  if (/(why|does).*(time of day|hour|afternoon).*(matter|count)|daily cycle|diurnal/.test(q)) return {
+    sentences: [
+      { text: 'Fire follows a daily cycle: in the tropics, burning builds through the morning and peaks in the afternoon.' },
+      { text: 'A satellite that looks at a different hour therefore counts a different number of fires, even when nothing changed on the ground.' },
+    ],
+    sources: [SRC.method],
+    followUps: ['When does Aqua pass here?', OLD_TIME],
+  }
+  if (/solar time|sun time|local time/.test(q)) return {
+    sentences: [{ text: 'Local solar time is clock time set by the sun at that longitude: 12:00 is when the sun is highest. It lets passes over different places be compared, whatever their time zone.' }],
+    sources: [SRC.method],
+  }
+  if (/swath|why (wasn.t|isn.t|not) (it )?(seen|detected)|missed/.test(q)) return {
+    sentences: [{ text: 'A satellite can miss a fire that was burning: it passed at another hour, the fire sat at the edge of its swath where pixels are coarse, or cloud or smoke hid it.' }],
+    sources: [SRC.attrs],
+  }
+  if (/how (fast|quickly|soon)|delay|latency|real.?time/.test(q)) return {
+    sentences: [{ text: 'NASA FIRMS publishes near-real-time detections within about 3 hours of a satellite pass, and faster over the US and Canada.' }],
+    sources: [SRC.firms],
+  }
+  return null
+}
+
 function glossary(q: string): SiAnswer | null {
   if (has(q, 'firms')) return { sentences: [{ text: 'NASA FIRMS publishes active-fire detections from MODIS and VIIRS within hours of each pass.', cite: ['firms'] }], sources: [SRC.firms] }
   if (has(q, 'inpe', 'official')) return { sentences: [{ text: 'INPE’s Programa Queimadas is Brazil’s official fire count. It counts one reference satellite, Aqua, so year-to-year comparisons assume Aqua looks at the same time of day.', cite: ['method'] }], sources: [SRC.method] }
@@ -304,6 +356,8 @@ function answer(question: string, ctx: SiContext): SiAnswer {
     if (p) return { sentences: [{ text: `Flying to ${p.name}.` }], sources: [], actions: [{ kind: 'fly', label: `Fly to ${p.name}`, place: p }] }
   }
   if (has(q, 'danger', 'safe', 'evacuat', 'should i', 'risk')) return SAFETY
+  const b = background(q)
+  if (b) return b
   if (has(q, 'what am i', 'how do i', 'how to', 'help', 'what is this', 'explain', 'start')) return orientation()
   if (has(q, 'why') && has(q, 'drift', 'later', 'move', 'chang')) return whyAnswer()
   if (has(q, 'season', 'which month', 'peak')) return seasonAnswer(ctx, q)
@@ -331,7 +385,7 @@ function answer(question: string, ctx: SiContext): SiAnswer {
   return {
     sentences: [{ text: 'Ask Anchor answers from this page’s data: which satellite saw a fire, when each satellite passes and why Aqua drifted, whether a year was unusual, fire seasons, daylight after the alert, and fires in view. It can also fly the map or show one satellite.' }],
     sources: [],
-    followUps: STARTERS,
+    followUps: ['What is a hotspot?', 'How do these fires happen?', 'What is the strongest fire in the world?', OLD_TIME],
   }
 }
 

@@ -1,3 +1,4 @@
+import { RecentObservations } from '@/r2/recent-observations'
 // The site's router and its Regions page. Four pages: Overview (Overview.tsx, the front door), Regions (here), the
 // Simulator (Simulator.tsx) and Method (Method.tsx); each but the Regions page loads only when it opens. The pages share
 // common.tsx (tokens, motion, the bar with the four-page menu, the footer); the daylight section moved to daylight.tsx
@@ -174,7 +175,7 @@ export default function FieldFilm({ page, nav = 'dev' }: { page?: string; nav?: 
 type AuditRow = RegionData['years'][number]
 const defaultYear = (d: RegionData) => d.latestOk?.year ?? d.years[d.years.length - 1]?.year ?? d.lastDrift?.year ?? 2025
 /** "Unusual" means outside the nine 2012–2020 years' range (the pipeline's outside_noise), read only when the year is ok. */
-const UNUSUAL: Record<Verdict, string> = { outside: 'Unusual', within: 'Not unusual', na: 'Too few fires to read' }
+const UNUSUAL: Record<Verdict, string> = { outside: 'Unusual', close: 'Close call', within: 'Not unusual', na: 'Too few fires to read' }
 /** "30% more" / "4% fewer", rounded as the headline says it */
 const moreFewer = (gap: number) => `${Math.round(Math.abs(gap))}% ${gap >= 0 ? 'more' : 'fewer'}`
 const rangeText = (y: AuditRow) => (y.lo == null || y.hi == null ? '—' : fmtRange(y.lo, y.hi))
@@ -239,6 +240,7 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         </div>
         <Calendar d={d} mode={mode} onMode={setMode} range={range} onRange={setRange} small={small} />
         <Result d={d} links={links} leave={leave} />
+        <p className={cn(shell, 'pb-4 text-sm text-[color:var(--bone2)]')}>Close call: just outside the usual range, but the likely range overlaps it.</p>
         <YearByYear d={d} year={year} onYear={setYear} small={small} />
         <LookTimes key={d.id} d={d} />
         {/* any other area: the world map lives on Explore, marked as early exploration */}
@@ -257,7 +259,7 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         leave={leave}
         notes={[
           <>Fires are counted on the days both satellites sent data.</>,
-          <>Unusual means further from what we’d expect than any year from 2012 to 2020. For {d.phrase.the} that usual range is {usualText(d)}.</>,
+          <>Unusual means outside the 2012–2020 usual range with a likely range that does not overlap it. Close calls overlap that range. For {d.phrase.the} that usual range is {usualText(d)}.</>,
           <>Look times are local sun time: the middle of each satellite’s fire detections that year.</>,
           <>Calendar: normal is the middle value for that month, 2002–2025, counted by VIIRS and scaled to Aqua’s count.</>,
           <>Files for {d.phrase.the}: drift, audit, twoclocks and calendar, in the team’s data/out folder.{d.mock || d.twoMock ? ' Some of these are mock data.' : ''}</>,
@@ -394,6 +396,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
           </p>
           <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)] lg:text-lg">{CAVEAT}</p>
+          {y.pointsPast != null ? <p className="mt-3 text-sm tabular-nums text-[color:var(--bone2)]">{pct(y.gap!, 1)} versus the {pct(y.edge!, 1)} usual-range edge: {y.pointsPast.toFixed(1)} percentage points past it.</p> : null}
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
@@ -614,6 +617,7 @@ function yearsHeading(d: RegionData) {
   while (i >= 0 && d.years[i].verdict === 'na') i--
   if (i < 0) return `Too few fires over ${d.phrase.the} to read`
   const y = d.years[i]
+  if (y.verdict === 'close') return `Aqua’s ${y.year} count is a close call`
   if (y.verdict === 'within') {
     const readable = d.years.filter((r) => r.verdict !== 'na')
     return readable.every((r) => r.verdict === 'within')
@@ -641,7 +645,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
       range: y.lo != null && y.hi != null ? [y.lo, y.hi] : null,
       expected: d.placebo,
       outside: y.verdict === 'outside',
-      valueText: y.verdict === 'na' ? `${y.year}: too few fires to read` : `${y.year}: Aqua ${pct(y.gap!)} against what we’d expect, likely range ${rangeText(y)}, ${UNUSUAL[y.verdict].toLowerCase()}`,
+      valueText: y.verdict === 'na' ? `${y.year}: too few fires to read` : `${y.year}: Aqua ${pct(y.gap!)} against the benchmark, likely range ${rangeText(y)}, ${UNUSUAL[y.verdict].toLowerCase()}`,
     })),
     [d],
   )
@@ -670,7 +674,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
             groupLabel={`Aqua against what we’d expect, by year, for ${d.name}`}
             bandLabel="Usual range, 2012–2020"
             formatTick={tickText}
-            legend={{ outside: 'Unusual', inside: 'Not unusual', range: 'Likely range' }}
+            legend={{ outside: 'Unusual', inside: 'Within range / close call', range: 'Likely range' }}
           />
           <More label="Show the numbers" className="mt-4">
           <table className="mt-2 w-full border-collapse text-sm tabular-nums">
@@ -694,9 +698,9 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
                   </th>
                   <td className="hidden py-2.5 pr-3 text-right sm:table-cell">{y.verdict === 'na' ? '—' : fmtInt(y.aqua)}</td>
                   <td className="hidden py-2.5 pr-3 text-right sm:table-cell">{y.verdict === 'na' || y.fixed == null ? '—' : fmtInt(y.fixed)}</td>
-                  <td className="py-2.5 pr-3 text-right">{y.gap == null ? '—' : pct(y.gap)}</td>
+                  <td className="py-2.5 pr-3 text-right">{y.gap == null ? '—' : pct(y.gap)}{y.pointsPast != null ? <span className="block text-xs text-[color:var(--bone3)]">{y.pointsPast.toFixed(1)} points past {pct(y.edge!, 1)} edge</span> : null}</td>
                   <td className="py-2.5 pr-3 text-right text-[color:var(--bone2)]">{rangeText(y)}</td>
-                  <td className={cn('py-2.5 text-right', y.verdict === 'outside' ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone2)]')}>{y.verdict === 'na' ? 'Too few fires' : y.verdict === 'outside' ? 'Unusual' : 'No'}</td>
+                  <td className={cn('py-2.5 text-right', y.verdict === 'outside' ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone2)]')}>{y.verdict === 'na' ? 'Too few fires' : UNUSUAL[y.verdict]}</td>
                 </tr>
               ))}
             </tbody>
@@ -902,8 +906,11 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">{headline}</p>
-          <p className="mt-3 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">One row per year, one cell per month. Brighter means more hotspots.</p>
+          <p className="mt-4 max-w-[var(--measure)] text-base text-[color:var(--bone)]">Aqua’s own count before 2012, VIIRS matched to Aqua after: one steady record from 2002 to 2025.</p>
+          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)] sm:text-base">
+            Each row is a year and each cell a month. {mode === 'count' ? 'Brighter cells mean more hotspots.' : 'Gold cells had more hotspots than a typical year, blue cells fewer.'}
+          </p>
+          <p className="mt-4 text-lg text-[color:var(--bone)]">{headline}</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -941,6 +948,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
             />
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
+          {d.id.startsWith('br-') ? <RecentObservations /> : null}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
           <More label="About these numbers" className="mt-4">
           <div className="mt-2 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
