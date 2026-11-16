@@ -395,7 +395,7 @@ export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, 
         if (!done) settling = true
       }
       const t = clock.current.t
-      // still, each satellite sits up its orbit to the north, clear of the day path; flying, it starts from there
+      // flying, each satellite starts up its orbit to the north, clear of the day path
       const north = (o: GlobeOrbit) => cross[o.dayPass].u + (o.dayPass === 'north' ? 0.8 : -0.8)
       const satU = (o: GlobeOrbit) => (isLive ? north(o) + (t / ORBIT_SECONDS) * TAU + (o.phase ?? 0) * TAU : north(o))
       const pt = (o: GlobeOrbit, u: number) => tilt(orbitPoint(angles.current.get(o.id) ?? nodeFor(o), o.dayPass, u))
@@ -405,6 +405,23 @@ export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, 
       ctx.clearRect(0, 0, L.W, L.H)
       ctx.lineCap = 'round'
       ctx.lineJoin = 'round'
+
+      // the satellite in the page's marker for it
+      const mark = (o: GlobeOrbit, c: string, x: number, y: number) => {
+        ctx.lineWidth = 2
+        if (o.marker === 'filled') {
+          ctx.beginPath(); ctx.arc(x, y, 6, 0, TAU)
+          ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = col.ground; ctx.stroke()
+        } else if (o.marker === 'hollow') {
+          ctx.beginPath(); ctx.arc(x, y, 5, 0, TAU)
+          ctx.fillStyle = col.ground; ctx.fill(); ctx.strokeStyle = c; ctx.stroke()
+        } else {
+          ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4)
+          ctx.fillStyle = c; ctx.strokeStyle = col.ground; ctx.lineWidth = 1.5
+          ctx.fillRect(-4.5, -4.5, 9, 9); ctx.strokeRect(-4.5, -4.5, 9, 9)
+          ctx.restore()
+        }
+      }
 
       const hoop = (o: GlobeOrbit, isFront: boolean) => {
         const c = colorOf.get(o.id) ?? col.fg
@@ -429,22 +446,12 @@ export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, 
             ctx.beginPath(); ctx.moveTo(...S(p1, height(o))); ctx.lineTo(...S(p2, height(o))); ctx.stroke()
           }
         }
+        // held still, the satellite is drawn once, where it crosses the day path (below)
+        if (!isLive) return
         const p = pt(o, u)
         if ((p[2] >= 0) !== isFront) return
         const [x, y] = S(p, height(o))
-        ctx.lineWidth = 2
-        if (o.marker === 'filled') {
-          ctx.beginPath(); ctx.arc(x, y, 6, 0, TAU)
-          ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = col.ground; ctx.stroke()
-        } else if (o.marker === 'hollow') {
-          ctx.beginPath(); ctx.arc(x, y, 4.5, 0, TAU)
-          ctx.fillStyle = col.ground; ctx.fill(); ctx.strokeStyle = c; ctx.stroke()
-        } else {
-          ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4)
-          ctx.fillStyle = c; ctx.strokeStyle = col.ground; ctx.lineWidth = 1.5
-          ctx.fillRect(-4.5, -4.5, 9, 9); ctx.strokeRect(-4.5, -4.5, 9, 9)
-          ctx.restore()
-        }
+        mark(o, c, x, y)
       }
 
       for (const o of list) hoop(o, false)
@@ -455,6 +462,7 @@ export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, 
         const c = colorOf.get(o.id) ?? col.fg
         // on the day path at the look time, where the time line below puts it
         const [x, y] = S(dayPt(o.time), Ro)
+        if (!isLive) { mark(o, c, x, y); continue }
         ctx.beginPath(); ctx.arc(x, y, 4.5, 0, TAU)
         ctx.fillStyle = col.ground; ctx.fill()
         ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.stroke()
@@ -491,7 +499,7 @@ export function OrbitGlobe({ orbits, region, inside, span, running, ink, label, 
   // the time line under the globe: the region's day from sunrise to sunset, laid out as its day path is
   const { cx, axisY, compact, H } = L
   const xAt = (h: number) => cx + L.Ro * Math.cos(rLat) * Math.sin(angleOf(h))
-  const hourLabels = (compact ? [6, 12, 18] : [6, 9, 12, 15, 18]).filter((h) => orbits.every((o) => Math.abs(xAt(o.time) - xAt(h)) > (compact ? 16 : 24)))
+  const hourLabels = (compact ? [6, 12, 18] : [6, 9, 12, 15, 18]).filter((h) => orbits.every((o) => Math.abs(xAt(o.time) - xAt(h)) > (compact ? 20 : 34)))
   const hourText = (h: number) => (compact ? String(h).padStart(2, '0') : `${String(h).padStart(2, '0')}:00`)
   const text = (o: GlobeOrbit) => [o.label, compact ? null : o.timeText, o.flag].filter(Boolean).join(' ')
   // label widths measured in the page's own font once it is known, estimated before that
