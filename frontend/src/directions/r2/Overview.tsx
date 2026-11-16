@@ -138,12 +138,10 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
           <div aria-hidden className="absolute inset-0 -z-10 hidden lg:block" style={{ background: WIDE_SCRIM }} />
           <div className="relative mx-auto flex h-full w-full max-w-[calc(var(--maxw)-32px)] items-end px-2 pb-10 sm:px-4 sm:pb-12 lg:pb-16">
             <div>
-              <h1 id="park-h" className="max-w-[15ch] text-balance text-[clamp(40px,5.8vw,92px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]">
-                Anchor: a fire calendar on a steady reference.
+              <h1 id="park-h" className="text-[clamp(56px,11vw,168px)] font-medium leading-[0.9] tracking-[-0.04em] text-[color:var(--bone)]">
+                Anchor
               </h1>
-              <p className="mt-5 max-w-[34rem] text-lg leading-[1.56] text-[color:var(--bone)]">
-                24 years of satellite fire records for six places, compared against one consistent benchmark. For fire managers, responders, scientists and journalists.
-              </p>
+              <p className="mt-4 max-w-[28rem] text-[24px] leading-[1.25] text-[color:var(--bone)]">A steady fire calendar for six places, 2002 to 2025.</p>
               <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-6')}>
                 Open the fire calendar <ArrowUpRight size={16} aria-hidden />
               </a>

@@ -184,16 +184,11 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
             ) : null}
           </div>
           <p className="text-sm leading-6 text-[color:var(--bone)]">
-            If the delay after the pass stayed the same, an alert from Aqua’s pass would come about {later} minutes later
-            {fewer > 0 ? <>, leaving about {fewer} fewer minutes of daylight in this scenario.</> : <>; at this delay it would arrive after dark either way.</>}
+            {fewer > 0 ? <>Aqua’s alert now comes about {later} minutes later: {fewer} fewer minutes of daylight.</> : <>Aqua’s alert now comes about {later} minutes later, after dark either way.</>}
           </p>
         </div>
       ) : null}
 
-      <p className="text-xs leading-5 text-[color:var(--bone3)]">
-        A what-if, not measured alert performance: typical pass times, an assumed delay, sunset on a mid-season day.{' '}
-        <span className="text-[color:var(--bone2)]">Real:</span> pass times, sunset{fires ? `, fires (${fires})` : ', fires'}. <span className="text-[color:var(--bone2)]">Assumed:</span> alert delay. {basis}
-      </p>
     </section>
   )
 }

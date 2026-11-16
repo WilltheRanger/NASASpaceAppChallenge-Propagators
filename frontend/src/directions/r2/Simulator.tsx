@@ -519,8 +519,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   ) : !place ? (
     <Idle onPick={pickRegion} onPlayDay={playDay} world={grid != null && layer === 'clock'} />
   ) : facts ? (
-    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} motion={motion} clock={clock} onClock={setClock} alert={alertPanel}
-      daylight={<DaySection onPlay={facts.d.id === 'br-amazon' ? playDay : undefined} onYears={() => setLightOpen(true)} active={day != null} />} />
+    <RegionPanel f={facts} headRef={headRef} onBack={back} onStrongest={() => strongestIn(BOXES[facts.d.id])} studyHref={regionsHref(facts.d.id)} leave={leave} alert={alertPanel}
+      onPlay={facts.d.id === 'br-amazon' ? playDay : undefined} onYears={() => setLightOpen(true)} playing={day != null} />
   ) : (
     <PlacePanel place={place} headRef={headRef} onBack={back} onFly={pickRegion} onStrongest={() => strongestIn(boxFor(place))} alert={alertPanel} cell={placeCell} year={mapYear} onCell={grid ? (id) => pickCell(id) : undefined} />
   )
@@ -638,7 +638,9 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
           ) : null}
 
           {wide ? (
-            <div ref={chartRef} data-tour="chart" className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2">
+            <div ref={chartRef} data-tour="chart" className="absolute bottom-4 left-1/2 z-10 w-[min(680px,calc(100%-32px))] -translate-x-1/2"
+              // with Ask Anchor open on the right, the panel centres in the map space left of it, so nothing is covered
+              style={siOpen && !xl ? { left: 'calc((100% - 352px) / 2)', width: 'min(680px, calc(100% - 352px - 32px))' } : undefined}>
               {chartOpen || day ? chart : (
                 <button type="button" onClick={() => setChartOpen(true)} className={cn(glass, 'mx-auto flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
                   <ChevronDown size={15} strokeWidth={1.75} aria-hidden className="rotate-180" /> When each satellite saw fires
@@ -953,62 +955,33 @@ type Clock = 'old' | 'new'
 /** the phone sheet's three heights, as shares of the stage */
 const SHEET = [0.24, 0.8, 0.94]
 
-function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion, clock, onClock, daylight, alert }: {
-  f: Facts; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onStrongest: () => void; studyHref: string; leave: Leave; motion: boolean
-  clock: Clock; onClock: (c: Clock) => void; daylight?: ReactNode; alert?: ReactNode
+function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, alert, onPlay, onYears, playing = false }: {
+  f: Facts; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onStrongest: () => void; studyHref: string; leave: Leave
+  alert?: ReactNode; onPlay?: () => void; onYears?: () => void; playing?: boolean
 }) {
-  const old = clock === 'old'
-  const look = { old: f.look.old ? hm(f.look.old) : null, new: f.look.now ? hm(f.look.now) : null }
-  const count = f.count ? { old: f.count.old, new: f.count.now } : null
-  const light = { old: f.light.old, new: f.light.now }
+  const action = cn(secondary, 'w-full justify-center px-2 text-sm')
   return (
     <div className="flex flex-col gap-5 px-4 pb-6 pt-3 sm:px-5 sm:pt-4">
       {alert}
       <More label={`More about ${f.d.phrase.the}`}>
-      <div className="flex flex-col gap-6 pt-3">
-      <div>
-        <h2 ref={headRef} tabIndex={-1} className="text-2xl font-medium leading-tight tracking-[-0.015em] text-[color:var(--bone)] outline-none">{short(f.d.name)}</h2>
-        <p className="mt-1 text-sm text-[color:var(--bone3)]">{f.country}{f.season ? ` · fire season ${f.season}` : ''}</p>
-      </div>
-      {f.count ? (
-        <div>
-          <p className="text-[40px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{signed(f.count.gap)}%</p>
-          <p className="mt-2 text-sm text-[color:var(--bone2)]">Aqua’s {f.count.year} count against what we’d expect. {f.count.outside ? 'Unusual.' : 'Not unusual.'}</p>
-          <p className="mt-3 text-sm text-[color:var(--bone3)]">{CAVEAT}</p>
+        <div className="flex flex-col gap-4 pt-3">
+          <h2 ref={headRef} tabIndex={-1} className="sr-only">{short(f.d.name)}</h2>
+          {f.count ? (
+            <p className="text-sm leading-6 text-[color:var(--bone2)]">
+              <span className="text-[color:var(--bone)]">In {f.count.year}, Aqua counted <span className="tabular-nums">{fmtInt(f.count.now)}</span> hotspots; the VIIRS-based benchmark is <span className="tabular-nums">{fmtInt(f.count.old)}</span> ({signed(Math.round(f.count.gap))}%).</span>{' '}
+              {CAVEAT}
+            </p>
+          ) : f.nov ? (
+            <p className="text-sm leading-6 text-[color:var(--bone2)]">Our test case: 2023–2025 have too few hotspots to read.</p>
+          ) : null}
+          <div className="grid grid-cols-2 gap-2">
+            {onPlay ? <button type="button" onClick={onPlay} disabled={playing} className={cn(action, 'disabled:opacity-50')}><Play size={14} strokeWidth={1.75} aria-hidden /> {playing ? 'Playing' : 'One fire day'}</button> : null}
+            {onYears ? <button type="button" onClick={onYears} className={action}>Daylight by year</button> : null}
+            <button type="button" onClick={onStrongest} className={action}><Flame size={14} strokeWidth={1.75} aria-hidden /> Strongest fire</button>
+            <button type="button" onClick={onBack} className={action}><Globe2 size={14} strokeWidth={1.75} aria-hidden /> Whole globe</button>
+          </div>
+          <a href={studyHref} onClick={leave} className={cn(primary, 'w-full justify-center')}>{short(f.d.name)} in Regions <ArrowRight size={15} strokeWidth={1.75} aria-hidden /></a>
         </div>
-      ) : f.nov ? (
-        <div>
-          <p className="text-[40px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{f.nov.from.ratio.toFixed(2)} → {f.nov.to.ratio.toFixed(2)}</p>
-          <p className="mt-2 text-sm text-[color:var(--bone2)]">Aqua’s November count as a share of VIIRS’s, {f.nov.from.year} → {f.nov.to.year}</p>
-          <p className="mt-1 text-xs text-[color:var(--bone3)]">Our test case. 2023–2025 have too few fires to read.</p>
-        </div>
-      ) : null}
-      {/* the switch: Aqua at its old time or its new one; the numbers roll and the map follows */}
-      <section aria-labelledby="try-h" className="flex flex-col gap-3">
-        <h3 id="try-h" className="text-sm font-medium text-[color:var(--bone)]">Aqua {old ? 'then (2012–2020)' : 'now'}: the switch above sets these too</h3>
-        <dl className="flex flex-col">
-          <Readout name="Aqua looks at" value={look[clock]} basis={look[old ? 'new' : 'old']} format={fmtHM} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
-          {count ? (
-            <div className="border-t border-[color:var(--hairline)] py-2.5">
-              <dt className="text-xs text-[color:var(--bone2)]">{f.count?.year}: Aqua’s count and the VIIRS-based benchmark</dt>
-              <dd className="mt-0.5 text-sm tabular-nums text-[color:var(--bone)]">Aqua {fmtInt(count.new)} · benchmark {fmtInt(count.old)}</dd>
-            </div>
-          ) : (
-            <div className="border-t border-[color:var(--hairline)] py-2.5"><dt className="text-xs text-[color:var(--bone2)]">Fires counted</dt><dd className="mt-0.5 text-sm text-[color:var(--bone3)]">Too few to read in 2025</dd></div>
-          )}
-          <Readout name="Daylight left after the alert" note="alert 1.5 h after the pass" value={light[clock]} basis={light[old ? 'new' : 'old']} format={(h) => dur(h)} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
-        </dl>
-        <p className="text-sm text-[color:var(--bone3)]">The map shows {old ? 'the fires VIIRS saw, near Aqua’s 2012–2020 time.' : 'the fires Aqua saw.'}</p>
-      </section>
-
-      {daylight}
-
-      <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={onStrongest} className={secondary}><Flame size={15} strokeWidth={1.75} aria-hidden /> Strongest fire</button>
-        <a href={studyHref} onClick={leave} className={primary}>{short(f.d.name)} in Regions <ArrowRight size={15} strokeWidth={1.75} aria-hidden /></a>
-        <button type="button" onClick={onBack} className={secondary}><Globe2 size={15} strokeWidth={1.75} aria-hidden /> Whole globe</button>
-      </div>
-      </div>
       </More>
     </div>
   )
