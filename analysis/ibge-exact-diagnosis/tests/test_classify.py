@@ -2,6 +2,7 @@ import os,sys,unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from classify import Classifier
+@unittest.skipUnless(os.environ.get('IBGE_ARCHIVE'), 'needs IBGE_ARCHIVE: the raw IBGE biome zip, kept outside the repo (see README)')
 class Tests(unittest.TestCase):
  @classmethod
  def setUpClass(cls):cls.c=Classifier(os.environ['IBGE_ARCHIVE'])
