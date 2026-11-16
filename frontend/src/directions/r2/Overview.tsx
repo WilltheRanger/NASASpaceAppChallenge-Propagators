@@ -419,7 +419,7 @@ function Places() {
   return (
     <div className="mt-14">
       <Rule />
-      <div aria-hidden className={cn('hidden items-end gap-x-6 pt-4 md:grid', COLS)}>
+      <div aria-hidden className={cn('hidden items-start gap-x-6 pt-4 md:grid', COLS)}>
         <span className={th}>Place</span>
         <span className={th}>How much later Aqua looks</span>
         <span className={th}>
@@ -428,7 +428,7 @@ function Places() {
         </span>
         <span className={th}>Unusual?</span>
       </div>
-      <ol className="mt-3 border-t border-[color:var(--hairline)]">
+      <ol className="border-[color:var(--hairline)] md:mt-3 md:border-t">
         {ROWS.map((r, i) => (
           <PlaceRow key={r.id} r={r} i={i} />
         ))}
@@ -488,7 +488,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
               <RollingDigits text={pct(r.read.gap, 0)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
-              <span className="text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {fmtRange(r.read.lo, r.read.hi)}</span>
+              <span className="text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {fmtRange(r.read.lo, r.read.hi, 0)}</span>
             </span>
           ) : (
             <span className="block text-sm text-[color:var(--bone2)]">Too few fires to read in {YEAR}</span>
