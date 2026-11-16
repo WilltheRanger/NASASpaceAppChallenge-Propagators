@@ -150,6 +150,8 @@ export const linksFor = (nav: Nav): Links => ({
 /* ---------- Words said the same way on every page ---------- */
 
 /** Said next to every finding. */
+/** The close-call legend, said the same way everywhere */
+export const CLOSE_CALL = 'Close call: just outside the usual range, but the likely range overlaps it.'
 export const CAVEAT = 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.'
 export const FOOTER_LINE = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 export const JETHVA = 'https://doi.org/10.3390/rs18101506'
@@ -172,9 +174,15 @@ export const statementName = (id: string) => {
 
 /** The data the site stands on, with the identifiers to find each one. */
 export const CREDITS: { name: string; links: { text: string; href: string }[] }[] = [
-  { name: 'Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation.', links: [{ text: 'doi:10.5067/FIRMS/MODIS/MCD14ML', href: 'https://doi.org/10.5067/FIRMS/MODIS/MCD14ML' }] },
-  { name: 'Historical 2012–2025: NASA FIRMS VIIRS Collection 2 standard, S-NPP', links: [{ text: 'NASA FIRMS standard archive', href: 'https://firms.modaps.eosdis.nasa.gov/download/' }] },
-  { name: 'Provisional 2026 snapshot: MODIS 6.1NRT and VIIRS 2.0NRT (NOAA-20/21)', links: [{ text: 'doi:10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002', href: 'https://doi.org/10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002' }] },
+  { name: 'NASA FIRMS, MODIS standard archive (Terra and Aqua), 2002–2025. Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation.', links: [{ text: 'doi:10.5067/FIRMS/MODIS/MCD14ML', href: 'https://doi.org/10.5067/FIRMS/MODIS/MCD14ML' }] },
+  { name: 'NASA FIRMS, VIIRS 375 m Collection 2 (standard), S-NPP: 2012–2025', links: [{ text: 'NASA FIRMS archive download', href: 'https://firms.modaps.eosdis.nasa.gov/download/' }] },
+  {
+    name: 'NASA FIRMS near-real-time, for the 2026 snapshot: MODIS 6.1NRT and VIIRS 2.0NRT',
+    links: [
+      { text: 'doi:10.5067/FIRMS/VIIRS/VNP14IMGT_NRT.002', href: 'https://doi.org/10.5067/FIRMS/VIIRS/VNP14IMGT_NRT.002' },
+      { text: 'doi:10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002', href: 'https://doi.org/10.5067/FIRMS/VIIRS/VJ114IMGT_NRT.002' },
+    ],
+  },
   { name: 'INPE Programa Queimadas, Brazil’s official fire series', links: [{ text: 'data.inpe.br/queimadas', href: 'https://data.inpe.br/queimadas/portal/' }] },
   { name: 'USFS fire occurrence database (FPA-FOD), 7th ed., Short 2026', links: [{ text: 'doi:10.2737/RDS-2013-0009.7', href: 'https://doi.org/10.2737/RDS-2013-0009.7' }] },
   { name: 'Punjab burn timing: Jethva 2026, Remote Sensing', links: [{ text: 'doi:10.3390/rs18101506', href: JETHVA }] },
@@ -314,7 +322,14 @@ export function useStartAtTop() {
       const mine = () => { theirs = true }
       const EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
       for (const ev of EVENTS) window.addEventListener(ev, mine, { passive: true, once: true })
-      const top = () => { if (!theirs && window.scrollY > 0) jump(0) }
+      // a host that sizes its frame to the page (the comment artifact) scrolls itself, not this window, and keeps its
+      // place when the frame moves to the next page; bringing the page's top into view scrolls that host back up
+      const framed = (() => { try { return window.self !== window.top } catch { return true } })()
+      const top = () => {
+        if (theirs) return
+        if (window.scrollY > 0) jump(0)
+        if (framed) document.documentElement.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' })
+      }
       top()
       // once more after the first paint, when a late restore would have landed
       raf = requestAnimationFrame(top)
@@ -572,6 +587,14 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
             </ul>
           </details>
         ) : null}
+        <div className="border-t border-[color:var(--hairline)] pt-4">
+          <More label="Thank you">
+            <div className="mt-3 grid gap-x-6 gap-y-3 lg:grid-cols-2">
+            <p className="max-w-[var(--measure)] leading-6">To NASA and the 2026 NASA International Space Apps Challenge, funded by NASA’s Science Mission Directorate through a contract with Booz Allen Hamilton, Mindgrub and SecondMuse, and to its 17 space agency partners, especially the Brazilian Space Agency (AEB), Argentina’s CONAE and India’s ISRO.</p>
+            <p className="max-w-[var(--measure)] leading-6">To Build Future Mind Foundation for hosting the Chino Hills, CA local event on 14–15 November 2026, and to Local Lead Allen West and the organizing team.</p>
+            </div>
+          </More>
+        </div>
         <div className="flex flex-col gap-2 border-t border-[color:var(--hairline)] pt-6 sm:flex-row sm:items-center sm:justify-between">
           <AnchorLogo height={18} className="text-[color:var(--bone)]" />
           <p className="text-xs text-[color:var(--bone3)]">Team Propagators. {FOOTER_LINE}{ANY_MOCK ? ' This build uses mock data.' : ''}</p>

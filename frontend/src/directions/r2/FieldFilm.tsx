@@ -1,4 +1,3 @@
-import { RecentObservations } from '@/r2/recent-observations'
 // The site's router and its Regions page. Four pages: Overview (Overview.tsx, the front door), Regions (here), the
 // Simulator (Simulator.tsx) and Method (Method.tsx); each but the Regions page loads only when it opens. The pages share
 // common.tsx (tokens, motion, the bar with the four-page menu, the footer); the daylight section moved to daylight.tsx
@@ -8,6 +7,7 @@ import { RecentObservations } from '@/r2/recent-observations'
 // calendar with its download, and (on the live site) the world map as early exploration. Picking a place changes every
 // section and the URL. Black and bone; each satellite has one colour on lines and marks, never on a background.
 // Every number comes from src/r2/data.ts; the MOCK labels follow each file's own "mock" flag.
+import { RecentObservations } from '@/r2/recent-observations'
 import { Fragment, Suspense, lazy, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { ArrowRight, ArrowUpRight, Download } from 'lucide-react'
@@ -27,7 +27,7 @@ import { ScrollSpy } from '@/components/ui/scroll-spy'
 import { inRegion } from '@/r2/region-shapes'
 import { photoFor } from '@/r2/photos'
 import {
-  CAVEAT, FEATURED, Footer, JETHVA, MockTag, More, MotionContext, PageNext, SatMark, SiteBar, TOKENS, andList, ease, focusRing, glideTo, linksFor, primaryButton, readMotion, secondaryButton,
+  CAVEAT, CLOSE_CALL, FEATURED, Footer, JETHVA, MockTag, More, MotionContext, PageNext, SatMark, SiteBar, TOKENS, andList, ease, focusRing, glideTo, linksFor, primaryButton, readMotion, secondaryButton,
   shell, statement, statementName, storeMotion, textLink, title, useEasedScroll, useLeave, useStartAtTop, useMedia, useMotion, usePortalTokens,
   type Leave, type Links, type Nav, type Page,
 } from './common'
@@ -240,14 +240,13 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         </div>
         <Calendar d={d} mode={mode} onMode={setMode} range={range} onRange={setRange} small={small} />
         <Result d={d} links={links} leave={leave} />
-        <p className={cn(shell, 'pb-4 text-sm text-[color:var(--bone2)]')}>Close call: just outside the usual range, but the likely range overlaps it.</p>
         <YearByYear d={d} year={year} onYear={setYear} small={small} />
         <LookTimes key={d.id} d={d} />
         {/* any other area: the world map lives on Explore, marked as early exploration */}
         <section id="global" aria-labelledby="global-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
           <div className={cn(shell, 'flex flex-wrap items-center gap-x-6 gap-y-4 py-12')}>
             <h2 id="global-h" className="text-lg font-medium text-[color:var(--bone)]">Or pick any area</h2>
-            <p className="max-w-xl text-sm text-[color:var(--bone2)]">The same comparison for any 2° square on the world map. Early exploration: not checked like the six places.</p>
+            <p className="max-w-xl text-sm text-[color:var(--bone2)]">The same comparison for any 2° square. Not checked like the six places.</p>
             <a href={anyArea(links)} onClick={leave} className={secondaryButton}>Open the world map <ArrowRight size={16} aria-hidden /></a>
             <a href="#calendar" className={primaryButton}>Back to the fire calendar <ArrowRight size={16} aria-hidden /></a>
           </div>
@@ -359,7 +358,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
     const a = nov.find((r) => r.year === 2016), b = nov[nov.length - 1]
     const tooFew = d.years.filter((r) => r.verdict === 'na').map((r) => r.year)
     return (
-      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
+      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
         <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
           <div className="lg:col-span-7">
             <h2 id="verdict-h" className={title}>Punjab + Haryana is our test case</h2>
@@ -376,7 +375,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
   }
   if (!y || y.gap == null) {
     return (
-      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
+      <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
         <div className={cn(shell, 'py-16')}>
           <h2 id="verdict-h" className={title}>Too few fires over {d.phrase.the} to compare Aqua with the benchmark</h2>
           <div className="mt-8">{sim}</div>
@@ -386,7 +385,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
   }
   const unusual = y.verdict === 'outside'
   return (
-    <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
+    <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
         <div className="lg:col-span-7">
           <h2 id="verdict-h" className={title}>Aqua against the benchmark</h2>
@@ -394,9 +393,10 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
             <RollingDigits text={pct(y.gap, 0)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
+            {y.pointsPast != null ? <span className="text-sm tabular-nums text-[color:var(--bone2)]">{Math.round(y.pointsPast)} points past the usual range</span> : null}
           </p>
+          {y.verdict === 'close' ? <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{CLOSE_CALL}</p> : null}
           <p className="mt-6 max-w-[var(--measure)] text-base text-[color:var(--bone2)]">{CAVEAT}</p>
-          {y.pointsPast != null ? <p className="mt-3 text-sm tabular-nums text-[color:var(--bone2)]">{pct(y.gap!, 1)} versus the {pct(y.edge!, 1)} usual-range edge: {y.pointsPast.toFixed(1)} percentage points past it.</p> : null}
           <div className="mt-8 flex flex-wrap gap-3">
             {sim}
             <button type="button" onClick={() => downloadSummary(d)} className={secondaryButton}>
@@ -406,9 +406,9 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
         </div>
         <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
-            <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
+            <dt className="text-[color:var(--bone3)]">Aqua counted (matched days)</dt>
             <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
-            <dt className="text-[color:var(--bone3)]">Benchmark</dt>
+            <dt className="text-[color:var(--bone3)]">Benchmark (matched days)</dt>
             <dd className="tabular-nums">{y.fixed != null ? fmtInt(y.fixed) : '—'}</dd>
             <dt className="text-[color:var(--bone3)]">Likely range</dt>
             <dd className="tabular-nums">{rangeText(y)}</dd>
@@ -421,6 +421,9 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
               </>
             ) : null}
           </dl>
+          <p className="mt-3 text-xs text-[color:var(--bone3)]">Matched days: the days in {y.year} when both Aqua and S-NPP sent data, all daytime hotspots. The whole-year totals below use every day, so they differ slightly; neither is wrong.</p>
+          <p className="mt-2 text-xs text-[color:var(--bone3)]">Likely range: where the number lands in 95% of re-runs when we re-pick which days are compared. It doesn’t cover errors in the satellites themselves, missing coverage, or year-to-year weather.</p>
+          <p className="mt-2 text-xs"><a href={links.method('steps')} onClick={leave} className={textLink}>Evidence: how we compare</a> · <a href={links.method('limits')} onClick={leave} className={textLink}>What it can’t tell you</a></p>
           {d.id === 'us-california' ? (
             <p className="mt-4 text-sm text-[color:var(--bone2)]">
               <a href={links.method('detection')} onClick={leave} className={textLink}>How well each satellite sees small fires</a>
@@ -655,12 +658,12 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
   } as CSSProperties
   const th = 'py-2 pr-3 text-left text-xs font-normal text-[color:var(--bone3)]'
   return (
-    <section id="years" aria-labelledby="years-h" style={chartVars} className="scroll-mt-32">
+    <section id="years" aria-labelledby="years-h" style={chartVars} className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h3 id="years-h" className={title}>{yearsHeading(d)}</h3>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Each year since 2021: Aqua’s count against the benchmark. The line is the likely range; the grey band is the usual range, from 2012 to 2020.
+            Each year since 2021: Aqua’s count against the benchmark. The line is the likely range; the grey band is the usual range, from 2012 to 2020. {CLOSE_CALL}
           </p>
         </div>
         <div className="min-w-0 lg:col-span-8">
@@ -674,7 +677,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
             groupLabel={`Aqua against what we’d expect, by year, for ${d.name}`}
             bandLabel="Usual range, 2012–2020"
             formatTick={tickText}
-            legend={{ outside: 'Unusual', inside: 'Within range / close call', range: 'Likely range' }}
+            legend={{ outside: 'Unusual', inside: 'Not unusual or close call', range: 'Likely range' }}
           />
           <More label="Show the numbers" className="mt-4">
           <table className="mt-2 w-full border-collapse text-sm tabular-nums">
@@ -698,19 +701,17 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
                   </th>
                   <td className="hidden py-2.5 pr-3 text-right sm:table-cell">{y.verdict === 'na' ? '—' : fmtInt(y.aqua)}</td>
                   <td className="hidden py-2.5 pr-3 text-right sm:table-cell">{y.verdict === 'na' || y.fixed == null ? '—' : fmtInt(y.fixed)}</td>
-                  <td className="py-2.5 pr-3 text-right">{y.gap == null ? '—' : pct(y.gap)}{y.pointsPast != null ? <span className="block text-xs text-[color:var(--bone3)]">{y.pointsPast.toFixed(1)} points past {pct(y.edge!, 1)} edge</span> : null}</td>
+                  <td className="py-2.5 pr-3 text-right">{y.gap == null ? '—' : pct(y.gap)}{y.pointsPast != null ? <span className="block text-xs text-[color:var(--bone3)]">{y.pointsPast.toFixed(1)} points past the usual range (edge {pct(y.edge!, 1)})</span> : null}</td>
                   <td className="py-2.5 pr-3 text-right text-[color:var(--bone2)]">{rangeText(y)}</td>
                   <td className={cn('py-2.5 text-right', y.verdict === 'outside' ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone2)]')}>{y.verdict === 'na' ? 'Too few fires' : UNUSUAL[y.verdict]}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          </More>
-          <MockTag show={d.mock} className="mt-3 inline-block" />
           {v.whole.length ? (
             <div className="mt-6 text-sm">
               <p className="font-medium text-[color:var(--bone)]">{hasOfficialSeries(d.id) ? 'Whole years, beside INPE’s official count' : 'Whole years'}</p>
-              <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, all twelve months</p>
+              <p className="text-[color:var(--bone2)]">{v.from} to {v.to}, every day of all twelve months (the result above uses matched days, so its totals differ slightly)</p>
               <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
                 {v.whole.map((r) => (
                   <Fragment key={r.name}>
@@ -723,6 +724,8 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               {hasOfficialSeries(d.id) ? <p className="mt-3 text-xs text-[color:var(--bone3)]">INPE’s Programa Queimadas is Brazil’s official count; it follows one satellite, Aqua.</p> : null}
             </div>
           ) : null}
+          </More>
+          <MockTag show={d.mock} className="mt-3 inline-block" />
         </div>
       </div>
     </section>
@@ -906,11 +909,10 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-base text-[color:var(--bone)]">Aqua’s own count before 2012, VIIRS matched to Aqua after: one steady record from 2002 to 2025.</p>
-          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Each row is a year and each cell a month. {mode === 'count' ? 'Brighter cells mean more hotspots.' : 'Gold cells had more hotspots than a typical year, blue cells fewer.'}
+          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">{headline}</p>
+          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
+            One row per year, one cell per month. {mode === 'count' ? 'Brighter means more hotspots.' : 'Gold means more hotspots than a typical year, blue fewer.'}
           </p>
-          <p className="mt-4 text-lg text-[color:var(--bone)]">{headline}</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -948,13 +950,15 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
             />
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
-          {d.id.startsWith('br-') ? <RecentObservations /> : null}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
-          <div className="mt-4 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
+          <More label="About these numbers" className="mt-4">
+          <div className="mt-2 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
             <p>A hotspot is one satellite fire detection; a large fire can produce many.</p>
             <p>Typical = the median for that calendar month, 2002–2025.</p>
             <p>Counts before 2012 are Aqua’s own. From 2012 they come from VIIRS, whose overpass time has stayed constant, scaled to Aqua using the 2012–2020 ratio.</p>
           </div>
+          </More>
+          {d.id.startsWith('br-') ? <RecentObservations /> : null}
           <a href={`#top`} className={cn('mt-6 inline-flex min-h-11 items-center gap-1 text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
             Pick another place <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />
           </a>
