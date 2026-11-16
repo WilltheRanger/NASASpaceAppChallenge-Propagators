@@ -24,7 +24,7 @@ import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import factsJson from '../../../../data/out/facts.json'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, IMG, JETHVA, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
+  CAVEAT, FEATURED, Footer, IMG, JETHVA, PageNext, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
   primaryButton, useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -101,9 +101,9 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
         <Later />
         <OneDay />
         <Finding links={links} leave={leave} />
-        <Doors links={links} leave={leave} />
-        <OverviewNotes links={links} leave={leave} />
       </main>
+      <PageNext page="overview" links={links} leave={leave} />
+      <Footer links={links} leave={leave} />
     </>
   )
 }
@@ -213,14 +213,10 @@ function OneDay() {
   const look = DAY_LOOK
   if (!look) return null
   const steps: StickyStep[] = [
-    { mark: look.old, title: 'Aqua used to look here', description: <>From 2012 to 2020 it passed over {phrase(FEATURED).the} at about {look.old}, local sun time.</> },
-    {
-      mark: look.now,
-      title: `In ${look.year} it looked ${look.minutes} minutes later`,
-      description: <>{DAY.driftStart ? <>Here the move started in {DAY.driftStart}. </> : null}Across our six places, Aqua now looks {RANGE} later.</>,
-    },
-    { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change during the day, so a later look can count more fires or fewer.' },
-    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
+    { mark: look.old, title: 'Aqua used to look here', description: <>About {look.old}, local sun time, from 2012 to 2020.</> },
+    { mark: look.now, title: `In ${look.year} it looked ${look.minutes} minutes later`, description: <>Across our six places, Aqua now looks {RANGE} later.</> },
+    { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change through the day.' },
+    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}, so we use it as the benchmark.</> },
   ]
   return (
     <section id="day" aria-labelledby="day-h">
@@ -306,7 +302,7 @@ function DayPanel({ step, picture = true, caption = true }: { step: number; pict
       <DayLine step={step} />
       {caption ? (
         <figcaption className="mt-3 text-xs text-[color:var(--bone3)]">
-          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026. Times shown are usual looks in {DAY_LOOK?.year}, not the image-day pass times. <a href="#overview-sources" className={textLink}>Image sources ↓</a>
+          {phrase(FEATURED).the.replace(/^the /, 'The central ')}, 4 September 2026. Times shown are usual looks in {DAY_LOOK?.year}, not the image-day pass times.
         </figcaption>
       ) : null}
     </figure>
@@ -389,9 +385,8 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
                 ? <>Brazil’s official Amazon count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025; the VIIRS-based benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
                 : FINDING.join(' ')}
             </h2>
-            <p className="mt-4 max-w-[40rem] text-base text-[color:var(--ink)]">{FINDING.join(' ')}</p>
             <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
-            <a href="#overview-sources" className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>Figures, definitions and sources ↓</a>
+            <a href={links.method('overview-figures')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>How we know <ArrowUpRight size={14} aria-hidden /></a>
           </div>
           <Reveal className="lg:col-span-3 lg:col-start-10 lg:self-start lg:pt-2">
             <p className="rounded-[4px] border border-[color:var(--ink-20)] p-4 text-base text-[color:var(--ink)] lg:p-5 lg:text-lg">{CAVEAT}</p>
@@ -428,7 +423,7 @@ function Places() {
         ))}
       </ol>
       <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
-        Unusual: the likely range is wholly outside the usual range. Close call: just outside the usual range, but the likely range overlaps it. <a href="#overview-sources" className={textLink}>Definitions and sources ↓</a>
+        Unusual: the likely range is wholly outside the usual range. Close call: just outside the usual range, but the likely range overlaps it.
       </p>
     </div>
   )
@@ -475,7 +470,6 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
               <RollingDigits text={pct(r.read.gap, 0)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
-              <span className="text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {fmtRange(r.read.lo, r.read.hi, 0)}</span>
             </span>
           ) : (
             <span className="block text-sm text-[color:var(--bone2)]">Too few fires to read in {YEAR}</span>
@@ -554,81 +548,14 @@ function StripAxis() {
   )
 }
 
-/* ---------- Three doors on ---------- */
-
-function Doors({ links, leave }: { links: Links; leave: Leave }) {
-  const pic = 'size-full object-cover'
-  return (
-    <section aria-labelledby="doors-h" className="border-t border-[color:var(--hairline)]">
-      <h2 id="doors-h" className="sr-only">Where to go next</h2>
-      <div className={cn(shell, 'grid grid-cols-1 gap-2 py-16 sm:gap-3 lg:grid-cols-12 lg:py-24')}>
-        <Door
-          href={links.regions()}
-          leave={leave}
-          title="Fire calendar"
-          line="Every month since 2002, for six places."
-          className="min-h-[380px] lg:col-span-7 lg:row-span-2 lg:min-h-[620px]"
-          art={
-            <span className="grid size-full grid-cols-3 grid-rows-2 gap-0.5 bg-[color:var(--ground)]">
-              {REGIONS.map((r) => {
-                const p = photoFor(r.id)
-                return (
-                  <span key={r.id} className="relative block min-h-0 overflow-hidden">
-                    <img src={p.srcSm} alt="" loading="lazy" className={pic} style={{ objectPosition: p.focus }} />
-                    <span className={cn('absolute left-2 top-2', plate)}>{phrase(r.id).short}</span>
-                  </span>
-                )
-              })}
-            </span>
-          }
-        />
-        <Door
-          href={links.sim()}
-          leave={leave}
-          title="What-if for responders"
-          line="A what-if: when each satellite’s alert could arrive under an assumed delay."
-          className="min-h-[280px] lg:col-span-5"
-          art={<img src={`${IMG}sim/${FEATURED}-context.jpg`} alt="" loading="lazy" className={pic} style={{ objectPosition: '30% 62%' }} />}
-        />
-        <Door
-          href={links.method()}
-          leave={leave}
-          title="How we know"
-          line="How the comparison works, and what it can’t tell you."
-          className="min-h-[280px] lg:col-span-5"
-          art={<img src={`${IMG}daylight/br-amazon-2024-09-02.jpg`} alt="" loading="lazy" className={pic} />}
-        />
-      </div>
-    </section>
-  )
-}
-
-/** A whole picture as the link: the title and one line at the bottom on a scrim, the arrow in the corner. */
-function Door({ href, leave, title, line, art, className }: { href: string; leave: Leave; title: string; line: string; art: ReactNode; className?: string }) {
-  return (
-    <a href={href} onClick={leave} className={cn('group relative isolate flex flex-col justify-end overflow-hidden rounded-[4px] bg-[color:var(--surface)] p-5 sm:p-8', focusRing, className)}>
-      <span aria-hidden className="absolute inset-0 -z-10 transition-transform duration-700 ease-[var(--ease)] group-hover:scale-[1.03] motion-reduce:transition-none">{art}</span>
-      <span aria-hidden className="absolute inset-0 -z-10" style={{ background: 'linear-gradient(0deg, rgba(11,13,11,0.92) 0%, rgba(11,13,11,0.6) 30%, rgba(11,13,11,0) 62%)' }} />
-      <ArrowUpRight
-        aria-hidden
-        size={22}
-        strokeWidth={1.5}
-        className="absolute right-5 top-5 rounded-full bg-[color:var(--plate)] p-1 text-[color:var(--bone)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:right-6 sm:top-6"
-      />
-      <span className="text-[clamp(28px,3vw,44px)] font-medium leading-[1.05] tracking-[-0.02em] text-[color:var(--bone)]">{title}</span>
-      <span className="mt-2 max-w-[36ch] text-sm text-[color:var(--bone2)] sm:text-base">{line}</span>
-    </a>
-  )
-}
-
 /** Supporting figures stay together without mixing full-year totals with matched-day audit counts. */
-function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) {
+export function OverviewNotes({ links, leave }: { links: Links; leave: Leave }) {
   return (
-    <section id="overview-sources" aria-labelledby="overview-sources-h" className="scroll-mt-20 border-t border-[color:var(--hairline)]">
+    <section id="overview-figures" aria-labelledby="overview-figures-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="overview-sources-h" className="text-3xl font-medium tracking-[-0.02em]">Sources and notes</h2>
-          <p className="mt-4 text-sm text-[color:var(--bone2)]">The figures behind the Overview. Full-year totals and matched-day audit counts answer different questions.</p>
+          <h2 id="overview-figures-h" className="text-3xl font-medium tracking-[-0.02em]">The figures behind the Overview</h2>
+          <p className="mt-4 text-sm text-[color:var(--bone2)]">Full-year totals and matched-day audit counts answer different questions.</p>
           <a href={links.method('sources')} onClick={leave} className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center')}>All product versions and sources <ArrowUpRight size={14} aria-hidden /></a>
         </div>
         <dl className="space-y-6 text-sm leading-6 text-[color:var(--bone2)] lg:col-span-8">

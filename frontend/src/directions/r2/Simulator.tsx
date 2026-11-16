@@ -226,7 +226,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const [fire, setFire] = useState<number | null>(null)
   const [fireBelow, setFireBelow] = useState(false)
   const [turns, setTurns] = useState<SiTurn[]>([])
-  const [siOpen, setSiOpen] = useState(true)
+  // Ask Anchor starts closed: the page opens on the question, the table and the map, and the chat is one button away
+  const [siOpen, setSiOpen] = useState(false)
   // the timing chart under the map can fold down to a bar, for a clear map
   // the timing chart is extra to the page's question: folded until asked for
   const [chartOpen, setChartOpen] = useState(false)
@@ -504,7 +505,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   )
   const alertPanel = alert ? (
     <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN}
-      calendar={region ? <a href={`${regionsHref(region)}#calendar`} onClick={leave} className="rounded text-[color:var(--bone2)] underline decoration-[color:var(--bone-30)] underline-offset-4 hover:text-[color:var(--bone)]">See this place’s fire calendar</a> : null}
+      calendar={null}
       onHelp={() => { setTab('info'); setSnap(1); window.setTimeout(() => startGuide(SHIFT, motion), 80) }}
       aquaThen={clock === 'old'} onAquaThen={(t) => setClock(t ? 'old' : 'new')} />
   ) : null
