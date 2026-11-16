@@ -24,7 +24,7 @@ import { startGuide } from './tour'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
-import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, N as DOTS, SAT, SAT_NAMES, SENSOR, TOTALS, WINDOW, groupOf, heatShare, histogram, lstOf, near, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
+import { BIN, BIN_FROM, BIN_TO, FRP, LAT, LON, N as DOTS, SAT, SAT_NAMES, SENSOR, TOTALS, WINDOW, edgeLat, groupOf, heatShare, histogram, lstOf, near, sightings, strongest, summary, utcOf, type SatGroup } from '@/r2/fires'
 import { STUDIED_IN, STUDIED_PLACES, lookUpPlace, nameAt, nameNear, placeById, searchPlaces, type Place } from '@/r2/places'
 import { STARTERS, ask, type SiAction } from '@/r2/si'
 import { BOX as DAY_BOX, DAY as FIRE_DAY_DATE, FIRES as DAY_FIRES, PASS_END, SOURCES as DAY_SOURCES, SUNSET, run as dayRun, scene as dayScene, type Delay as DayDelay, type Source as DaySource } from '@/r2/response'
@@ -452,7 +452,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     const r = reading(c, 2025)
     return { ok: r.ok, gap: r.L != null ? (r.L - 1) * 100 : null, outside: r.outside }
   }, [fire, cellById])
-  if (fire != null && wide) callouts.push({ key: `fire-${fire}-${fireBelow ? 'b' : 'a'}`, lon: LON[fire], lat: LAT[fire], anchor: fireBelow ? 'top' : 'bottom', content: <FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} below={fireBelow} /> })
+  if (fire != null && wide) callouts.push({ key: `fire-${fire}-${fireBelow ? 'b' : 'a'}`, lon: LON[fire], lat: edgeLat(fire, fireBelow), anchor: fireBelow ? 'top' : 'bottom', content: <FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} below={fireBelow} /> })
   if (place && !region && arrived && !day) callouts.push({ key: `pin-${place.id}`, lon: place.lon, lat: place.lat, anchor: 'center', content: <Reticle text={coords(place.lat, place.lon)} motion={motion} /> })
 
   const search = (
@@ -1310,7 +1310,7 @@ function LookChart({ box: viewBox, probe, show, setShow, fire, near, oldClock, l
           </div>
           {sources ? (
             <ul className="mt-1 flex list-none flex-col gap-1 border-t border-[color:var(--hairline)] pt-2 text-[11px] text-[color:var(--bone3)]">
-              <li>Fires: NASA FIRMS, MODIS (Terra, Aqua) and VIIRS 375 m (NOAA-20, NOAA-21), {WINDOW.start} to {WINDOW.end} UTC. The files hold {fmtInt(TOTALS.reduce((a, b) => a + b, 0))} daytime detections; the map draws {fmtInt(DOTS)}, the strongest per satellite in each 2 km square.</li>
+              <li>Fires: NASA FIRMS, MODIS (Terra, Aqua) and VIIRS 375 m (NOAA-20, NOAA-21), {WINDOW.start} to {WINDOW.end} UTC. The files hold {fmtInt(TOTALS.reduce((a, b) => a + b, 0))} daytime detections; the map draws {fmtInt(DOTS)}, the strongest per satellite in each 2 km square{live ? '; close up, every detection as a square' : ''}.</li>
               <li>Map: NASA Blue Marble{live ? ', through NASA GIBS' : ''}.</li>
               {live ? <li>Close up: Sentinel-2 cloudless 2016 by EOX (s2maps.eu), contains modified Copernicus Sentinel data 2016, CC BY 4.0.</li> : null}
               <li>Aqua 2012–20: the team’s drift files. Countries: mledoze/countries, ODbL.</li>

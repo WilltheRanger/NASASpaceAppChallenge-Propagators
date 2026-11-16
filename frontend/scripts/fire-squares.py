@@ -6,7 +6,9 @@ Inputs : NASA FIRMS global files (MODIS C6.1 for Terra and Aqua; VIIRS C2 375 m 
          is right for dots; squares need every detection, so that neighbours join into the ground that was burning.
 Output : frontend/public/data/fire-squares.json
          pts: lon * 10000, lat * 10000, satellite code, fire radiative power (MW, rounded), and the detection's ground
-         footprint as FIRMS gives it: scan (across the satellite's path) and track (along it), in units of 10 m.
+         footprint as FIRMS gives it: scan (across the satellite's path) and track (along it), in units of 10 m, and the
+         minutes after the file's start (UTC), counted as fires-day.json counts them, so a clicked square's card tells its
+         own time.
 The detections kept are the same ones fires-day.json was thinned from: daytime (daynight = D), from its start to each
 satellite's last dot. The script stops if a satellite's count differs from the count that file records.
 """
@@ -26,15 +28,15 @@ for f in sys.argv[1:]:
         t = datetime.strptime(r['acq_date'] + r['acq_time'].zfill(4), '%Y-%m-%d%H%M').replace(tzinfo=timezone.utc)
         if not (start <= t <= start + timedelta(minutes=last[s])): continue
         counts[s] += 1
-        rows.append((s, float(r['longitude']), float(r['latitude']), float(r['frp'] or 0), float(r['scan']), float(r['track'])))
+        rows.append((s, float(r['longitude']), float(r['latitude']), float(r['frp'] or 0), float(r['scan']), float(r['track']), int((t - start).total_seconds() // 60)))
 if counts != day['counts']: sys.exit(f"counts differ from fires-day.json: here {counts}, there {day['counts']}")
 rows.sort()
 pts = []
-for s, lon, lat, frp, scan, track in rows:
-    pts += [round(lon * 10000), round(lat * 10000), s, round(frp), round(scan * 100), round(track * 100)]
+for s, lon, lat, frp, scan, track, m in rows:
+    pts += [round(lon * 10000), round(lat * 10000), s, round(frp), round(scan * 100), round(track * 100), m]
 out = {
     'source': day['source'], 'sats': day['sats'], 'start': day['start'], 'end': day['end'], 'n': len(rows),
-    'note': 'pts: lon*10000, lat*10000, satellite code, FRP in MW, scan and track footprint in units of 10 m; every daytime detection',
+    'note': 'pts: lon*10000, lat*10000, satellite code, FRP in MW, scan and track footprint in units of 10 m, minutes after start (UTC); every daytime detection',
     'pts': pts,
 }
 dst = os.path.join(HERE, '..', 'public', 'data', 'fire-squares.json')
