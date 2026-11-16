@@ -199,8 +199,8 @@ export function AlertPanel({ place, rows, rise, set, delay, onDelay, aquaBefore,
           </p>
           <p className="text-sm leading-5 text-[color:var(--bone2)]">
             {fewer > 0
-              ? <>Same delay, so the alert comes {later} min later with <span className="text-[color:var(--bone)]">{fewer} min less daylight</span>.</>
-              : <>Same delay, so the alert comes {later} min later; after dark either way.</>}
+              ? <><span className="text-[color:var(--bone)]">{fewer} min less daylight</span> with the same delay.</>
+              : <>After dark either way.</>}
           </p>
         </div>
       ) : null}
