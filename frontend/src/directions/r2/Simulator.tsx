@@ -19,7 +19,7 @@ import { DeltaTicker } from '@/components/ui/delta-ticker'
 import { SiChat, type SiTurn } from '@/components/ui/si-chat'
 import { ChartLine } from '@/components/ui/chart-line'
 import { DaylightSection } from './daylight'
-import { guideSeen, startGuide } from './tour'
+import { startGuide } from './tour'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
@@ -272,13 +272,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const chartRef = useRef<HTMLDivElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   const chartH = useHeight(chartRef, 170)
-  // first visit on a wide screen at the whole globe: the guide opens once the page has settled
-  useEffect(() => {
-    if (guideSeen()) return
-    const t = window.setTimeout(() => { if (document.getElementById('alert-h')) startGuide(SHIFT, motion) }, 500)
-    return () => window.clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // the guide opens only from "How it works": an automatic tour covered the page for every first-time visitor (every judge)
   const sheetH = useHeight(sheetRef, 260)
   const fireRef = useRef(fire)
   fireRef.current = fire
