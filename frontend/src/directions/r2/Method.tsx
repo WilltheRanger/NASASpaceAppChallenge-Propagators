@@ -528,7 +528,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           <Accordion type="multiple" motion={motion.on} level={3}>
             {items.map((it, i) => (
               <AccordionItem key={it.t} value={`l${i}`}>
-                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{[1, 2, 5].includes(i) ? 'Addressed · ' : ''}{it.t}</AccordionTrigger>
+                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{it.t}</AccordionTrigger>
                 <AccordionContent><p className="max-w-[var(--measure)]">{it.b}</p>
                   <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{[
                     'Next: independent observations and a design that separates timing from other changes.',

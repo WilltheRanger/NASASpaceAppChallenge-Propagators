@@ -240,7 +240,6 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         </div>
         <Calendar d={d} mode={mode} onMode={setMode} range={range} onRange={setRange} small={small} />
         <Result d={d} links={links} leave={leave} />
-        <p className={cn(shell, 'pb-4 text-sm text-[color:var(--bone2)]')}>Close call: just outside the usual range, but the likely range overlaps it.</p>
         <YearByYear d={d} year={year} onYear={setYear} small={small} />
         <LookTimes key={d.id} d={d} />
         {/* any other area: the world map lives on Explore, marked as early exploration */}
@@ -906,10 +905,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="calendar-h" className={title}>Harmonized fire calendar</h2>
-          <p className="mt-2 max-w-[var(--measure)] text-sm text-[color:var(--bone2)] sm:text-base">
-            Each row is a year and each cell a month. {mode === 'count' ? 'Brighter cells mean more hotspots.' : 'Gold cells had more hotspots than a typical year, blue cells fewer.'}
-          </p>
-          <p className="mt-4 text-lg text-[color:var(--bone)]">{headline}</p>
+          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">{headline}</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -947,7 +943,6 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
             />
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}
-          {d.id.startsWith('br-') ? <RecentObservations /> : null}
           <CalendarLegend mode={mode} render="fill" className="mt-4 [&_span]:whitespace-nowrap max-sm:[&_[aria-hidden]>span]:w-3" />
           <More label="About these numbers" className="mt-4">
           <div className="mt-2 flex max-w-[var(--measure)] flex-col gap-1 text-xs text-[color:var(--bone3)]">
@@ -956,6 +951,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
             <p>Counts before 2012 are Aqua’s own. From 2012 they come from VIIRS, whose overpass time has stayed constant, scaled to Aqua using the 2012–2020 ratio.</p>
           </div>
           </More>
+          {d.id.startsWith('br-') ? <RecentObservations /> : null}
           <a href={`#top`} className={cn('mt-6 inline-flex min-h-11 items-center gap-1 text-sm text-[color:var(--bone2)] hover:text-[color:var(--bone)]', ease, focusRing)}>
             Pick another place <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />
           </a>
