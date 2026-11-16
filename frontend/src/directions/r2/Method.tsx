@@ -18,8 +18,9 @@ import { useMeasuredWidth } from '@/components/ui/series-chart'
 import { CHECKS, DETECTION, fmtInt, fmtRange, hm, inpeReproduction, pct, phrase, regionData, type Check } from '@/r2/data'
 import { cn } from '@/lib/utils'
 import { TwoClocks } from './FieldFilm'
+import { OverviewNotes } from './Overview'
 import {
-  CAVEAT, CREDITS, DetMark, Footer, IMG, MockTag, More, PageNext, REPO_URL, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
+  CAVEAT, CREDITS, DetMark, Footer, IMG, MockTag, More, PageNext, PictureCredits, REPO_URL, SiteBar, andList, capital, focusRing, glideTo, numWord, shell, textLink, title, underline, useMedia, useMotion,
   type DetShape, type Leave, type Links, type Nav,
 } from './common'
 
@@ -61,6 +62,7 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
         <Detection />
         <InpeMatch />
         <Limits links={links} leave={leave} />
+        <OverviewNotes links={links} leave={leave} />
         <Sources />
       </main>
       <PageNext page="method" links={links} leave={leave} />
@@ -647,6 +649,10 @@ function Sources() {
             </li>
           ))}
         </ul>
+        <div id="credits" className="scroll-mt-32 lg:col-span-4">
+          <h3 className="text-base font-medium text-[color:var(--bone)]">Pictures and video</h3>
+        </div>
+        <div className="min-w-0 lg:col-span-8"><PictureCredits /></div>
       </div>
     </section>
   )
