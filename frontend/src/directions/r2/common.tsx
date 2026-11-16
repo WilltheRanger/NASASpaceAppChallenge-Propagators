@@ -150,7 +150,7 @@ export const linksFor = (nav: Nav): Links => ({
 /* ---------- Words said the same way on every page ---------- */
 
 /** Said next to every finding. */
-export const CAVEAT = 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.'
+export const CAVEAT = 'Aqua’s timing changed too. We can’t tell how much of the difference came from the timing.'
 export const FOOTER_LINE = 'A NASA Space Apps Challenge 2026 team project, not an official NASA product.'
 export const JETHVA = 'https://doi.org/10.3390/rs18101506'
 /** The code: the Pages deploy sets it from the repository it builds; the comment pages use the same address (the
@@ -563,7 +563,7 @@ export function Footer({ links, leave, notes = [] }: { links: Links; leave: Leav
         <div className="flex flex-col gap-4 border-t border-[color:var(--hairline)] pt-8 sm:flex-row sm:items-center sm:justify-between lg:col-span-12">
           <div className="flex flex-col gap-2">
             <AnchorLogo height={18} className="text-[color:var(--bone)]" />
-            <p className="text-xs text-[color:var(--bone3)]">Team Propagators. {FOOTER_LINE}{ANY_MOCK ? ' This build uses mock data.' : ''}</p>
+            <p className="text-xs text-[color:var(--bone3)]">{FOOTER_LINE}{ANY_MOCK ? ' This build uses mock data.' : ''}</p>
           </div>
           <ElasticSwitch checked={m.on} onCheckedChange={m.set} label="Motion" />
         </div>

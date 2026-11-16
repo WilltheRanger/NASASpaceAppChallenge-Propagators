@@ -70,7 +70,7 @@ export default function Method({ links, leave, nav }: { links: Links; leave: Lea
         links={links}
         leave={leave}
         notes={[
-          <>The two pictures of the Amazon were taken on 4 September 2026, with each satellite’s fire detections drawn on them.</>,
+          <>The two pictures of the Amazon were taken on 4 September 2026, with each satellite’s fire hotspots drawn on them.</>,
           <>The steps are shown for the Amazon; every place is worked out the same way.</>,
           <>The small-fires test uses the US Forest Service’s record of California fires, 2012–2020.</>,
           <>Several tests are scored on all six of Brazil’s biomes, including three that aren’t among our six places.{CHECKS.mock ? ' The test results shown are mock data.' : ''}</>,
@@ -94,7 +94,7 @@ function OneDay() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="day-h" className={title}>One afternoon, two looks at the same forest</h2>
-          <p className={lead}>VIIRS looked early in the afternoon. Aqua looked later. The clouds, the smoke and the fires had changed.</p>
+          <p className={lead}>Same forest, two times of day: the clouds and fires look different. VIIRS looked early in the afternoon. Aqua looked later.</p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">A single day measures nothing on its own. The yearly counts are the measurement.</p>
         </div>
         <figure className="m-0 lg:col-span-8">
@@ -163,7 +163,7 @@ function RangeStrip({ gap, lo, hi, band }: { gap: number; lo: number; hi: number
   const x = (v: number) => 4 + ((v - min) / (max - min)) * Math.max(0, W - 8)
   const H = 64, cy = 26
   return (
-    <div ref={ref} role="img" aria-label={`Aqua ${pct(gap)} against what we’d expect, likely range ${fmtRange(lo, hi)}; usual range ${fmtRange(band[0], band[1])}.`} style={{ height: H }}>
+    <div ref={ref} role="img" aria-label={`Aqua ${pct(gap)} against our check count, likely range ${fmtRange(lo, hi)}; usual range ${fmtRange(band[0], band[1])}.`} style={{ height: H }}>
       {W > 0 ? (
         <svg width={W} height={H} aria-hidden className="block overflow-visible" fontSize={11}>
           <rect x={x(band[0])} y={cy - 12} width={x(band[1]) - x(band[0])} height={24} fill="rgba(236, 233, 225, 0.12)" rx={2} />
@@ -192,17 +192,17 @@ function Steps() {
     },
     {
       title: 'Learn how Aqua and VIIRS compare',
-      description: 'From 2012 to 2020 they looked at about the same time. That tells us how many daytime detections Aqua records for every 100 by VIIRS on the same days.',
+      description: 'From 2012 to 2020 they looked at about the same time. That tells us how many daytime hotspots Aqua records for every 100 by VIIRS on the same days.',
       figure: ratio != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{Math.round(ratio * 100)}</span>Aqua detections for every 100 VIIRS detections</p> : null,
     },
     {
-      title: 'Work out what we’d expect',
-      description: 'For each later year, VIIRS’s count times that rate is the benchmark. It is an estimate.',
-      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}</p> : null,
+      title: 'Work out our check count',
+      description: 'For each later year, VIIRS’s count times that rate is our check count. It is an estimate.',
+      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>hotspots in our check count for {y.year}</p> : null,
     },
     {
       title: 'Compare',
-      description: y && y.gap != null ? `Aqua recorded ${fmtInt(y.aqua)} detections, which is ${pct(y.gap)} against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.',
+      description: y && y.gap != null ? `Aqua recorded ${fmtInt(y.aqua)} hotspots, which is ${pct(y.gap)} against our check count. Further out than any year from 2012 to 2020 counts as unusual.` : 'Aqua’s count against what we’d expect. Further out than any year from 2012 to 2020 counts as unusual.',
       figure: y && y.gap != null && y.lo != null && y.hi != null ? <RangeStrip gap={y.gap} lo={y.lo} hi={y.hi} band={d.placebo} /> : null,
     },
   ]
@@ -210,14 +210,14 @@ function Steps() {
     <section id="steps" aria-labelledby="steps-h" className={section}>
       <div className={cn(shell, 'py-16 lg:py-24')}>
         <h2 id="steps-h" className={title}>What we compare, in four steps</h2>
-        <p className={lead}>Shown for the Amazon.</p>
+        <p className={lead}>We compare Aqua's count with our check count, year by year. Shown for the Amazon.</p>
         <HowItWorks steps={steps} motion={motion.on} className="mt-10" />
         <p className="mt-8 max-w-[var(--measure)] text-base text-[color:var(--bone)]">{CAVEAT}</p>
         <More label="Technical notes" className="mt-4">
           <ul className="mt-2 flex max-w-[44rem] list-disc flex-col gap-2 pl-5 text-sm text-[color:var(--bone2)]">
-            <li>Look time: the median local solar time of daytime vegetation-fire detections near the middle of the satellite’s view, from NASA FIRMS’s yearly files. VIIRS here is the S-NPP satellite.</li>
-            <li>The rate: Aqua’s daytime detections divided by VIIRS’s on the same days, 2012–2020.</li>
-            <li>What we’d expect: VIIRS’s count times that rate, on the same days. A day when either satellite sent no data is dropped. The calendar uses the same rate, filled from NOAA-20 where S-NPP is missing.</li>
+            <li>Look time: the middle local solar time of daytime vegetation-fire hotspots near the middle of the satellite’s view, from NASA FIRMS’s yearly files. VIIRS here is the S-NPP satellite.</li>
+            <li>The rate: Aqua’s daytime hotspots divided by VIIRS’s on the same days, 2012–2020.</li>
+            <li>Our check count: VIIRS’s count times that rate, on the same days. A day when either satellite sent no data is dropped. The calendar uses the same rate, filled from NOAA-20 where S-NPP is missing.</li>
             <li>Likely range: a 95% interval from resampling days. The usual range is the nine years 2012–2020, each scored against the other eight. A year outside it is flagged; a flag describes, it isn’t a significance test.</li>
           </ul>
         </More>
@@ -235,7 +235,7 @@ const PLAIN: Record<string, string> = {
   P3: 'Our copy of the data should match INPE’s official counts.',
   P4: 'Before the drift, the yearly wobble should be no bigger than day-to-day chance.',
   P5: 'A change in the size of fires shouldn’t explain the result.',
-  P6: 'The two VIIRS satellites should agree, so what we’d expect isn’t drifting itself.',
+  P6: 'The two VIIRS satellites should agree, so our check count isn’t drifting itself.',
   P7: 'The old link between look time and count should predict the result.',
   P8: 'VIIRS should catch small real fires more often than Aqua.',
   P9: 'Where fires grow through the afternoon, Aqua’s count should rise and Terra’s fall.',
@@ -267,16 +267,13 @@ function Checks() {
   const pass = count('pass'), fail = count('fail'), pending = count('pending')
   const before = checks.filter((c) => c.result_existed_before_commit).length
   if (!checks.length) return null
-  const heading = `We wrote down ${numWord(checks.length)} tests. ${capital(numWord(pass))} passed, ${numWord(fail)} failed${pending ? ` and ${numWord(pending)} ${pending === 1 ? 'is' : 'are'} pending` : ''}.`
+  const heading = `We wrote down ${checks.length} tests. ${pass} passed, ${fail} failed${pending ? `, ${pending} ${pending === 1 ? 'isn’t' : 'aren’t'} done yet` : ''}.`
   return (
     <section id="checks" aria-labelledby="checks-h" className={section}>
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="checks-h" className={title}>{heading}</h2>
-          <p className={lead}>Each one says what should be true if the timing matters. The failures stay on the page.</p>
-          {before ? (
-            <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">For {numWord(before)} of them we had already seen the result when we wrote the rule. Those are marked, because they aren’t true predictions.</p>
-          ) : null}
+          <p className={lead}>For {before} of them we already knew the answer, so we marked those. Each one says what should be true if the timing matters. The failures stay on the page.</p>
           {REPO_URL ? (
             <p className="mt-4 text-sm"><a href={REPO_URL} target="_blank" rel="noreferrer" className={textLink}>The rules and full results are in the code</a></p>
           ) : null}
@@ -402,11 +399,11 @@ function Detection() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="detection-h" className={title}>VIIRS picks up small fires that Aqua misses</h2>
-          <p className={lead}>California keeps a record of its fires. We checked which of them each satellite picked up. VIIRS found more of the small ones, so we use it as the yardstick.</p>
+          <p className={lead}>VIIRS spots small fires that Aqua misses, so it makes a good check. California keeps a record of its fires. We checked which of them each satellite picked up.</p>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">This is one way of matching fires in one state. It doesn’t give the cameras’ limits everywhere.</p>
           <More label="How we matched" className="mt-3">
             <p className="mt-1 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-              Each fire in the US Forest Service’s record was matched to the satellites’ detections. {matchingRule(DETECTION.rule)}
+              Each fire in the US Forest Service’s record was matched to the satellites’ hotspots. {matchingRule(DETECTION.rule)}
             </p>
           </More>
           <MockTag show={!!DETECTION.mock} className="mt-3 inline-block" />
@@ -464,7 +461,7 @@ function InpeChart() {
       </p>
       <div ref={ref} className="relative w-full" style={{ height: H }} onPointerLeave={() => setHover(null)}>
         {W > 0 ? (
-          <svg width={W} height={H} className="block" fontSize={11} role="img" aria-label={`The Amazon’s yearly fire count, ${rows[0].year} to ${rows[rows.length - 1].year}: INPE’s official count as bars and our own count of Aqua’s detections as a line; the two sit almost on top of each other.`}>
+          <svg width={W} height={H} className="block" fontSize={11} role="img" aria-label={`The Amazon’s yearly fire count, ${rows[0].year} to ${rows[rows.length - 1].year}: INPE’s official count as bars and our own count of Aqua’s hotspots as a line; the two sit almost on top of each other.`}>
             {ticks.map((t) => (
               <g key={t} aria-hidden>
                 <line x1={M.l} x2={W - M.r} y1={y(t)} y2={y(t)} stroke="var(--hairline)" shapeRendering="crispEdges" />
@@ -482,7 +479,7 @@ function InpeChart() {
       </div>
       <div aria-hidden className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[color:var(--bone2)]">
         <span className="inline-flex items-center gap-2"><span className="inline-block h-3 w-2.5 bg-[color:var(--sat-aqua)] opacity-70" />INPE’s official count</span>
-        <span className="inline-flex items-center gap-2"><span className="inline-block h-0.5 w-4 bg-[color:var(--bone)]" />Our count of Aqua’s detections, NASA FIRMS</span>
+        <span className="inline-flex items-center gap-2"><span className="inline-block h-0.5 w-4 bg-[color:var(--bone)]" />Our count of Aqua’s hotspots, NASA FIRMS</span>
       </div>
       <More label="Show the numbers" className="mt-2">
         <table className="mt-2 w-full max-w-md border-collapse text-xs tabular-nums">
@@ -503,15 +500,16 @@ function InpeMatch() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="inpe-h" className={title}>Our count of Aqua’s fires matches INPE’s</h2>
+          <p className={lead}>Our Aqua count is within 10% of Brazil's official count in more than 9 out of 10 months.</p>
           {all ? (
-            <p className={lead}>
+            <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
               From 2012 to 2020 our monthly count was within 10% of INPE’s official count {all}% of the time{study ? `, and ${study[3]}% of the time from 2021 to 2025` : ''}.
             </p>
           ) : null}
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">INPE uses the same NASA fire data, so this shows we follow the same series. It isn’t an independent test.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
-          <p className="mb-4 text-lg font-medium">The Amazon’s hotspot detections by year</p>
+          <p className="mb-4 text-lg font-medium">The Amazon’s hotspots by year</p>
           <InpeChart />
         </div>
       </div>
@@ -553,8 +551,8 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
   const link = cn(underline, 'text-[color:var(--bone)]', focusRing)
   const items: { t: string; b: ReactNode }[] = [
     {
-      t: 'It can’t say how much of a difference the timing caused.',
-      b: 'It sets Aqua’s count beside what we’d expect from VIIRS. The two changed together, and the data don’t separate the timing’s share. The benchmark is an estimate; it does not replace INPE’s official count.',
+      t: 'How much of a difference the timing caused.',
+      b: 'It sets Aqua’s count beside our check count from VIIRS. The two changed together, and the data don’t separate the timing’s share. Our check count is an estimate; it does not replace INPE’s official count.',
     },
     {
       t: '“Unusual” is a rough threshold. It is not proof.',
@@ -585,7 +583,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
         <>
           NASA has planned <a href={NASA_TERRA} target="_blank" rel="noreferrer" className={link}>Terra’s last operations</a> and{' '}
           <a href={NASA_AQUA_LIFE} target="_blank" rel="noreferrer" className={link}>Aqua’s end of life</a>, so counts that follow Aqua, as INPE’s does, will need a new reference.{' '}
-          <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 and NOAA-21 carry the same camera and keep their time, so what we’d expect can still be worked out.
+          <a href={NESDIS_SNPP} target="_blank" rel="noreferrer" className={link}>S-NPP</a>, one of the VIIRS satellites, has been decommissioned. NOAA-20 and NOAA-21 carry the same camera and keep their time, so our check count can still be worked out.
         </>
       ),
     },
@@ -595,7 +593,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
           <h2 id="limits-h" className={title}>What Anchor can’t tell you</h2>
-          <p className={lead}>Comparing one year’s fire count with another’s? Check how far Aqua sat from what we’d expect in both years before you do.</p>
+          <p className={lead}>Comparing one year’s fire count with another’s? Check how far Aqua sat from our check count in both years before you do.</p>
           <p className="mt-4 text-sm"><a href={links.regions()} onClick={leave} className={textLink}>The six places</a></p>
         </div>
         <div className="min-w-0 lg:col-span-8">

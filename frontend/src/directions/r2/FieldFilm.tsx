@@ -183,7 +183,7 @@ const usualText = (d: RegionData) => `${pct(d.placebo[0])} to ${pct(d.placebo[1]
 /** The Regions page's sections, in the order the page tells them. */
 const sectionSpy = [
   { id: 'calendar', label: 'Calendar' },
-  { id: 'verdict', label: 'Against the benchmark' },
+  { id: 'verdict', label: 'Against our check count' },
   { id: 'look', label: 'When it flies over' },
   { id: 'global', label: 'Any area' },
 ]
@@ -192,7 +192,7 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
   const d = useMemo(() => regionData(region), [region])
   const motion = useMotion()
   const [year, setYear] = useState(() => defaultYear(d))
-  const [mode, setModeState] = useState<CalendarMode>(() => (readParam('cal') === 'count' ? 'count' : 'anomaly'))
+  const [mode, setModeState] = useState<CalendarMode>(() => (readParam('cal') === 'anomaly' ? 'anomaly' : 'count'))
   const [range, setRangeState] = useState<MonthRange>(() => readRange(d))
   const setMode = (m: CalendarMode) => { setModeState(m); writeParams(nav, { cal: m === 'count' ? 'count' : null }) }
   const setRange = (r: MonthRange) => {
@@ -257,9 +257,9 @@ function RegionsPage({ region, onRegion, nav, links, leave }: { region: string; 
         leave={leave}
         notes={[
           <>Fires are counted on the days both satellites sent data.</>,
-          <>Unusual means further from what we’d expect than any year from 2012 to 2020. For {d.phrase.the} that usual range is {usualText(d)}.</>,
-          <>Look times are local sun time: the middle of each satellite’s fire detections that year.</>,
-          <>Calendar: normal is the middle value for that month, 2002–2025, counted by VIIRS and scaled to Aqua’s count.</>,
+          <>Unusual means further from our check count than any year from 2012 to 2020. For {d.phrase.the} that usual range is {usualText(d)}.</>,
+          <>Look times are local sun time: the middle of each satellite’s hotspots that year.</>,
+          <>Calendar: usual is the middle value for that month, 2002–2025. Before 2012 it is Aqua’s own count; from 2012, our check count.</>,
           <>Files for {d.phrase.the}: drift, audit, twoclocks and calendar, in the team’s data/out folder.{d.mock || d.twoMock ? ' Some of these are mock data.' : ''}</>,
         ]}
       />
@@ -376,7 +376,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
     return (
       <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
         <div className={cn(shell, 'py-16')}>
-          <h2 id="verdict-h" className={title}>Too few fires over {d.phrase.the} to compare Aqua with the benchmark</h2>
+          <h2 id="verdict-h" className={title}>Too few fires over {d.phrase.the} to compare Aqua with our check count</h2>
           <div className="mt-8">{sim}</div>
         </div>
       </section>
@@ -387,8 +387,8 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
     <section id="verdict" aria-labelledby="verdict-h" className="scroll-mt-32">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-20')}>
         <div className="lg:col-span-7">
-          <h2 id="verdict-h" className={title}>Aqua against the benchmark</h2>
-          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">In {y.year}, Aqua counted {moreFewer(y.gap)} fires over {d.phrase.the} than the VIIRS-based benchmark.</p>
+          <h2 id="verdict-h" className={title}>Aqua against our check count</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-lg text-[color:var(--bone)]">In {y.year}, Aqua counted {moreFewer(y.gap)} hotspots over {d.phrase.the} than our check count.</p>
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
             <RollingDigits text={pct(y.gap, 0)} live motion={motion.on} className="text-[length:var(--fs-72)] font-medium leading-none tracking-[-0.03em] max-sm:text-[56px]" />
             <span className={cn('rounded px-2 py-1 text-sm', unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone)]')}>{UNUSUAL[y.verdict]}</span>
@@ -405,7 +405,7 @@ function Result({ d, links, leave }: { d: RegionData; links: Links; leave: Leave
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[color:var(--hairline)] pt-4 text-sm">
             <dt className="text-[color:var(--bone3)]">Aqua counted</dt>
             <dd className="tabular-nums">{fmtInt(y.aqua)}</dd>
-            <dt className="text-[color:var(--bone3)]">Benchmark</dt>
+            <dt className="text-[color:var(--bone3)]">Check count</dt>
             <dd className="tabular-nums">{y.fixed != null ? fmtInt(y.fixed) : '—'}</dd>
             <dt className="text-[color:var(--bone3)]">Likely range</dt>
             <dd className="tabular-nums">{rangeText(y)}</dd>
@@ -641,7 +641,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
       range: y.lo != null && y.hi != null ? [y.lo, y.hi] : null,
       expected: d.placebo,
       outside: y.verdict === 'outside',
-      valueText: y.verdict === 'na' ? `${y.year}: too few fires to read` : `${y.year}: Aqua ${pct(y.gap!)} against what we’d expect, likely range ${rangeText(y)}, ${UNUSUAL[y.verdict].toLowerCase()}`,
+      valueText: y.verdict === 'na' ? `${y.year}: too few fires to read` : `${y.year}: Aqua ${pct(y.gap!)} against our check count, likely range ${rangeText(y)}, ${UNUSUAL[y.verdict].toLowerCase()}`,
     })),
     [d],
   )
@@ -656,7 +656,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
         <div className="lg:col-span-4">
           <h3 id="years-h" className={title}>{yearsHeading(d)}</h3>
           <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">
-            Each year since 2021: Aqua’s count against the benchmark. The line is the likely range; the grey band is the usual range, from 2012 to 2020.
+            Each year since 2021: Aqua’s count against our check count. The line is the likely range; the grey band is the usual range, from 2012 to 2020.
           </p>
         </div>
         <div className="min-w-0 lg:col-span-8">
@@ -667,14 +667,14 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
             selectedIndex={selected >= 0 ? selected : null}
             onInspect={setInspect}
             onSelect={(i) => onYear(d.years[i].year)}
-            groupLabel={`Aqua against what we’d expect, by year, for ${d.name}`}
+            groupLabel={`Aqua against our check count, by year, for ${d.name}`}
             bandLabel="Usual range, 2012–2020"
             formatTick={tickText}
             legend={{ outside: 'Unusual', inside: 'Not unusual', range: 'Likely range' }}
           />
           <More label="Show the numbers" className="mt-4">
           <table className="mt-2 w-full border-collapse text-sm tabular-nums">
-            <caption className="sr-only">Aqua’s count against what we’d expect, by year, for {d.name}</caption>
+            <caption className="sr-only">Aqua’s count against our check count, by year, for {d.name}</caption>
             <thead>
               <tr className="border-b border-[color:var(--hairline)]">
                 <th scope="col" className={th}>Year</th>
@@ -710,7 +710,7 @@ function YearByYear({ d, year, onYear, small }: { d: RegionData; year: number; o
               <dl className="mt-2 grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2">
                 {v.whole.map((r) => (
                   <Fragment key={r.name}>
-                    <dt className="text-[color:var(--bone3)]">{r.name === 'Fixed-clock calendar' ? 'VIIRS-based benchmark' : r.name}</dt>
+                    <dt className="text-[color:var(--bone3)]">{r.name === 'Fixed-clock calendar' ? 'Our check count' : r.name}</dt>
                     <dd className="tabular-nums">{pct(r.change)}</dd>
                     <dd className="tabular-nums text-[color:var(--bone3)]">{fmtInt(r.a)} to {fmtInt(r.b)}</dd>
                   </Fragment>
@@ -846,7 +846,7 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
 /* ---------- The monthly calendar ---------- */
 
 const modeClasses = {
-  root: 'inline-flex h-11 overflow-hidden rounded bg-[color:var(--raised)] sm:h-9',
+  root: 'inline-flex h-11 overflow-hidden rounded bg-[color:var(--raised)] sm:h-9 [&>button:last-child]:order-first',
   item: cn(
     'px-3 text-sm text-[color:var(--bone2)] outline-none data-[state=off]:hover:text-[color:var(--bone)] sm:px-4',
     'focus-visible:shadow-[var(--ring-in)] data-[state=on]:bg-[color:var(--bone)] data-[state=on]:text-[color:var(--ink)] data-[state=on]:focus-visible:shadow-[var(--ring-in-on)]',
@@ -871,6 +871,16 @@ function MonthField({ label, value, years, onChange }: { label: string; value: s
   )
 }
 
+/** One headline per place above its fire calendar, in the team's words. */
+const HEADLINE: Record<string, ReactNode> = {
+  'br-amazon': 'Fire season: August to October. 2024 was a big year. 2025 had only about a quarter of the usual hotspots.',
+  'br-cerrado': 'Fire season: August to October. 2024 was about usual. 2025 had about a quarter fewer hotspots than usual.',
+  'br-pantanal': 'Fire season: August to October. 2024 had about 2 and a half times the usual hotspots. 2025 had only about one-eighth.',
+  'ar-argentina': 'Fire season: July to September. 2024 had about one-fifth fewer hotspots than usual. 2025 had a little over half the usual amount.',
+  'in-punjab-haryana': <>Crop-burning season: October to December. 2024 and 2025 had far fewer hotspots. Careful: farmers now burn later in the day, so fewer hotspots may not mean less burning (<a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>).</>,
+  'us-california': 'Fire season: August to October. 2020 was the biggest year. 2024 and 2025 had a bit fewer hotspots than usual.',
+}
+
 function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; mode: CalendarMode; onMode: (m: CalendarMode) => void; range: MonthRange; onRange: (r: MonthRange) => void; small: boolean }) {
   // The page is lazy-loaded: resolve a direct calendar link after its target mounts.
   useEffect(() => {
@@ -891,22 +901,19 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
   const setTo = (ym: string) => onRange({ from: ym < range.from ? ym : range.from, to: ym })
   const [mon, yr] = f ? f.label.split(' ') : []
   const highlight = f ? { year: Number(yr), month: MONTHS.indexOf(mon) } : null
-  const heading = f ? `${MONTH_LONG[MONTHS.indexOf(mon)]} ${yr} was the furthest above normal for its month: ${pct(f.anomaly, 0)}` : 'Every month in this range sits near normal'
-  const sentence = mode === 'anomaly'
-    ? '2002–2011: Aqua’s own count. From 2012: the VIIRS-based benchmark, VIIRS’s count scaled to Aqua’s 2012–2020 rate. Sand: more than normal for this month. Slate: fewer than normal.'
-    : '2002–2011: Aqua’s own count. From 2012: the VIIRS-based benchmark, VIIRS’s count scaled to Aqua’s 2012–2020 rate. Brighter: more detections.'
+  const heading = HEADLINE[d.id] ?? null
   return (
     <section id="calendar" aria-labelledby="calendar-h" className="scroll-mt-32 border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
         <div className="lg:col-span-4">
-          <h2 id="calendar-h" className={title}>Every month since 2002, in Aqua-equivalent units</h2>
-          <p className="mt-4 text-lg text-[color:var(--bone)]">{heading}</p>
-          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{sentence}</p>
-          <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Fire season, {seasonMonths(d)}: the underlined months. This is a historical comparison, not a forecast, a count of unique fires, or a measure of burned area.</p>
+          <h2 id="calendar-h" className={title}>Fire calendar</h2>
+          <p className="mt-4 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">Each row is a year. Each box is a month. Brighter boxes mean more hotspots.</p>
+          {heading ? <p className="mt-4 text-lg text-[color:var(--bone)]">{heading}</p> : null}
+          <p className="mt-3 max-w-[var(--measure)] text-xs text-[color:var(--bone3)]">Usual = the middle value for that month from 2002 to 2025. Before 2012 we use Aqua’s own count. From 2012 we use our check count.</p>
         </div>
         <div className="min-w-0 lg:col-span-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <ModeToggle value={mode} onChange={onMode} classes={modeClasses} labels={{ anomaly: 'Compared with normal', count: 'Number of fires' }} />
+            <ModeToggle value={mode} onChange={onMode} classes={modeClasses} labels={{ anomaly: 'More or less than usual', count: 'How many hotspots' }} />
             <span role="group" aria-label="Months shown" className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--bone2)]">
               <MonthField label="From" value={range.from} years={allYears} onChange={setFrom} />
               <span aria-hidden>to</span>
@@ -936,7 +943,7 @@ function Calendar({ d, mode, onMode, range, onRange, small }: { d: RegionData; m
               monthLabels={small ? 'initial' : 'short'}
               highlight={highlight}
               season={seasonIndex(d)}
-              label={`Fire calendar for ${d.name}, ${mode === 'anomaly' ? 'each month compared with normal for that month' : 'the number of fires each month'}${f ? `; ${f.label} is ringed` : ''}`}
+              label={`Fire calendar for ${d.name}, ${mode === 'anomaly' ? 'each month, more or less than usual' : 'how many hotspots each month'}${f ? `; ${f.label} is ringed` : ''}`}
             />
           </div>
           {/* phones: keep the legend's phrases whole and its swatches narrower, so the ramp sits on one line */}

@@ -139,10 +139,11 @@ function Park({ links, leave }: { links: Links; leave: Leave }) {
           <div className="relative flex h-full items-end p-5 pb-10 sm:p-10 lg:p-14">
             <div>
               <h1 id="park-h" className="max-w-[15ch] text-balance text-[clamp(40px,5.8vw,92px)] font-medium leading-[1] tracking-[-0.035em] text-[color:var(--bone)]">
-                Anchor: a fire calendar on a steady reference.
+                Anchor
               </h1>
-              <p className="mt-5 max-w-[34rem] text-lg text-[color:var(--bone2)]">
-                24 years of satellite fire records for six places, compared against one consistent benchmark. For fire managers, responders, scientists and journalists.
+              <p className="mt-5 max-w-[34rem] text-2xl text-[color:var(--bone)]">A fire calendar for six places.</p>
+              <p className="mt-3 max-w-[34rem] text-lg text-[color:var(--bone2)]">
+                See when each place burns, which years were unusual, and why one satellite’s count can fool you.
               </p>
               <a href={`${links.regions()}#calendar`} onClick={leave} className={cn(primaryButton, 'mt-6')}>
                 Open the fire calendar <ArrowUpRight size={16} aria-hidden />
@@ -221,16 +222,16 @@ function OneDay() {
       description: <>{DAY.driftStart ? <>Here the move started in {DAY.driftStart}. </> : null}Across our six places, Aqua now looks {RANGE} later.</>,
     },
     { title: 'A later look sees a different afternoon', description: 'Clouds, smoke and fires change during the day, so a later look can count more fires or fewer.' },
-    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
+    { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}We matched it to Aqua using the years before Aqua’s timing changed: that is our check count.</> },
   ]
   return (
     <section id="day" aria-labelledby="day-h">
       <div className={cn(shell, 'pb-6 pt-10 lg:pb-12 lg:pt-12')}>
         <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
           <h2 id="day-h" className="text-balance text-[clamp(30px,3.6vw,52px)] font-medium leading-[1.05] tracking-[-0.025em] lg:col-span-7">
-            Aqua now looks {look.minutes} minutes later over {phrase(FEATURED).the} than in 2012–2020.
+            Aqua is a NASA satellite. Brazil uses it to count fires every year.
           </h2>
-          <p className="max-w-[30ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">Aqua is the NASA satellite behind Brazil’s official fire count (INPE). Across our six places it now looks {RANGE} later.</p>
+          <p className="max-w-[34ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">But Aqua now flies over more than an hour later than it used to. Fires change during the day, so a later look can change the count, even if there weren’t more or fewer fires that year.</p>
         </div>
         {wideScreen ? (
           <StickyScroll
@@ -307,7 +308,7 @@ function DayPanel({ step, picture = true, caption = true }: { step: number; pict
       <DayLine step={step} />
       {caption ? (
         <figcaption className="mt-3 text-xs text-[color:var(--bone3)]">
-          Pictures: {phrase(FEATURED).the.replace(/^the /, 'the central ')}, 4 September 2026, with each satellite’s fire detections (NASA Worldview). Times: usual looks in {DAY_LOOK?.year}, local sun time.
+          Pictures: {phrase(FEATURED).the.replace(/^the /, 'the central ')}, 4 September 2026, with each satellite’s hotspots (NASA Worldview). Times: usual looks in {DAY_LOOK?.year}, local sun time.
         </figcaption>
       ) : null}
     </figure>
@@ -386,22 +387,12 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
         <div className={cn(shell, 'grid grid-cols-1 gap-y-8 py-16 lg:grid-cols-12 lg:gap-x-6 lg:py-24')}>
           <div className="lg:col-span-8">
             <h2 id="finding-h" tabIndex={-1} className="text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em] outline-none">
-              {DECLINE
-                ? <>Brazil’s official Amazon count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025; the VIIRS-based benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
-                : FINDING.join(' ')}
+              In 2025, Aqua counted about 10,000 more Amazon hotspots than our check count (about 43,000 vs 33,000).
             </h2>
-            {DECLINE ? (
-              <p className="mt-4 text-sm tabular-nums text-[color:var(--ink)] opacity-70">
-                Official (INPE): {int(DECLINE.inpe_2024)} to {int(DECLINE.inpe_2025)} detections. Benchmark: {int(DECLINE.fixed_2024)} to {int(DECLINE.fixed_2025)}.
-              </p>
-            ) : null}
-            <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
-            {AMAZON_2025 && AMAZON_2025.aqua != null && AMAZON_2025.fixed != null ? (
-              <p className="mt-3 max-w-[40rem] text-lg text-[color:var(--ink)]">
-                In {AMAZON_2025.year} Aqua recorded about {int(Math.round((AMAZON_2025.aqua - AMAZON_2025.fixed) / 1000) * 1000)} more Amazon detections than the benchmark{' '}
-                <span className="tabular-nums">({int(AMAZON_2025.aqua)} vs {int(AMAZON_2025.fixed)})</span>.
-              </p>
-            ) : null}
+            <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Brazil’s official count went down by about two-thirds from 2024 to 2025. Our check count went down by about three-quarters.</p>
+            <p className="mt-6 max-w-[40rem] text-sm text-[color:var(--ink)] opacity-70">A hotspot is a spot of fire a satellite sees from space. One big fire can make many.</p>
+            <p className="mt-2 max-w-[40rem] text-sm text-[color:var(--ink)] opacity-70">Our check count comes from VIIRS, a satellite that still flies over at the same time every day. We matched it to Aqua using the years before Aqua’s timing changed.</p>
+
           </div>
           <Reveal className="lg:col-span-3 lg:col-start-10 lg:self-start lg:pt-2">
             <p className="rounded-[4px] border border-[color:var(--ink-20)] p-4 text-base text-[color:var(--ink)] lg:p-5 lg:text-lg">{CAVEAT}</p>
@@ -427,7 +418,7 @@ function Places() {
         <span className={th}>Place</span>
         <span className={th}>How much later Aqua looks</span>
         <span className={th}>
-          {YEAR} count vs the benchmark
+          {YEAR} count vs our check count
           <StripAxis />
         </span>
         <span className={th}>Unusual?</span>
@@ -438,7 +429,7 @@ function Places() {
         ))}
       </ol>
       <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
-        Look times: local sun time, 2012–2020 against {YEAR}. Unusual: further from the benchmark than any year from 2012 to 2020; the amber line is the likely range.
+        Look times: local sun time, 2012–2020 against {YEAR}. Unusual: further from our check count than any year from 2012 to 2020. The amber line is the likely range.
         Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.
       </p>
       <More label="About the range" className="mt-2">
@@ -488,7 +479,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           {r.look ? <MiniShift old={r.look.old} now={r.look.now} /> : null}
         </span>
         <span className="col-span-2 md:col-span-1">
-          <span className={label}>{YEAR} count vs the benchmark</span>
+          <span className={label}>{YEAR} count vs our check count</span>
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
               <RollingDigits text={pct(r.read.gap, 0)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
@@ -563,7 +554,7 @@ function StripAxis() {
       {W > 0
         ? SCALE.ticks.map((v) => (
             <span key={v} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: x(v) }}>
-              {v === 0 ? 'benchmark' : `${v > 0 ? '+' : '−'}${Math.abs(v)}%`}
+              {v === 0 ? 'check count' : `${v > 0 ? '+' : '−'}${Math.abs(v)}%`}
             </span>
           ))
         : null}
@@ -583,7 +574,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
           href={links.regions()}
           leave={leave}
           title="Fire calendar"
-          line="Every month since 2002, for six places."
+          line="When each place burns, month by month."
           className="min-h-[380px] lg:col-span-7 lg:row-span-2 lg:min-h-[620px]"
           art={
             <span className="grid size-full grid-cols-3 grid-rows-2 gap-0.5 bg-[color:var(--ground)]">
@@ -603,7 +594,7 @@ function Doors({ links, leave }: { links: Links; leave: Leave }) {
           href={links.sim()}
           leave={leave}
           title="What-if for responders"
-          line="A what-if: when each satellite’s alert could arrive under an assumed delay."
+          line="What if a fire starts today?"
           className="min-h-[280px] lg:col-span-5"
           art={<img src={`${IMG}sim/${FEATURED}-context.jpg`} alt="" loading="lazy" className={pic} style={{ objectPosition: '30% 62%' }} />}
         />
