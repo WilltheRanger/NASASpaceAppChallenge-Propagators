@@ -76,6 +76,14 @@ const along = (v: number) => (v - SCALE.min) / (SCALE.max - SCALE.min)
 /** The day the middle chapter follows: the featured place's look times, and the satellites' pictures of one day. */
 const DAY = regionData(FEATURED)
 const DAY_LOOK = lookChange(DAY)
+/** How many minutes earlier Terra looks over the featured place than its 2012–2020 median (data/out/drift): 75 for the Amazon */
+const TERRA_EARLIER = (() => {
+  const v = DAY.drift.filter((r) => r.year <= 2020 && r.terra_lst).map((r) => hm(r.terra_lst)).sort((a, b) => a - b)
+  const last = DAY.lastDrift
+  if (!v.length || !last?.terra_lst) return null
+  const m = Math.round((v[Math.floor(v.length / 2)] - hm(last.terra_lst)) * 60)
+  return m > 0 ? m : null
+})()
 type PassKey = 'terra' | 'viirs' | 'aqua'
 const PASSES: Record<PassKey, { name: string; when: string; alt: string; fit?: string }> = {
   terra: { name: 'Terra', when: 'Morning', alt: 'Terra, morning, 4 Sep 2026: hazy smoke and a few clouds over the forest', fit: 'object-left' },
@@ -101,7 +109,7 @@ export default function Overview({ links, leave }: { links: Links; leave: Leave 
       <main>
         <Park links={links} leave={leave} />
         <Later />
-        <OneDay />
+        <OneDay links={links} leave={leave} />
         <Finding links={links} leave={leave} />
         <Doors links={links} leave={leave} />
         <OverviewNotes links={links} leave={leave} />
@@ -208,7 +216,7 @@ function ParkClock({ moved, big = false }: { moved: boolean; big?: boolean }) {
 
 /* ---------- One day: Aqua's question, one step per scroll ---------- */
 
-function OneDay() {
+function OneDay({ links, leave }: { links: Links; leave: Leave }) {
   const motion = useMotion()
   // wide screens scrub one pinned picture; phones put each step's picture right under it
   const wideScreen = useMedia('(min-width: 1024px)')
@@ -232,6 +240,12 @@ function OneDay() {
             Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
           <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">Brazil’s official fire count (INPE) relies on Aqua. But Aqua now flies over the Amazon about {look.minutes} minutes later than it did in 2012–2020.</p>
+          {TERRA_EARLIER ? (
+            <p className="max-w-[36rem] text-lg leading-[1.56] text-[color:var(--bone2)]">
+              Terra, Aqua’s morning twin, drifted the other way: about {TERRA_EARLIER} minutes earlier.{' '}
+              <a href={links.method('two-clocks')} onClick={leave} className={textLink}>See both clocks</a>
+            </p>
+          ) : null}
         </div>
         {wideScreen ? (
           <StickyScroll
