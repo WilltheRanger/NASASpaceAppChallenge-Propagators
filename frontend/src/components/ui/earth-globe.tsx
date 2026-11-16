@@ -318,6 +318,8 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
   const motionRef = React.useRef(motion)
   motionRef.current = motion
   const flight = React.useRef(0)
+  /** the camera is at the whole-world view and the reader hasn't moved it since */
+  const atHome = React.useRef(false)
   const cellsOn = React.useRef(false)
   // one square alone is a picked square's outline at a place, not the world layer
   cellsOn.current = (props.cells?.features.length ?? 0) > 1
@@ -677,6 +679,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         window.setTimeout(finish, o.duration + 400)
         map.easeTo({ ...o, easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2), essential: true })
       })
+    atHome.current = !target
     const run = async () => {
       if (!target) return leg({ ...homeCam(w, h, cb.current.padding), duration: 1100 })
       const cam = fit(target.bbox, w, h, cb.current.padding)
@@ -691,6 +694,21 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     }
     void run().finally(() => { map.off('dragstart', take); map.off('wheel', take) })
   }, [ready, target?.key]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // the whole-world view follows the panels: when the phone's sheet is pulled up or down (or the chart opens), the world
+  // re-centres in the clear part of the stage, unless the reader has moved the map since
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const mine = (e: { originalEvent?: unknown }) => { if (e.originalEvent) atHome.current = false }
+    map.on('movestart', mine)
+    return () => { map.off('movestart', mine) }
+  }, [ready])
+  React.useEffect(() => {
+    const map = mapRef.current, el = boxRef.current
+    if (!map || !ready || !el || target || !atHome.current) return
+    map.easeTo({ ...homeCam(el.clientWidth, el.clientHeight, props.padding), duration: motionRef.current ? 300 : 0, essential: true })
+  }, [ready, props.padding.top, props.padding.bottom]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // callouts: React content rendered into map markers (the fire card, a searched place's reticle)
   const [hosts, setHosts] = React.useState<Record<string, HTMLDivElement>>({})
@@ -712,10 +730,11 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
   }, [ready, calloutKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useImperativeHandle(handle, () => ({
-    zoomBy: (d) => { const map = mapRef.current; if (map) map.easeTo({ zoom: map.getZoom() + d, duration: motionRef.current ? 250 : 0 }) },
+    zoomBy: (d) => { const map = mapRef.current; atHome.current = false; if (map) map.easeTo({ zoom: map.getZoom() + d, duration: motionRef.current ? 250 : 0 }) },
     home: () => {
       const map = mapRef.current, el = boxRef.current
       if (!map || !el) return
+      atHome.current = !cb.current.target
       map.flyTo({ ...homeCam(el.clientWidth, el.clientHeight, cb.current.padding), duration: motionRef.current ? 1400 : 0, essential: true })
     },
     reveal: (lon, lat, room) => {
