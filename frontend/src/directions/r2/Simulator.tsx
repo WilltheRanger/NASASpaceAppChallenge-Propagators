@@ -490,24 +490,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     }
     return null
   }, [facts, place])
-  // step 1, the place: the six studied places in a native list (phones open their own picker); search stays at the top
-  const picker = (
-    <label data-tour="places" className="relative block">
-      <span className="sr-only">Place</span>
-      <select
-        value={region ?? (place ? '__here' : '')}
-        onChange={(e) => { const v = e.target.value; if (v === '__globe') back(); else if (v !== '__here') pickRegion(v) }}
-        className={cn('h-8 w-[150px] appearance-none truncate rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] pl-2.5 pr-7 text-sm text-[color:var(--bone)] hover:border-[color:var(--bone-30)]', focusRing)}
-      >
-        {place && !region ? <option value="__here">{short(place.name)}</option> : null}
-        {STUDIED_PLACES.map((p) => <option key={p.id} value={p.id}>{short(p.name)}</option>)}
-        <option value="__globe">Whole globe…</option>
-      </select>
-      <ChevronDown size={14} strokeWidth={1.75} aria-hidden className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[color:var(--bone2)]" />
-    </label>
-  )
   const alertPanel = alert ? (
-    <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN}
+    <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} fires={WHEN}
       calendar={null}
       onHelp={() => { setTab('info'); setSnap(1); window.setTimeout(() => startGuide(SHIFT, motion), 80) }}
       aquaThen={clock === 'old'} onAquaThen={(t) => setClock(t ? 'old' : 'new')} />
@@ -547,7 +531,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
       <main className="fixed inset-x-0 bottom-0 top-14 flex bg-[#03060A]">
         {place && !alertPanel ? <h1 className="sr-only">Explore: {place.name}</h1> : null}
         {wide ? (
-          <aside aria-label="Place" className="relative z-20 flex w-[340px] shrink-0 flex-col border-r border-[color:var(--hairline)] bg-[color:var(--ground)] xl:w-[352px]">
+          <aside aria-label="Place" className="relative z-20 flex w-[380px] shrink-0 flex-col border-r border-[color:var(--hairline)] bg-[color:var(--ground)] xl:w-[400px]">
             <div className="border-b border-[color:var(--hairline)] p-3">{search}</div>
             <div className="min-h-0 flex-1 overflow-y-auto">{rail}{footer}</div>
           </aside>

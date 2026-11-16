@@ -197,14 +197,9 @@ export function AlertPanel({ place, when, rows, rise, set, delay, onDelay, aquaB
               <span className="inline-block size-2.5 rounded-full bg-[color:var(--sat-aqua)]" />
               <span className="text-[color:var(--bone)]">{fmtHM(aqua.pass)}</span>
             </span>
-            <span className="ml-auto text-[color:var(--bone)]">+{later} min</span>
+            <span className="ml-auto text-[color:var(--bone)]">{fewer > 0 ? <>−{fewer} min daylight</> : 'after dark either way'}</span>
           </p>
-          <p className="text-sm leading-5 text-[color:var(--bone2)]">
-            {fewer > 0
-              ? <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, leaving <span className="text-[color:var(--bone)]">about {fewer} fewer minutes of daylight</span>.</>
-              : <>With the same assumed delay, Aqua’s later pass would bring its alert about {later} minutes later, after dark either way.</>}
-            <span className="mt-1 block text-xs text-[color:var(--bone3)]">A what-if: real alert delivery wasn’t measured.</span>
-          </p>
+          <p className="text-xs text-[color:var(--bone3)]">What-if at the same assumed delay; alert delivery wasn’t measured.</p>
         </div>
       ) : null}
 
