@@ -195,8 +195,8 @@ function Steps() {
     },
     {
       title: 'Work out what we’d expect',
-      description: 'For each later year, VIIRS’s count times that rate is the benchmark. It is an estimate.',
-      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}</p> : null,
+      description: 'For each later year, VIIRS’s count times that rate is the benchmark. It is an estimate. Likely range: where the number lands in 95% of re-runs when we re-pick which days are compared. It doesn’t cover errors in the satellites themselves, missing coverage, or year-to-year weather.',
+      figure: y && y.fixed != null ? <p className="text-sm text-[color:var(--bone2)]"><span className={big}>{fmtInt(y.fixed)}</span>daytime detections we’d expect from Aqua in {y.year}, on matched days (both satellites sent data)</p> : null,
     },
     {
       title: 'Compare',
