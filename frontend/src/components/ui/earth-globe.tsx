@@ -112,7 +112,12 @@ let firesGeo: GeoJSON.FeatureCollection | null = null
 function fireFeatures() {
   if (firesGeo) return firesGeo
   const features: GeoJSON.Feature[] = new Array(N)
-  for (let i = 0; i < N; i++) features[i] = { type: 'Feature', properties: { i, g: SAT[i] >= 2 ? 2 : SAT[i], f: FRP[i] }, geometry: { type: 'Point', coordinates: [LON[i], LAT[i]] } }
+  for (let i = 0; i < N; i++) {
+    const g = SAT[i] >= 2 ? 2 : SAT[i]
+    // half the ground footprint at the centre of the swath (VIIRS 375 m, MODIS 1 km), in px at zoom 0 at this latitude
+    const h = (g === 2 ? 375 : 1000) / 2 / (MPP0 * Math.max(0.05, Math.cos((LAT[i] * Math.PI) / 180)))
+    features[i] = { type: 'Feature', properties: { i, g, f: FRP[i], h }, geometry: { type: 'Point', coordinates: [LON[i], LAT[i]] } }
+  }
   firesGeo = { type: 'FeatureCollection', features }
   return firesGeo
 }
@@ -251,13 +256,21 @@ function useTilesProtocol(dir: string) {
  *  solid at 150 MW or more. Size never carries heat: far out it is fixed, up close it is the ground covered. */
 export const HEAT_FAINT = 3, HEAT_SOLID = 150
 const BRIGHT = ['interpolate', ['linear'], ['sqrt', ['get', 'f']], Math.sqrt(HEAT_FAINT), 0.45, Math.sqrt(30), 0.8, Math.sqrt(HEAT_SOLID), 1]
-/** the zooms over which the true-size squares fade in beneath the dots, once the squares have loaded: past about zoom
- *  11 a 375 m VIIRS square is wider than a dot, so the footprint shows around it. The dots stay on top at every zoom,
- *  so zooming in never makes a fire smaller or makes it disappear. */
+/** the zooms over which the exact footprints (the squares file) take over from the grown dots, once loaded: by then
+ *  each dot is already drawn at its footprint's size, so the hand-over neither shrinks a fire nor lets it blink out */
 const HAND0 = 11, HAND1 = 12
-/** a dot's size in px, the same for every detection: `far` out to zoom 6, `near` by zoom 10, then a little larger
- *  close in so a dot stays easy to see and to click over sharp imagery */
-const fixed = (far: number, near: number) => ['interpolate', ['linear'], ['zoom'], 6, far, 10, near, 14, near * 1.6] as never
+/** metres per px at zoom 0 on MapLibre's 512 px world, at the equator */
+const MPP0 = 78271.517
+/** a dot's size in px when the ground it covers is smaller than that: `far` out to zoom 6, `near` by zoom 10 */
+const fixedAt = (far: number, near: number, z: number) => (z <= 6 ? far : z >= 10 ? near : far + ((near - far) * (z - 6)) / 4)
+/** A mark's size in px that never drops below a readable dot and grows to the detection's true ground size once that is
+ *  larger: MODIS (1 km) from about zoom 8.5, VIIRS (375 m) from about zoom 10. `scale` turns a half-width into the
+ *  property's own units (radius 1, an icon's size 2/16), `pad` adds px for rings drawn around the mark. */
+const grown = (far: number, near: number, scale = 1, pad = 0) => {
+  const stops: unknown[] = []
+  for (let z = 4; z <= 14; z++) stops.push(z, ['max', fixedAt(far, near, z), ['*', ['+', ['*', ['get', 'h'], 2 ** z], pad], scale]])
+  return ['interpolate', ['exponential', 2], ['zoom'], ...stops] as never
+}
 
 /** Every detection as the rectangle of ground it covers: FIRMS's scan (across the satellite's path, drawn east-west)
  *  and track (along it, drawn north-south). The real pixel is tilted a few degrees along the orbit; FIRMS's file
@@ -356,7 +369,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     const bundled = !live && !!props.tilesSrc
     if (bundled) useTilesProtocol(props.tilesSrc as string)
     const w = el.clientWidth || 1200, h = el.clientHeight || 800
-    const dot = (color: string, far: number, near: number) => ({ 'circle-color': color, 'circle-radius': fixed(far, near), 'circle-pitch-alignment': 'map', 'circle-stroke-color': GROUND, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 2, 0, 5, 0.6] })
+    const dot = (color: string, far: number, near: number) => ({ 'circle-color': color, 'circle-radius': grown(far, near), 'circle-pitch-alignment': 'map', 'circle-stroke-color': GROUND, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 2, 0, 5, 0.6] })
     const style: StyleSpecification = {
       version: 8,
       projection: { type: 'mercator' },
@@ -399,7 +412,7 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'region-edge', type: 'line', source: 'regions', paint: { 'line-color': BONE, 'line-opacity': ['case', ['get', 'on'], 0.6, 0.22], 'line-width': 1, 'line-dasharray': [2, 3] } },
         { id: 'frames', type: 'line', source: 'frames', layout: { 'line-cap': 'square', 'line-join': 'miter' }, paint: { 'line-color': BONE, 'line-width': ['case', ['get', 'on'], 2.5, 1.25], 'line-opacity': ['case', ['get', 'on'], 1, 0.7] } },
         // up close: every detection at the size of the ground it covers, in its satellite's colour; overlaps show through
-        { id: 'squares', type: 'fill', source: 'squares', minzoom: HAND0 - 0.6, paint: { 'fill-color': ['match', ['get', 'g'], 0, TERRA, 1, AQUA, VIIRS], 'fill-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, ['*', 0.6, BRIGHT]], 'fill-antialias': true } as never },
+        { id: 'squares', type: 'fill', source: 'squares', minzoom: HAND0 - 0.6, paint: { 'fill-color': ['match', ['get', 'g'], 0, TERRA, 1, AQUA, VIIRS], 'fill-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, ['*', 0.92, BRIGHT]], 'fill-antialias': true } as never },
         { id: 'squares-edge', type: 'line', source: 'squares', minzoom: HAND0 - 0.6, paint: { 'line-color': ['match', ['get', 'g'], 0, TERRA, 1, AQUA, VIIRS], 'line-width': 1, 'line-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, 0.9] } as never },
         // the picked square, on top of its neighbours: solid colour and a strong light edge
         { id: 'squares-pick', type: 'fill', source: 'squares', minzoom: HAND0 - 0.6, filter: ['==', ['get', 'k'], -1], paint: { 'fill-color': PICK_FILL, 'fill-opacity': ['interpolate', ['linear'], ['zoom'], HAND0 - 0.4, 0, HAND1 - 0.2, 1] } as never },
@@ -408,13 +421,13 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         { id: 'fire-viirs-dot', type: 'circle', source: 'fires', maxzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2], paint: dot(VIIRS, 2, 2) as never },
         {
           id: 'fire-viirs', type: 'symbol', source: 'fires', minzoom: VIIRS_MARK_FROM, filter: ['==', ['get', 'g'], 2],
-          layout: { 'icon-image': 'viirs-mark', 'icon-size': fixed(0.34, 0.44), 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-padding': 0 },
+          layout: { 'icon-image': 'viirs-mark', 'icon-size': grown(0.36, 0.56, 2 / 16), 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-padding': 0 },
         },
         {
           id: 'fire-terra', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 0],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': fixed(2.4, 3.2), 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': TERRA, 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 1, 6, 1.6], 'circle-radius': grown(2.6, 4.2), 'circle-pitch-alignment': 'map' },
         },
-        { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, 2.2, 3) as never },
+        { id: 'fire-aqua', type: 'circle', source: 'fires', filter: ['==', ['get', 'g'], 1], paint: dot(AQUA, 2.4, 4) as never },
         // one real fire day: the fires this satellite missed (dim), then the ones it saw
         { id: 'scene-fire-dim', type: 'circle', source: 'scene-fires', filter: ['!', ['get', 'seen']], paint: { 'circle-color': '#8D8A84', 'circle-opacity': 0.75, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 9, 3.5], 'circle-stroke-color': GROUND, 'circle-stroke-width': 0.6 } },
         {
@@ -427,11 +440,11 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
         },
         {
           id: 'fire-near', type: 'circle', source: 'fires', filter: ['in', ['get', 'i'], ['literal', []]],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': fixed(6, 8), 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 1.5, 'circle-radius': grown(6, 8, 1, 4), 'circle-pitch-alignment': 'map' },
         },
         {
           id: 'fire-sel', type: 'circle', source: 'fires', filter: ['==', ['get', 'i'], -1],
-          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': fixed(9, 12), 'circle-pitch-alignment': 'map' },
+          paint: { 'circle-color': 'rgba(0, 0, 0, 0)', 'circle-stroke-color': BONE, 'circle-stroke-width': 2.5, 'circle-radius': grown(9, 12, 1, 7), 'circle-pitch-alignment': 'map' },
         },
       ],
     }
@@ -564,13 +577,14 @@ export const EarthGlobe = React.forwardRef<EarthHandle, EarthGlobeProps>(functio
     ;(map.getSource('scene-fires') as GeoJSONSource | undefined)?.setData(props.scene ?? NONE)
   }, [ready, props.scene])
 
-  // How solid the dots draw: by heat; fading in as the 2-degree squares fade out (while those show). Up close they stay,
-  // drawn over the true-size squares.
+  // How solid the dots draw: by heat; fading in as the 2-degree squares fade out (while those show); handing over to the
+  // exact footprints up close (once those have loaded), at the same size, since by then each dot is drawn at its true size.
   const paintFires = React.useCallback(() => {
     const map = mapRef.current
     if (!map) return
     const stops: unknown[] = []
     if (cellsOn.current) stops.push(4.5, 0, CELLS_GONE - 0.5, BRIGHT)
+    if (squaresReady.current) stops.push(HAND0, BRIGHT, HAND1, 0)
     const op = (stops.length ? ['interpolate', ['linear'], ['zoom'], ...stops] : BRIGHT) as never
     map.setPaintProperty('fire-viirs', 'icon-opacity', op)
     map.setPaintProperty('fire-viirs-dot', 'circle-opacity', op)
