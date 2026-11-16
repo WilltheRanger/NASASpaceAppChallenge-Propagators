@@ -172,7 +172,7 @@ function Later() {
       <div className={cn(shell, 'grid grid-cols-1 gap-y-10 pb-16 pt-14 lg:grid-cols-12 lg:gap-x-6 lg:pb-24 lg:pt-20')}>
         <div className="lg:col-span-8">
           <h2 id="later-h" className="max-w-[20ch] text-balance text-[clamp(32px,4.2vw,60px)] font-medium leading-[1.04] tracking-[-0.03em]">
-            Count a park at <span className="tabular-nums">1:30</span>. Years later, count at <span className="tabular-nums">3:00</span> and find more people.
+            Count people in a park at <span className="tabular-nums">1:30</span>. Years later you count at <span className="tabular-nums">3:00</span> and find more people.
           </h2>
           <p className="mt-5 max-w-[28ch] text-balance text-[clamp(22px,2.2vw,32px)] leading-[1.2] tracking-[-0.01em] text-[color:var(--bone2)]">
             Did more people come, or did you just show up at a busier time?
@@ -228,9 +228,9 @@ function OneDay() {
       <div className={cn(shell, 'pb-6 pt-10 lg:pb-12 lg:pt-12')}>
         <div className="grid grid-cols-1 gap-y-4 lg:grid-cols-12 lg:gap-x-6">
           <h2 id="day-h" className="text-balance text-[clamp(30px,3.6vw,52px)] font-medium leading-[1.05] tracking-[-0.025em] lg:col-span-7">
-            Aqua now looks {look.minutes} minutes later over {phrase(FEATURED).the} than in 2012–2020.
+            Aqua, a NASA satellite that spots fires from space, faces the same question.
           </h2>
-          <p className="max-w-[30ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">Aqua is the NASA satellite behind Brazil’s official fire count (INPE). Across our six places it now looks {RANGE} later.</p>
+          <p className="max-w-[30ch] text-lg text-[color:var(--bone2)] lg:col-span-4 lg:col-start-9 lg:self-end">INPE’s official fire count for Brazil follows Aqua.</p>
         </div>
         {wideScreen ? (
           <StickyScroll
