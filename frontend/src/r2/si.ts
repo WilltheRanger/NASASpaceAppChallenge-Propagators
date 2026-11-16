@@ -2,7 +2,7 @@
 // team's drift, audit and daylight files, and one saved day of NASA FIRMS detections) by fixed rules: a question is
 // matched to one of a few kinds, and the answer's sentences carry the sources their numbers come from. Nothing is
 // generated, so nothing is invented; a question outside these kinds gets the list of what SI can answer.
-import { REGIONS, daylightHeadline, fmtHM, fmtInt, hm, isValidation, regionData, sunTimes, verdictHeadline } from './data'
+import { REGIONS, daylightHeadline, fireSeason, fmtHM, fmtInt, hm, isValidation, regionData, sunTimes, verdictHeadline } from './data'
 import { GROUP_NAME, SAT_NAMES, TOTALS, WINDOW, dayText, groupOf, heatShare, lstOf, sightings, strongest, summary, utcOf, FRP, LAT, LON, SAT, type Box } from './fires'
 import { nameNear, regionNamed, searchPlaces, type Place } from './places'
 
@@ -61,6 +61,7 @@ function orientation(): SiAnswer {
   }
 }
 
+const pct = (v: number) => `${Math.round(v) < 0 ? '−' : ''}${Math.abs(Math.round(v))}%`
 const coordText = (lon: number, lat: number) => `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'}, ${Math.abs(lon).toFixed(2)}° ${lon < 0 ? 'W' : 'E'}`
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const listText = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
@@ -73,7 +74,9 @@ const dur = (h: number) => {
 /** How hot a detection was, against every detection on the map. */
 const heatText = (i: number) => {
   const share = heatShare(i)
-  return share >= 0.99 ? 'among the hottest 1% on the map' : `hotter than ${Math.floor(share * 100)}% of fires on the map`
+  if (share >= 0.99) return 'among the hottest 1% on the map'
+  if (share < 0.25) return 'smaller than most fires on the map'
+  return `hotter than ${Math.floor(share * 100)}% of fires on the map`
 }
 /** NASA's stated bound for near-real-time fire data: within 3 hours of the satellite's pass. */
 const DELIVERY_H = 3
@@ -102,13 +105,14 @@ function fireAnswer(i: number, lead?: string): SiAnswer {
   const s = summary(around)
   const passOf = (sat: number) => s[groupOf(sat)].lst
   const before: string[] = [], after: string[] = [], unknown: string[] = []
-  for (const w of missed) {
+  for (const w of [...missed].sort((a, b) => (passOf(a.sat) ?? 99) - (passOf(b.sat) ?? 99))) {
     const p = passOf(w.sat)
     if (p == null) unknown.push(SAT_NAMES[w.sat])
     else (p < seenAt ? before : after).push(`${SAT_NAMES[w.sat]} (about ${fmtHM(p)})`)
   }
 
-  const opening = lead ? `${lead}: in ${label}.` : `This fire is in ${label}.`
+  const at = near ? 'in' : 'at'
+  const opening = lead ? `${lead}: ${at} ${label}.` : `This fire is ${at} ${label}.`
   const out: SiSentence[] = [
     { text: `${opening} ${SAT_NAMES[SAT[first]]} saw it first, at ${fmtHM(seenAt)} local solar time (${utc}), ${left > 0 ? `${dur(left)} before sunset (${fmtHM(sunset)})` : 'after sunset'}. It gave off ${fmtInt(FRP[i])} MW, ${heatText(i)}.` },
   ]
@@ -134,7 +138,7 @@ function whenAnswer(ctx: SiContext, q: string): SiAnswer {
   const region = studiedIn(q) ?? ctx.region
   const box = region ? boxOf(region) : ctx.view
   const s = summary(box)
-  const where = region ? regionData(region).phrase.the : ctx.place?.name ?? (box ? 'the map’s view' : 'the world')
+  const where = region ? regionData(region).phrase.the : ctx.place?.name ?? (box ? 'the map’s view' : 'the whole world')
   const out: SiSentence[] = [
     { text: `Over ${where} on ${SPAN}, the satellites’ typical look times (local solar time): VIIRS ${hours(s.viirs.lst)}, Aqua ${hours(s.aqua.lst)}, Terra ${hours(s.terra.lst)}.`, cite: ['firms'] },
   ]
@@ -151,7 +155,7 @@ function whenAnswer(ctx: SiContext, q: string): SiAnswer {
       sources.push(SRC.drift(region))
     }
   } else if (s.aqua.lst != null && s.viirs.lst != null) {
-    out.push({ text: `Aqua looked ${Math.round((s.aqua.lst - s.viirs.lst) * 60)} minutes after VIIRS here.`, cite: ['firms'] })
+    out.push({ text: `Aqua looked about ${Math.round((s.aqua.lst - s.viirs.lst) * 60)} minutes after VIIRS${box ? ' here' : ''}.`, cite: ['firms'] })
   }
   return { sentences: out, sources, followUps: region ? [OLD_TIME, 'How much daylight is left?'] : [OLD_TIME, 'Show only Aqua'] }
 }
@@ -173,7 +177,7 @@ function fixAnswer(ctx: SiContext, q: string): SiAnswer {
   const y = d.latestOk
   const out: SiSentence[] = []
   if (y && y.fixed != null && y.verdict !== 'na' && y.gap != null && !isValidation(region)) {
-    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; we’d expect ${fmtInt(y.fixed)} at its old time. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (how sure we are: ${Math.round(y.lo)}% to ${Math.round(y.hi)}%)` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
+    out.push({ text: `In ${y.year}, Aqua counted ${fmtInt(y.aqua)} daytime fires in ${d.phrase.the}; we’d expect ${fmtInt(y.fixed)} at its old time. That’s ${Math.abs(Math.round(y.gap))}% ${y.gap >= 0 ? 'more' : 'fewer'}${y.lo != null && y.hi != null ? ` (how sure we are: ${pct(y.lo)} to ${pct(y.hi)})` : ''}, ${y.verdict === 'outside' ? 'which is unusual' : 'which is not unusual'}.`, cite: [`audit-${region}`] })
     out.push({ text: 'The timing and the count changed together, but we can’t say how much of the difference the timing caused.' })
   } else if (isValidation(region)) {
     out.push({ text: `${verdictHeadline(d)}.`, cite: [`audit-${region}`] })
@@ -235,6 +239,41 @@ function regionsAnswer(): SiAnswer {
   }
 }
 
+function whyAnswer(): SiAnswer {
+  const { first, last } = AMAZON
+  return {
+    sentences: [
+      { text: 'Aqua and Terra are near the end of their missions and no longer spend fuel holding their orbits, so the time of day they cross each place slips a little every year: Aqua later, Terra earlier.' },
+      { text: `In the team’s files the move shows from 2022. Over the Amazon, Aqua looked at ${first.aqua_lst} in ${first.year} and ${last.aqua_lst} in ${last.year}.`, cite: ['drift-br-amazon'] },
+    ],
+    sources: [SRC.drift('br-amazon')],
+    followUps: ['When does Aqua pass here?', OLD_TIME],
+  }
+}
+
+function seasonAnswer(ctx: SiContext, q: string): SiAnswer {
+  const region = studiedIn(q) ?? ctx.region
+  if (!region) return { sentences: [{ text: 'Fire seasons are worked out for the six places. Pick one to see its season.' }], sources: [] }
+  const d = regionData(region)
+  return {
+    sentences: [
+      { text: `Fire season in ${d.phrase.the}: ${fireSeason(d).label}, the three months in a row with the most fires from 2012 to 2020.`, cite: [`audit-${region}`] },
+      { text: 'The Regions page shows every month since 2002 against normal, so you can see when a season started early or ran late.' },
+    ],
+    sources: [SRC.audit(region)],
+    followUps: ['How much daylight is left?', OLD_TIME],
+  }
+}
+
+const SAFETY: SiAnswer = {
+  sentences: [
+    { text: 'SI can’t judge whether a fire is dangerous or give safety advice. For an active fire, follow your local fire service and emergency alerts.' },
+    { text: 'It can tell you which satellites saw a fire, when, how hot it was, and how much daylight was left.' },
+  ],
+  sources: [],
+  followUps: ['Which satellite saw this fire?', 'How much daylight is left?'],
+}
+
 function glossary(q: string): SiAnswer | null {
   if (has(q, 'firms')) return { sentences: [{ text: 'NASA FIRMS publishes active-fire detections from MODIS and VIIRS within hours of each pass.', cite: ['firms'] }], sources: [SRC.firms] }
   if (has(q, 'inpe', 'official')) return { sentences: [{ text: 'INPE’s Programa Queimadas is Brazil’s official fire count. It counts one reference satellite, Aqua, so year-to-year comparisons assume Aqua looks at the same time of day.', cite: ['method'] }], sources: [SRC.method] }
@@ -266,7 +305,11 @@ function answer(question: string, ctx: SiContext): SiAnswer {
     const p = target ? searchPlaces(target, 1)[0] : null
     if (p) return { sentences: [{ text: `Flying to ${p.name}.` }], sources: [], actions: [{ kind: 'fly', label: `Fly to ${p.name}`, place: p }] }
   }
+  if (has(q, 'danger', 'safe', 'evacuat', 'should i', 'risk')) return SAFETY
   if (has(q, 'what am i', 'how do i', 'how to', 'help', 'what is this', 'explain', 'start')) return orientation()
+  if (has(q, 'why') && has(q, 'drift', 'later', 'move', 'chang')) return whyAnswer()
+  if (has(q, 'season', 'which month', 'peak')) return seasonAnswer(ctx, q)
+  if (has(q, 'unusual', 'normal', 'wrong', 'accurate', 'trust', 'reliable', 'this year')) return (studiedIn(q) ?? ctx.region) ? fixAnswer(ctx, q) : regionsAnswer()
   if (has(q, 'which satellite', 'who saw', 'who spotted', 'spotted', 'detected', 'this fire', 'strongest', 'biggest', 'hottest', 'largest')) {
     if (ctx.fire != null && !has(q, 'strongest', 'biggest', 'hottest', 'largest')) return fireAnswer(ctx.fire)
     // nothing picked yet: the strongest fire in the scope the question names (the world, a studied region, or the view)
@@ -288,7 +331,7 @@ function answer(question: string, ctx: SiContext): SiAnswer {
   const g = glossary(q)
   if (g) return g
   return {
-    sentences: [{ text: 'SI answers from this page’s data: which satellite saw a fire, when each satellite passes, the audit for the six regions, daylight after the alert, and fires in view. It can also fly the map or show one satellite.' }],
+    sentences: [{ text: 'SI answers from this page’s data: which satellite saw a fire, when each satellite passes and why Aqua drifted, whether a year was unusual, fire seasons, daylight after the alert, and fires in view. It can also fly the map or show one satellite.' }],
     sources: [],
     followUps: STARTERS,
   }
