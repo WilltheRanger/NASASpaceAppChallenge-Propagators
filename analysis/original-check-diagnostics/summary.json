@@ -1,0 +1,21 @@
+{
+  "within_original_interval": {
+    "pass": 19,
+    "total": 29
+  },
+  "within_filtered_interval": {
+    "pass": 21,
+    "total": 29
+  },
+  "paired_delta_contains_zero": {
+    "pass": 16,
+    "total": 29
+  },
+  "raw_count_reconciliation": {
+    "actual": 13900427,
+    "expected_filtered": 13900428,
+    "different_rows": 1,
+    "count_difference": -1
+  },
+  "warning": "Post-hoc sensitivity with instrument-dependent FRP; not a replacement for original P5. No fire matching or coverage control."
+}
