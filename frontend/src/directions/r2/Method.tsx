@@ -461,7 +461,7 @@ function weakFlags() {
   return WEAK_FLAG_NOTES.filter(({ id, year }) => {
     const r = regionData(id)
     const y = r.years.find((x) => x.year === year)
-    return !!y && y.verdict === 'outside' && y.lo != null && y.hi != null && y.lo <= r.placebo[1] && y.hi >= r.placebo[0]
+    return !!y && y.verdict === 'close' && y.lo != null && y.hi != null && y.lo <= r.placebo[1] && y.hi >= r.placebo[0]
   })
 }
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -495,7 +495,7 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
     },
     {
       t: weak.length ? `Close calls are marked: ${andList(weak.map((w) => `${phrase(w.id).the} in ${w.year}`))} ${weak.length === 1 ? 'sits' : 'sit'} just outside the usual range.` : 'A year just outside a narrow usual range is treated as a close call.',
-      b: 'Years just outside a narrow range are read as borderline, not as findings. Argentina’s 2025 range takes in no change when days are resampled in 32-day blocks.',
+      b: 'Close call: just outside the usual range, but the likely range overlaps it. These labels describe uncertainty, not proof of a timing effect.',
     },
     {
       t: 'Missing satellite days are handled openly.',
@@ -509,9 +509,9 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
     },
     {
       t: 'NASA’s May 2025 VIIRS reprocessing leaves the counts alone.',
-      b: 'It changed the timing and fire-size inputs, not the counts the comparison uses. Product versions aren’t yet recorded per file.',
+      b: 'The fix touches the timing and fire-size inputs, not the counts the comparison uses. Historical MODIS input version codes vary by year (6.2, 6.03, 61.03); collection consistency remains a limitation. These input codes are not established collection names. The provisional NRT snapshot remains separate.',
     },
-    { t: `The calendar runs through ${lastYear}.`, b: `${lastYear}’s counts come from NASA FIRMS’s yearly files. A separate rolling seven-day 2026 snapshot has been acquired, but it cannot complete the year and is not part of this calendar.` },
+    { t: 'The calendar runs through 2025; a separate provisional card shows 8–14 Nov 2026.', b: 'The card is separate from the historical calendar: provisional, incomplete coverage, not a full-year trend.' },
     {
       t: 'Aqua and Terra are nearing the end of their missions, and the method carries on.',
       b: (
@@ -535,8 +535,18 @@ function Limits({ links, leave }: { links: Links; leave: Leave }) {
           <Accordion type="multiple" motion={motion.on} level={3}>
             {items.map((it, i) => (
               <AccordionItem key={it.t} value={`l${i}`}>
-                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{it.t}</AccordionTrigger>
-                <AccordionContent><p className="max-w-[var(--measure)]">{it.b}</p></AccordionContent>
+                <AccordionTrigger number={String(i + 1).padStart(2, '0')}>{[1, 2, 5].includes(i) ? 'Addressed · ' : ''}{it.t}</AccordionTrigger>
+                <AccordionContent><p className="max-w-[var(--measure)]">{it.b}</p>
+                  <p className="mt-3 max-w-[var(--measure)] text-sm text-[color:var(--bone2)]">{[
+                    'Next: independent observations and a design that separates timing from other changes.',
+                    'Addressed: each flagged year now shows its percentage-point distance past the usual-range edge; this is still not a significance test.',
+                    'Addressed: overlapping likely ranges are labeled Close call, not Unusual.',
+                    'Next: verify regional coverage and distinguish missing observations from true zero detections.',
+                    'Next: establish the historical version-code meanings and verify collection consistency; Sources now disclose the varying codes separately from NRT.',
+                    'Addressed: a separate provisional 8–14 Nov 2026 card is visible on Brazil region pages.',
+                    'Next: calibrate and validate a replacement satellite reference before extending the historical series.',
+                  ][i]}</p>
+                </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>

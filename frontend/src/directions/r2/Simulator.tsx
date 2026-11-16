@@ -20,7 +20,7 @@ import { DeltaTicker } from '@/components/ui/delta-ticker'
 import { SiChat, type SiTurn } from '@/components/ui/si-chat'
 import { ChartLine } from '@/components/ui/chart-line'
 import { DaylightSection } from './daylight'
-import { guideSeen, startGuide } from './tour'
+import { startGuide } from './tour'
 import { ElasticSwitch } from '@/components/ui/elastic-switch'
 import { EarthGlobe, type Box, type Callout, type EarthHandle, type EarthOverlay, type EarthPadding, type EarthTarget, type Show } from '@/components/ui/earth-globe'
 import { MONTHS as MONTHS_SHORT, REGIONS, daylight, daylightHeadline, fmtHM, fmtInt, fmtShift, hm, isValidation, novemberRatio, regionData, sunTimes } from '@/r2/data'
@@ -89,7 +89,7 @@ function regionFacts(id: string) {
       now: (lvl2 ? head?.level2a_aqua_D15_2025 : head?.aqua_D15_2025) ?? null,
     },
     count: y && y.verdict !== 'na' && !validation && y.fixed != null && y.gap != null && y.lo != null && y.hi != null
-      ? { year: y.year, old: y.fixed, now: y.aqua, gap: y.gap, lo: y.lo, hi: y.hi, outside: y.verdict === 'outside' }
+      ? { year: y.year, old: y.fixed, now: y.aqua, gap: y.gap, lo: y.lo, hi: y.hi, outside: y.verdict === 'outside', close: y.verdict === 'close' }
       : null,
     nov: nFrom && nTo ? { from: nFrom, to: nTo } : null,
   }
@@ -273,13 +273,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const chartRef = useRef<HTMLDivElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   const chartH = useHeight(chartRef, 170)
-  // first visit on a wide screen at the whole globe: the guide opens once the page has settled
-  useEffect(() => {
-    if (guideSeen()) return
-    const t = window.setTimeout(() => { if (document.getElementById('alert-h')) startGuide(SHIFT, motion) }, 500)
-    return () => window.clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // the guide opens only from "How it works": an automatic tour covered the page for every first-time visitor (every judge)
   const sheetH = useHeight(sheetRef, 260)
   const fireRef = useRef(fire)
   fireRef.current = fire
@@ -927,7 +921,7 @@ function Idle({ onPick, onPlayDay, world }: { onPick: (id: string) => void; onPl
                 {f.count ? (
                   <span className="text-right tabular-nums">
                     <span className={cn('block text-base font-medium', f.count.outside ? 'text-[color:var(--bone)]' : 'text-[color:var(--bone3)]')}>{signed(f.count.gap)}%</span>
-                    <span className="block text-xs text-[color:var(--bone3)]">{f.count.outside ? 'unusual' : 'not unusual'}</span>
+                    <span className="block text-xs text-[color:var(--bone3)]">{f.count.outside ? 'unusual' : f.count.close ? 'close call' : 'not unusual'}</span>
                   </span>
                 ) : (
                   <span className="text-sm text-[color:var(--bone3)]">Test case</span>
@@ -1424,17 +1418,17 @@ function FireCard({ i, onClose, below = false, docked = false }: { i: number; on
         </div>
         {/* the reported fire power, placed among today's detections: a strip from weakest to strongest with this fire's notch */}
         <div className="flex gap-2">
-          <dt className={dt}>Heat</dt>
+          <dt className={dt}>Power</dt>
           <dd className="flex min-w-0 flex-1 flex-col gap-1.5 text-[color:var(--bone)]">
             <span className="flex items-baseline justify-between gap-2 tabular-nums">
               <span className="font-medium">{fmtMW(FRP[i])} MW</span>
-              <span className="text-xs text-[color:var(--bone2)]">stronger than {Math.min(99, frpPercentile)}%</span>
+              <span className="text-xs text-[color:var(--bone2)]">fire radiative power</span>
             </span>
             <span aria-hidden className="relative block h-1.5 w-full rounded-full bg-[color:var(--hairline)]">
               <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--bone2)]" style={{ width: `${frpPercentile}%` }} />
               <span className="absolute -top-[4px] h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-[color:var(--bone)]" style={{ left: `${frpPercentile}%` }} />
             </span>
-            <span className="text-[11px] leading-4 text-[color:var(--bone3)]">Of today’s detections. Sensors differ, so compare loosely.</span>
+            <span className="text-[11px] leading-4 text-[color:var(--bone3)]"><span>Higher FRP than {frpPercentile}% of snapshot detections</span>. Mixed sensors and observation times; not temperature or a ranking of unique fires.</span>
           </dd>
         </div>
       </dl>
