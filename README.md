@@ -35,12 +35,7 @@
 
 **Check our numbers.** Every figure on the site is read from the JSON files in `data/out/`, which the code in `analysis/` produces. `scripts/test_all.sh` runs every test suite; the site's source is in `frontend/`.
 
-**Ask Anchor (formerly "SI"): disclaimer.**
-- **Not an AI chatbot.** Ask Anchor, the question box on the Explore page, matches the words in your question to a fixed set of answers and fills them in from the site's own data files, with the source for each. It does not use a language model.
-- **Nothing leaves your browser.** It runs entirely on the page; your questions are not sent or stored anywhere.
-- **It only knows this site.** It answers about which satellite saw a fire, when each satellite passes and why Aqua drifted, whether a year was unusual, fire seasons, daylight after an alert, and the fires in view. Anything else gets a short "here is what I can answer" reply.
-- **What-ifs, not forecasts.** Its daylight answers use an assumed alert delay; real alert delivery wasn't measured.
-- **Not safety advice.** It can't judge whether a fire is dangerous. For an active fire, follow your local fire service and emergency alerts.
+**Use of AI (disclaimer).** As the 2026 Space Apps rules ask, we disclose that AI assistants (large language model chat and coding tools) were used throughout this project: for research, the data pipelines, the statistics, the web app and the documentation. Team members directed the work, made the decisions and reviewed the results. The photographs, video and satellite images are not AI-generated. Full details: [Use of AI (disclosure)](#use-of-ai-disclosure).
 
 Anchor is a web app that turns NASA's MODIS and VIIRS hotspot records into one burning-activity calendar per region, counted on a **fixed observation clock**. It also checks an official national fire statistic: Brazil's fire program (INPE) still counts fires with NASA's Aqua satellite as its "reference satellite", but Aqua's afternoon pass has drifted later every year since 2021. Over the Amazon its median look time moved from **13:37 (2012 to 2020) to 14:57 (2025)**.
 
