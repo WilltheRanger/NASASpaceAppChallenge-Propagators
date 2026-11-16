@@ -1,0 +1,66 @@
+{
+ "mock": true,
+ "note": "SYNTHETIC MOCK DATA for UI development only. Not real fire counts.",
+ "checks": [
+  {
+   "id": "P1",
+   "name": "Aqua's look time over each Brazilian biome rises every year 2021-2025; VIIRS stays flat",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P2",
+   "name": "Punjab Aqua look time follows Jethva 2026 (1:44 PM in 2021 to 3:12 PM in 2025)",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P3",
+   "name": "Our FIRMS Aqua data reproduces INPE's reference counts",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P4",
+   "name": "Day-to-day sampling noise explains the pre-drift wobble",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P5",
+   "name": "Fire-size mix doesn't explain the audit",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P6",
+   "name": "VIIRS is a stable clock",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P7",
+   "name": "Closure: the timing slope predicts the observed L",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P8",
+   "name": "VIIRS detects small real fires better than MODIS",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P9",
+   "name": "Opposite drifts move the Terra and Aqua probes in opposite directions",
+   "status": "pending",
+   "detail": ""
+  },
+  {
+   "id": "P10",
+   "name": "The two-clock difference agrees with the audit",
+   "status": "pending",
+   "detail": ""
+  }
+ ]
+}

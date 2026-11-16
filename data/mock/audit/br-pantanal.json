@@ -1,0 +1,67 @@
+{
+ "mock": true,
+ "note": "SYNTHETIC MOCK DATA for UI development only. Not real fire counts.",
+ "region": "br-pantanal",
+ "baseline": {
+  "years": "2012-2020",
+  "ratio": 0.3,
+  "noise_floor": 0.05
+ },
+ "years": [
+  {
+   "year": 2021,
+   "status": "ok",
+   "L": 1.013,
+   "L_lo": 0.953,
+   "L_hi": 1.073,
+   "L_strat": 1.003,
+   "aqua_count": 20495,
+   "fixed_count": 20237,
+   "gap_pct": 1.3
+  },
+  {
+   "year": 2022,
+   "status": "ok",
+   "L": 1.055,
+   "L_lo": 0.995,
+   "L_hi": 1.115,
+   "L_strat": 1.045,
+   "aqua_count": 30212,
+   "fixed_count": 28648,
+   "gap_pct": 5.5
+  },
+  {
+   "year": 2023,
+   "status": "ok",
+   "L": 1.075,
+   "L_lo": 1.015,
+   "L_hi": 1.135,
+   "L_strat": 1.065,
+   "aqua_count": 11711,
+   "fixed_count": 10898,
+   "gap_pct": 7.5
+  },
+  {
+   "year": 2024,
+   "status": "ok",
+   "L": 1.147,
+   "L_lo": 1.087,
+   "L_hi": 1.207,
+   "L_strat": 1.137,
+   "aqua_count": 19822,
+   "fixed_count": 17277,
+   "gap_pct": 14.7
+  },
+  {
+   "year": 2025,
+   "status": "ok",
+   "L": 1.192,
+   "L_lo": 1.132,
+   "L_hi": 1.252,
+   "L_strat": 1.182,
+   "aqua_count": 21196,
+   "fixed_count": 17788,
+   "gap_pct": 19.2
+  }
+ ]
+}

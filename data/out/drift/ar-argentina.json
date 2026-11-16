@@ -1,0 +1,91 @@
+{
+ "mock": false,
+ "region": "ar-argentina",
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS Argentina country files). Median local solar time (UTC + lon/15) of near-nadir daytime vegetation-fire detections. viirs_lst is S-NPP.",
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:51",
+   "terra_lst": "10:13",
+   "viirs_lst": "13:42"
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:53",
+   "terra_lst": "10:13",
+   "viirs_lst": "13:45"
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:53",
+   "terra_lst": "10:13",
+   "viirs_lst": "13:51"
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:54",
+   "terra_lst": "10:14",
+   "viirs_lst": "13:50"
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:54",
+   "terra_lst": "10:12",
+   "viirs_lst": "13:44"
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:54",
+   "terra_lst": "10:14",
+   "viirs_lst": "13:45"
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:52",
+   "terra_lst": "10:13",
+   "viirs_lst": "13:45"
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:54",
+   "terra_lst": "10:12",
+   "viirs_lst": "13:44"
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:53",
+   "terra_lst": "10:12",
+   "viirs_lst": "13:45"
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:55",
+   "terra_lst": "10:08",
+   "viirs_lst": "13:45"
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:57",
+   "terra_lst": "09:59",
+   "viirs_lst": "13:45"
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "14:10",
+   "terra_lst": "09:47",
+   "viirs_lst": "13:47"
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "14:32",
+   "terra_lst": "09:27",
+   "viirs_lst": "13:45"
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "15:05",
+   "terra_lst": "09:02",
+   "viirs_lst": "13:48"
+  }
+ ]
+}

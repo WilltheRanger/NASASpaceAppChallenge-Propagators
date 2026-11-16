@@ -1,0 +1,325 @@
+{
+ "mock": false,
+ "note": "To be reviewed by the team before use.",
+ "size_classes": [
+  "10-100 acres",
+  "100-1000 acres",
+  ">1000 acres"
+ ],
+ "years": [
+  {
+   "year": 2012,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.054,
+   "terra_pod": 0.049,
+   "viirs_pod": 0.147,
+   "n": 224
+  },
+  {
+   "year": 2012,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.266,
+   "terra_pod": 0.219,
+   "viirs_pod": 0.406,
+   "n": 64
+  },
+  {
+   "year": 2012,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.941,
+   "terra_pod": 0.588,
+   "viirs_pod": 0.882,
+   "n": 17
+  },
+  {
+   "year": 2013,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.041,
+   "terra_pod": 0.03,
+   "viirs_pod": 0.159,
+   "n": 270
+  },
+  {
+   "year": 2013,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.222,
+   "terra_pod": 0.167,
+   "viirs_pod": 0.389,
+   "n": 90
+  },
+  {
+   "year": 2013,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.636,
+   "terra_pod": 0.727,
+   "viirs_pod": 0.818,
+   "n": 11
+  },
+  {
+   "year": 2014,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.074,
+   "terra_pod": 0.089,
+   "viirs_pod": 0.193,
+   "n": 135
+  },
+  {
+   "year": 2014,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.273,
+   "terra_pod": 0.145,
+   "viirs_pod": 0.291,
+   "n": 55
+  },
+  {
+   "year": 2014,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.765,
+   "terra_pod": 0.882,
+   "viirs_pod": 1.0,
+   "n": 17
+  },
+  {
+   "year": 2015,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.037,
+   "terra_pod": 0.049,
+   "viirs_pod": 0.189,
+   "n": 164
+  },
+  {
+   "year": 2015,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.18,
+   "terra_pod": 0.18,
+   "viirs_pod": 0.38,
+   "n": 50
+  },
+  {
+   "year": 2015,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.643,
+   "terra_pod": 0.643,
+   "viirs_pod": 0.786,
+   "n": 14
+  },
+  {
+   "year": 2016,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.102,
+   "terra_pod": 0.036,
+   "viirs_pod": 0.182,
+   "n": 225
+  },
+  {
+   "year": 2016,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.269,
+   "terra_pod": 0.179,
+   "viirs_pod": 0.522,
+   "n": 67
+  },
+  {
+   "year": 2016,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.55,
+   "terra_pod": 0.65,
+   "viirs_pod": 0.75,
+   "n": 20
+  },
+  {
+   "year": 2017,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.063,
+   "terra_pod": 0.032,
+   "viirs_pod": 0.168,
+   "n": 316
+  },
+  {
+   "year": 2017,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.255,
+   "terra_pod": 0.157,
+   "viirs_pod": 0.382,
+   "n": 102
+  },
+  {
+   "year": 2017,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.688,
+   "terra_pod": 0.625,
+   "viirs_pod": 0.781,
+   "n": 32
+  },
+  {
+   "year": 2018,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.087,
+   "terra_pod": 0.058,
+   "viirs_pod": 0.189,
+   "n": 206
+  },
+  {
+   "year": 2018,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.228,
+   "terra_pod": 0.152,
+   "viirs_pod": 0.316,
+   "n": 79
+  },
+  {
+   "year": 2018,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.556,
+   "terra_pod": 0.593,
+   "viirs_pod": 0.741,
+   "n": 27
+  },
+  {
+   "year": 2019,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.048,
+   "terra_pod": 0.03,
+   "viirs_pod": 0.145,
+   "n": 166
+  },
+  {
+   "year": 2019,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.211,
+   "terra_pod": 0.175,
+   "viirs_pod": 0.421,
+   "n": 57
+  },
+  {
+   "year": 2019,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.682,
+   "terra_pod": 0.773,
+   "viirs_pod": 0.727,
+   "n": 22
+  },
+  {
+   "year": 2020,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.048,
+   "terra_pod": 0.011,
+   "viirs_pod": 0.143,
+   "n": 189
+  },
+  {
+   "year": 2020,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.208,
+   "terra_pod": 0.306,
+   "viirs_pod": 0.347,
+   "n": 72
+  },
+  {
+   "year": 2020,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.733,
+   "terra_pod": 0.644,
+   "viirs_pod": 0.911,
+   "n": 45
+  },
+  {
+   "year": 2021,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.08,
+   "terra_pod": 0.074,
+   "viirs_pod": 0.252,
+   "n": 163
+  },
+  {
+   "year": 2021,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.245,
+   "terra_pod": 0.204,
+   "viirs_pod": 0.469,
+   "n": 49
+  },
+  {
+   "year": 2021,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.826,
+   "terra_pod": 0.783,
+   "viirs_pod": 0.87,
+   "n": 23
+  },
+  {
+   "year": 2022,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.07,
+   "terra_pod": 0.07,
+   "viirs_pod": 0.228,
+   "n": 158
+  },
+  {
+   "year": 2022,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.312,
+   "terra_pod": 0.25,
+   "viirs_pod": 0.469,
+   "n": 32
+  },
+  {
+   "year": 2022,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.778,
+   "terra_pod": 0.889,
+   "viirs_pod": 0.889,
+   "n": 9
+  },
+  {
+   "year": 2023,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.065,
+   "terra_pod": 0.043,
+   "viirs_pod": 0.23,
+   "n": 139
+  },
+  {
+   "year": 2023,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.2,
+   "terra_pod": 0.2,
+   "viirs_pod": 0.2,
+   "n": 20
+  },
+  {
+   "year": 2023,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.444,
+   "terra_pod": 0.333,
+   "viirs_pod": 0.667,
+   "n": 9
+  },
+  {
+   "year": 2024,
+   "size_class": "10-100 acres",
+   "aqua_pod": 0.094,
+   "terra_pod": 0.034,
+   "viirs_pod": 0.172,
+   "n": 233
+  },
+  {
+   "year": 2024,
+   "size_class": "100-1000 acres",
+   "aqua_pod": 0.225,
+   "terra_pod": 0.1,
+   "viirs_pod": 0.362,
+   "n": 80
+  },
+  {
+   "year": 2024,
+   "size_class": ">1000 acres",
+   "aqua_pod": 0.586,
+   "terra_pod": 0.552,
+   "viirs_pod": 0.69,
+   "n": 29
+  }
+ ],
+ "validation_variant": "IBGE 2019 cell-center sensitivity rerun; not merged production data",
+ "biome_lookup_source": "IBGE 2019 1:250000, EPSG:4674 transformed to EPSG:4326"
+}

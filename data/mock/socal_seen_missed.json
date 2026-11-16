@@ -1,0 +1,411 @@
+{
+ "mock": true,
+ "note": "SYNTHETIC MOCK DATA for UI development only. Not real fire counts.",
+ "center": {
+  "lat": 33.9898,
+  "lon": -117.7326
+ },
+ "radius_km": 25,
+ "fires": [
+  {
+   "year": 2017,
+   "name": "MOCK FIRE 1",
+   "acres": 46.5,
+   "lat": 33.88491,
+   "lon": -117.96101,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "MOCK FIRE 2",
+   "acres": 2.5,
+   "lat": 33.96998,
+   "lon": -117.77957,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "MOCK FIRE 3",
+   "acres": 4046.4,
+   "lat": 34.16362,
+   "lon": -117.84625,
+   "aqua": true,
+   "terra": true,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "MOCK FIRE 4",
+   "acres": 12.4,
+   "lat": 34.0406,
+   "lon": -117.70321,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "MOCK FIRE 5",
+   "acres": 195.5,
+   "lat": 33.87255,
+   "lon": -117.50124,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2012,
+   "name": "MOCK FIRE 6",
+   "acres": 69.1,
+   "lat": 34.01422,
+   "lon": -117.67456,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2016,
+   "name": "MOCK FIRE 7",
+   "acres": 527.9,
+   "lat": 33.98907,
+   "lon": -117.7332,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2012,
+   "name": "MOCK FIRE 8",
+   "acres": 1.5,
+   "lat": 34.10423,
+   "lon": -117.65212,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "MOCK FIRE 9",
+   "acres": 1.7,
+   "lat": 34.17192,
+   "lon": -117.79219,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "MOCK FIRE 10",
+   "acres": 28.9,
+   "lat": 34.04451,
+   "lon": -117.6973,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "MOCK FIRE 11",
+   "acres": 138.0,
+   "lat": 34.16173,
+   "lon": -117.89073,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "MOCK FIRE 12",
+   "acres": 1088.3,
+   "lat": 34.00558,
+   "lon": -117.71881,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2014,
+   "name": "MOCK FIRE 13",
+   "acres": 7490.5,
+   "lat": 34.12588,
+   "lon": -117.71349,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2013,
+   "name": "MOCK FIRE 14",
+   "acres": 5.2,
+   "lat": 33.95985,
+   "lon": -117.7687,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "MOCK FIRE 15",
+   "acres": 4647.9,
+   "lat": 33.96758,
+   "lon": -117.67583,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2013,
+   "name": "MOCK FIRE 16",
+   "acres": 3139.0,
+   "lat": 34.05151,
+   "lon": -117.93475,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2021,
+   "name": "MOCK FIRE 17",
+   "acres": 10.3,
+   "lat": 34.07633,
+   "lon": -117.67217,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "MOCK FIRE 18",
+   "acres": 3340.6,
+   "lat": 34.1684,
+   "lon": -117.59365,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2022,
+   "name": "MOCK FIRE 19",
+   "acres": 4.5,
+   "lat": 33.9812,
+   "lon": -117.72911,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "MOCK FIRE 20",
+   "acres": 1801.2,
+   "lat": 33.98296,
+   "lon": -117.72813,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2018,
+   "name": "MOCK FIRE 21",
+   "acres": 903.2,
+   "lat": 33.77914,
+   "lon": -117.71067,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2022,
+   "name": "MOCK FIRE 22",
+   "acres": 7.1,
+   "lat": 33.95608,
+   "lon": -117.99891,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": "MOCK FIRE 23",
+   "acres": 2241.9,
+   "lat": 33.99557,
+   "lon": -117.47634,
+   "aqua": false,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2018,
+   "name": "MOCK FIRE 24",
+   "acres": 208.5,
+   "lat": 33.98591,
+   "lon": -117.66359,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2014,
+   "name": "MOCK FIRE 25",
+   "acres": 61.0,
+   "lat": 34.12578,
+   "lon": -117.94634,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": "MOCK FIRE 26",
+   "acres": 101.8,
+   "lat": 33.97958,
+   "lon": -117.71117,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": "MOCK FIRE 27",
+   "acres": 4216.1,
+   "lat": 34.07106,
+   "lon": -117.59851,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2022,
+   "name": "MOCK FIRE 28",
+   "acres": 403.5,
+   "lat": 33.94119,
+   "lon": -117.69492,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "MOCK FIRE 29",
+   "acres": 8.1,
+   "lat": 34.01507,
+   "lon": -117.67481,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": "MOCK FIRE 30",
+   "acres": 21.7,
+   "lat": 34.16257,
+   "lon": -117.73325,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "MOCK FIRE 31",
+   "acres": 5021.5,
+   "lat": 34.01727,
+   "lon": -117.81156,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2023,
+   "name": "MOCK FIRE 32",
+   "acres": 15.2,
+   "lat": 34.11975,
+   "lon": -117.73744,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "MOCK FIRE 33",
+   "acres": 6.2,
+   "lat": 33.87691,
+   "lon": -117.78009,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "MOCK FIRE 34",
+   "acres": 33.0,
+   "lat": 33.87153,
+   "lon": -117.90891,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": "MOCK FIRE 35",
+   "acres": 1.3,
+   "lat": 34.0035,
+   "lon": -117.72113,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "MOCK FIRE 36",
+   "acres": 2.9,
+   "lat": 33.98987,
+   "lon": -117.73242,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "MOCK FIRE 37",
+   "acres": 31.9,
+   "lat": 33.99204,
+   "lon": -117.88426,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "MOCK FIRE 38",
+   "acres": 9.4,
+   "lat": 33.93235,
+   "lon": -117.70597,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "MOCK FIRE 39",
+   "acres": 9.4,
+   "lat": 33.89166,
+   "lon": -117.61227,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "MOCK FIRE 40",
+   "acres": 3.1,
+   "lat": 34.16425,
+   "lon": -117.74839,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  }
+ ]
+}

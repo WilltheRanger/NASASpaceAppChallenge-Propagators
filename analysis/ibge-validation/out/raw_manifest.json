@@ -1,0 +1,287 @@
+{
+  "downloaded_utc_date": "2026-11-15",
+  "files": [
+    {
+      "file": "modis_2001_Brazil.csv",
+      "bytes": 11573915,
+      "sha256": "0ca60412834d7cf0a19aa0ffd39d0350bb20f0f61912a81a793592e316cbca37",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2001/modis_2001_Brazil.csv"
+    },
+    {
+      "file": "modis_2002_Brazil.csv",
+      "bytes": 41363929,
+      "sha256": "23fa825d4b18d85b5737888a20e32a476167172f61c1567b63f1089e5c1eafc9",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2002/modis_2002_Brazil.csv"
+    },
+    {
+      "file": "modis_2003_Brazil.csv",
+      "bytes": 43221429,
+      "sha256": "e57adce53988a5d702ca78b2a2a094ae3454392c7defb8a867173aef8b7ba3f7",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2003/modis_2003_Brazil.csv"
+    },
+    {
+      "file": "modis_2004_Brazil.csv",
+      "bytes": 50055215,
+      "sha256": "438671d18103d1ac75407f21c93532f23d145c81e6fb6727c20d7c970e9e8a19",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2004/modis_2004_Brazil.csv"
+    },
+    {
+      "file": "modis_2005_Brazil.csv",
+      "bytes": 49808640,
+      "sha256": "40ec6a527c3571dc27c3ae564262f4c0b0b01c4cc96b7c6005493c1db4f0af2d",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2005/modis_2005_Brazil.csv"
+    },
+    {
+      "file": "modis_2006_Brazil.csv",
+      "bytes": 32007517,
+      "sha256": "5c73a026c2b935c160f397c8f09d24bc9d394455074abe743b904c56cc6540af",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2006/modis_2006_Brazil.csv"
+    },
+    {
+      "file": "modis_2007_Brazil.csv",
+      "bytes": 55275659,
+      "sha256": "2d49aa49ead6ff796a22a0b0bc6df634ba2545a56fbfbf40550326ebb6beb5b4",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2007/modis_2007_Brazil.csv"
+    },
+    {
+      "file": "modis_2008_Brazil.csv",
+      "bytes": 27929984,
+      "sha256": "4bb1d5392945ba0a21e58a6f0293d3a712c2b1d716203b2736319583168ce0d0",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2008/modis_2008_Brazil.csv"
+    },
+    {
+      "file": "modis_2009_Brazil.csv",
+      "bytes": 19676239,
+      "sha256": "43126b7fac7285db07b98deb55e34eda216692c4bb27ba41dd1a391003518b2d",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2009/modis_2009_Brazil.csv"
+    },
+    {
+      "file": "modis_2010_Brazil.csv",
+      "bytes": 46059831,
+      "sha256": "ac4fceba8612deaae2cdf85715ed45caae214ab1bd39c11f5ef7a0967a3c42c7",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2010/modis_2010_Brazil.csv"
+    },
+    {
+      "file": "modis_2011_Brazil.csv",
+      "bytes": 21378854,
+      "sha256": "a56e530a5207fe342f2d11776988ea33103f79c6f3d9e9632046162daac2d910",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2011/modis_2011_Brazil.csv"
+    },
+    {
+      "file": "modis_2012_Brazil.csv",
+      "bytes": 31692432,
+      "sha256": "1a9887200ac2f76f1ff1d79a16f5ade89aa1e7496083fc6f9ca723d599c2f286",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2012/modis_2012_Brazil.csv"
+    },
+    {
+      "file": "modis_2013_Brazil.csv",
+      "bytes": 17345997,
+      "sha256": "56f988b178933d642e8285e6727f9f824e532b59437a12c2c3d10165fec2c545",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2013/modis_2013_Brazil.csv"
+    },
+    {
+      "file": "modis_2014_Brazil.csv",
+      "bytes": 24512988,
+      "sha256": "1883fbaa50b7091b044621ca2b585ad6b4253b95476e9c3215be29ec3198bbb3",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2014/modis_2014_Brazil.csv"
+    },
+    {
+      "file": "modis_2015_Brazil.csv",
+      "bytes": 33035087,
+      "sha256": "27d5de1a2cd0eb2af0e4911b93cba9fb6a8a9256a4d9d238fb48bd6628e3e602",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2015/modis_2015_Brazil.csv"
+    },
+    {
+      "file": "modis_2016_Brazil.csv",
+      "bytes": 26308349,
+      "sha256": "a12097eedb21ea0c6742a24d571122e8848a1cefeaca6691fa1f4a047b94e919",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2016/modis_2016_Brazil.csv"
+    },
+    {
+      "file": "modis_2017_Brazil.csv",
+      "bytes": 30642832,
+      "sha256": "a6e2e271a1b87f539afcae88def18eb7ebe28da333879f3e984a1c34d16c3753",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2017/modis_2017_Brazil.csv"
+    },
+    {
+      "file": "modis_2018_Brazil.csv",
+      "bytes": 18455696,
+      "sha256": "efddb4ab4bb1d25f8ef37e4cafa6c79735f4a7a17346f689ef635fd2851a0f11",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2018/modis_2018_Brazil.csv"
+    },
+    {
+      "file": "modis_2019_Brazil.csv",
+      "bytes": 29901181,
+      "sha256": "2a14ae9be81ff99d5d480b667c0d5c508e65e931fa0927c7abe5832980380bd8",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2019/modis_2019_Brazil.csv"
+    },
+    {
+      "file": "modis_2020_Brazil.csv",
+      "bytes": 32395704,
+      "sha256": "663bd08ed07e9a556b297866fa2c1a074c42939fc318604b00ea81afbf8f51ac",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2020/modis_2020_Brazil.csv"
+    },
+    {
+      "file": "modis_2021_Brazil.csv",
+      "bytes": 27209512,
+      "sha256": "8466734fc9982b90b9a3d14b1b182d2f0bbdfe7fc606320339d9f951e03eb14f",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2021/modis_2021_Brazil.csv"
+    },
+    {
+      "file": "modis_2022_Brazil.csv",
+      "bytes": 28905347,
+      "sha256": "ce67f4c7d1d4ed3265b346dc54feac1378d5f2bd6f4841faaf3d486501a8b85a",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2022/modis_2022_Brazil.csv"
+    },
+    {
+      "file": "modis_2023_Brazil.csv",
+      "bytes": 28810183,
+      "sha256": "659ce5160d96fb2f82491efe4464eb30a0fc8fbbaa373f2962187b7069ae48b2",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2023/modis_2023_Brazil.csv"
+    },
+    {
+      "file": "modis_2024_Brazil.csv",
+      "bytes": 42592737,
+      "sha256": "b617f757e2b1279802412e71cd457f26a3714e21045fce2aaf25fee908a0c305",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2024/modis_2024_Brazil.csv"
+    },
+    {
+      "file": "modis_2025_Brazil.csv",
+      "bytes": 19063013,
+      "sha256": "1da12d96d12dc23d72026f638b9e09085a5a61d174def0e9899385af45d67b62",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/modis/2025/modis_2025_Brazil.csv"
+    },
+    {
+      "file": "viirs-jpss1_2018_Brazil.csv",
+      "bytes": 69462288,
+      "sha256": "34c8e5e9a97326c71745ca60447a31001bff22b8892dfec0943b50f42b058ae6",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-jpss1/2018/viirs-jpss1_2018_Brazil.csv"
+    },
+    {
+      "file": "viirs-jpss1_2019_Brazil.csv",
+      "bytes": 117273613,
+      "sha256": "654594bb92e353cbc923e5caf6d6f128216c8fb1ec53b379d24505adb021ada7",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-jpss1/2019/viirs-jpss1_2019_Brazil.csv"
+    },
+    {
+      "file": "viirs-jpss1_2020_Brazil.csv",
+      "bytes": 133694824,
+      "sha256": "faccf700c482e56b66b6301d7640b82072681e905d3582b7bd8f44d527b5711f",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-jpss1/2020/viirs-jpss1_2020_Brazil.csv"
+    },
+    {
+      "file": "viirs-jpss1_2021_Brazil.csv",
+      "bytes": 106794467,
+      "sha256": "ed71e40d4f967f21f3849539cfaf8a0b45e9c772ce98f45e4ccf789226989f99",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-jpss1/2021/viirs-jpss1_2021_Brazil.csv"
+    },
+    {
+      "file": "viirs-jpss1_2022_Brazil.csv",
+      "bytes": 118728944,
+      "sha256": "348404b92408112ba45148d4efb56985b4d6c6173afb9a2daa489e689b848393",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-jpss1/2022/viirs-jpss1_2022_Brazil.csv"
+    },
+    {
+      "file": "viirs-jpss1_2023_Brazil.csv",
+      "bytes": 107204252,
+      "sha256": "aa1344aaeedf4fd1475baddb2f505f9a902c7f976b38af5ee1144fcdd3ad95c6",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-jpss1/2023/viirs-jpss1_2023_Brazil.csv"
+    },
+    {
+      "file": "viirs-jpss1_2024_Brazil.csv",
+      "bytes": 162517975,
+      "sha256": "219e933850ceef91452f0d7722b6a0595edd52730674815a6c3fd695d03ebb46",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-jpss1/2024/viirs-jpss1_2024_Brazil.csv"
+    },
+    {
+      "file": "viirs-jpss1_2025_Brazil.csv",
+      "bytes": 69822157,
+      "sha256": "01a4ea954a97ea85ac43450682a87a3de4dbbcb5dff54b997d9da57370f3d8d9",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-jpss1/2025/viirs-jpss1_2025_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2012_Brazil.csv",
+      "bytes": 129965118,
+      "sha256": "937889da5868c08b71c5965d78cea2a9d891c90dc1179918ce30996ed91740f2",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2012/viirs-snpp_2012_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2013_Brazil.csv",
+      "bytes": 69169523,
+      "sha256": "49925310a414811e150c498c25a7cda37f0372e2832a7bb4878191cccdb66286",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2013/viirs-snpp_2013_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2014_Brazil.csv",
+      "bytes": 99320029,
+      "sha256": "10080ebbc28c71454cad0f295efe9e66c16bc8c390adc4faf66b04991a64b4dd",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2014/viirs-snpp_2014_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2015_Brazil.csv",
+      "bytes": 136919538,
+      "sha256": "3e4de6dea98b4095dcf2670739035f5a7497e15f33deab1508a78a67a0cc8881",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2015/viirs-snpp_2015_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2016_Brazil.csv",
+      "bytes": 103907223,
+      "sha256": "5fc0210333951bdf969ea7f1aa57ddd16c151740f7211ace254b6fc5e573ab07",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2016/viirs-snpp_2016_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2017_Brazil.csv",
+      "bytes": 122998462,
+      "sha256": "428521b3980779366adff96e9fe77d61569f5cd58b33d503af0e9eba6995a6fa",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2017/viirs-snpp_2017_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2018_Brazil.csv",
+      "bytes": 72954097,
+      "sha256": "df2ca4bdedda82de5df21c598b92e619afade1f07ccc09811d104568e994ee54",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2018/viirs-snpp_2018_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2019_Brazil.csv",
+      "bytes": 116363499,
+      "sha256": "c44383a220c7630c91e4246f6b8eb6c5f27c989f2af9a948c94923ac4870cb8d",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2019/viirs-snpp_2019_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2020_Brazil.csv",
+      "bytes": 132968184,
+      "sha256": "83872acbc38631528b3d53357987a7d04625986595c9f91d7fe75f3df39a69d7",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2020/viirs-snpp_2020_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2021_Brazil.csv",
+      "bytes": 106421293,
+      "sha256": "3c3254ae8d45f7e4f34f0389c876761949364b44a7e879fdb7ea261af1b3db87",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2021/viirs-snpp_2021_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2022_Brazil.csv",
+      "bytes": 112003139,
+      "sha256": "a9ba549d9c161ec42f709d59220e705c675ab184e5e5365f7e82d56336bfccbc",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2022/viirs-snpp_2022_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2023_Brazil.csv",
+      "bytes": 107163080,
+      "sha256": "7e0d392c6e47eab3f28f94af001f0bc39eab5f2a0e21707b4e357a84158de854",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2023/viirs-snpp_2023_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2024_Brazil.csv",
+      "bytes": 154270311,
+      "sha256": "70bddaf02d8eb883a1ef69c724176a4d9fd5b5ba94d57286fa409a69f6213882",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2024/viirs-snpp_2024_Brazil.csv"
+    },
+    {
+      "file": "viirs-snpp_2025_Brazil.csv",
+      "bytes": 68706593,
+      "sha256": "6e523e884d11d68e51623715efb8115217bc0d9c1e8f50e0eb439b908955aea0",
+      "url": "https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/2025/viirs-snpp_2025_Brazil.csv"
+    }
+  ]
+}

@@ -1,0 +1,3593 @@
+{
+ "mock": false,
+ "note": "To be reviewed by the team before use.",
+ "center": {
+  "lat": 33.9898,
+  "lon": -117.7326
+ },
+ "radius_km": 25,
+ "fires": [
+  {
+   "year": 2012,
+   "name": "SHINN",
+   "acres": 8.0,
+   "lat": 34.17472222,
+   "lon": -117.6725,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "RESERVOIR",
+   "acres": 5.0,
+   "lat": 34.17666667,
+   "lon": -117.88305556,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "FRANKISH",
+   "acres": 3.0,
+   "lat": 34.15833333,
+   "lon": -117.66111111,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "EUCLID AV / HWY 71  N",
+   "acres": 1.0,
+   "lat": 33.930737,
+   "lon": -117.659346,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": null,
+   "acres": 1.11,
+   "lat": 34.051774,
+   "lon": -117.670776,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.0458,
+   "lon": -117.7959,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.0639,
+   "lon": -117.812,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.0434,
+   "lon": -117.9869,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.9215,
+   "lon": -117.959,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "VAN BUREN BL OFRP  / LIMO",
+   "acres": 1.0,
+   "lat": 33.975806,
+   "lon": -117.475774,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "VAN BUREN BL / RUTILE ST",
+   "acres": 1.0,
+   "lat": 34.003665,
+   "lon": -117.497748,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "HIGHWAY",
+   "acres": 1.0,
+   "lat": 33.884167,
+   "lon": -117.628889,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "HAMNER",
+   "acres": 1.0,
+   "lat": 33.960848,
+   "lon": -117.558325,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "HY 60  W/ PEDLEY RD OFRP",
+   "acres": 1.0,
+   "lat": 34.018513,
+   "lon": -117.475681,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "I 15  N/ 2ND ST ONRP",
+   "acres": 1.0,
+   "lat": 33.91433,
+   "lon": -117.557435,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "WALTERS ST / SELBY AV",
+   "acres": 1.0,
+   "lat": 33.952184,
+   "lon": -117.601092,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "TISDALE",
+   "acres": 1.0,
+   "lat": 33.942222,
+   "lon": -117.585,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "VAN BUREN BL / JURUPA RD",
+   "acres": 1.0,
+   "lat": 33.997043,
+   "lon": -117.485499,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "VILLAGE",
+   "acres": 1.0,
+   "lat": 34.025782,
+   "lon": -117.506951,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "TISDALE",
+   "acres": 1.0,
+   "lat": 33.942186,
+   "lon": -117.5851,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "VAN BUREN BL / JURUPA RD",
+   "acres": 1.0,
+   "lat": 33.997043,
+   "lon": -117.485499,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "VAN BUREN BL OFRP  / LIMO",
+   "acres": 1.0,
+   "lat": 33.975806,
+   "lon": -117.475774,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "WILD PONY DR  JRPV",
+   "acres": 1.0,
+   "lat": 34.010078,
+   "lon": -117.467986,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "SCHLEISMAN RD / HELLMAN A",
+   "acres": 100.0,
+   "lat": 33.96008,
+   "lon": -117.610936,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "ARCHIBALD AV / SCHLEISMAN",
+   "acres": 1.0,
+   "lat": 33.960806,
+   "lon": -117.593145,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2012,
+   "name": "VAN BUREN BL / JURUPA R 2",
+   "acres": 1.0,
+   "lat": 33.997085,
+   "lon": -117.485342,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "BROKEN",
+   "acres": 30.0,
+   "lat": 34.12277778,
+   "lon": -117.74944444,
+   "aqua": true,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2013,
+   "name": "SKYLINE",
+   "acres": 7.0,
+   "lat": 33.83722222,
+   "lon": -117.59472222,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "MADRE",
+   "acres": 245.0,
+   "lat": 34.16444444,
+   "lon": -117.90166667,
+   "aqua": true,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2013,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.942183,
+   "lon": -117.5851,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "VAN BUREN BL / JURUPA RD",
+   "acres": 1.0,
+   "lat": 33.99705,
+   "lon": -117.4855,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.983467,
+   "lon": -117.484133,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.885836,
+   "lon": -117.854809,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "PINEHURST CI  EVAL",
+   "acres": 1.0,
+   "lat": 33.9812,
+   "lon": -117.551733,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "VAN BUREN",
+   "acres": 12.0,
+   "lat": 33.99705,
+   "lon": -117.4855,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "INTERSTATE",
+   "acres": 1.0,
+   "lat": 33.942281,
+   "lon": -117.555744,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "I 15  N/ 6TH ST OFRP",
+   "acres": 1.0,
+   "lat": 33.9341,
+   "lon": -117.55585,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "LIMONITE",
+   "acres": 4.0,
+   "lat": 33.97535,
+   "lon": -117.505867,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "3RD ST / HAMNER AV",
+   "acres": 1.0,
+   "lat": 33.916617,
+   "lon": -117.560017,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "INDIANA",
+   "acres": 7.0,
+   "lat": 33.877167,
+   "lon": -117.509033,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "VALLEY VIEW AV  NORC",
+   "acres": 1.0,
+   "lat": 33.928067,
+   "lon": -117.550233,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "VAN BUREN BL / JURUPA RD",
+   "acres": 1.0,
+   "lat": 33.99705,
+   "lon": -117.4855,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "VAN BUREN BL / RUTILE ST",
+   "acres": 1.0,
+   "lat": 34.003667,
+   "lon": -117.49775,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "2ND ST / HAMNER AV",
+   "acres": 1.0,
+   "lat": 33.90945,
+   "lon": -117.561133,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.986417,
+   "lon": -117.479667,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.921217,
+   "lon": -117.5164,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2013,
+   "name": "RANCH",
+   "acres": 24.0,
+   "lat": 33.920875,
+   "lon": -117.632415,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": "COLBY",
+   "acres": 1980.0,
+   "lat": 34.165,
+   "lon": -117.84777778,
+   "aqua": false,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2014,
+   "name": "GOLF",
+   "acres": 3.5,
+   "lat": 34.15194444,
+   "lon": -117.75,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": "DIMAS",
+   "acres": 9.1,
+   "lat": 34.14888889,
+   "lon": -117.77555556,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": "COAL",
+   "acres": 39.0,
+   "lat": 33.86861111,
+   "lon": -117.68305556,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2014,
+   "name": "PHILADELPHIA",
+   "acres": 1.0,
+   "lat": 34.02978,
+   "lon": -117.50118,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.88105,
+   "lon": -117.500533,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": "51ST ST  JRPV",
+   "acres": 1.0,
+   "lat": 33.994428,
+   "lon": -117.490552,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": "CORONA AV  NORC",
+   "acres": 1.0,
+   "lat": 33.92629,
+   "lon": -117.545474,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.881357,
+   "lon": -117.826265,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.997483,
+   "lon": -117.9882,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.0265,
+   "lon": -117.550067,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.914733,
+   "lon": -117.557717,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": null,
+   "acres": 20.0,
+   "lat": 33.998183,
+   "lon": -117.484133,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.960083,
+   "lon": -117.610933,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.923667,
+   "lon": -117.591517,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2014,
+   "name": "HALL AV / CHANDLER ST",
+   "acres": 1.0,
+   "lat": 33.950015,
+   "lon": -117.60445,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": "LUCY",
+   "acres": 1.0,
+   "lat": 34.15333333,
+   "lon": -117.87444444,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": "SHINN",
+   "acres": 11.0,
+   "lat": 34.175,
+   "lon": -117.67055556,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": null,
+   "acres": 1049.0,
+   "lat": 33.884317,
+   "lon": -117.642767,
+   "aqua": false,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2015,
+   "name": null,
+   "acres": 66.0,
+   "lat": 33.979127,
+   "lon": -117.480859,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.874317,
+   "lon": -117.604383,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.9599,
+   "lon": -117.51405,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.92095,
+   "lon": -117.55935,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": "VAN BUREN BL ONRP  / LIMO",
+   "acres": 1.0,
+   "lat": 33.975806,
+   "lon": -117.475774,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2015,
+   "name": "HIDDEN",
+   "acres": 1.0,
+   "lat": 33.983333,
+   "lon": -117.758783,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "HY 91 W ONRP TO HY 71 N",
+   "acres": 1.0,
+   "lat": 33.884313,
+   "lon": -117.642759,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.095418,
+   "lon": -117.863809,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.030397,
+   "lon": -117.912867,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "LIMONITE",
+   "acres": 1.0,
+   "lat": 33.975389,
+   "lon": -117.513468,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "CEDAR",
+   "acres": 1.0,
+   "lat": 33.990894,
+   "lon": -117.491838,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "QUARTZ CANYON RD  JRPV",
+   "acres": 1.0,
+   "lat": 34.02089,
+   "lon": -117.477267,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "CAMPBELL",
+   "acres": 1.0,
+   "lat": 34.033116,
+   "lon": -117.481151,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": null,
+   "acres": 3.0,
+   "lat": 34.017618,
+   "lon": -117.992591,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "BYRON ST  HOMG",
+   "acres": 1.0,
+   "lat": 33.876813,
+   "lon": -117.522501,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "CLAY",
+   "acres": 1.0,
+   "lat": 33.96824,
+   "lon": -117.462738,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "CLAY",
+   "acres": 1.0,
+   "lat": 33.967161,
+   "lon": -117.466631,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "71",
+   "acres": 4.5,
+   "lat": 33.896131,
+   "lon": -117.646666,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "I 15  S/ 2ND ST OFRP",
+   "acres": 1.0,
+   "lat": 33.91433,
+   "lon": -117.557435,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "CRESTVIEW",
+   "acres": 3.0,
+   "lat": 33.938417,
+   "lon": -117.528104,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "56TH",
+   "acres": 1.0,
+   "lat": 33.986428,
+   "lon": -117.475409,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "I 15  S/ 6TH ST ONRP",
+   "acres": 1.0,
+   "lat": 33.932991,
+   "lon": -117.556241,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "MOODY",
+   "acres": 1.0,
+   "lat": 33.877927,
+   "lon": -117.530081,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "I 15  S/ HIDDEN VALLEY PY",
+   "acres": 1.0,
+   "lat": 33.903226,
+   "lon": -117.560323,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": "PRADO",
+   "acres": 3.0,
+   "lat": 33.884313,
+   "lon": -117.642759,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.002932,
+   "lon": -117.953876,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2016,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.083333,
+   "lon": -117.516666,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "EXPERIMENTAL",
+   "acres": 1.0,
+   "lat": 34.20833333,
+   "lon": -117.77305556,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "EASTSIDE",
+   "acres": 2.0,
+   "lat": 34.15722222,
+   "lon": -117.80166667,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "RANCH",
+   "acres": 5.0,
+   "lat": 34.1525,
+   "lon": -117.87611111,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "CANYON 2",
+   "acres": 2661.0,
+   "lat": 33.87055556,
+   "lon": -117.68444444,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2017,
+   "name": "JURUPA",
+   "acres": 1.5,
+   "lat": 34.039053,
+   "lon": -117.47221,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "HILL",
+   "acres": 3.0,
+   "lat": 34.02,
+   "lon": -117.486216,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "I 15  S/ 6TH ST ONRP",
+   "acres": 1.0,
+   "lat": 33.932991,
+   "lon": -117.556241,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "ETIWANDA",
+   "acres": 1.0,
+   "lat": 34.016295,
+   "lon": -117.524478,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "GLEN ST  JRPV",
+   "acres": 1.0,
+   "lat": 34.011789,
+   "lon": -117.480944,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "RIDGEVIEW AV  JRPV",
+   "acres": 15.0,
+   "lat": 33.980814,
+   "lon": -117.518908,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "RIVERDALE",
+   "acres": 100.0,
+   "lat": 33.96953,
+   "lon": -117.473222,
+   "aqua": true,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2017,
+   "name": "MORGAN DR / PACER DR",
+   "acres": 1.0,
+   "lat": 33.917619,
+   "lon": -117.579008,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "PEDLEY",
+   "acres": 1.0,
+   "lat": 33.986428,
+   "lon": -117.475409,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "VILLAGE",
+   "acres": 3.0,
+   "lat": 34.024261,
+   "lon": -117.507279,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "BALSAM LN  COR",
+   "acres": 1.0,
+   "lat": 33.878624,
+   "lon": -117.608579,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "HIGHWAY",
+   "acres": 3.0,
+   "lat": 34.018668,
+   "lon": -117.541893,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": null,
+   "acres": 4.0,
+   "lat": 34.020667,
+   "lon": -117.845247,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": null,
+   "acres": 4.0,
+   "lat": 33.98464,
+   "lon": -117.918901,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.076964,
+   "lon": -117.959092,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": null,
+   "acres": 25.0,
+   "lat": 34.133459,
+   "lon": -117.896571,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "I 15  N/ CANTU GALLEANO R",
+   "acres": 1.0,
+   "lat": 33.979766,
+   "lon": -117.548688,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "PEDLEY",
+   "acres": 2.0,
+   "lat": 34.011798,
+   "lon": -117.475444,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "GRANITE",
+   "acres": 2.0,
+   "lat": 34.017972,
+   "lon": -117.470254,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "71",
+   "acres": 1.0,
+   "lat": 33.884928,
+   "lon": -117.643946,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "CAVALETTI LN / WILD HORSE",
+   "acres": 1.0,
+   "lat": 33.927991,
+   "lon": -117.527508,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "JURUPA",
+   "acres": 70.0,
+   "lat": 33.997086,
+   "lon": -117.485342,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "MAGNOLIA AV / GRANT ST",
+   "acres": 1.0,
+   "lat": 33.878018,
+   "lon": -117.520689,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "60",
+   "acres": 1.0,
+   "lat": 34.020867,
+   "lon": -117.545485,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "LINCOLN",
+   "acres": 1.6,
+   "lat": 33.87945,
+   "lon": -117.499754,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "POPPY ST  ELCE",
+   "acres": 1.0,
+   "lat": 33.844,
+   "lon": -117.527654,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "LIMONITE",
+   "acres": 3.0,
+   "lat": 33.975524,
+   "lon": -117.49488,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": "WAGON",
+   "acres": 2.0,
+   "lat": 34.027906,
+   "lon": -117.505275,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": null,
+   "acres": 2.5,
+   "lat": 34.01617,
+   "lon": -117.995208,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.917325,
+   "lon": -117.963175,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": null,
+   "acres": 16.0,
+   "lat": 33.953235,
+   "lon": -117.483611,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2017,
+   "name": null,
+   "acres": 15972.0,
+   "lat": 33.865444,
+   "lon": -117.625578,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2017,
+   "name": "CANYON 2",
+   "acres": 9217.0,
+   "lat": 33.86528,
+   "lon": -117.72,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2018,
+   "name": "MOUNTAIN",
+   "acres": 1.5,
+   "lat": 34.19361111,
+   "lon": -117.84166667,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "SAN",
+   "acres": 14.0,
+   "lat": 34.17972222,
+   "lon": -117.675,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "SKYLINE",
+   "acres": 281.42,
+   "lat": 33.83416667,
+   "lon": -117.62083333,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.126998,
+   "lon": -117.82032,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "PEDLEY RD / 54TH ST",
+   "acres": 1.0,
+   "lat": 33.990059,
+   "lon": -117.475412,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "BELLEGRAVE AV / VAN BUREN",
+   "acres": 1.0,
+   "lat": 34.006174,
+   "lon": -117.502665,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "LONE",
+   "acres": 1.0,
+   "lat": 34.007163,
+   "lon": -117.462774,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "AVOCET DR  JRPV",
+   "acres": 1.0,
+   "lat": 33.98332,
+   "lon": -117.541374,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "CLAY",
+   "acres": 1.0,
+   "lat": 33.977156,
+   "lon": -117.462475,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 1.5,
+   "lat": 33.905109,
+   "lon": -117.889757,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "BELLEGRAVE AV OVRPS (I 15",
+   "acres": 1.0,
+   "lat": 33.991089,
+   "lon": -117.550071,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "JURUPA",
+   "acres": 1.0,
+   "lat": 33.991816,
+   "lon": -117.475417,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "GRANITE",
+   "acres": 1.0,
+   "lat": 34.020017,
+   "lon": -117.489103,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.003306,
+   "lon": -117.955273,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 2.07,
+   "lat": 34.121395,
+   "lon": -117.568151,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2018,
+   "name": "HILLSIDE",
+   "acres": 1.0,
+   "lat": 33.95095,
+   "lon": -117.536868,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "PEDLEY",
+   "acres": 1.0,
+   "lat": 34.017513,
+   "lon": -117.479583,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "CLAY",
+   "acres": 1.0,
+   "lat": 33.97585,
+   "lon": -117.46707,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "LIMONITE",
+   "acres": 4.0,
+   "lat": 33.975579,
+   "lon": -117.50175,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "RIVERSIDE",
+   "acres": 1.0,
+   "lat": 34.017858,
+   "lon": -117.537477,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 10.0,
+   "lat": 34.024556,
+   "lon": -117.767935,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.0465,
+   "lon": -117.773906,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.899335,
+   "lon": -117.834107,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 3.71,
+   "lat": 34.139751,
+   "lon": -117.643019,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 30.0,
+   "lat": 34.171578,
+   "lon": -117.674387,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.099776,
+   "lon": -117.647165,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2018,
+   "name": "EUCLID",
+   "acres": 154.0,
+   "lat": 33.93,
+   "lon": -117.66,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "SHARP",
+   "acres": 3.0,
+   "lat": 34.17777778,
+   "lon": -117.84638889,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "CONTEMPO",
+   "acres": 8.0,
+   "lat": 33.86333333,
+   "lon": -117.66777778,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "HILL",
+   "acres": 494.0,
+   "lat": 34.0192,
+   "lon": -117.4736,
+   "aqua": false,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.994699,
+   "lon": -117.528751,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "LUCRETIA AV  JRPV",
+   "acres": 4.0,
+   "lat": 33.984028,
+   "lon": -117.531282,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.47,
+   "lat": 33.931,
+   "lon": -117.578781,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "BIG DIPPER DR  JRPV",
+   "acres": 3.0,
+   "lat": 33.97889,
+   "lon": -117.528774,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 2.0,
+   "lat": 34.035285,
+   "lon": -117.47749,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.804996,
+   "lon": -117.784653,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.898669,
+   "lon": -117.568528,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.98263,
+   "lon": -117.720127,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.982738,
+   "lon": -117.692365,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 10.0,
+   "lat": 34.064576,
+   "lon": -117.654971,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.8,
+   "lat": 34.068839,
+   "lon": -117.514344,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "LIMONITE AV  EVAL",
+   "acres": 10.0,
+   "lat": 33.975188,
+   "lon": -117.554483,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 2.0,
+   "lat": 33.976299,
+   "lon": -117.952071,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "TOWN AND COUNTRY DR  NORC",
+   "acres": 350.0,
+   "lat": 33.927613,
+   "lon": -117.561137,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": "LANDON DR  JRPV",
+   "acres": 2.5,
+   "lat": 33.998232,
+   "lon": -117.546147,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 25.0,
+   "lat": 33.933333,
+   "lon": -117.916666,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.983333,
+   "lon": -117.75,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.069334,
+   "lon": -117.616696,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 2.0,
+   "lat": 34.013522,
+   "lon": -117.74779,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 3.2,
+   "lat": 33.991569,
+   "lon": -117.475421,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.856662,
+   "lon": -117.880386,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.012928,
+   "lon": -117.465889,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2019,
+   "name": null,
+   "acres": 154.0,
+   "lat": 34.001912,
+   "lon": -117.767512,
+   "aqua": true,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 6.0,
+   "lat": 34.089964,
+   "lon": -117.545847,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "LIMONITE AV / VAN BUREN B",
+   "acres": 1.0,
+   "lat": 33.975806,
+   "lon": -117.475774,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "CLAY ST  JRPV",
+   "acres": 2.0,
+   "lat": 33.974666,
+   "lon": -117.462177,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.074793,
+   "lon": -117.759445,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.146837,
+   "lon": -117.755066,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "NORTH LYNN CI  JRPV",
+   "acres": 1.0,
+   "lat": 34.025957,
+   "lon": -117.512156,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "RIGEL WY  JRPV",
+   "acres": 1.0,
+   "lat": 33.99087,
+   "lon": -117.529187,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 2.4,
+   "lat": 33.895558,
+   "lon": -117.586991,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.043136,
+   "lon": -117.763726,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.076753,
+   "lon": -117.762233,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "ALPINE ST  EVAL",
+   "acres": 2.1,
+   "lat": 33.966971,
+   "lon": -117.556141,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 150.0,
+   "lat": 34.066666,
+   "lon": -117.5,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.053173,
+   "lon": -117.80228,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "RUTILE ST  JRPV",
+   "acres": 1.0,
+   "lat": 33.992334,
+   "lon": -117.497179,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "CONNING ST  JRPV",
+   "acres": 1.0,
+   "lat": 34.0164,
+   "lon": -117.502821,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 3.0,
+   "lat": 34.094596,
+   "lon": -117.512824,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.106215,
+   "lon": -117.736908,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.071159,
+   "lon": -117.670053,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "CALIFORNIA REHABILITATION",
+   "acres": 1.0,
+   "lat": 33.93111,
+   "lon": -117.569799,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.074793,
+   "lon": -117.759445,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "GLOVER CT  EVAL",
+   "acres": 6.0,
+   "lat": 33.945047,
+   "lon": -117.586253,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.08938,
+   "lon": -117.64739,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.121935,
+   "lon": -117.863947,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.055934,
+   "lon": -117.668668,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 2.0,
+   "lat": 33.976011,
+   "lon": -117.983646,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "CALIFORNIA REHABILITATION",
+   "acres": 1.0,
+   "lat": 33.93111,
+   "lon": -117.569799,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.065287,
+   "lon": -117.622703,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.060089,
+   "lon": -117.644944,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "QUARTER HORSE DR  EVAL",
+   "acres": 1.0,
+   "lat": 33.962405,
+   "lon": -117.571371,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "LAKEVIEW AV  JRPV",
+   "acres": 1.0,
+   "lat": 33.97136,
+   "lon": -117.47553,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 2.0,
+   "lat": 34.038982,
+   "lon": -117.611003,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.851284,
+   "lon": -117.586668,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.10751,
+   "lon": -117.767431,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.066666,
+   "lon": -117.666666,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "BRIARVALE ST  HOMG",
+   "acres": 1.0,
+   "lat": 33.878116,
+   "lon": -117.513523,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.069613,
+   "lon": -117.979761,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "RIVER HEIGHTS INTERMEDIAT",
+   "acres": 1.0,
+   "lat": 33.957547,
+   "lon": -117.567025,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "RIVER RD  NORC",
+   "acres": 1.0,
+   "lat": 33.915216,
+   "lon": -117.588754,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "EVE CI  JRPV",
+   "acres": 1.0,
+   "lat": 34.020366,
+   "lon": -117.509584,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.063416,
+   "lon": -117.630671,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1087.0,
+   "lat": 33.894568,
+   "lon": -117.59817,
+   "aqua": true,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2020,
+   "name": "54TH ST  JRPV",
+   "acres": 1.0,
+   "lat": 33.990068,
+   "lon": -117.471454,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.065269,
+   "lon": -117.779761,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.040582,
+   "lon": -117.798098,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.094919,
+   "lon": -117.953573,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "68TH ST  JRPV",
+   "acres": 1.5,
+   "lat": 33.964578,
+   "lon": -117.53235,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.924264,
+   "lon": -117.55887,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.055772,
+   "lon": -117.649431,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.5,
+   "lat": 34.012694,
+   "lon": -117.908607,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.085252,
+   "lon": -117.636652,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.121602,
+   "lon": -117.62059,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 4.0,
+   "lat": 34.121638,
+   "lon": -117.906242,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "TRAIL ST  NORC",
+   "acres": 1.0,
+   "lat": 33.911178,
+   "lon": -117.599259,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.875719,
+   "lon": -117.589033,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.038406,
+   "lon": -117.468946,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 2.0,
+   "lat": 33.954697,
+   "lon": -117.519371,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "CANTU GALLEANO RANCH RD",
+   "acres": 1.0,
+   "lat": 34.004233,
+   "lon": -117.534336,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "TEMESCAL AV  NORC",
+   "acres": 1.0,
+   "lat": 33.912009,
+   "lon": -117.551679,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "ETIWANDA AV  JRPV",
+   "acres": 1.0,
+   "lat": 33.993771,
+   "lon": -117.523365,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.074397,
+   "lon": -117.828549,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "BROKEN LANCE DR  NORC",
+   "acres": 4.0,
+   "lat": 33.932052,
+   "lon": -117.573095,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 2.0,
+   "lat": 34.045637,
+   "lon": -117.676474,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "RIVER RD  NORC",
+   "acres": 1.0,
+   "lat": 33.917686,
+   "lon": -117.592071,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "MISSION BL  JRPV",
+   "acres": 2.1,
+   "lat": 34.011788,
+   "lon": -117.479639,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "FISKE DR  EVAL",
+   "acres": 2.0,
+   "lat": 33.935692,
+   "lon": -117.595357,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.074793,
+   "lon": -117.759445,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 2.0,
+   "lat": 34.126495,
+   "lon": -117.793979,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.029764,
+   "lon": -117.617164,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "BIG DIPPER DR  JRPV",
+   "acres": 5.8,
+   "lat": 33.977372,
+   "lon": -117.527895,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 2.0,
+   "lat": 33.946558,
+   "lon": -117.551306,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "NEWCASTLE ST  JRPV",
+   "acres": 1.0,
+   "lat": 33.999199,
+   "lon": -117.495835,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.107096,
+   "lon": -117.942889,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.063956,
+   "lon": -117.562746,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.045349,
+   "lon": -117.495962,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.070449,
+   "lon": -117.61273,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.076564,
+   "lon": -117.488866,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "DRY GULCH RD  ELCE",
+   "acres": 1.0,
+   "lat": 33.8378,
+   "lon": -117.534386,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "WILLOWBROOK RD  JRPV",
+   "acres": 1.0,
+   "lat": 33.998325,
+   "lon": -117.49798,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "EVE CI  JRPV",
+   "acres": 4.0,
+   "lat": 34.021142,
+   "lon": -117.509252,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "KENNETH ST  JRPV",
+   "acres": 1.0,
+   "lat": 34.016657,
+   "lon": -117.485219,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.032677,
+   "lon": -117.637191,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.093166,
+   "lon": -117.953591,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "HAMNER AV  EVAL",
+   "acres": 1.0,
+   "lat": 33.982612,
+   "lon": -117.558354,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "COUNTRY VILLAGE RD  JRPV",
+   "acres": 11.0,
+   "lat": 34.025965,
+   "lon": -117.506881,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.057589,
+   "lon": -117.637848,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "SCHLEISMAN RD / ARCHIBALD",
+   "acres": 2.0,
+   "lat": 33.960806,
+   "lon": -117.593092,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.990634,
+   "lon": -117.92582,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.067103,
+   "lon": -117.621813,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "WOODWARD AV  NORC",
+   "acres": 7.0,
+   "lat": 33.944319,
+   "lon": -117.552031,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "GRANITE HILL DR  JRPV",
+   "acres": 1.0,
+   "lat": 34.019863,
+   "lon": -117.479162,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.009943,
+   "lon": -117.691636,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "RIVER RD / BLUFF ST",
+   "acres": 1.0,
+   "lat": 33.919564,
+   "lon": -117.593941,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.060026,
+   "lon": -117.65105,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 2.0,
+   "lat": 33.933689,
+   "lon": -117.490575,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.063713,
+   "lon": -117.506889,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "7TH ST  NORC",
+   "acres": 1.0,
+   "lat": 33.945663,
+   "lon": -117.54367,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 34.080872,
+   "lon": -117.62854,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": null,
+   "acres": 1.0,
+   "lat": 33.861195,
+   "lon": -117.550299,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "CHIFNEY LN  JRPV",
+   "acres": 1.0,
+   "lat": 33.987664,
+   "lon": -117.47275,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "THORPE",
+   "acres": 1.0,
+   "lat": 34.1646049,
+   "lon": -117.58721208,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "SHINN",
+   "acres": 1.0,
+   "lat": 34.1804949,
+   "lon": -117.6764121,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2020,
+   "name": "RANCH2",
+   "acres": 4237.0,
+   "lat": 34.15672488,
+   "lon": -117.91071213,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2020,
+   "name": "BLUE RIDGE",
+   "acres": 13694.0,
+   "lat": 33.87944927,
+   "lon": -117.61917876,
+   "aqua": true,
+   "terra": true,
+   "viirs": true
+  },
+  {
+   "year": 2020,
+   "name": "SKYLINE",
+   "acres": 51.0,
+   "lat": 33.83733486,
+   "lon": -117.59284205,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "DIMAS",
+   "acres": 1.0,
+   "lat": 34.15350489,
+   "lon": -117.77081211,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "DALTON",
+   "acres": 4.0,
+   "lat": 34.16165489,
+   "lon": -117.84171212,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "60TH ST  JRPV",
+   "acres": 1.0,
+   "lat": 33.97912688,
+   "lon": -117.51331005,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "IBERIA ST  JRPV",
+   "acres": 1.25,
+   "lat": 34.02291089,
+   "lon": -117.52712006,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "CORTE CUYAMA   JRPV",
+   "acres": 2.1,
+   "lat": 34.00016189,
+   "lon": -117.53569206,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU213116",
+   "acres": 1.0,
+   "lat": 34.01208988,
+   "lon": -117.64899908,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU211757",
+   "acres": 1.0,
+   "lat": 34.01929188,
+   "lon": -117.67890608,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC109501",
+   "acres": 1.0,
+   "lat": 34.00128687,
+   "lon": -117.89112512,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU005388",
+   "acres": 1.2,
+   "lat": 33.87490487,
+   "lon": -117.51812404,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU213556",
+   "acres": 1.5,
+   "lat": 33.95715787,
+   "lon": -117.67065108,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC115847",
+   "acres": 3.0,
+   "lat": 34.12649988,
+   "lon": -117.79399111,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC118870",
+   "acres": 1.0,
+   "lat": 34.10709987,
+   "lon": -117.94289714,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU216190",
+   "acres": 1.0,
+   "lat": 34.01917688,
+   "lon": -117.67514708,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU212321",
+   "acres": 5.4,
+   "lat": 34.06667089,
+   "lon": -117.50001206,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU008614",
+   "acres": 1.0,
+   "lat": 33.94665288,
+   "lon": -117.55056806,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU211336",
+   "acres": 1.0,
+   "lat": 34.01946588,
+   "lon": -117.63065308,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU010619",
+   "acres": 1.0,
+   "lat": 33.90008987,
+   "lon": -117.56984106,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC125085",
+   "acres": 2.5,
+   "lat": 34.10709587,
+   "lon": -117.94288914,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU010307",
+   "acres": 7.0,
+   "lat": 34.01178589,
+   "lon": -117.48267905,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU008921",
+   "acres": 1.5,
+   "lat": 34.01179489,
+   "lon": -117.47544805,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC123919",
+   "acres": 27.0,
+   "lat": 34.10709587,
+   "lon": -117.94288914,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC131083",
+   "acres": 4.0,
+   "lat": 33.96555186,
+   "lon": -117.83712911,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC130440",
+   "acres": 3.0,
+   "lat": 34.17971689,
+   "lon": -117.84463813,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU211709",
+   "acres": 1.0,
+   "lat": 34.03315388,
+   "lon": -117.65065408,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU013216",
+   "acres": 2.0,
+   "lat": 34.02059089,
+   "lon": -117.49391105,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU009227",
+   "acres": 1.0,
+   "lat": 33.89952387,
+   "lon": -117.57056106,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU010177",
+   "acres": 1.0,
+   "lat": 34.01070689,
+   "lon": -117.49828205,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU211486",
+   "acres": 10.0,
+   "lat": 34.06457589,
+   "lon": -117.65497108,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU009928",
+   "acres": 1.0,
+   "lat": 34.02229889,
+   "lon": -117.49827305,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC139042",
+   "acres": 1.0,
+   "lat": 33.98091786,
+   "lon": -117.86280511,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "ORC012132",
+   "acres": 42.0,
+   "lat": 33.93582486,
+   "lon": -117.89142111,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2021,
+   "name": "RRU016454",
+   "acres": 1.0,
+   "lat": 33.97539588,
+   "lon": -117.51348405,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "LAC131483",
+   "acres": 2.0,
+   "lat": 34.02980587,
+   "lon": -117.84290311,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU212047",
+   "acres": 1.0,
+   "lat": 34.03129088,
+   "lon": -117.62847208,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "BDU211766",
+   "acres": 1.0,
+   "lat": 34.04804189,
+   "lon": -117.57599407,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU016529",
+   "acres": 1.5,
+   "lat": 33.94667988,
+   "lon": -117.54991506,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2021,
+   "name": "RRU016190",
+   "acres": 1.0,
+   "lat": 34.01372589,
+   "lon": -117.50213805,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "FELSPAR",
+   "acres": 4.0,
+   "lat": 33.98643289,
+   "lon": -117.47542105,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "CLAY",
+   "acres": 4.0,
+   "lat": 33.96728089,
+   "lon": -117.46643504,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "PEDLEY",
+   "acres": 12.5,
+   "lat": 33.97872289,
+   "lon": -117.47543105,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "EUCLID",
+   "acres": 1.3,
+   "lat": 33.93497587,
+   "lon": -117.65618307,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "MARLATT",
+   "acres": 6.97,
+   "lat": 33.95483188,
+   "lon": -117.51477105,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2022,
+   "name": "RIDGE",
+   "acres": 3.0,
+   "lat": 34.16344488,
+   "lon": -117.89541213,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "COBBLE",
+   "acres": 5.0,
+   "lat": 33.947231,
+   "lon": -117.580068,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "BEACH 2",
+   "acres": 1.0,
+   "lat": 33.975524,
+   "lon": -117.49488,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "MARTIN",
+   "acres": 1.0,
+   "lat": 33.99823,
+   "lon": -117.520052,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "VILLAGE",
+   "acres": 35.0,
+   "lat": 34.019418,
+   "lon": -117.502595,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "LACO- ENCANTO",
+   "acres": 1.0,
+   "lat": 34.1525,
+   "lon": -117.900667,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "VALLEY",
+   "acres": 4.4,
+   "lat": 33.873829,
+   "lon": -117.522676,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "LANDON",
+   "acres": 36.0,
+   "lat": 33.998227,
+   "lon": -117.544317,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2023,
+   "name": "CHANDLER",
+   "acres": 20.0,
+   "lat": 33.946337,
+   "lon": -117.610322,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2023,
+   "name": "57341546",
+   "acres": 3.5,
+   "lat": 34.01946431,
+   "lon": -117.5012966,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "LIMONITE",
+   "acres": 18.0,
+   "lat": 33.960221,
+   "lon": -117.511201,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "HILLSIDE",
+   "acres": 2.3,
+   "lat": 33.907892,
+   "lon": -117.543355,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "MARLATT",
+   "acres": 1.0,
+   "lat": 33.981082,
+   "lon": -117.513497,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "BALDWIN",
+   "acres": 2.0,
+   "lat": 33.982007,
+   "lon": -117.466393,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "LANDON",
+   "acres": 4.7,
+   "lat": 33.998227,
+   "lon": -117.544317,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "DAM",
+   "acres": 1.0,
+   "lat": 34.161522,
+   "lon": -117.767881,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "SERFAS",
+   "acres": 1.61,
+   "lat": 33.880015,
+   "lon": -117.613227,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "PEDLEY",
+   "acres": 4.5,
+   "lat": 33.975551,
+   "lon": -117.47173,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "BEACH",
+   "acres": 38.0,
+   "lat": 33.975524,
+   "lon": -117.49488,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  },
+  {
+   "year": 2024,
+   "name": "DODD",
+   "acres": 1.25,
+   "lat": 33.992714,
+   "lon": -117.50915,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "PEDLEY",
+   "acres": 15.0,
+   "lat": 34.017513,
+   "lon": -117.479583,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "PEDLEY",
+   "acres": 5.0,
+   "lat": 33.971614,
+   "lon": -117.467667,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "LANDON",
+   "acres": 3.0,
+   "lat": 33.998232,
+   "lon": -117.546147,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "CANYON CREST",
+   "acres": 254.0,
+   "lat": 34.032968,
+   "lon": -117.481247,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "RINCON.",
+   "acres": 1.5,
+   "lat": 33.90445,
+   "lon": -117.600248,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "TROTH",
+   "acres": 6.0,
+   "lat": 33.975493,
+   "lon": -117.516729,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "61422334",
+   "acres": 1.0,
+   "lat": 33.9319136,
+   "lon": -117.5216261,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "61275073",
+   "acres": 1.0,
+   "lat": 34.09067211,
+   "lon": -117.6414854,
+   "aqua": false,
+   "terra": false,
+   "viirs": false
+  },
+  {
+   "year": 2024,
+   "name": "62826933",
+   "acres": 3.0,
+   "lat": 33.9718043,
+   "lon": -117.4867229,
+   "aqua": false,
+   "terra": false,
+   "viirs": true
+  }
+ ],
+ "validation_variant": "IBGE 2019 cell-center sensitivity rerun; not merged production data",
+ "biome_lookup_source": "IBGE 2019 1:250000, EPSG:4674 transformed to EPSG:4326"
+}

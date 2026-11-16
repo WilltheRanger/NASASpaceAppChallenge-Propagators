@@ -1,0 +1,148 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (FIRMS United States country files, simplified state outline).",
+ "region": "us-california",
+ "fields": "log_aqua_over_terra = log(Aqua/Terra) near-nadir daytime counts on the same days; gap_h = Aqua minus Terra look time (hours); beta = change in log fire count per hour of look time",
+ "beta_baseline": 0.099,
+ "beta_baseline_ci95": [
+  0.057,
+  0.127
+ ],
+ "beta_fit_2012_2025": {
+  "slope": 0.068,
+  "intercept": 0.048,
+  "slope_ci95": [
+   -0.034,
+   0.165
+  ]
+ },
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:56",
+   "gap_h": 2.227,
+   "log_aqua_over_terra": 0.462,
+   "lo": 0.013,
+   "hi": 0.748
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:57",
+   "gap_h": 2.229,
+   "log_aqua_over_terra": 0.215,
+   "lo": 0.081,
+   "hi": 0.36
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:08",
+   "terra_lst": "10:57",
+   "gap_h": 2.189,
+   "log_aqua_over_terra": 0.298,
+   "lo": 0.022,
+   "hi": 0.509
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:10",
+   "terra_lst": "11:00",
+   "gap_h": 2.167,
+   "log_aqua_over_terra": 0.294,
+   "lo": 0.091,
+   "hi": 0.45
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:11",
+   "terra_lst": "10:57",
+   "gap_h": 2.231,
+   "log_aqua_over_terra": 0.07,
+   "lo": -0.103,
+   "hi": 0.273
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:57",
+   "gap_h": 2.17,
+   "log_aqua_over_terra": 0.073,
+   "lo": -0.103,
+   "hi": 0.244
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:10",
+   "terra_lst": "10:57",
+   "gap_h": 2.206,
+   "log_aqua_over_terra": 0.221,
+   "lo": -0.119,
+   "hi": 0.422
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:56",
+   "gap_h": 2.196,
+   "log_aqua_over_terra": -0.009,
+   "lo": -0.237,
+   "hi": 0.253
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:06",
+   "terra_lst": "10:57",
+   "gap_h": 2.159,
+   "log_aqua_over_terra": 0.323,
+   "lo": 0.142,
+   "hi": 0.489
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:07",
+   "terra_lst": "10:55",
+   "gap_h": 2.209,
+   "log_aqua_over_terra": 0.345,
+   "lo": 0.067,
+   "hi": 0.495
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:09",
+   "terra_lst": "10:45",
+   "gap_h": 2.391,
+   "log_aqua_over_terra": 0.023,
+   "lo": -0.156,
+   "hi": 0.187
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "13:26",
+   "terra_lst": "10:30",
+   "gap_h": 2.926,
+   "log_aqua_over_terra": 0.123,
+   "lo": -0.075,
+   "hi": 0.283
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "13:47",
+   "terra_lst": "10:09",
+   "gap_h": 3.625,
+   "log_aqua_over_terra": 0.14,
+   "lo": -0.113,
+   "hi": 0.38
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "14:18",
+   "terra_lst": "09:48",
+   "gap_h": 4.503,
+   "log_aqua_over_terra": 0.505,
+   "lo": 0.213,
+   "hi": 0.744
+  }
+ ],
+ "validation_variant": "Historical IBGE exact-coordinate classification; isolated candidate, not production"
+}

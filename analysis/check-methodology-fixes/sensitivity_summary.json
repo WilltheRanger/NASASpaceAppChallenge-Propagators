@@ -1,0 +1,27 @@
+{
+  "p5_original_pass": {
+    "supported": 28,
+    "eligible": 29
+  },
+  "p5_exploratory_paired_difference_contains_zero": {
+    "supported": 28,
+    "eligible": 29
+  },
+  "p7_original_pass": {
+    "supported": 16,
+    "eligible": 23
+  },
+  "p7_exploratory_matched_near_nadir_pass": {
+    "supported": 21,
+    "eligible": 23
+  },
+  "p10_original_pass": {
+    "supported": 15,
+    "eligible": 23
+  },
+  "p10_exploratory_matched_near_nadir_pass": {
+    "supported": 19,
+    "eligible": 23
+  },
+  "warning": "Post-hoc sensitivities do not replace original checks or establish causality; near-nadir sensitivities retain original eligible rows for comparability."
+}

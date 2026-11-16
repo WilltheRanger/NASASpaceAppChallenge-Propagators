@@ -1,0 +1,66 @@
+{
+ "mock": false,
+ "note": "Real. Scored by analysis/statistics/checks.py against the written rules in research/predictions.md.",
+ "checks": [
+  {
+   "id": "P1",
+   "name": "Aqua's look time over each Brazilian biome rises every year 2021-2025; VIIRS stays flat",
+   "status": "pending",
+   "detail": "Reading (a) 2022-2025 each >= prior year: 6/6 biomes. Reading (b) also 2021 >= 2020: 3/6 (amazon 2021 vs 2020: -0.7 min; cerrado 2021 vs 2020: -0.9 min; pantanal 2021 vs 2020: -0.6 min). S-NPP within 10 min of 2012-2020 every year: 6/6. Readings disagree: the team must pick one in research/predictions.md before this is scored."
+  },
+  {
+   "id": "P2",
+   "name": "Punjab Aqua look time follows Jethva 2026 (1:44 PM in 2021 to 3:12 PM in 2025)",
+   "status": "pass",
+   "detail": "Aqua later every year 2021-2025: yes; total rise 76 min (rule 60-120). Our absolute times run 27-39 min earlier than Jethva's; time convention not yet checked."
+  },
+  {
+   "id": "P3",
+   "name": "Our FIRMS Aqua data reproduces INPE's reference counts",
+   "status": "pass",
+   "detail": "Biome-months 2012-2020 within 10% of INPE: 96.6% with all daytime Aqua detections, 81.6% with the plan's filters (type 0, confidence >= 30). Rule: >= 90%. Note: P3 was computed before the predictions were committed (see the honest timeline)."
+  },
+  {
+   "id": "P4",
+   "name": "Day-to-day sampling noise explains the pre-drift wobble",
+   "status": "pass",
+   "detail": "Placebo years (2012-2020, each held out) whose 95% block-bootstrap interval contains 1: amazon 7/9, cerrado 9/9, caatinga 8/9, mata_atlantica 8/9, pantanal 7/9, pampa 8/9. Rule: >= 7/9. Detection rule used: L outside the placebo range."
+  },
+  {
+   "id": "P5",
+   "name": "Fire-size mix doesn't explain the audit",
+   "status": "pass",
+   "detail": "L_strat (days split into S-NPP mean-FRP terciles, reweighted to the 2012-2020 mix) inside L's 95% interval in 29/29 biome-years 2021-2025. Largest move: 0.082. Day-level classes (the daily file has no per-detection FRP)."
+  },
+  {
+   "id": "P6",
+   "name": "VIIRS is a stable clock",
+   "status": "pass",
+   "detail": "L with NOAA-20 as reference inside L with S-NPP's 95% interval in 30/30 biome-years 2021-2025 (both baselines 2018-2020, the years both satellites flew). Largest gap: 0.204."
+  },
+  {
+   "id": "P7",
+   "name": "Closure: the timing slope predicts the observed L",
+   "status": "fail",
+   "detail": "L_pred inside the 90% interval of L in 16/23 strict biome-years (70%; rule >= 75%). beta = log(Aqua/Terra) per hour of look-time gap, 2012-2020 (same MODIS sensor, same days). Misses: amazon 2023 (pred 1.12, obs 1.01), amazon 2024 (pred 1.29, obs 1.09), cerrado 2024 (pred 1.10, obs 1.18), caatinga 2024 (pred 1.21, obs 1.47), mata_atlantica 2021 (pred 1.01, obs 1.05), mata_atlantica 2023 (pred 1.10, obs 1.02), pantanal 2024 (pred 1.10, obs 0.97)."
+  },
+  {
+   "id": "P8",
+   "name": "VIIRS detects small real fires better than MODIS",
+   "status": "pass",
+   "detail": "a50 (fire size detected half the time), 2012-2020: S-NPP 319 acres [271.0, 375.1], Aqua 946 acres [777.2, 1168.0]. Not pre-registered (computed before the commit)."
+  },
+  {
+   "id": "P9",
+   "name": "Opposite drifts move the Terra and Aqua probes in opposite directions",
+   "status": "fail",
+   "detail": "Pass in 4/6 biomes with beta > 0: amazon A up, T down; cerrado A up, T down; caatinga A up, T down; mata_atlantica A up, T down; pantanal A not monotone, T not monotone; pampa A up, T not monotone. Deviation: the written gate uses VIIRS same-day pairs, but S-NPP and NOAA-20 look at the same local time (13:31 vs 13:31 over the Amazon in 2024), so that slope cannot be measured. Gate used: the MODIS Terra/Aqua slope beta."
+  },
+  {
+   "id": "P10",
+   "name": "The two-clock difference agrees with the audit",
+   "status": "fail",
+   "detail": "Clock share of log A_y = clock_diff x dA/(dA - dT) inside the 95% interval of log L_y in 14/23 biome-years 2022-2025 (61%; rule >= 75%). Misses: amazon 2025, cerrado 2025, caatinga 2023, caatinga 2024, mata_atlantica 2024, mata_atlantica 2025, pantanal 2023, pantanal 2024, pampa 2023."
+  }
+ ]
+}

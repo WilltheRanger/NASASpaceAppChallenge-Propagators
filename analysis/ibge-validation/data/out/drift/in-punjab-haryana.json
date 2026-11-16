@@ -1,0 +1,138 @@
+{
+ "mock": false,
+ "region": "in-punjab-haryana",
+ "generated": "2026-11-15T01:32:46.975870Z",
+ "script": "analysis/drift-regions/drift_regions.py",
+ "commit": "f62706c1f02b9ecec592d65bc68cbf5dbc071062",
+ "method": "median local solar time, daytime type==0, MODIS conf>=30, VIIRS n/h, scan<=1.3",
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:17",
+   "terra_lst": "10:49",
+   "viirs_lst": "13:07",
+   "n_aqua": 12624,
+   "n_terra": 3440,
+   "n_viirs": 96426
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:16",
+   "terra_lst": "10:51",
+   "viirs_lst": "13:09",
+   "n_aqua": 11966,
+   "n_terra": 3031,
+   "n_viirs": 90080
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:16",
+   "terra_lst": "10:49",
+   "viirs_lst": "13:17",
+   "n_aqua": 11517,
+   "n_terra": 2618,
+   "n_viirs": 103331
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:17",
+   "terra_lst": "10:48",
+   "viirs_lst": "13:13",
+   "n_aqua": 10201,
+   "n_terra": 2231,
+   "n_viirs": 88964
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:16",
+   "terra_lst": "10:52",
+   "viirs_lst": "13:11",
+   "n_aqua": 14523,
+   "n_terra": 2714,
+   "n_viirs": 118126
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:16",
+   "terra_lst": "10:51",
+   "viirs_lst": "13:13",
+   "n_aqua": 10472,
+   "n_terra": 1659,
+   "n_viirs": 84325
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:17",
+   "terra_lst": "10:49",
+   "viirs_lst": "13:11",
+   "n_aqua": 11388,
+   "n_terra": 2614,
+   "n_viirs": 87851
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:13",
+   "terra_lst": "10:47",
+   "viirs_lst": "13:12",
+   "n_aqua": 9295,
+   "n_terra": 2180,
+   "n_viirs": 72261
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:17",
+   "terra_lst": "10:51",
+   "viirs_lst": "13:11",
+   "n_aqua": 12365,
+   "n_terra": 1709,
+   "n_viirs": 94834
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:17",
+   "terra_lst": "10:48",
+   "viirs_lst": "13:06",
+   "n_aqua": 13007,
+   "n_terra": 2547,
+   "n_viirs": 105295
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:20",
+   "terra_lst": "10:41",
+   "viirs_lst": "13:11",
+   "n_aqua": 9575,
+   "n_terra": 1808,
+   "n_viirs": 71311
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "13:37",
+   "terra_lst": "10:24",
+   "viirs_lst": "13:12",
+   "n_aqua": 7148,
+   "n_terra": 948,
+   "n_viirs": 51546
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "13:56",
+   "terra_lst": "10:08",
+   "viirs_lst": "13:08",
+   "n_aqua": 5499,
+   "n_terra": 1437,
+   "n_viirs": 34890
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "14:33",
+   "terra_lst": "09:39",
+   "viirs_lst": "13:10",
+   "n_aqua": 3838,
+   "n_terra": 1337,
+   "n_viirs": 27364
+  }
+ ],
+ "validation_variant": "IBGE 2019 cell-center sensitivity rerun; not merged production data",
+ "biome_lookup_source": "IBGE 2019 1:250000, EPSG:4674 transformed to EPSG:4326"
+}

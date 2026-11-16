@@ -1,0 +1,17 @@
+{
+  "source_url": "https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_ambientais/biomas/vetores/Biomas_250mil.zip",
+  "source_sha256": "1d8a4d860d9c203b10ef41dd0701ced2e389ad86442e23a815a7cccdc98ca0c5",
+  "edition": "IBGE 2019, 1:250000",
+  "source_crs": "EPSG:4674",
+  "target_crs": "EPSG:4326",
+  "method": "0.1 degree cell center; no nearest fill; not exact per-detection boundary assignment",
+  "cells": 71049,
+  "biome_cells": {
+    "amazon": 34460,
+    "caatinga": 7104,
+    "cerrado": 16660,
+    "mata_atlantica": 9699,
+    "pampa": 1825,
+    "pantanal": 1301
+  }
+}

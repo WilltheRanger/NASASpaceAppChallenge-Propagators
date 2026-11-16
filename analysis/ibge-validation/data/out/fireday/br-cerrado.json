@@ -1,0 +1,149 @@
+{
+ "mock": false,
+ "note": "Real. NASA FIRMS MODIS C6.1 and VIIRS daily counts (brady/brazil-data).",
+ "region": "br-cerrado",
+ "fields": "log_aqua_over_terra = log(Aqua/Terra) near-nadir daytime counts on the same days; gap_h = Aqua minus Terra look time (hours); beta = change in log fire count per hour of look time",
+ "beta_baseline": 0.144,
+ "beta_baseline_ci95": [
+  0.131,
+  0.154
+ ],
+ "beta_fit_2012_2025": {
+  "slope": 0.192,
+  "intercept": -0.155,
+  "slope_ci95": [
+   0.148,
+   0.249
+  ]
+ },
+ "years": [
+  {
+   "year": 2012,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "gap_h": 3.284,
+   "log_aqua_over_terra": 0.471,
+   "lo": 0.363,
+   "hi": 0.57
+  },
+  {
+   "year": 2013,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:23",
+   "gap_h": 3.292,
+   "log_aqua_over_terra": 0.453,
+   "lo": 0.367,
+   "hi": 0.563
+  },
+  {
+   "year": 2014,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "gap_h": 3.294,
+   "log_aqua_over_terra": 0.53,
+   "lo": 0.387,
+   "hi": 0.654
+  },
+  {
+   "year": 2015,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "gap_h": 3.282,
+   "log_aqua_over_terra": 0.582,
+   "lo": 0.454,
+   "hi": 0.672
+  },
+  {
+   "year": 2016,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "gap_h": 3.275,
+   "log_aqua_over_terra": 0.446,
+   "lo": 0.323,
+   "hi": 0.566
+  },
+  {
+   "year": 2017,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "gap_h": 3.292,
+   "log_aqua_over_terra": 0.43,
+   "lo": 0.364,
+   "hi": 0.53
+  },
+  {
+   "year": 2018,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:24",
+   "gap_h": 3.288,
+   "log_aqua_over_terra": 0.491,
+   "lo": 0.329,
+   "hi": 0.617
+  },
+  {
+   "year": 2019,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:23",
+   "gap_h": 3.311,
+   "log_aqua_over_terra": 0.456,
+   "lo": 0.387,
+   "hi": 0.504
+  },
+  {
+   "year": 2020,
+   "aqua_lst": "13:42",
+   "terra_lst": "10:23",
+   "gap_h": 3.31,
+   "log_aqua_over_terra": 0.398,
+   "lo": 0.217,
+   "hi": 0.519
+  },
+  {
+   "year": 2021,
+   "aqua_lst": "13:41",
+   "terra_lst": "10:20",
+   "gap_h": 3.347,
+   "log_aqua_over_terra": 0.543,
+   "lo": 0.426,
+   "hi": 0.662
+  },
+  {
+   "year": 2022,
+   "aqua_lst": "13:46",
+   "terra_lst": "10:11",
+   "gap_h": 3.582,
+   "log_aqua_over_terra": 0.587,
+   "lo": 0.442,
+   "hi": 0.733
+  },
+  {
+   "year": 2023,
+   "aqua_lst": "13:58",
+   "terra_lst": "09:56",
+   "gap_h": 4.025,
+   "log_aqua_over_terra": 0.521,
+   "lo": 0.39,
+   "hi": 0.614
+  },
+  {
+   "year": 2024,
+   "aqua_lst": "14:23",
+   "terra_lst": "09:37",
+   "gap_h": 4.755,
+   "log_aqua_over_terra": 0.805,
+   "lo": 0.632,
+   "hi": 0.937
+  },
+  {
+   "year": 2025,
+   "aqua_lst": "14:58",
+   "terra_lst": "09:10",
+   "gap_h": 5.801,
+   "log_aqua_over_terra": 0.957,
+   "lo": 0.851,
+   "hi": 1.132
+  }
+ ],
+ "validation_variant": "IBGE 2019 cell-center sensitivity rerun; not merged production data",
+ "biome_lookup_source": "IBGE 2019 1:250000, EPSG:4674 transformed to EPSG:4326"
+}
