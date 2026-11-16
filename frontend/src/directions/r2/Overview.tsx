@@ -24,7 +24,7 @@ import { OVERVIEW_PHOTO, photoFor } from '@/r2/photos'
 import factsJson from '../../../../data/out/facts.json'
 import { cn } from '@/lib/utils'
 import {
-  CAVEAT, FEATURED, andList, IMG, JETHVA, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
+  CAVEAT, FEATURED, andList, IMG, JETHVA, More, Reveal, Rule, SatMark, SiteBar, focusRing, numWord, shell, textLink, useInView,
   primaryButton, useMedia, useMotion, type Leave, type Links,
 } from './common'
 
@@ -233,7 +233,7 @@ function OneDay({ links, leave }: { links: Links; leave: Leave }) {
     { mark: look.viirs, title: 'Other satellites kept their time', description: <>VIIRS still looks at about {look.viirs}. {DAY.ratio != null ? <>From 2012 to 2020, Aqua made about {Math.round(DAY.ratio * 100)} fire detections for every 100 by VIIRS. </> : null}That 2012–2020 rate times VIIRS’s count is the benchmark.</> },
   ]
   return (
-    <section id="day" aria-labelledby="day-h">
+    <section id="day" aria-labelledby="day-h" className="border-t border-[color:var(--hairline)]">
       <div className={cn(shell, 'pb-6 lg:pb-12')}>
         <div className="flex flex-col gap-5 pt-8 lg:pt-12">
           <h2 id="day-h" className="max-w-[22ch] text-balance text-[40px] font-medium leading-[1.02] tracking-[-0.02em]">
@@ -406,7 +406,6 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
                 : FINDING.join(' ')}
             </h2>
             {DECLINE ? <p className="mt-4 max-w-[40rem] text-base text-[color:var(--ink)]">{UNUSUAL_LINE}</p> : null}
-            <p className="mt-6 max-w-[40rem] text-lg text-[color:var(--ink)]">Read year-to-year changes in the official count alongside the benchmark.</p>
             <a href="#overview-sources" className={cn(textLink, 'mt-4 inline-flex min-h-11 items-center text-sm text-[color:var(--ink)]')}>Figures, definitions and sources ↓</a>
           </div>
           <Reveal className="lg:col-span-3 lg:col-start-10 lg:self-start lg:pt-2">
@@ -443,9 +442,11 @@ function Places() {
           <PlaceRow key={r.id} r={r} i={i} />
         ))}
       </ol>
-      <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
+      <More label="About the range" className="mt-4">
+      <p className="mt-2 max-w-[64rem] text-xs text-[color:var(--bone3)]">
         Unusual: the likely range is wholly outside the usual range. Close call: just outside the usual range, but the likely range overlaps it. <a href="#overview-sources" className={textLink}>Definitions and sources ↓</a>
       </p>
+      </More>
     </div>
   )
 }
@@ -456,7 +457,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
   // the column names show above each value on phones; on wide screens the header row shows them and these stay for screen readers
   const label = 'mb-1.5 block text-xs text-[color:var(--bone3)] md:sr-only'
   const chip = r.read ? (
-    <span className="block">
+    <span className="block max-md:text-right">
       <span className={cn('inline-block rounded px-2 py-0.5 text-sm', r.read.unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : r.read.close ? 'border border-[color:var(--bone-30)] text-[color:var(--bone)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone2)]')}>
         {r.read.unusual ? 'Unusual' : r.read.close ? 'Close call' : 'Not unusual'}
       </span>
@@ -467,7 +468,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
   )
   return (
     <Reveal as="li" delay={i * 80}>
-      <div className={cn('grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
+      <div className={cn('grid grid-cols-2 items-center gap-x-4 gap-y-3 border-b border-[color:var(--hairline)] py-5 md:gap-x-6 md:py-4', COLS)}>
         <span className="flex min-w-0 items-center gap-4">
           <span className="block h-14 w-20 shrink-0 overflow-hidden rounded-[3px] md:h-16 md:w-24">
             <img
@@ -482,25 +483,24 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
           </span>
           <span className="min-w-0 text-lg font-medium leading-tight text-[color:var(--bone)] md:text-xl">{r.name}</span>
         </span>
-        <span className="md:hidden">{chip}</span>
-        <span className="col-span-2 md:col-span-1">
-          <span className={label}>How much later Aqua looks</span>
+        <span className="justify-self-end md:hidden">{chip}</span>
+        <span>
+          <span className={label}><span className="md:hidden">Aqua looks later</span><span className="max-md:hidden">How much later Aqua looks</span></span>
           <span className="text-lg tabular-nums text-[color:var(--bone)]">+{r.look?.minutes ?? '—'} min</span>
           {r.look ? <span className="sr-only"> (from {r.look.old} to {r.look.now})</span> : null}
-          {r.look ? <MiniShift old={r.look.old} now={r.look.now} /> : null}
+          {r.look ? <span className="max-md:hidden"><MiniShift old={r.look.old} now={r.look.now} /></span> : null}
         </span>
-        <span className="col-span-2 md:col-span-1">
-          <span className={label}>{YEAR} count vs the benchmark</span>
+        <span>
+          <span className={label}><span className="md:hidden">vs benchmark</span><span className="max-md:hidden">{YEAR} count vs the benchmark</span></span>
           {r.read ? (
             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
               <RollingDigits text={pct(r.read.gap, 0)} motion={motion.on} className="text-lg text-[color:var(--bone)]" />
-              <span className="text-xs tabular-nums text-[color:var(--bone3)]">Likely range: {fmtRange(r.read.lo, r.read.hi, 0)}</span>
+              <span className="text-xs tabular-nums text-[color:var(--bone3)] max-md:hidden">Likely range: {fmtRange(r.read.lo, r.read.hi, 0)}</span>
             </span>
           ) : (
-            <span className="block text-sm text-[color:var(--bone2)]">Too few fires to read in {YEAR}</span>
+            <span className="block text-sm text-[color:var(--bone2)]"><span className="md:hidden">Too few fires</span><span className="max-md:hidden">Too few fires to read in {YEAR}</span></span>
           )}
-          <Strip r={r} />
-          <span className="md:hidden"><StripAxis /></span>
+          <span className="max-md:hidden"><Strip r={r} /></span>
         </span>
         <span className="hidden md:block">{chip}</span>
       </div>
