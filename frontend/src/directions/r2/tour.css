@@ -25,6 +25,7 @@
   text-shadow: none;
 }
 .driver-popover.anchor-guide .driver-popover-footer .driver-popover-next-btn { background: #ECE9E1; color: #0B0D0B; border-color: #ECE9E1; }
+.driver-popover.anchor-guide .driver-popover-footer .driver-popover-btn-disabled { display: none; }
 .driver-popover.anchor-guide .driver-popover-footer button:focus-visible { outline: 2px solid #ECE9E1; outline-offset: 2px; }
 .driver-popover.anchor-guide .driver-popover-arrow-side-left.driver-popover-arrow { border-left-color: #1C1F1D; }
 .driver-popover.anchor-guide .driver-popover-arrow-side-right.driver-popover-arrow { border-right-color: #1C1F1D; }

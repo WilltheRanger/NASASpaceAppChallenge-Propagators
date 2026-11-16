@@ -30,7 +30,7 @@ export function startGuide(shift: string, motion: boolean) {
       element: '[data-tour="places"]',
       popover: {
         title: 'Six places, one number each',
-        description: 'Aqua’s 2025 count against what a fixed clock predicts. “Unusual” means outside the 2012–2020 range. Click a place to fly there.',
+        description: 'Aqua’s 2025 count against what we’d expect. “Unusual” means further out than any year from 2012 to 2020. Click a place to fly there.',
         side: 'right', align: 'start',
       },
     },
