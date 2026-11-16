@@ -158,15 +158,16 @@ The change is the drift itself: with sunset fixed, a later look leaves less dayl
 - **The drift also changed how Aqua samples the ground** (pixel size, gaps between scans), so L for 2024 and 2025 mixes time of day with sampling. The two-clocks test is our attempt to separate them, and its simple version failed (P10).
   - NASA's MODIS fire lead reports (Giglio, May 2025) that the drift changed pixel size (about 970 m instead of 1 km along-scan by spring 2025), the gaps between scans, bowtie overlap and view angles, and that Terra was lowered about 6 km in 2022.
   - The same talk says the effects on spatial sampling "seem to have abruptly increased in magnitude in late 2024". Amazon's L rises from 1.10 (2024) to 1.30 (2025) over that period.
-  - **Tested: Aqua's excess sits in near-nadir pixels** ([`analysis/validation/near_nadir_L.md`](analysis/validation/near_nadir_L.md); it reproduces the published L to within 0.0005).
-    - Amazon 2025: near-nadir Aqua (scan ≤ 1.3 km) gives L = 1.53 (1.34 to 1.76), and off-nadir Aqua gives 0.99 (0.88 to 1.16). Cerrado and Argentina show the same split.
-    - Aqua's near-nadir share of detections rose from 55.6% (2012 to 2020) to 66.8% (2025). Terra's rose from 51% to 58%. S-NPP's stayed at 36 to 37%.
-    - So both MODIS instruments now sample differently, as NASA's MODIS team reports.
-  - Terra's drop in 2025 (L = 0.56) appears in both near- and off-nadir pixels, the pattern a time-of-day effect would give.
-  - **Read L as Aqua departing from the fixed clock, through a mix of later look time and changed sampling.** This data cannot yet say how much of the gap each one causes.
+  - **Tested: the excess is near nadir, and the fires Aqua sees got smaller** ([`analysis/validation/README.md`](analysis/validation/README.md)).
+    - Amazon 2025, by MODIS view angle: L is 1.39 to 1.60 in every bin from 0° to about 33°, and 0.89 to 0.92 in every bin beyond. The all-pixel L is 1.30.
+    - Inside each view bin the pixel size is fixed. Aqua's median fire power per detection still fell 24% at nadir and 15% at 33° to 43°, while VIIRS's (whose clock did not move) fell 7 to 10%.
+    - So at its later look Aqua sees more, smaller fires. MODIS can only detect a small fire near nadir, which is why the excess stops around 33°. That points to a real time-of-day effect, not only a change in viewing geometry. The Cerrado shows the same pattern.
+    - Terra, which now looks earlier, loses detections at every view angle (L 0.45 to 0.71 in 2025), and its fires also got smaller.
+    - With NOAA-20 in place of S-NPP as the reference, Amazon 2025 L is 1.34 (1.15 to 1.58), against 1.30 with S-NPP.
+  - **Still open:** a sampling change can't be ruled out. It just isn't needed to explain the pattern, and these files can't measure it directly. Read L as Aqua departing from the fixed clock, mainly because it now looks later in the day.
 - **The reference clock is ending.** NASA stopped delivering new Suomi NPP data on 2 November 2026, and S-NPP is the fixed clock that L is measured against. MODIS itself is scheduled to stop collecting data on Terra in January 2027 and on Aqua around September 2027 (CAMS, 2026).
   - Any audit after 2026 has to be rebuilt on NOAA-20 and NOAA-21 VIIRS.
-  - NOAA-20 overlaps S-NPP from 2018, so its exchange rate can be estimated before S-NPP's record ends. We have not done this yet.
+  - **Done:** [`analysis/handover/`](analysis/handover/README.md) chains the 2012–2020 baseline through the 2018–2025 S-NPP/NOAA-20 overlap. Tested out of sample, it reproduces the published L (Amazon 2025: 1.29 vs 1.30), and no 2024–2025 verdict changes. The audit can continue on NOAA-20.
 - **A hotspot is a detection, not a count of fires.** One large fire makes many hotspots; a small one may make none.
 - **Small regions are noisy:** Punjab + Haryana has too few fires after 2022 for an audit.
 - **No 2026 calendar yet:** there are no 2026 yearly FIRMS files; the calendar ends in December 2025.
