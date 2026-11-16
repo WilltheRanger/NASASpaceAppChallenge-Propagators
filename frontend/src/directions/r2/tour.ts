@@ -19,35 +19,35 @@ const visible = (sel: string) => {
 export function startGuide(shift: string, motion: boolean) {
   const steps: DriveStep[] = [
     {
-      element: '[data-tour="intro"]',
+      element: '#alert-h',
       popover: {
-        title: 'What this page shows',
-        description: `NASA’s Aqua satellite now passes ${shift} later in the day. Fires burn more in the afternoon, so its fire count can change even when the fires don’t.`,
+        title: 'The question this page answers',
+        description: 'If a fire starts here today: when does each satellite pass, when would its alert reach you, and how much daylight is left to act. Pass times and sunset are real; the alert delay is your choice.',
+        side: 'right', align: 'start',
+      },
+    },
+    {
+      element: '[data-tour="then-now"]',
+      popover: {
+        title: 'What Aqua’s drift changed',
+        description: `Aqua now passes ${shift} later than in 2012–2020. Switch between then and now to see its alert and daylight change.`,
         side: 'right', align: 'start',
       },
     },
     {
       element: '[data-tour="places"]',
       popover: {
-        title: 'Six places, one number each',
-        description: 'Aqua’s 2025 count against what we’d expect. “Unusual” means further out than any year from 2012 to 2020. Click a place to fly there.',
+        title: 'Six studied places',
+        description: 'Pick one to see its own pass times and sunset. Or search any place at the top.',
         side: 'right', align: 'start',
       },
     },
     {
       element: '[data-tour="map"]',
       popover: {
-        title: 'The same test, worldwide',
-        description: 'Each square is one 2° area. Search or zoom in, then click a fire to see which satellites saw it, and when.',
+        title: 'The fires on the map',
+        description: 'Real fires from the saved file, with their dates in the corner. Click one to see which satellite saw it, and when.',
         side: 'left', align: 'center',
-      },
-    },
-    {
-      element: '[data-tour="chart"]',
-      popover: {
-        title: 'When each satellite looked',
-        description: 'One hump per satellite, by local time. Aqua (amber) now looks later than its 2012–2020 time, marked on the chart.',
-        side: 'top', align: 'center',
       },
     },
   ].filter((s) => visible(s.element as string)) as DriveStep[]

@@ -5,8 +5,8 @@
  *   page's: Terra a blue ring, VIIRS a green diamond, Aqua an amber dot. Region frames are white, so amber means Aqua.
  * STORY: A judge clicks a fire and reads which satellites saw that spot and at what local time. The chart shows each
  *   satellite's clock over everything in view, with Aqua's 2012–2020 clock marked. A studied region shows the audit as
- *   two clocks side by side; any other place shows its own past day.
- * FIRST VIEWPORT: the hook and the six regions on the left, the globe with the past day's fires, the clock chart under
+ *   two clocks side by side; any other place shows its own fires from the saved fire file.
+ * FIRST VIEWPORT: the hook and the six regions on the left, the globe with the saved file's fires, the clock chart under
  *   it, SI on the right.
  * FORM: docked rails around the map (revised after the critique and the audit; was corner instruments).
  * FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
@@ -32,7 +32,7 @@ import { DOWN, EXPLORATORY, L_STEPS, NEAR, UP, cellFeatures, cellIdAt, cellName,
 import { CellPanel } from './GlobalLayer'
 import CONTEXT from '@/r2/earth/context.json'
 import { cn } from '@/lib/utils'
-import { SiteBar, type Links } from './common'
+import { More, SiteBar, type Links } from './common'
 import { AlertPanel, type AlertDelay } from './AlertPanel'
 
 type Nav = 'dev' | 'artifact'
@@ -210,7 +210,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
 }) {
   const wide = useMedia('(min-width: 1024px)')
   // SI keeps a column of its own only on very wide screens; below that it opens over the map, so the map keeps its room
-  const xl = useMedia('(min-width: 1600px)')
+  // SI opens from its button at every width; it is not part of the first screen
+  const xl = false
   const live = nav !== 'artifact'
   const [place, setPlace] = useState<Place | null>(restorePlace)
   /** the assumed wait between a pass and its alert, for the alert panel */
@@ -228,7 +229,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   const [turns, setTurns] = useState<SiTurn[]>([])
   const [siOpen, setSiOpen] = useState(false)
   // the timing chart under the map can fold down to a bar, for a clear map
-  const [chartOpen, setChartOpen] = useState(true)
+  // the timing chart is extra to the page's question: folded until asked for
+  const [chartOpen, setChartOpen] = useState(false)
   const [tab, setTab] = useState<'info' | 'si'>('info')
   const [clock, setClockState] = useState<Clock>('new')
   /** one real fire day: which satellite's pass raises the alert, and the alert's delay (NASA's published range) */
@@ -292,7 +294,8 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
   }
   // phones: the panel is a sheet pulled up or down between three heights, so the globe stays in view
   const stageRef = useRef<HTMLElement>(null)
-  const [snap, setSnap] = useState(0)
+  // phones open with the question and the answer in view; the map shows above, and the sheet pulls down for more of it
+  const [snap, setSnap] = useState(1)
   const [pull, setPull] = useState<number | null>(null)
   const pullFrom = useRef<{ y: number; h: number; moved: boolean } | null>(null)
   const sheetPx = (i: number) => Math.round((stageRef.current?.clientHeight ?? 640) * SHEET[i])
@@ -353,7 +356,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
     const xy = p.kind === 'Place' || p.kind === 'Coordinates'
     writeParams(nav, { place: xy ? `xy-${p.lat.toFixed(4)},${p.lon.toFixed(4)}` : p.id, name: p.kind === 'Place' ? p.name : null, globe: null })
     // the place's heading takes focus, so the next Tab continues from the place, not the top of the page
-    requestAnimationFrame(() => headRef.current?.focus({ preventScroll: true }))
+    requestAnimationFrame(() => ((document.getElementById('alert-h') as HTMLElement | null) ?? headRef.current)?.focus({ preventScroll: true }))
   }
   const back = () => { setPlace(null); setArrived(false); setQ(''); setFire(null); setDay(null); setShow(ALL); setLightOpen(false); pickCell(null); writeParams(nav, { place: null, name: null, globe: '1' }) }
   const pickRegion = (id: string) => { const p = STUDIED_PLACES.find((x) => x.id === id); if (p) choose(p) }
@@ -422,6 +425,12 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
 
   // without the globe, a restored place shows its panel at once
   useEffect(() => { if (failed && place) setArrived(true) }, [failed, place])
+  // a place the map opens on, with no flight to make, still counts as arrived: the "on its way" label must not stay
+  useEffect(() => {
+    if (!place) return
+    const t = window.setTimeout(() => setArrived(true), 3500)
+    return () => window.clearTimeout(t)
+  }, [place])
 
   const padding: EarthPadding = useMemo(() => (wide
     ? { top: 24, left: 24, right: 72 + (siOpen && !xl ? 352 : 0), bottom: chartH + 28 }
@@ -467,7 +476,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: facts.d.phrase.the,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: y.look[g] })),
         rise: y.rise, set: y.set, aquaBefore: dl.baseAqua,
-        basis: `Pass times: each satellite’s usual time here in ${y.year}. Sunset: ${y.mid.day} ${MONTHS[y.mid.m - 1]}, the middle of the fire season.`,
+        basis: `Overpasses: ${y.year} average. Sunset: ${y.mid.day} ${MONTHS[y.mid.m - 1]}, mid fire season.`,
       }
     }
     if (place) {
@@ -478,12 +487,31 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
         place: place.name,
         rows: GROUPS.map((g) => ({ key: g, name: NAME[g], pass: s[g].lst })),
         rise: sun.rise, set: sun.set, aquaBefore: null,
-        basis: `Pass times: the middle of each satellite’s fire detections here on ${WHEN}. Sunset: that day, at this latitude.`,
+        basis: `Overpasses: each satellite’s detections here, ${WHEN}. Sunset: that day.`,
       }
     }
     return null
   }, [facts, place])
-  const alertPanel = alert ? <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} /> : null
+  // step 1, the place: the six studied places in a native list (phones open their own picker); search stays at the top
+  const picker = (
+    <label data-tour="places" className="relative block">
+      <span className="sr-only">Place</span>
+      <select
+        value={region ?? (place ? '__here' : '')}
+        onChange={(e) => { const v = e.target.value; if (v === '__globe') back(); else if (v !== '__here') pickRegion(v) }}
+        className={cn('h-8 w-[150px] appearance-none truncate rounded border border-[color:var(--hairline)] bg-[color:var(--surface)] pl-2.5 pr-7 text-sm text-[color:var(--bone)] hover:border-[color:var(--bone-30)]', focusRing)}
+      >
+        {place && !region ? <option value="__here">{short(place.name)}</option> : null}
+        {STUDIED_PLACES.map((p) => <option key={p.id} value={p.id}>{short(p.name)}</option>)}
+        <option value="__globe">Whole globe…</option>
+      </select>
+      <ChevronDown size={14} strokeWidth={1.75} aria-hidden className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[color:var(--bone2)]" />
+    </label>
+  )
+  const alertPanel = alert ? (
+    <AlertPanel {...alert} delay={delay} onDelay={setDelay} motion={motion} headingLevel={1} picker={picker} fires={WHEN}
+      aquaThen={clock === 'old'} onAquaThen={(t) => setClock(t ? 'old' : 'new')} />
+  ) : null
   const rail = cell ? (
     <CellRail cell={cell} year={mapYear} headRef={headRef} onBack={() => pickCell(null)} onCalendar={() => setCellOpen(true)} onZoom={() => setCellZoom(true)} zoomed={cellZoom} />
   ) : !place ? (
@@ -517,7 +545,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
       <SiteBar page="sim" links={siteLinks} leave={leave} regionsHref={regionsHref(region ?? 'br-amazon')} />
 
       <main className="fixed inset-x-0 bottom-0 top-14 flex bg-[#03060A]">
-        {place ? <h1 className="sr-only">Explore: {place.name}</h1> : null}
+        {place && !alertPanel ? <h1 className="sr-only">Explore: {place.name}</h1> : null}
         {wide ? (
           <aside aria-label="Place" className="relative z-20 flex w-[340px] shrink-0 flex-col border-r border-[color:var(--hairline)] bg-[color:var(--ground)] xl:w-[352px]">
             <div className="border-b border-[color:var(--hairline)] p-3">{search}</div>
@@ -581,6 +609,11 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
             <WorldControl grid={grid} layer={layer} setLayer={setLayer} year={mapYear} setYear={setMapYear} hover={hoverId ? cellById.get(hoverId) ?? null : null} closeIn={zoom >= 6.5} wide={wide} motion={motion} />
           ) : null}
 
+          {place && !day && !failed ? (
+            <p className={cn(glass, 'pointer-events-none absolute z-20 px-2.5 py-1.5 text-xs text-[color:var(--bone)]', wide ? 'left-4 top-4' : 'left-3')} style={wide ? undefined : { bottom: `calc(${(pull != null ? 0 : SHEET[snap]) * 100}% + ${pull ?? 0}px + 8px)` }}>
+              Fires from {WHEN}{clock === 'old' && region ? ', seen by VIIRS near Aqua’s old time' : ''}
+            </p>
+          ) : null}
           {failed ? <p className={cn(glass, 'absolute left-4 top-4 z-20 px-3 py-2 text-xs text-[color:var(--bone2)]')}>This browser can’t draw the 3D globe. The numbers below are unaffected.</p> : null}
 
           {/* zoom, the whole globe, and SI where it has no rail */}
@@ -592,7 +625,7 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
                 </button>
               ) : null}
               {/* the guide: back to the whole globe, the chart open, then the four steps */}
-              <button type="button" onClick={() => { if (place) back(); setChartOpen(true); window.setTimeout(() => startGuide(SHIFT, motion), place ? 600 : 0) }} className={cn(glass, 'flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
+              <button type="button" onClick={() => startGuide(SHIFT, motion)} className={cn(glass, 'flex h-10 items-center gap-2 px-3 text-sm text-[color:var(--bone)] hover:bg-[color:var(--raised)]', focusRing)}>
                 <CircleHelp size={15} strokeWidth={1.75} aria-hidden /> Guide
               </button>
               <div role="group" aria-label="Map view" className={cn(glass, 'flex w-10 flex-col divide-y divide-[color:var(--hairline)] overflow-hidden')}>
@@ -662,23 +695,16 @@ export default function Simulator({ home, regionsHref, overviewHref, methodHref,
                 >
                   <span aria-hidden className="h-1 w-10 rounded-full bg-[color:var(--bone-30)]" />
                 </button>
-                <div className="px-4">
-                  <SegmentedControl<'info' | 'si'>
-                    label="Panel"
-                    value={tab}
-                    onChange={setTab}
-                    motion={motion}
-                    segmentClassName="py-2 text-center"
-                    options={[{ value: 'info', label: place ? short(place.name) : 'Fires', name: 'Place and fires' }, { value: 'si', label: 'Ask SI', name: 'Ask SI' }]}
-                  />
-                </div>
                 {tab === 'si' ? (
-                  si(undefined, 'min-h-0 flex-1')
+                  si(() => setTab('info'), 'min-h-0 flex-1')
                 ) : (
                   <div data-sheet-scroll className="min-h-0 flex-1 overflow-y-auto pb-4">
-                    {fire != null ? <div className="px-4 pt-3"><FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} docked /></div> : null}
+                    {fire != null ? <div className="px-4 pt-1"><FireCard i={fire} onClose={() => setFire(null)} square={fireSquare} docked /></div> : null}
                     {rail}
                     <div className="px-4">{chart}</div>
+                    <div className="px-4 pt-4">
+                      <button type="button" onClick={() => setTab('si')} className={cn(secondary, 'w-full justify-center')}><MessageSquare size={15} strokeWidth={1.75} aria-hidden /> Ask SI about this place</button>
+                    </div>
                     {footer}
                   </div>
                 )}
@@ -924,7 +950,7 @@ const BackButton = ({ onBack, label = 'All regions' }: { onBack: () => void; lab
 
 type Clock = 'old' | 'new'
 /** the phone sheet's three heights, as shares of the stage */
-const SHEET = [0.24, 0.52, 0.88]
+const SHEET = [0.24, 0.8, 0.94]
 
 function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion, clock, onClock, daylight, alert }: {
   f: Facts; headRef: RefObject<HTMLHeadingElement>; onBack: () => void; onStrongest: () => void; studyHref: string; leave: Leave; motion: boolean
@@ -935,13 +961,14 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
   const count = f.count ? { old: f.count.old, new: f.count.now } : null
   const light = { old: f.light.old, new: f.light.now }
   return (
-    <div className="flex flex-col gap-6 px-5 pb-6 pt-4">
-      <BackButton onBack={onBack} />
+    <div className="flex flex-col gap-5 px-4 pb-6 pt-3 sm:px-5 sm:pt-4">
+      {alert}
+      <More label={`More about ${f.d.phrase.the}`}>
+      <div className="flex flex-col gap-6 pt-3">
       <div>
         <h2 ref={headRef} tabIndex={-1} className="text-2xl font-medium leading-tight tracking-[-0.015em] text-[color:var(--bone)] outline-none">{short(f.d.name)}</h2>
         <p className="mt-1 text-sm text-[color:var(--bone3)]">{f.country}{f.season ? ` · fire season ${f.season}` : ''}</p>
       </div>
-      {alert ? <div className="border-y border-[color:var(--hairline)] py-5">{alert}</div> : null}
       {f.count ? (
         <div>
           <p className="text-[40px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[color:var(--bone)]">{signed(f.count.gap)}%</p>
@@ -957,18 +984,7 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
       ) : null}
       {/* the switch: Aqua at its old time or its new one; the numbers roll and the map follows */}
       <section aria-labelledby="try-h" className="flex flex-col gap-3">
-        <h3 id="try-h" className="text-sm font-medium text-[color:var(--bone)]">Try Aqua’s two times</h3>
-        <SegmentedControl<Clock>
-          label="Aqua's time"
-          value={clock}
-          onChange={onClock}
-          motion={motion}
-          segmentClassName="px-3 py-2 text-left"
-          options={[
-            { value: 'old', name: `Old time, ${f.look.old ?? 'unknown'}`, label: <span><span className="block text-sm font-medium">Old time</span><span className="block text-xs tabular-nums opacity-80">{f.look.old ?? '—'}</span></span> },
-            { value: 'new', name: `New time, ${f.look.now ?? 'unknown'}`, label: <span><span className="block text-sm font-medium">New time</span><span className="block text-xs tabular-nums opacity-80">{f.look.now ?? '—'}</span></span> },
-          ]}
-        />
+        <h3 id="try-h" className="text-sm font-medium text-[color:var(--bone)]">Aqua {old ? 'then (2012–2020)' : 'now'}: the switch above sets these too</h3>
         <dl className="flex flex-col">
           <Readout name="Aqua looks at" value={look[clock]} basis={look[old ? 'new' : 'old']} format={fmtHM} formatDelta={(d) => `${d > 0 ? '+' : '−'}${Math.abs(Math.round(d * 60))} min`} motion={motion} />
           {count ? (
@@ -986,7 +1002,10 @@ function RegionPanel({ f, headRef, onBack, onStrongest, studyHref, leave, motion
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={onStrongest} className={secondary}><Flame size={15} strokeWidth={1.75} aria-hidden /> Strongest fire</button>
         <a href={studyHref} onClick={leave} className={primary}>{short(f.d.name)} in Regions <ArrowRight size={15} strokeWidth={1.75} aria-hidden /></a>
+        <button type="button" onClick={onBack} className={secondary}><Globe2 size={15} strokeWidth={1.75} aria-hidden /> Whole globe</button>
       </div>
+      </div>
+      </More>
     </div>
   )
 }
@@ -1046,7 +1065,7 @@ function PlacePanel({ place, headRef, onBack, onFly, onStrongest, cell, year, on
       ) : null}
       <div>
         <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--hairline)] pb-2">
-          <h3 className="text-sm font-medium text-[color:var(--bone)]">Past day here</h3>
+          <h3 className="text-sm font-medium text-[color:var(--bone)]">Fires here, {WHEN}</h3>
           <span className="text-xs text-[color:var(--bone3)]">{WHEN}</span>
         </div>
         <table className="w-full border-collapse">
@@ -1102,7 +1121,7 @@ function FireDayPanel({ day, setDay, onClose, motion }: { day: { src: DaySource;
             Real data: {DAY_FIRES.length} fires, which satellites saw each, and when each passed (NASA FIRMS). S-NPP and NOAA-20 carry VIIRS. The delay is the range NASA publishes for its fire data.
           </p>
         </div>
-        <button type="button" aria-label="Back to the past day's fires" title="Back to the past day's fires" onClick={onClose} className={cn('-mr-1 grid size-9 shrink-0 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
+        <button type="button" aria-label="Back to the fires on the map" title="Back to the fires on the map" onClick={onClose} className={cn('-mr-1 grid size-9 shrink-0 place-items-center rounded text-[color:var(--bone2)] hover:text-[color:var(--bone)]', focusRing)}>
           <X size={16} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
@@ -1197,13 +1216,13 @@ function CellRail({ cell, year, headRef, onBack, onCalendar, onZoom, zoomed }: {
       </dl>
       <div className="flex flex-wrap gap-2">
         {hasCalendar ? <button type="button" onClick={onCalendar} className={primary}>Month by month <ArrowRight size={15} strokeWidth={1.75} aria-hidden /></button> : null}
-        <button type="button" onClick={onZoom} disabled={zoomed} className={cn(secondary, 'disabled:opacity-50')}><Flame size={15} strokeWidth={1.75} aria-hidden /> {zoomed ? 'Showing this square’s fires' : 'Past day’s fires here'}</button>
+        <button type="button" onClick={onZoom} disabled={zoomed} className={cn(secondary, 'disabled:opacity-50')}><Flame size={15} strokeWidth={1.75} aria-hidden /> {zoomed ? 'Showing this square’s fires' : `Fires here, ${WHEN}`}</button>
       </div>
     </div>
   )
 }
 
-/** On the map: what it shows (the world's squares or the past day's fires), the year, the scale, and the caveat. */
+/** On the map: what it shows (the world's squares or the saved file's fires), the year, the scale, and the caveat. */
 function WorldControl({ grid, layer, setLayer, year, setYear, hover, closeIn, wide, motion }: {
   grid: GlobalGrid; layer: 'clock' | 'fires'; setLayer: (l: 'clock' | 'fires') => void; year: 2024 | 2025; setYear: (y: 2024 | 2025) => void
   hover: GlobalCell | null; closeIn: boolean; wide: boolean; motion: boolean
@@ -1223,7 +1242,7 @@ function WorldControl({ grid, layer, setLayer, year, setYear, hover, closeIn, wi
         onChange={setLayer}
         motion={motion}
         segmentClassName="px-2 py-1.5 text-center text-[13px]"
-        options={[{ value: 'clock', name: 'Aqua’s count against what we’d expect, by 2-degree square', label: 'Count by square' }, { value: 'fires', name: 'The past day’s fires', label: 'Past day’s fires' }]}
+        options={[{ value: 'clock', name: 'Aqua’s count against what we’d expect, by 2-degree square', label: 'Count by square' }, { value: 'fires', name: `Fires from ${WHEN}`, label: 'Fires' }]}
       />
       {layer === 'clock' && closeIn ? (
         <p className="mt-2 text-[11px] leading-4 text-[color:var(--bone2)]">Zoom out to see the squares.</p>
