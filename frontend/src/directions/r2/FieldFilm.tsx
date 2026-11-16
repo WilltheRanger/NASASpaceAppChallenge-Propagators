@@ -800,6 +800,9 @@ export function TwoClocks({ d, year, onYear, small, links, leave }: { d: RegionD
           <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
             Terra and Aqua carry the same kind of camera. Terra drifted earlier in the day and Aqua later, so if the time of day matters, their counts should move apart.
           </p>
+          <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone2)]">
+            This is a narrower test than the comparison with the benchmark: it counts only detections near the middle of each satellite’s view, month by month, so its percentages differ.
+          </p>
           {failed.length ? (
             <p className="mt-4 max-w-[var(--measure)] text-sm sm:text-base text-[color:var(--bone)]">
               {failed.length === 2 ? 'Two tests of this idea weren’t confirmed' : 'A test of this idea wasn’t confirmed'}, so we use it to describe the pattern, not to prove it.
