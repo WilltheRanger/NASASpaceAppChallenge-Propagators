@@ -110,7 +110,7 @@ export const fmtShift = (min: number) => { const s = min >= 0 ? '+' : '−'; con
 
 /** The audit's reading of a year, as the pipeline flags it: outside the 2012-2020 placebo range, within it, or too few
  *  hotspots to read (expected Aqua count under 300, or an interval wider than a quarter of L). */
-export type Verdict = 'outside' | 'within' | 'na'
+export type Verdict = 'outside' | 'close' | 'within' | 'na'
 
 /** INPE's official yearly count for a Brazil preset (its biome), or null elsewhere. */
 const INPE_BIOME: Record<string, string> = { 'br-amazon': 'amazon', 'br-cerrado': 'cerrado', 'br-pantanal': 'pantanal' }
@@ -164,9 +164,13 @@ export function regionData(id: RegionId) {
     const ok = y.status === 'ok' && y.L != null && y.L_lo != null && y.L_hi != null
     const lo = ok ? (y.L_lo! - 1) * 100 : null
     const hi = ok ? (y.L_hi! - 1) * 100 : null
-    const verdict: Verdict = !ok ? 'na' : y.outside_noise ? 'outside' : 'within'
+    const overlaps = ok && lo! <= placebo[1] && hi! >= placebo[0]
+    const verdict: Verdict = !ok ? 'na' : y.outside_noise ? (overlaps ? 'close' : 'outside') : 'within'
+    const gap = ok ? (y.L! - 1) * 100 : null
+    const edge = gap == null ? null : gap > placebo[1] ? placebo[1] : gap < placebo[0] ? placebo[0] : null
+    const pointsPast = edge == null || gap == null ? null : Math.abs(gap - edge)
     return {
-      year: y.year, verdict, L: ok ? y.L! : null, gap: ok ? (y.L! - 1) * 100 : null, lo, hi,
+      year: y.year, verdict, edge, pointsPast, L: ok ? y.L! : null, gap: ok ? (y.L! - 1) * 100 : null, lo, hi,
       strat: ok && y.L_strat != null ? (y.L_strat - 1) * 100 : null,
       aqua: y.aqua_count, fixed: y.fixed_count ?? null, share: ok ? y.share_of_observed_pct ?? null : null,
     }
@@ -248,6 +252,7 @@ export function verdictHeadline(d: RegionData) {
   }
   const y = d.latestOk
   if (!y) return `Too few hotspots in ${d.phrase.the} to compare Aqua with its benchmark`
+  if (y.verdict === 'close') return `In ${y.year}, Aqua’s count for ${d.phrase.the} is a close call: outside the usual range, but its likely range overlaps it`
   if (y.verdict === 'within') return `In ${y.year}, Aqua's count for ${d.phrase.the} stayed within the range of its fixed-clock benchmark`
   const n = Math.round(Math.abs(y.gap!))
   return `In ${y.year}, Aqua's count for ${d.phrase.the} ran ${n}% ${y.gap! >= 0 ? 'above' : 'below'} its fixed-clock benchmark`
@@ -263,9 +268,9 @@ export function verdictLines(d: RegionData, from = 2024, to = 2025) {
   const y = d.latestOk
   const first = d.drift[0]
   const last = d.lastDrift
-  const ratio = y && y.verdict !== 'outside' && y.L != null ? `a ratio of ${y.L.toFixed(2)} (95% interval ${(1 + y.lo! / 100).toFixed(2)}–${(1 + y.hi! / 100).toFixed(2)}), inside the 2012–2020 placebo range` : ''
+  const ratio = y && y.verdict === 'within' && y.L != null ? `a ratio of ${y.L.toFixed(2)} (95% interval ${(1 + y.lo! / 100).toFixed(2)}–${(1 + y.hi! / 100).toFixed(2)}), inside the 2012–2020 placebo range` : ''
   const counts = y && y.fixed != null
-    ? y.verdict === 'outside'
+    ? y.verdict === 'outside' || y.verdict === 'close'
       ? `On the days both satellites returned data in ${y.year}, Aqua recorded ${fmtInt(y.aqua)} daytime hotspot detections; its 2012–2020 relationship with VIIRS (S-NPP) predicted ${fmtInt(y.fixed)}.`
       : `On the days both satellites returned data in ${y.year}, Aqua recorded ${fmtInt(y.aqua)} daytime hotspot detections against ${fmtInt(y.fixed)} predicted by its 2012–2020 relationship with VIIRS (S-NPP): ${ratio}.`
     : ''

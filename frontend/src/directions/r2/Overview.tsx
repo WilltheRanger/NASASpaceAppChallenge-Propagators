@@ -37,18 +37,20 @@ const ROWS = REGIONS.map((r) => {
   const d = regionData(r.id)
   const look = lookChange(d)
   const y = d.years.find((x) => x.year === YEAR) ?? null
-  const read = y && y.verdict !== 'na' && y.gap != null && y.lo != null && y.hi != null ? { gap: y.gap, lo: y.lo, hi: y.hi, unusual: y.verdict === 'outside' } : null
+  const read = y && y.verdict !== 'na' && y.gap != null && y.lo != null && y.hi != null ? { gap: y.gap, lo: y.lo, hi: y.hi, unusual: y.verdict === 'outside', close: y.verdict === 'close' } : null
   return { id: r.id, name: r.name, short: phrase(r.id).short, look, read, band: d.placebo, usual: d.placeboYears, later: !!d.driftStart && (look?.minutes ?? 0) > 0 }
 })
 type Row = (typeof ROWS)[number]
 const UNUSUAL = ROWS.filter((r) => r.read?.unusual)
+const CLOSE = ROWS.filter((r) => r.read?.close)
 const ALL_LATER = ROWS.every((r) => r.later)
 /** The finding, worded from the rows: every place looked later; these were unusual. */
 const FINDING = [
   ALL_LATER ? `In all ${numWord(ROWS.length)} places, Aqua started looking later.` : `In ${numWord(ROWS.filter((r) => r.later).length)} of ${numWord(ROWS.length)} places, Aqua started looking later.`,
   UNUSUAL.length
-    ? `In ${numWord(UNUSUAL.length)} (${UNUSUAL.map((r) => r.short).join(', ')}), its ${YEAR} count was unusually far from what we’d expect.`
+    ? `In ${numWord(UNUSUAL.length)} (${UNUSUAL.map((r) => r.short).join(', ')}), its ${YEAR} count was clearly unusual against the benchmark.`
     : `In none was its ${YEAR} count unusually far from what we’d expect.`,
+  ...(CLOSE.length ? [`${CLOSE.map((r) => r.short).join(', ')} ${CLOSE.length === 1 ? 'is a close call' : 'are close calls'} in ${YEAR}.`] : []),
 ]
 /** INPE's official Amazon count and the VIIRS-based benchmark, 2024 to 2025 (data/out/facts.json, amazon_decline_2024_2025),
  *  and Aqua's 2025 count beside the benchmark (data/out/audit/br-amazon.json) */
@@ -386,6 +388,7 @@ function Finding({ links, leave }: { links: Links; leave: Leave }) {
                 ? <>Brazil’s official Amazon count fell {Math.abs(Math.round(DECLINE.inpe_pct))}% from 2024 to 2025; the VIIRS-based benchmark fell {Math.abs(Math.round(DECLINE.fixed_pct))}%.</>
                 : FINDING.join(' ')}
             </h2>
+            <p className="mt-4 max-w-[40rem] text-base text-[color:var(--ink)]">{FINDING.join(' ')}</p>
             {DECLINE ? (
               <p className="mt-4 text-sm tabular-nums text-[color:var(--ink)] opacity-70">
                 Official (INPE): {int(DECLINE.inpe_2024)} to {int(DECLINE.inpe_2025)} detections. Benchmark: {int(DECLINE.fixed_2024)} to {int(DECLINE.fixed_2025)}.
@@ -434,7 +437,7 @@ function Places() {
         ))}
       </ol>
       <p className="mt-4 max-w-[64rem] text-xs text-[color:var(--bone3)]">
-        Look times: local sun time, 2012–2020 against {YEAR}. Unusual: further from the benchmark than any year from 2012 to 2020; the amber line is the likely range.
+        Look times: local sun time, 2012–2020 against {YEAR}. Unusual: outside the usual range with a likely range that does not overlap it. Close call: just outside the usual range, but the likely range overlaps it.
         Punjab + Haryana is our test case, checked against <a href={JETHVA} target="_blank" rel="noreferrer" className={textLink}>Jethva 2026</a>.
       </p>
       <More label="About the range" className="mt-2">
@@ -454,7 +457,7 @@ function PlaceRow({ r, i }: { r: Row; i: number }) {
   const label = 'mb-1.5 block text-xs text-[color:var(--bone3)] md:sr-only'
   const chip = r.read ? (
     <span className={cn('inline-block rounded px-2 py-0.5 text-sm', r.read.unusual ? 'bg-[color:var(--bone)] text-[color:var(--ink)]' : 'border border-[color:var(--bone-30)] text-[color:var(--bone2)]')}>
-      {r.read.unusual ? 'Unusual' : 'Not unusual'}
+      {r.read.unusual ? 'Unusual' : r.read.close ? 'Close call' : 'Not unusual'}
     </span>
   ) : (
     <span className="text-sm text-[color:var(--bone2)]">Our test case</span>
